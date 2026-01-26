@@ -2,8 +2,14 @@
 
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
+import { ParticleSystem } from '@/components/canvas/ParticleSystem';
+import { StarNestSkybox } from '@/components/canvas/StarNestSkybox';
+import { useVisualStore } from '@/lib/stores/visualStore';
 
 export default function Home() {
+  const skyboxPreset = useVisualStore((state) => state.skyboxPreset);
+  const skyboxRotationSpeed = useVisualStore((state) => state.skyboxRotationSpeed);
+
   return (
     <main style={{ width: '100vw', height: '100vh', margin: 0, padding: 0 }}>
       <Canvas
@@ -12,13 +18,11 @@ export default function Home() {
         gl={{ antialias: true, powerPreference: 'high-performance' }}
         style={{ background: '#000000' }}
       >
+        {/* Star Nest skybox renders behind everything */}
+        <StarNestSkybox preset={skyboxPreset} rotationSpeed={skyboxRotationSpeed} />
+
         <OrbitControls />
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
-        <mesh>
-          <boxGeometry args={[1, 1, 1]} />
-          <meshStandardMaterial color="#3FBFB5" />
-        </mesh>
+        <ParticleSystem />
       </Canvas>
     </main>
   );
