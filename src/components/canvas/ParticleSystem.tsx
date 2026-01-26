@@ -7,8 +7,11 @@ import { useVisualStore } from '@/lib/stores/visualStore';
 import { useAudioStore } from '@/lib/stores/audioStore';
 
 export function ParticleSystem() {
-  const { layers, intensity } = useVisualStore();
+  const { layers, intensity, currentMode, modeConfigs } = useVisualStore();
   const { bass, mids, treble, amplitude } = useAudioStore();
+
+  // Get color palette for current mode
+  const colorPalette = modeConfigs[currentMode]?.colorPalette;
 
   // Global hue cycling for color variation
   const globalHueRef = useRef(0);
@@ -42,6 +45,7 @@ export function ParticleSystem() {
             amplitude={amplitude}
             intensity={intensity}
             globalHue={globalHueRef.current}
+            colorPalette={colorPalette}
           />
         ))}
     </group>
