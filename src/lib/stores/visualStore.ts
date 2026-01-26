@@ -21,6 +21,72 @@ interface VisualState {
   setMode: (mode: VisualMode) => void;
 }
 
+// Ethereal Flame mode configuration (plan 01-06)
+export const ETHEREAL_FLAME_CONFIG: VisualModeConfig = {
+  key: 'etherealFlame',
+  label: 'Ethereal Flame',
+  description: 'Organic upward-drifting fire particles with warm colors',
+  colorPalette: {
+    primary: [1.0, 0.6, 0.1],    // Orange
+    secondary: [1.0, 0.3, 0.0],  // Red-orange
+    accent: [1.0, 0.9, 0.3],     // Yellow-white
+  },
+  skyboxPreset: 'DarkWorld1',
+  layers: [
+    // Layer 1: Flame Core - Bright, fast-rising center
+    {
+      id: 'flame-core',
+      name: 'Flame Core',
+      enabled: true,
+      particleCount: 1800,
+      baseSize: 18,            // Medium particles
+      spawnRadius: 0.08,       // Tight spawn at base
+      maxSpeed: 0.06,          // Fast upward drift
+      lifetime: 1.5,           // Short lifetime (fire flickers)
+      audioReactivity: 0.7,    // Strong bass response
+      frequencyBand: 'bass',
+      sizeAtBirth: 0.05,       // Small at birth
+      sizeAtPeak: 1.0,         // Full at peak
+      sizeAtDeath: 0.1,        // Small at death
+      peakLifetime: 0.3,       // Quick bloom, early peak
+    },
+    // Layer 2: Ember Layer - Orange/red outer particles
+    {
+      id: 'flame-embers',
+      name: 'Embers',
+      enabled: true,
+      particleCount: 1200,
+      baseSize: 12,            // Smaller ember particles
+      spawnRadius: 0.12,       // Slightly wider
+      maxSpeed: 0.04,          // Medium speed
+      lifetime: 2.0,
+      audioReactivity: 0.5,
+      frequencyBand: 'mids',
+      sizeAtBirth: 0.08,
+      sizeAtPeak: 0.9,
+      sizeAtDeath: 0.15,
+      peakLifetime: 0.25,
+    },
+    // Layer 3: Heat Haze - Subtle background warmth
+    {
+      id: 'flame-haze',
+      name: 'Heat Haze',
+      enabled: true,
+      particleCount: 800,
+      baseSize: 25,
+      spawnRadius: 0.20,
+      maxSpeed: 0.02,
+      lifetime: 2.5,
+      audioReactivity: 0.3,
+      frequencyBand: 'treble',
+      sizeAtBirth: 0.1,
+      sizeAtPeak: 1.0,
+      sizeAtDeath: 0.2,
+      peakLifetime: 0.4,
+    },
+  ],
+};
+
 // Ethereal Mist mode configuration (plan 01-05)
 export const ETHEREAL_MIST_CONFIG: VisualModeConfig = {
   key: 'etherealMist',
@@ -127,22 +193,10 @@ export const useVisualStore = create<VisualState>((set) => ({
   skyboxPreset: STAR_NEST_PRESETS[0],
   skyboxRotationSpeed: 0.5, // Default rotation speed from DarkWorld1
   // Visual mode state
-  currentMode: 'etherealMist',
+  currentMode: 'etherealFlame',
   modeConfigs: {
     etherealMist: ETHEREAL_MIST_CONFIG,
-    etherealFlame: {
-      // Placeholder for plan 01-06
-      key: 'etherealFlame',
-      label: 'Ethereal Flame',
-      description: 'Warm upward-drifting particles (coming in plan 01-06)',
-      colorPalette: {
-        primary: [1.0, 0.6, 0.3],
-        secondary: [1.0, 0.8, 0.4],
-        accent: [1.0, 0.4, 0.2],
-      },
-      skyboxPreset: 'DarkWorld1',
-      layers: DEFAULT_LAYERS,
-    },
+    etherealFlame: ETHEREAL_FLAME_CONFIG,
   },
 
   setIntensity: (intensity) => set({ intensity }),
