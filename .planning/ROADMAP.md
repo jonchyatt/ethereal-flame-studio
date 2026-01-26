@@ -20,6 +20,25 @@ This roadmap transforms audio files into publication-ready 360 VR and social med
 
 **Dependencies:** None (foundational phase)
 
+**Plans:** 8 plans in 5 waves
+
+Plans:
+- [ ] 01-01-PLAN.md — Project scaffolding (Next.js + R3F setup)
+- [ ] 01-02-PLAN.md — Audio analyzer (FFT, frequency bands, beat detection)
+- [ ] 01-03-PLAN.md — Particle system core (lifetime, size curve, dual-layer)
+- [ ] 01-04-PLAN.md — Star Nest skybox (procedural background)
+- [ ] 01-05-PLAN.md — Ethereal Mist mode (soft clouds)
+- [ ] 01-06-PLAN.md — Ethereal Flame mode (warm upward drift)
+- [ ] 01-07-PLAN.md — Mobile-friendly UI (control panels)
+- [ ] 01-08-PLAN.md — Integration (wire audio to visuals)
+
+**Wave Structure:**
+- Wave 1: 01-01 (scaffolding)
+- Wave 2: 01-02, 01-03, 01-04 (audio, particles, skybox - parallel)
+- Wave 3: 01-05, 01-06 (visual modes - parallel)
+- Wave 4: 01-07 (UI)
+- Wave 5: 01-08 (integration + verification)
+
 **Requirements:**
 - VIS-01: Real-time WebGL preview of visuals in browser
 - VIS-02: Ethereal Mist mode - soft cloud-like particle effect
@@ -54,6 +73,8 @@ This roadmap transforms audio files into publication-ready 360 VR and social med
 
 **Dependencies:** Phase 1 (visual engine must exist to configure)
 
+**Plans:** (created by /gsd:plan-phase)
+
 **Requirements:**
 - TPL-01: Save all visual settings as named template (JSON)
 - TPL-02: Load templates from library
@@ -75,6 +96,8 @@ This roadmap transforms audio files into publication-ready 360 VR and social med
 **Goal:** User can export publication-quality videos in multiple formats up to 8K
 
 **Dependencies:** Phase 1 (visual engine), Phase 2 (templates define what to render)
+
+**Plans:** (created by /gsd:plan-phase)
 
 **Requirements:**
 - AUD-03: Pre-analysis for offline rendering (amplitude-per-frame data)
@@ -102,6 +125,8 @@ This roadmap transforms audio files into publication-ready 360 VR and social med
 
 **Dependencies:** Phase 3 (rendering pipeline must work for batch processing)
 
+**Plans:** (created by /gsd:plan-phase)
+
 **Requirements:**
 - AUD-05: Whisper transcription for auto-generating video descriptions
 - AUT-01: Batch queue for processing multiple audio files
@@ -124,6 +149,8 @@ This roadmap transforms audio files into publication-ready 360 VR and social med
 
 **Dependencies:** Phase 4 (automation infrastructure must exist)
 
+**Plans:** (created by /gsd:plan-phase)
+
 **Requirements:**
 - AUT-05: n8n webhook trigger on render complete
 - AUT-06: n8n workflow for auto-posting to YouTube, social platforms
@@ -139,13 +166,13 @@ This roadmap transforms audio files into publication-ready 360 VR and social med
 
 ## Progress
 
-| Phase | Name | Status | Requirements |
-|-------|------|--------|--------------|
-| 1 | Foundation - Web UI + Visual Engine | Not Started | 17 |
-| 2 | Template System | Not Started | 6 |
-| 3 | Rendering Pipeline | Not Started | 9 |
-| 4 | Automation | Not Started | 6 |
-| 5 | n8n Integration + Remote Access | Not Started | 3 |
+| Phase | Name | Status | Requirements | Plans |
+|-------|------|--------|--------------|-------|
+| 1 | Foundation - Web UI + Visual Engine | Planned | 17 | 8 |
+| 2 | Template System | Not Started | 6 | TBD |
+| 3 | Rendering Pipeline | Not Started | 9 | TBD |
+| 4 | Automation | Not Started | 6 | TBD |
+| 5 | n8n Integration + Remote Access | Not Started | 3 | TBD |
 
 **Total:** 41 requirements across 5 phases
 
