@@ -4,6 +4,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { ParticleSystem } from '@/components/canvas/ParticleSystem';
 import { StarNestSkybox } from '@/components/canvas/StarNestSkybox';
+import { AudioControls } from '@/components/ui/AudioControls';
 import { useVisualStore } from '@/lib/stores/visualStore';
 
 export default function Home() {
@@ -24,6 +25,9 @@ export default function Home() {
         <OrbitControls />
         <ParticleSystem />
       </Canvas>
+
+      {/* Audio controls fixed at bottom */}
+      <AudioControls />
     </main>
   );
 }

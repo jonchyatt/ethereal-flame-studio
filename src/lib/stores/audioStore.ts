@@ -2,6 +2,10 @@ import { create } from 'zustand';
 import type { AudioLevels } from '@/types';
 
 interface AudioState extends AudioLevels {
+  // Backward compatibility aliases
+  mids: number;   // Alias for mid
+  treble: number; // Alias for high
+
   // Playback control state
   isPlaying: boolean;
   audioFile: File | null;
@@ -23,6 +27,10 @@ export const useAudioStore = create<AudioState>((set) => ({
   isBeat: false,
   currentScale: 1.0,
 
+  // Backward compatibility aliases
+  mids: 0,
+  treble: 0,
+
   // Playback state
   isPlaying: false,
   audioFile: null,
@@ -43,7 +51,9 @@ export const useAudioStore = create<AudioState>((set) => ({
       amplitude: levels.amplitude,
       bass: levels.bass,
       mid,
+      mids: mid,      // Alias for backward compatibility
       high: levels.high,
+      treble: levels.high, // Alias for backward compatibility
       currentScale: levels.currentScale,
     });
   },
