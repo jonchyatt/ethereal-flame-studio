@@ -79,6 +79,12 @@ Overall: [█░░░░░░░░░] 14.6% (6/41 plans estimated)
 | 2026-01-26 | Size-over-lifetime curve (01-03) | 37% birth → 100% at 20% life → 50% death (Unity reference) |
 | 2026-01-26 | BackSide skybox rendering (01-04) | Large sphere with BackSide material for infinite background |
 | 2026-01-26 | DarkWorld1 as default skybox (01-04) | User's preferred preset (THE ONE) |
+| 2026-01-26 | Peak lifetime at 50-60% for mist (01-05) | Creates centered, gentle bloom effect for cloud-like particles |
+| 2026-01-26 | Pastel color palette for mist (01-05) | Soft colors suitable for meditation and ambient backgrounds |
+| 2026-01-26 | Very slow drift for mist (01-05) | 0.004-0.008 maxSpeed mimics gentle floating clouds |
+| 2026-01-26 | 0.7 alpha softness multiplier (01-05) | Prevents harsh edges, maintains ethereal cloud quality |
+| 2026-01-26 | GLSL webpack loader (01-05) | Fixed pre-existing build error blocking verification |
+| 2026-01-26 | Tailwind v4 PostCSS plugin (01-05) | Required @tailwindcss/postcss for build compatibility |
 | 2026-01-26 | 70% upward velocity bias (01-06) | Creates convincing fire effect while maintaining organic spread |
 | 2026-01-26 | Age-based flame colors (01-06) | Yellow→Orange→Red mimics natural fire temperature gradient |
 | 2026-01-26 | Sin/cos turbulence for flame (01-06) | Organic flicker without perlin noise overhead |
@@ -111,10 +117,10 @@ None currently.
 
 ### Last Session
 - **Date:** 2026-01-26
-- **Action:** Executed plan 01-06 (Ethereal Flame mode)
-- **Outcome:** Organic fire-like particles with upward drift, warm age-based colors, realistic turbulence
+- **Action:** Executed plan 01-05 (Ethereal Mist mode) - parallel with 01-06
+- **Outcome:** Soft cloud-like particles with pastel colors, slow drift, mode-specific rendering system
 
-**Stopped at:** Completed 01-06-PLAN.md
+**Stopped at:** Completed 01-05-PLAN.md
 **Resume file:** None
 
 ### Next Session Should
@@ -129,4 +135,4 @@ None currently.
 
 ---
 
-*Last updated: 2026-01-26 18:03:56 UTC*
+*Last updated: 2026-01-26 18:06:06 UTC*
