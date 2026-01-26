@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { StarNestPreset } from "@/types";
 import starNestShader from "@/lib/shaders/starnest.frag.glsl";
+import { useAudioStore } from "@/lib/stores/audioStore";
 
 // ==========================================
 // STAR NEST PRESETS
@@ -180,8 +181,18 @@ export function StarNestSkybox({
     if (!materialRef.current) return;
     const currentPreset = presetRef.current;
 
-    // Update time
-    materialRef.current.uniforms.uTime.value = clock.elapsedTime;
+    // Get audio state for rotation modulation (VIS-07)
+    const audioState = useAudioStore.getState();
+    const amplitude = audioState.amplitude;
+    const bass = audioState.bass;
+
+    // Modulate time with audio: faster rotation when louder
+    // Base time + audio boost (1.0-2.0x speed based on amplitude + bass)
+    const audioModulation = 1.0 + (amplitude * 0.5 + bass * 0.5);
+    const modulatedTime = clock.elapsedTime * audioModulation;
+
+    // Update time with audio modulation
+    materialRef.current.uniforms.uTime.value = modulatedTime;
 
     // Update ALL preset uniforms every frame (ensures preset switching works)
     materialRef.current.uniforms.uIterations.value = currentPreset.iterations;
