@@ -43,9 +43,21 @@ export interface ParticleSystemConfig {
   // Particle system types will be defined in plan 01-03
 }
 
-export interface VisualMode {
-  // Visual mode types will be defined in plans 01-05, 01-06
-}
+// Visual mode types (plans 01-05, 01-06)
+export type VisualMode = 'etherealMist' | 'etherealFlame';
+
+export type VisualModeConfig = {
+  key: VisualMode;
+  label: string;
+  description: string;
+  layers: ParticleLayerConfig[];
+  colorPalette: {
+    primary: [number, number, number];
+    secondary: [number, number, number];
+    accent: [number, number, number];
+  };
+  skyboxPreset: string;
+};
 
 // Star Nest Skybox preset configuration
 export type StarNestPreset = {
