@@ -13,6 +13,11 @@ interface ParticleLayerProps {
   amplitude: number;
   intensity: number;
   globalHue: number;
+  colorPalette?: {
+    primary: [number, number, number];
+    secondary: [number, number, number];
+    accent: [number, number, number];
+  };
 }
 
 export function ParticleLayer({
@@ -23,6 +28,7 @@ export function ParticleLayer({
   amplitude,
   intensity,
   globalHue,
+  colorPalette,
 }: ParticleLayerProps) {
   const pointsRef = useRef<THREE.Points>(null);
   const geometryRef = useRef<THREE.BufferGeometry>(null);
@@ -62,6 +68,9 @@ export function ParticleLayer({
     const birthPositions = birthPositionsRef.current;
     const baseSizes = baseSizesRef.current;
 
+    // Check mode
+    const isFlame = config.id.includes('flame');
+
     for (let i = 0; i < particleCount; i++) {
       // Random direction on sphere
       const theta = Math.random() * Math.PI * 2;
@@ -76,11 +85,20 @@ export function ParticleLayer({
       birthPositions[i * 3 + 1] = dirY * spawnDist;
       birthPositions[i * 3 + 2] = dirZ * spawnDist;
 
-      // Outward velocity
+      // Velocity with flame-specific upward bias
       const speed = maxSpeed * (0.5 + Math.random() * 0.5);
-      velocities[i * 3] = dirX * speed;
-      velocities[i * 3 + 1] = dirY * speed;
-      velocities[i * 3 + 2] = dirZ * speed;
+      if (isFlame) {
+        // Flame: predominantly upward with lateral variation
+        const upwardBias = 0.7; // 70% of velocity is upward
+        velocities[i * 3] = dirX * speed * (1 - upwardBias) + (Math.random() - 0.5) * speed * 0.3;
+        velocities[i * 3 + 1] = Math.abs(dirY) * speed * upwardBias + speed * 0.5; // Always positive Y
+        velocities[i * 3 + 2] = dirZ * speed * (1 - upwardBias) + (Math.random() - 0.5) * speed * 0.3;
+      } else {
+        // Default: outward velocity
+        velocities[i * 3] = dirX * speed;
+        velocities[i * 3 + 1] = dirY * speed;
+        velocities[i * 3 + 2] = dirZ * speed;
+      }
 
       // Stagger birth times
       birthTimes[i] = -Math.random() * lifetime;
@@ -99,7 +117,24 @@ export function ParticleLayer({
       alphas[i] = 0;
 
       // Initial color
-      if (colorStart) {
+      const isMist = config.id.includes('mist');
+      if (isMist && colorPalette) {
+        // Mist: use palette with variation
+        const colorMix = Math.random();
+        const rgb = lerpColor(
+          colorPalette.primary,
+          colorPalette.secondary,
+          colorMix
+        );
+        colors[i * 3] = rgb[0];
+        colors[i * 3 + 1] = rgb[1];
+        colors[i * 3 + 2] = rgb[2];
+      } else if (isFlame && colorPalette) {
+        // Flame: start with bright yellow-white
+        colors[i * 3] = colorPalette.accent[0];
+        colors[i * 3 + 1] = colorPalette.accent[1];
+        colors[i * 3 + 2] = colorPalette.accent[2];
+      } else if (colorStart) {
         colors[i * 3] = colorStart[0];
         colors[i * 3 + 1] = colorStart[1];
         colors[i * 3 + 2] = colorStart[2];
@@ -123,6 +158,10 @@ export function ParticleLayer({
     peakLifetime,
     colorStart,
   ]);
+
+  // Detect mode for special rendering
+  const isMistMode = config.id.includes('mist');
+  const isFlameMode = config.id.includes('flame');
 
   // Animation loop
   useFrame(({ clock }) => {
@@ -157,20 +196,47 @@ export function ParticleLayer({
 
         // New velocity
         const speed = maxSpeed * (0.5 + Math.random() * 0.5);
-        velocities[i * 3] = dirX * speed;
-        velocities[i * 3 + 1] = dirY * speed;
-        velocities[i * 3 + 2] = dirZ * speed;
+        if (isFlameMode) {
+          // Flame: predominantly upward with lateral variation
+          const upwardBias = 0.7;
+          velocities[i * 3] = dirX * speed * (1 - upwardBias) + (Math.random() - 0.5) * speed * 0.3;
+          velocities[i * 3 + 1] = Math.abs(dirY) * speed * upwardBias + speed * 0.5;
+          velocities[i * 3 + 2] = dirZ * speed * (1 - upwardBias) + (Math.random() - 0.5) * speed * 0.3;
+        } else {
+          velocities[i * 3] = dirX * speed;
+          velocities[i * 3 + 1] = dirY * speed;
+          velocities[i * 3 + 2] = dirZ * speed;
+        }
 
         // Reset birth time
         birthTimes[i] = time;
         age = 0;
 
-        // New color based on global hue
-        const hue = (globalHue + Math.random() * 0.1) % 1;
-        const rgb = hslToRgb(hue, 0.8, 0.6);
-        colors[i * 3] = rgb[0];
-        colors[i * 3 + 1] = rgb[1];
-        colors[i * 3 + 2] = rgb[2];
+        // New color based on mode
+        if (isMistMode && colorPalette) {
+          // Mist: interpolate between palette colors with slow oscillation
+          const colorOscillation = Math.sin(time * 0.3 + i * 0.1) * 0.5 + 0.5;
+          const rgb = lerpColor(
+            colorPalette.primary,
+            colorPalette.secondary,
+            colorOscillation
+          );
+          colors[i * 3] = rgb[0];
+          colors[i * 3 + 1] = rgb[1];
+          colors[i * 3 + 2] = rgb[2];
+        } else if (isFlameMode && colorPalette) {
+          // Flame: start with bright yellow-white
+          colors[i * 3] = colorPalette.accent[0];
+          colors[i * 3 + 1] = colorPalette.accent[1];
+          colors[i * 3 + 2] = colorPalette.accent[2];
+        } else {
+          // Default: color based on global hue
+          const hue = (globalHue + Math.random() * 0.1) % 1;
+          const rgb = hslToRgb(hue, 0.8, 0.6);
+          colors[i * 3] = rgb[0];
+          colors[i * 3 + 1] = rgb[1];
+          colors[i * 3 + 2] = rgb[2];
+        }
       }
 
       // Normalized age (0 to 1)
@@ -191,14 +257,54 @@ export function ParticleLayer({
             ((normAge - peakLifetime) / (1 - peakLifetime));
       }
 
-      // ALPHA: Fade in first 10%, full 10-70%, fade out last 30%
+      // ALPHA: Mode-specific fade curves
       let alpha: number;
-      if (normAge < 0.1) {
-        alpha = normAge / 0.1; // Fade in
-      } else if (normAge > 0.7) {
-        alpha = 1 - (normAge - 0.7) / 0.3; // Fade out
+      if (isFlameMode) {
+        // Flame: sharp fade in/out for flickering effect
+        if (normAge < 0.05) {
+          alpha = normAge / 0.05; // 5% fade in
+        } else if (normAge < 0.5) {
+          alpha = 1.0; // Full opacity
+        } else {
+          alpha = 1.0 - ((normAge - 0.5) / 0.5); // 50% fade out
+        }
+      } else if (isMistMode) {
+        // Mist: Slower fade in (15%), full opacity (15-60%), gradual fade out (40%)
+        if (normAge < 0.15) {
+          alpha = normAge / 0.15; // Slower fade in
+        } else if (normAge > 0.6) {
+          alpha = 1 - (normAge - 0.6) / 0.4; // Gradual fade out
+        } else {
+          alpha = 1; // Full opacity
+        }
+        // Apply softness multiplier for mist
+        alpha *= 0.7;
       } else {
-        alpha = 1; // Full opacity
+        // Default: Fade in first 10%, full 10-70%, fade out last 30%
+        if (normAge < 0.1) {
+          alpha = normAge / 0.1; // Fade in
+        } else if (normAge > 0.7) {
+          alpha = 1 - (normAge - 0.7) / 0.3; // Fade out
+        } else {
+          alpha = 1; // Full opacity
+        }
+      }
+
+      // Flame-specific warm color interpolation
+      if (colorPalette && isFlameMode && age > 0) {
+        // Age-based color: young = bright yellow, old = deep red
+        const colorT = normAge;
+        let color: [number, number, number];
+        if (colorT < 0.3) {
+          // Young: accent (yellow-white) to primary (orange)
+          color = lerpColor(colorPalette.accent, colorPalette.primary, colorT / 0.3);
+        } else {
+          // Older: primary (orange) to secondary (red)
+          color = lerpColor(colorPalette.primary, colorPalette.secondary, (colorT - 0.3) / 0.7);
+        }
+        colors[i * 3] = color[0];
+        colors[i * 3 + 1] = color[1];
+        colors[i * 3 + 2] = color[2];
       }
 
       // Update size
@@ -207,14 +313,27 @@ export function ParticleLayer({
       // Update alpha
       alphas[i] = alpha;
 
-      // Update position
+      // Update position with flame turbulence
       const scale = 1.0;
-      positions[i * 3] =
-        birthPositions[i * 3] + velocities[i * 3] * age * scale;
-      positions[i * 3 + 1] =
-        birthPositions[i * 3 + 1] + velocities[i * 3 + 1] * age * scale;
-      positions[i * 3 + 2] =
-        birthPositions[i * 3 + 2] + velocities[i * 3 + 2] * age * scale;
+      const bx = birthPositions[i * 3];
+      const by = birthPositions[i * 3 + 1];
+      const bz = birthPositions[i * 3 + 2];
+      const vx = velocities[i * 3];
+      const vy = velocities[i * 3 + 1];
+      const vz = velocities[i * 3 + 2];
+
+      if (isFlameMode && age > 0) {
+        // Add organic flicker/turbulence for flame
+        const flicker = Math.sin(age * 15 + i) * 0.005;
+        const turbulence = Math.cos(age * 8 + i * 0.5) * 0.003;
+        positions[i * 3] = (bx + vx * age + flicker) * scale;
+        positions[i * 3 + 1] = (by + vy * age) * scale; // No turbulence on Y (pure upward)
+        positions[i * 3 + 2] = (bz + vz * age + turbulence) * scale;
+      } else {
+        positions[i * 3] = (bx + vx * age) * scale;
+        positions[i * 3 + 1] = (by + vy * age) * scale;
+        positions[i * 3 + 2] = (bz + vz * age) * scale;
+      }
     }
 
     // Mark attributes as needing update
@@ -299,6 +418,19 @@ export function ParticleLayer({
       />
     </points>
   );
+}
+
+// Helper: Linear interpolation between two colors
+function lerpColor(
+  a: [number, number, number],
+  b: [number, number, number],
+  t: number
+): [number, number, number] {
+  return [
+    a[0] + (b[0] - a[0]) * t,
+    a[1] + (b[1] - a[1]) * t,
+    a[2] + (b[2] - a[2]) * t,
+  ];
 }
 
 // Helper: HSL to RGB conversion
