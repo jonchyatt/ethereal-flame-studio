@@ -21,15 +21,15 @@
 ## Current Position
 
 **Phase:** 1 of 5 (Foundation - Web UI + Visual Engine)
-**Plan:** 1 of 8 completed
+**Plan:** 3 of 8 completed
 **Status:** In progress
-**Last activity:** 2026-01-26 - Completed 01-01-PLAN.md (scaffolding)
+**Last activity:** 2026-01-26 - Completed 01-03-PLAN.md (particle system core)
 
 **Plans:**
 - ✅ 01-01: Project scaffolding (Next.js + R3F setup)
-- 01-02: Audio analyzer (FFT, frequency bands, beat detection)
-- 01-03: Particle system core (lifetime, size curve, dual-layer)
-- 01-04: Star Nest skybox (procedural background)
+- ✅ 01-02: Audio analyzer (FFT, frequency bands, beat detection)
+- ✅ 01-03: Particle system core (lifetime, size curve, dual-layer)
+- ✅ 01-04: Star Nest skybox (procedural background)
 - 01-05: Ethereal Mist mode (soft clouds)
 - 01-06: Ethereal Flame mode (warm upward drift)
 - 01-07: Mobile-friendly UI (control panels)
@@ -37,12 +37,12 @@
 
 **Progress:**
 ```
-Phase 1: [█░░░░░░░░░] 12.5% (1/8 plans)
+Phase 1: [████░░░░░░] 50% (4/8 plans)
 Phase 2: [░░░░░░░░░░] 0%
 Phase 3: [░░░░░░░░░░] 0%
 Phase 4: [░░░░░░░░░░] 0%
 Phase 5: [░░░░░░░░░░] 0%
-Overall: [█░░░░░░░░░] 2.4% (1/41 plans estimated)
+Overall: [█░░░░░░░░░] 9.8% (4/41 plans estimated)
 ```
 
 ---
@@ -72,6 +72,9 @@ Overall: [█░░░░░░░░░] 2.4% (1/41 plans estimated)
 | 2026-01-26 | transpilePackages: ['three'] | Critical for R3F compatibility with Next.js |
 | 2026-01-26 | TypeScript strict mode | Type safety from project start |
 | 2026-01-26 | Full-viewport canvas layout | Immersive experience with overflow:hidden |
+| 2026-01-26 | CPU lifetime management (01-03) | Float32Array refs for zero GC, organic respawn behavior |
+| 2026-01-26 | Additive blending (01-03) | THREE.AdditiveBlending for ethereal volumetric glow |
+| 2026-01-26 | Dual-layer particle default (01-03) | 1500 inner + 1000 outer = 2500 particles |
 
 ### Technical Context
 
@@ -88,9 +91,10 @@ None currently.
 
 - [x] Run `/gsd:plan-phase 1` to create Phase 1 execution plan
 - [x] Set up Next.js + Three.js project scaffold (01-01 complete)
-- [ ] Implement audio analyzer with FFT (01-02)
-- [ ] Port Unity particle system reference to GLSL (01-03)
-- [ ] Continue executing Phase 1 plans (2-8 remaining)
+- [x] Implement audio analyzer with FFT (01-02 complete)
+- [x] Port Unity particle system reference to GLSL (01-03 complete)
+- [x] Implement Star Nest skybox (01-04 complete)
+- [ ] Continue executing Phase 1 plans (4 remaining: 01-05 through 01-08)
 
 ---
 
@@ -98,16 +102,16 @@ None currently.
 
 ### Last Session
 - **Date:** 2026-01-26
-- **Action:** Executed plan 01-01 (scaffolding)
-- **Outcome:** Next.js 15 + R3F v9 foundation complete, dev server working
+- **Action:** Executed plan 01-03 (particle system core)
+- **Outcome:** CPU lifetime tracking, GPU soft glow shaders, size-over-lifetime curve, dual-layer system
 
-**Stopped at:** Completed 01-01-PLAN.md
+**Stopped at:** Completed 01-03-PLAN.md
 **Resume file:** None
 
 ### Next Session Should
 1. Read this STATE.md for context
-2. Continue Phase 1 execution with plan 01-02 (audio analyzer)
-3. Execute wave 2: audio analyzer (01-02), particle system (01-03), skybox (01-04)
+2. Continue Phase 1 execution with plan 01-05 (Ethereal Mist mode)
+3. Note: 01-02 (audio) and 01-04 (skybox) completed in parallel work
 
 ### Context to Preserve
 - Research recommends investigating shader portability in Phase 3
@@ -116,4 +120,4 @@ None currently.
 
 ---
 
-*Last updated: 2026-01-26*
+*Last updated: 2026-01-26 17:53 UTC*
