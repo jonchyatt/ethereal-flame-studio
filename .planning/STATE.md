@@ -21,15 +21,15 @@
 ## Current Position
 
 **Phase:** 1 of 5 (Foundation - Web UI + Visual Engine)
-**Plan:** 2 of 8 completed
+**Plan:** 4 of 8 completed
 **Status:** In progress
-**Last activity:** 2026-01-26 - Completed 01-02-PLAN.md (audio analyzer)
+**Last activity:** 2026-01-26 - Completed 01-04-PLAN.md (Star Nest skybox)
 
 **Plans:**
 - ✅ 01-01: Project scaffolding (Next.js + R3F setup)
 - ✅ 01-02: Audio analyzer (FFT, frequency bands, beat detection)
-- 01-03: Particle system core (lifetime, size curve, dual-layer)
-- 01-04: Star Nest skybox (procedural background)
+- ✅ 01-03: Particle system core (lifetime, size curve, dual-layer)
+- ✅ 01-04: Star Nest skybox (procedural background)
 - 01-05: Ethereal Mist mode (soft clouds)
 - 01-06: Ethereal Flame mode (warm upward drift)
 - 01-07: Mobile-friendly UI (control panels)
@@ -37,12 +37,12 @@
 
 **Progress:**
 ```
-Phase 1: [██░░░░░░░░] 25% (2/8 plans)
+Phase 1: [████░░░░░░] 50% (4/8 plans)
 Phase 2: [░░░░░░░░░░] 0%
 Phase 3: [░░░░░░░░░░] 0%
 Phase 4: [░░░░░░░░░░] 0%
 Phase 5: [░░░░░░░░░░] 0%
-Overall: [█░░░░░░░░░] 4.9% (2/41 plans estimated)
+Overall: [█░░░░░░░░░] 9.8% (4/41 plans estimated)
 ```
 
 ---
@@ -75,6 +75,10 @@ Overall: [█░░░░░░░░░] 4.9% (2/41 plans estimated)
 | 2026-01-26 | 512 FFT size (01-02) | Balances frequency resolution with 60fps performance |
 | 2026-01-26 | Beat threshold 0.05 (01-02) | Low threshold for sensitive bass detection with 80ms cooldown |
 | 2026-01-26 | Backward compatibility aliases (01-02) | mids/treble mirror mid/high for existing components |
+| 2026-01-26 | CPU lifetime management (01-03) | Float32Array refs for zero GC pressure, organic particle lifecycle |
+| 2026-01-26 | Size-over-lifetime curve (01-03) | 37% birth → 100% at 20% life → 50% death (Unity reference) |
+| 2026-01-26 | BackSide skybox rendering (01-04) | Large sphere with BackSide material for infinite background |
+| 2026-01-26 | DarkWorld1 as default skybox (01-04) | User's preferred preset (THE ONE) |
 
 ### Technical Context
 
@@ -102,16 +106,16 @@ None currently.
 
 ### Last Session
 - **Date:** 2026-01-26
-- **Action:** Executed plan 01-02 (audio analyzer)
-- **Outcome:** FFT analysis, frequency bands, beat detection, AudioControls UI
+- **Action:** Executed plan 01-04 (Star Nest skybox)
+- **Outcome:** Volumetric procedural skybox with 5+ presets, automatic rotation
 
-**Stopped at:** Completed 01-02-PLAN.md
+**Stopped at:** Completed 01-04-PLAN.md
 **Resume file:** None
 
 ### Next Session Should
 1. Read this STATE.md for context
-2. Continue Phase 1 execution with plan 01-03 (particle system core)
-3. Note: Plans 01-03 and 01-04 appear to have been completed in parallel, verify commits
+2. Continue Phase 1 execution with plan 01-05 (Ethereal Mist mode)
+3. Note: Plans 01-02, 01-03, 01-04 completed in rapid succession (same day)
 
 ### Context to Preserve
 - Research recommends investigating shader portability in Phase 3
@@ -120,4 +124,4 @@ None currently.
 
 ---
 
-*Last updated: 2026-01-26 17:54 UTC*
+*Last updated: 2026-01-26 17:54:21 UTC*
