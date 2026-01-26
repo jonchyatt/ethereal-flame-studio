@@ -21,28 +21,28 @@
 ## Current Position
 
 **Phase:** 1 of 5 (Foundation - Web UI + Visual Engine)
-**Plan:** 4 of 8 completed
+**Plan:** 6 of 8 completed
 **Status:** In progress
-**Last activity:** 2026-01-26 - Completed 01-04-PLAN.md (Star Nest skybox)
+**Last activity:** 2026-01-26 - Completed 01-06-PLAN.md (Ethereal Flame mode)
 
 **Plans:**
 - ✅ 01-01: Project scaffolding (Next.js + R3F setup)
 - ✅ 01-02: Audio analyzer (FFT, frequency bands, beat detection)
 - ✅ 01-03: Particle system core (lifetime, size curve, dual-layer)
 - ✅ 01-04: Star Nest skybox (procedural background)
-- 01-05: Ethereal Mist mode (soft clouds)
-- 01-06: Ethereal Flame mode (warm upward drift)
+- ✅ 01-05: Ethereal Mist mode (soft clouds)
+- ✅ 01-06: Ethereal Flame mode (warm upward drift)
 - 01-07: Mobile-friendly UI (control panels)
 - 01-08: Integration (wire audio to visuals)
 
 **Progress:**
 ```
-Phase 1: [████░░░░░░] 50% (4/8 plans)
+Phase 1: [██████░░░░] 75% (6/8 plans)
 Phase 2: [░░░░░░░░░░] 0%
 Phase 3: [░░░░░░░░░░] 0%
 Phase 4: [░░░░░░░░░░] 0%
 Phase 5: [░░░░░░░░░░] 0%
-Overall: [█░░░░░░░░░] 9.8% (4/41 plans estimated)
+Overall: [█░░░░░░░░░] 14.6% (6/41 plans estimated)
 ```
 
 ---
@@ -79,6 +79,9 @@ Overall: [█░░░░░░░░░] 9.8% (4/41 plans estimated)
 | 2026-01-26 | Size-over-lifetime curve (01-03) | 37% birth → 100% at 20% life → 50% death (Unity reference) |
 | 2026-01-26 | BackSide skybox rendering (01-04) | Large sphere with BackSide material for infinite background |
 | 2026-01-26 | DarkWorld1 as default skybox (01-04) | User's preferred preset (THE ONE) |
+| 2026-01-26 | 70% upward velocity bias (01-06) | Creates convincing fire effect while maintaining organic spread |
+| 2026-01-26 | Age-based flame colors (01-06) | Yellow→Orange→Red mimics natural fire temperature gradient |
+| 2026-01-26 | Sin/cos turbulence for flame (01-06) | Organic flicker without perlin noise overhead |
 
 ### Technical Context
 
@@ -98,7 +101,9 @@ None currently.
 - [x] Implement audio analyzer with FFT (01-02 complete)
 - [x] Port Unity particle system reference to GLSL (01-03 complete)
 - [x] Implement Star Nest skybox (01-04 complete)
-- [ ] Continue executing Phase 1 plans (4 remaining: 01-05 through 01-08)
+- [x] Implement Ethereal Mist mode (01-05 complete)
+- [x] Implement Ethereal Flame mode (01-06 complete)
+- [ ] Continue executing Phase 1 plans (2 remaining: 01-07, 01-08)
 
 ---
 
@@ -106,16 +111,16 @@ None currently.
 
 ### Last Session
 - **Date:** 2026-01-26
-- **Action:** Executed plan 01-04 (Star Nest skybox)
-- **Outcome:** Volumetric procedural skybox with 5+ presets, automatic rotation
+- **Action:** Executed plan 01-06 (Ethereal Flame mode)
+- **Outcome:** Organic fire-like particles with upward drift, warm age-based colors, realistic turbulence
 
-**Stopped at:** Completed 01-04-PLAN.md
+**Stopped at:** Completed 01-06-PLAN.md
 **Resume file:** None
 
 ### Next Session Should
 1. Read this STATE.md for context
-2. Continue Phase 1 execution with plan 01-05 (Ethereal Mist mode)
-3. Note: Plans 01-02, 01-03, 01-04 completed in rapid succession (same day)
+2. Continue Phase 1 execution with plan 01-07 (Mobile-friendly UI)
+3. Note: Plans 01-01 through 01-06 completed rapidly (same day)
 
 ### Context to Preserve
 - Research recommends investigating shader portability in Phase 3
@@ -124,4 +129,4 @@ None currently.
 
 ---
 
-*Last updated: 2026-01-26 17:54:21 UTC*
+*Last updated: 2026-01-26 18:03:56 UTC*
