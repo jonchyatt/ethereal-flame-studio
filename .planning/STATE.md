@@ -21,15 +21,15 @@
 ## Current Position
 
 **Phase:** 1 of 5 (Foundation - Web UI + Visual Engine)
-**Plan:** 3 of 8 completed
+**Plan:** 2 of 8 completed
 **Status:** In progress
-**Last activity:** 2026-01-26 - Completed 01-03-PLAN.md (particle system core)
+**Last activity:** 2026-01-26 - Completed 01-02-PLAN.md (audio analyzer)
 
 **Plans:**
 - ✅ 01-01: Project scaffolding (Next.js + R3F setup)
 - ✅ 01-02: Audio analyzer (FFT, frequency bands, beat detection)
-- ✅ 01-03: Particle system core (lifetime, size curve, dual-layer)
-- ✅ 01-04: Star Nest skybox (procedural background)
+- 01-03: Particle system core (lifetime, size curve, dual-layer)
+- 01-04: Star Nest skybox (procedural background)
 - 01-05: Ethereal Mist mode (soft clouds)
 - 01-06: Ethereal Flame mode (warm upward drift)
 - 01-07: Mobile-friendly UI (control panels)
@@ -37,12 +37,12 @@
 
 **Progress:**
 ```
-Phase 1: [████░░░░░░] 50% (4/8 plans)
+Phase 1: [██░░░░░░░░] 25% (2/8 plans)
 Phase 2: [░░░░░░░░░░] 0%
 Phase 3: [░░░░░░░░░░] 0%
 Phase 4: [░░░░░░░░░░] 0%
 Phase 5: [░░░░░░░░░░] 0%
-Overall: [█░░░░░░░░░] 9.8% (4/41 plans estimated)
+Overall: [█░░░░░░░░░] 4.9% (2/41 plans estimated)
 ```
 
 ---
@@ -72,9 +72,9 @@ Overall: [█░░░░░░░░░] 9.8% (4/41 plans estimated)
 | 2026-01-26 | transpilePackages: ['three'] | Critical for R3F compatibility with Next.js |
 | 2026-01-26 | TypeScript strict mode | Type safety from project start |
 | 2026-01-26 | Full-viewport canvas layout | Immersive experience with overflow:hidden |
-| 2026-01-26 | CPU lifetime management (01-03) | Float32Array refs for zero GC, organic respawn behavior |
-| 2026-01-26 | Additive blending (01-03) | THREE.AdditiveBlending for ethereal volumetric glow |
-| 2026-01-26 | Dual-layer particle default (01-03) | 1500 inner + 1000 outer = 2500 particles |
+| 2026-01-26 | 512 FFT size (01-02) | Balances frequency resolution with 60fps performance |
+| 2026-01-26 | Beat threshold 0.05 (01-02) | Low threshold for sensitive bass detection with 80ms cooldown |
+| 2026-01-26 | Backward compatibility aliases (01-02) | mids/treble mirror mid/high for existing components |
 
 ### Technical Context
 
@@ -102,16 +102,16 @@ None currently.
 
 ### Last Session
 - **Date:** 2026-01-26
-- **Action:** Executed plan 01-03 (particle system core)
-- **Outcome:** CPU lifetime tracking, GPU soft glow shaders, size-over-lifetime curve, dual-layer system
+- **Action:** Executed plan 01-02 (audio analyzer)
+- **Outcome:** FFT analysis, frequency bands, beat detection, AudioControls UI
 
-**Stopped at:** Completed 01-03-PLAN.md
+**Stopped at:** Completed 01-02-PLAN.md
 **Resume file:** None
 
 ### Next Session Should
 1. Read this STATE.md for context
-2. Continue Phase 1 execution with plan 01-05 (Ethereal Mist mode)
-3. Note: 01-02 (audio) and 01-04 (skybox) completed in parallel work
+2. Continue Phase 1 execution with plan 01-03 (particle system core)
+3. Note: Plans 01-03 and 01-04 appear to have been completed in parallel, verify commits
 
 ### Context to Preserve
 - Research recommends investigating shader portability in Phase 3
@@ -120,4 +120,4 @@ None currently.
 
 ---
 
-*Last updated: 2026-01-26 17:53 UTC*
+*Last updated: 2026-01-26 17:54 UTC*
