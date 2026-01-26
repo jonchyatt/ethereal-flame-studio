@@ -7,10 +7,6 @@ import { ParticleLayerConfig } from '@/types';
 
 interface ParticleLayerProps {
   config: ParticleLayerConfig;
-  bass: number;
-  mids: number;
-  treble: number;
-  amplitude: number;
   intensity: number;
   globalHue: number;
   colorPalette?: {
@@ -18,17 +14,22 @@ interface ParticleLayerProps {
     secondary: [number, number, number];
     accent: [number, number, number];
   };
+  audioLevelsRef: React.MutableRefObject<{
+    bass: number;
+    mids: number;
+    treble: number;
+    amplitude: number;
+    isBeat: boolean;
+    currentScale: number;
+  }>;
 }
 
 export function ParticleLayer({
   config,
-  bass,
-  mids,
-  treble,
-  amplitude,
   intensity,
   globalHue,
   colorPalette,
+  audioLevelsRef,
 }: ParticleLayerProps) {
   const pointsRef = useRef<THREE.Points>(null);
   const geometryRef = useRef<THREE.BufferGeometry>(null);
@@ -174,6 +175,23 @@ export function ParticleLayer({
     const birthPositions = birthPositionsRef.current;
     const baseSizes = baseSizesRef.current;
 
+    // Get audio levels from ref
+    const audioLevels = audioLevelsRef.current;
+
+    // Determine which frequency band affects this layer (VIS-08, VIS-09)
+    let bandAmplitude = audioLevels.amplitude; // Default: all frequencies
+    const band = config.frequencyBand;
+    if (band === 'bass') {
+      bandAmplitude = audioLevels.bass;
+    } else if (band === 'mids') {
+      bandAmplitude = audioLevels.mids;
+    } else if (band === 'treble') {
+      bandAmplitude = audioLevels.treble;
+    }
+
+    // Beat pulse effect: scale boost on bass hits (AUD-04)
+    const beatPulse = audioLevels.isBeat ? 1.2 : 1.0;
+
     for (let i = 0; i < particleCount; i++) {
       // Calculate age
       let age = time - birthTimes[i];
@@ -307,14 +325,29 @@ export function ParticleLayer({
         colors[i * 3 + 2] = color[2];
       }
 
+      // Apply audio reactivity to size (VIS-08, VIS-09)
+      let audioSizeMultiplier = 1.0;
+      const reactivity = config.audioReactivity || 0;
+      if (reactivity > 0) {
+        // bandAmplitude ranges 0-1, map to size variation based on reactivity
+        audioSizeMultiplier = 1.0 + bandAmplitude * reactivity * 0.8;
+      }
+
+      // Apply beat pulse effect (AUD-04)
+      const finalSizeMultiplier = sizeMult * audioSizeMultiplier * beatPulse;
+
       // Update size
-      sizes[i] = baseSizes[i] * sizeMult;
+      sizes[i] = baseSizes[i] * finalSizeMultiplier;
 
       // Update alpha
       alphas[i] = alpha;
 
-      // Update position with flame turbulence
-      const scale = 1.0;
+      // Apply audio reactivity to position scale (subtle expansion/contraction)
+      let scale = 1.0;
+      if (reactivity > 0) {
+        // Expand/contract based on audio amplitude (more subtle than size)
+        scale = 1.0 + bandAmplitude * reactivity * 0.3;
+      }
       const bx = birthPositions[i * 3];
       const by = birthPositions[i * 3 + 1];
       const bz = birthPositions[i * 3 + 2];
