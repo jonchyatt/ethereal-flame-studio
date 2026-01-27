@@ -97,7 +97,25 @@ Plans:
 
 **Dependencies:** Phase 1 (visual engine), Phase 2 (templates define what to render)
 
-**Plans:** (created by /gsd:plan-phase)
+**Plans:** 8 plans in 6 waves
+
+Plans:
+- [ ] 03-01-PLAN.md — Pre-analysis for offline rendering (amplitude-per-frame)
+- [ ] 03-02-PLAN.md — Frame capture system (WebGLRenderTarget + async readPixels)
+- [ ] 03-03-PLAN.md — Flat export pipeline (1080p/4K, 16:9/9:16)
+- [ ] 03-04-PLAN.md — 360 monoscopic pipeline (CubeCamera + equirectangular)
+- [ ] 03-05-PLAN.md — 360 stereoscopic pipeline (dual CubeCamera + stack)
+- [ ] 03-06-PLAN.md — FFmpeg integration + VR metadata injection
+- [ ] 03-07-PLAN.md — Headless rendering mode (Puppeteer + xvfb)
+- [ ] 03-08-PLAN.md — Render queue with persistence (IndexedDB/SQLite)
+
+**Wave Structure:**
+- Wave 1: 03-01 (pre-analysis)
+- Wave 2: 03-02 (frame capture)
+- Wave 3: 03-03, 03-04 (flat + 360 mono - parallel)
+- Wave 4: 03-05 (stereoscopic)
+- Wave 5: 03-06 (encoding + metadata)
+- Wave 6: 03-07, 03-08 (headless + queue - parallel)
 
 **Requirements:**
 - AUD-03: Pre-analysis for offline rendering (amplitude-per-frame data)
@@ -149,7 +167,18 @@ Plans:
 
 **Dependencies:** Phase 4 (automation infrastructure must exist)
 
-**Plans:** (created by /gsd:plan-phase)
+**Plans:** 4 plans in 3 waves
+
+Plans:
+- [ ] 05-01-PLAN.md — Cloudflare Tunnel setup (secure remote access)
+- [ ] 05-02-PLAN.md — n8n self-hosted deployment (YouTube OAuth)
+- [ ] 05-03-PLAN.md — Render complete webhook (server to n8n integration)
+- [ ] 05-04-PLAN.md — YouTube upload workflow (auto-publish with Whisper descriptions)
+
+**Wave Structure:**
+- Wave 1: 05-01, 05-02 (infrastructure - parallel)
+- Wave 2: 05-03 (webhook integration)
+- Wave 3: 05-04 (YouTube workflow)
 
 **Requirements:**
 - AUT-05: n8n webhook trigger on render complete
@@ -170,9 +199,9 @@ Plans:
 |-------|------|--------|--------------|-------|
 | 1 | Foundation - Web UI + Visual Engine | Planned | 17 | 8 |
 | 2 | Template System | Not Started | 6 | TBD |
-| 3 | Rendering Pipeline | Not Started | 9 | TBD |
+| 3 | Rendering Pipeline | Planned | 9 | 8 |
 | 4 | Automation | Not Started | 6 | TBD |
-| 5 | n8n Integration + Remote Access | Not Started | 3 | TBD |
+| 5 | n8n Integration + Remote Access | Planned | 3 | 4 |
 
 **Total:** 41 requirements across 5 phases
 
@@ -204,11 +233,10 @@ All phases are sequential. Each depends on the previous.
 
 | Phase | Flag | Notes |
 |-------|------|-------|
-| Phase 3 | NEEDS RESEARCH | Shader portability - Three.js GLSL to Blender or headless Three.js with native GPU |
-| Phase 3 | NEEDS RESEARCH | Tiled rendering for 8K on consumer GPUs (24GB VRAM limit) |
+| Phase 3 | COMPLETE | Research completed 2026-01-27, see 03-RESEARCH.md |
 | Phase 4 | STANDARD | Whisper integration is well-documented |
-| Phase 5 | STANDARD | Cloudflare Tunnel and n8n patterns are established |
+| Phase 5 | COMPLETE | Research completed 2026-01-27, see 05-RESEARCH.md |
 
 ---
 
-*Last updated: 2026-01-26*
+*Last updated: 2026-01-27*
