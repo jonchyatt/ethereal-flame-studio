@@ -3,6 +3,7 @@
  * Processes jobs from the queue, updates database, and handles post-processing.
  *
  * Phase 4, Plan 04-03
+ * Updated Phase 5, Plan 05-03: Added webhook notification
  */
 
 import { Worker, Job } from 'bullmq';
@@ -11,6 +12,7 @@ import { redisConnection } from './connection';
 import { RenderJobData } from './types';
 import { insertRender } from '../db';
 import { postProcessRender, markRenderFailed, markRenderProcessing } from './postProcessor';
+import { notifyRenderComplete, buildWebhookPayload } from '../services/webhookNotifier';
 
 let worker: Worker<RenderJobData> | null = null;
 
@@ -85,6 +87,21 @@ async function processRenderJob(job: Job<RenderJobData>): Promise<void> {
       }
     }
 
+    // Send webhook notification for n8n automation (Phase 5)
+    // Fire and forget - don't block the queue
+    const webhookPayload = buildWebhookPayload(job.id || renderDbId, 'complete', {
+      audioFile: audioFile.originalName,
+      outputPath: result.finalPath,
+      outputFormat,
+      driveUrl: result.gdriveUrl,
+      template,
+      duration: 0, // TODO: Get actual audio duration
+      batchId,
+    });
+    notifyRenderComplete(webhookPayload).catch((err) => {
+      console.error('[Worker] Webhook notification failed:', err);
+    });
+
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`[Worker] Failed job ${job.id}:`, message);
@@ -97,6 +114,18 @@ async function processRenderJob(job: Job<RenderJobData>): Promise<void> {
     } catch {
       // Notifications not available yet - skip
     }
+
+    // Send failure webhook notification for n8n (Phase 5)
+    // Fire and forget - don't block the queue
+    const failurePayload = buildWebhookPayload(job.id || renderDbId, 'failed', {
+      audioFile: audioFile.originalName,
+      template,
+      batchId,
+      errorMessage: message,
+    });
+    notifyRenderComplete(failurePayload).catch((err) => {
+      console.error('[Worker] Failure webhook notification failed:', err);
+    });
 
     throw error; // Re-throw for BullMQ retry handling
   }
