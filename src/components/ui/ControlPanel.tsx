@@ -16,11 +16,14 @@ import { useState } from 'react';
 import { ModeSelector } from './ModeSelector';
 import { PresetSelector } from './PresetSelector';
 import { AudioControls } from './AudioControls';
+import { TemplateGallery } from './TemplateGallery';
 import { useVisualStore } from '@/lib/stores/visualStore';
 
 export function ControlPanel() {
   const [isExpanded, setIsExpanded] = useState(true);
   const [showDebug, setShowDebug] = useState(true);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
   const skyboxRotationSpeed = useVisualStore((state) => state.skyboxRotationSpeed);
   const setSkyboxRotationSpeed = useVisualStore((state) => state.setSkyboxRotationSpeed);
   // Water state
@@ -55,6 +58,35 @@ export function ControlPanel() {
       {isExpanded && (
         <div className="bg-black/70 backdrop-blur-md border-t border-white/10 p-4">
           <div className="max-w-4xl mx-auto">
+            {/* Templates Section - Collapsible */}
+            <div className="mb-4 border-b border-white/10 pb-4">
+              <button
+                onClick={() => setShowTemplates(!showTemplates)}
+                className="
+                  flex items-center justify-between w-full
+                  text-white/80 hover:text-white
+                  text-sm font-medium
+                  py-2
+                "
+              >
+                <span>Templates</span>
+                <svg
+                  className={`w-4 h-4 transition-transform ${showTemplates ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {showTemplates && (
+                <div className="mt-3">
+                  <TemplateGallery onSaveNew={() => setShowSaveDialog(true)} />
+                </div>
+              )}
+            </div>
+
             {/* Controls Grid - Responsive */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               {/* Left Column: Mode and Preset Selectors */}
