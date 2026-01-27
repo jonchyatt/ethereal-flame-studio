@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { ParticleLayerConfig, StarNestPreset, VisualMode, VisualModeConfig } from '@/types';
+import { TemplateSettings } from '@/lib/templates/types';
 import { STAR_NEST_PRESETS } from '@/components/canvas/StarNestSkybox';
 
 interface VisualState {
@@ -27,77 +28,81 @@ interface VisualState {
   setWaterEnabled: (enabled: boolean) => void;
   setWaterColor: (color: string) => void;
   setWaterReflectivity: (reflectivity: number) => void;
+  // Template integration (plan 02-01)
+  applyTemplateSettings: (settings: TemplateSettings) => void;
 }
 
-// Ethereal Flame mode configuration (plan 01-06)
-// Target: 15-20% at rest, expands to 30-40% with audio
+// Ethereal Flame mode configuration
+// WARM FIRE COLORS like reset-biology breathing rainbow orb
+// Inner: #ff6d77 (coral/salmon), Outer: #ff4400 (orange-red)
 export const ETHEREAL_FLAME_CONFIG: VisualModeConfig = {
   key: 'etherealFlame',
   label: 'Ethereal Flame',
-  description: 'Organic upward-drifting fire particles with warm colors',
+  description: 'Fiery orb with warm center and orange edges',
   colorPalette: {
-    primary: [1.0, 0.5, 0.0],    // Deep orange
-    secondary: [1.0, 0.2, 0.0],  // Red
-    accent: [1.0, 0.8, 0.2],     // Yellow
+    primary: [1.0, 1.0, 0.9],      // White/yellow center (hot core)
+    secondary: [1.0, 0.43, 0.47],  // #ff6d77 coral/salmon
+    accent: [1.0, 0.27, 0.0],      // #ff4400 orange-red
   },
   skyboxPreset: 'DarkWorld1',
   layers: [
-    // Layer 1: Dense rainbow core
+    // Layer 1: Dense core - compact, bright
     {
       id: 'flame-core',
-      name: 'Rainbow Core',
+      name: 'Core Mist',
       enabled: true,
-      particleCount: 70,          // Dense for rainbow center
-      baseSize: 2.5,
-      spawnRadius: 0.15,
-      maxSpeed: 0.03,
-      lifetime: 2.0,
-      audioReactivity: 2.5,
-      frequencyBand: 'mids',
-      sizeAtBirth: 0.37,
-      sizeAtPeak: 1.0,
-      sizeAtDeath: 0.5,
-      peakLifetime: 0.2,
-    },
-    // Layer 2: Mid layer
-    {
-      id: 'flame-embers',
-      name: 'Mid Glow',
-      enabled: true,
-      particleCount: 50,
-      baseSize: 3.5,
-      spawnRadius: 0.22,
-      maxSpeed: 0.025,
-      lifetime: 2.3,
+      particleCount: 60,
+      baseSize: 4.0,
+      spawnRadius: 0.04,          // HALF again - very compact core
+      maxSpeed: 0.015,            // Slow drift
+      lifetime: 3.0,
       audioReactivity: 2.0,
-      frequencyBand: 'treble',
-      sizeAtBirth: 0.37,
-      sizeAtPeak: 1.0,
-      sizeAtDeath: 0.5,
-      peakLifetime: 0.2,
-    },
-    // Layer 3: Outer wisps
-    {
-      id: 'flame-haze',
-      name: 'Outer Wisps',
-      enabled: true,
-      particleCount: 35,
-      baseSize: 4.5,
-      spawnRadius: 0.3,
-      maxSpeed: 0.02,
-      lifetime: 2.8,
-      audioReactivity: 1.5,
-      frequencyBand: 'bass',
-      sizeAtBirth: 0.37,
+      frequencyBand: 'mids',
+      sizeAtBirth: 0.3,
       sizeAtPeak: 1.0,
       sizeAtDeath: 0.4,
       peakLifetime: 0.25,
+    },
+    // Layer 2: Mid haze
+    {
+      id: 'flame-mid',
+      name: 'Mid Haze',
+      enabled: true,
+      particleCount: 45,
+      baseSize: 5.0,
+      spawnRadius: 0.06,          // HALF again
+      maxSpeed: 0.012,
+      lifetime: 3.5,
+      audioReactivity: 1.8,
+      frequencyBand: 'treble',
+      sizeAtBirth: 0.25,
+      sizeAtPeak: 1.0,
+      sizeAtDeath: 0.35,
+      peakLifetime: 0.3,
+    },
+    // Layer 3: Outer wisps - still compact
+    {
+      id: 'flame-outer',
+      name: 'Outer Wisps',
+      enabled: true,
+      particleCount: 30,
+      baseSize: 6.0,
+      spawnRadius: 0.075,         // HALF again
+      maxSpeed: 0.01,
+      lifetime: 4.0,
+      audioReactivity: 1.5,
+      frequencyBand: 'bass',
+      sizeAtBirth: 0.2,
+      sizeAtPeak: 1.0,
+      sizeAtDeath: 0.3,
+      peakLifetime: 0.35,
     },
   ],
 };
 
 // Ethereal Mist mode configuration (plan 01-05)
 // Target: 15-20% at rest, expands to 30-40% with audio
+// COMPACT - reduced spawn radii by 50%
 export const ETHEREAL_MIST_CONFIG: VisualModeConfig = {
   key: 'etherealMist',
   label: 'Ethereal Mist',
@@ -115,7 +120,7 @@ export const ETHEREAL_MIST_CONFIG: VisualModeConfig = {
       enabled: true,
       particleCount: 25,         // Reduced from 60 - fewer, larger particles
       baseSize: 7.0,             // Increased from 5.0
-      spawnRadius: 0.45,         // Wide spread to show color
+      spawnRadius: 0.15,         // REDUCED: 0.45 → 0.15 (third)
       maxSpeed: 0.015,
       lifetime: 4.0,
       audioReactivity: 2.5,      // Moderate
@@ -133,7 +138,7 @@ export const ETHEREAL_MIST_CONFIG: VisualModeConfig = {
       enabled: true,
       particleCount: 20,         // Reduced from 40
       baseSize: 8.0,             // Increased from 6.5
-      spawnRadius: 0.6,
+      spawnRadius: 0.2,          // REDUCED: 0.6 → 0.2 (third)
       maxSpeed: 0.01,
       lifetime: 5.0,
       audioReactivity: 2.0,
@@ -242,4 +247,31 @@ export const useVisualStore = create<VisualState>((set) => ({
   setWaterEnabled: (enabled) => set({ waterEnabled: enabled }),
   setWaterColor: (color) => set({ waterColor: color }),
   setWaterReflectivity: (reflectivity) => set({ waterReflectivity: reflectivity }),
+
+  // Template integration (plan 02-01)
+  applyTemplateSettings: (settings) => set({
+    intensity: settings.intensity,
+    layers: settings.layers,
+    skyboxPreset: settings.skyboxPreset,
+    skyboxRotationSpeed: settings.skyboxRotationSpeed,
+    currentMode: settings.currentMode,
+    waterEnabled: settings.waterEnabled,
+    waterColor: settings.waterColor,
+    waterReflectivity: settings.waterReflectivity,
+  }),
 }));
+
+/**
+ * Selector to extract serializable visual state for template saving
+ * Excludes functions and non-serializable data
+ */
+export const selectSerializableState = (state: VisualState): TemplateSettings => ({
+  intensity: state.intensity,
+  layers: state.layers,
+  skyboxPreset: state.skyboxPreset,
+  skyboxRotationSpeed: state.skyboxRotationSpeed,
+  currentMode: state.currentMode,
+  waterEnabled: state.waterEnabled,
+  waterColor: state.waterColor,
+  waterReflectivity: state.waterReflectivity,
+});

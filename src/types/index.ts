@@ -1,5 +1,8 @@
 // Type exports for Ethereal Flame Studio
 
+// Template types (plan 02-01)
+export type { VisualTemplate, TemplateSettings } from '@/lib/templates/types';
+
 /**
  * Audio levels from FFT analysis (plan 01-02)
  */
