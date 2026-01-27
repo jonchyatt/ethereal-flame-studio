@@ -73,7 +73,21 @@ Plans:
 
 **Dependencies:** Phase 1 (visual engine must exist to configure)
 
-**Plans:** (created by /gsd:plan-phase)
+**Plans:** 6 plans in 4 waves
+
+Plans:
+- [ ] 02-01-PLAN.md — Template types and store with persistence (TPL-01/TPL-05 foundation)
+- [ ] 02-02-PLAN.md — Built-in curated presets (TPL-03)
+- [ ] 02-03-PLAN.md — Template gallery UI with thumbnails (TPL-02/TPL-06)
+- [ ] 02-04-PLAN.md — Save template with screenshot capture (TPL-01 complete)
+- [ ] 02-05-PLAN.md — Advanced parameter editor (TPL-04)
+- [ ] 02-06-PLAN.md — Phase 2 verification checkpoint
+
+**Wave Structure:**
+- Wave 1: 02-01, 02-02 (foundation + presets - parallel)
+- Wave 2: 02-03 (gallery UI)
+- Wave 3: 02-04, 02-05 (save dialog + advanced editor - parallel)
+- Wave 4: 02-06 (verification checkpoint)
 
 **Requirements:**
 - TPL-01: Save all visual settings as named template (JSON)
@@ -198,7 +212,7 @@ Plans:
 | Phase | Name | Status | Requirements | Plans |
 |-------|------|--------|--------------|-------|
 | 1 | Foundation - Web UI + Visual Engine | Planned | 17 | 8 |
-| 2 | Template System | Not Started | 6 | TBD |
+| 2 | Template System | Planned | 6 | 6 |
 | 3 | Rendering Pipeline | Planned | 9 | 8 |
 | 4 | Automation | Not Started | 6 | TBD |
 | 5 | n8n Integration + Remote Access | Planned | 3 | 4 |
