@@ -84,3 +84,37 @@ export type StarNestPreset = {
   hueSpeed?: number;
   postSaturation?: number;
 };
+
+// Pre-analysis types (plan 03-01)
+/**
+ * Audio data for a single frame during offline rendering
+ */
+export interface FrameAudioData {
+  frame: number;        // Frame index (0-based)
+  time: number;         // Time in seconds
+  amplitude: number;    // Overall volume (0-1)
+  bass: number;         // Bass frequencies (0-1)
+  mid: number;          // Mid frequencies (0-1)
+  high: number;         // High frequencies (0-1)
+  isBeat: boolean;      // Beat detected on this frame
+}
+
+/**
+ * Complete pre-analysis result for an audio file
+ */
+export interface PreAnalysisResult {
+  frames: FrameAudioData[];  // Per-frame audio data
+  totalFrames: number;       // Total number of frames
+  duration: number;          // Audio duration in seconds
+  fps: number;               // Frames per second used for analysis
+}
+
+/**
+ * Options for pre-analysis
+ */
+export interface PreAnalyzeOptions {
+  fps?: number;                         // Target frame rate (default: 30)
+  onProgress?: (percent: number) => void; // Progress callback
+  signal?: AbortSignal;                 // Abort signal for cancellation
+  useCache?: boolean;                   // Use IndexedDB cache (default: true)
+}
