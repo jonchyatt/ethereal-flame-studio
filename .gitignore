@@ -21,3 +21,12 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+.vercel
+
+# Database files
+data/*.db
+data/*.db-wal
+data/*.db-shm
+
+# Keep the data directory structure
+!data/.gitkeep
