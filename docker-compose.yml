@@ -1,0 +1,78 @@
+# Ethereal Flame Studio - Docker Compose Configuration
+#
+# Provides GPU-accelerated headless rendering environment.
+#
+# Usage:
+#   docker-compose build
+#   docker-compose up
+#
+# Submit jobs by copying JSON files to ./jobs/pending/
+#
+# Phase 3, Plan 03-07
+
+version: '3.8'
+
+services:
+  render-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ethereal-render-server
+    restart: unless-stopped
+
+    # Mount job and output directories
+    volumes:
+      - ./jobs:/app/jobs
+      - ./output:/app/output
+      # Mount audio files directory (optional, for accessing source audio)
+      - ./audio:/app/audio:ro
+
+    # Environment variables
+    environment:
+      - NODE_ENV=production
+      - JOBS_DIR=/app/jobs
+      - OUTPUT_DIR=/app/output
+
+    # GPU support (NVIDIA)
+    # Uncomment if you have NVIDIA GPU and nvidia-docker installed
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Health check inherited from Dockerfile
+
+  # Optional: Web UI for job submission
+  web-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ethereal-web-ui
+    command: ["npm", "start"]
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - render-server
+    restart: unless-stopped
+    profiles:
+      - with-ui

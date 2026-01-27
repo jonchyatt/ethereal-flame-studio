@@ -1,0 +1,60 @@
+# Ethereal Flame Studio - Docker Ignore
+#
+# Files and directories to exclude from Docker build context.
+#
+# Phase 3, Plan 03-07
+
+# Dependencies (will be installed fresh in container)
+node_modules
+.pnpm-store
+
+# Git
+.git
+.gitignore
+
+# Build artifacts (will be rebuilt in container)
+.next
+out
+dist
+
+# Development files
+*.md
+!README.md
+.claude/
+.planning/
+
+# Test files and results
+test-*
+*.spec.ts
+*.test.ts
+test-screenshots/
+test-results/
+
+# Temporary files
+*.log
+*.tmp
+nul
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Environment files (security)
+.env
+.env.local
+.env*.local
+
+# Local jobs and output (mounted as volumes)
+jobs/
+output/
+audio/
+
+# References and assets not needed for build
+references/
+Holding/
+
+# TypeScript build info
+tsconfig.tsbuildinfo
