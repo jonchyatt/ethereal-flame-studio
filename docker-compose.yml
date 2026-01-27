@@ -4,6 +4,7 @@
 #
 # Usage:
 #   docker-compose up -d redis         # Start Redis for job queue
+#   docker-compose up -d whisper       # Start Whisper transcription service
 #   docker-compose up -d               # Start all services
 #
 # Phase 3 + Phase 4 services
@@ -27,6 +28,36 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # Whisper transcription service (Phase 4)
+  whisper:
+    build:
+      context: ./whisper-service
+      dockerfile: Dockerfile
+    container_name: ethereal-whisper
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./data/audio:/audio:ro  # Read-only access to audio files
+      - whisper-cache:/root/.cache/huggingface  # Cache model downloads
+    environment:
+      - WHISPER_MODEL=${WHISPER_MODEL:-large-v3}
+      - WHISPER_DEVICE=cuda
+      - WHISPER_COMPUTE_TYPE=float16
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s  # Model loading can take time
+      retries: 3
 
   # Headless render server (Phase 3)
   render-server:
@@ -54,6 +85,7 @@ services:
       - OUTPUT_DIR=/app/output
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - WHISPER_SERVICE_URL=http://whisper:8001
 
     # GPU support (NVIDIA)
     # Uncomment if you have NVIDIA GPU and nvidia-docker installed
@@ -95,6 +127,7 @@ services:
       - NODE_ENV=production
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - WHISPER_SERVICE_URL=http://whisper:8001
     depends_on:
       redis:
         condition: service_healthy
@@ -106,3 +139,4 @@ services:
 
 volumes:
   redis-data:
+  whisper-cache:
