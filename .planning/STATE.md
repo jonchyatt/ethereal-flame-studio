@@ -21,9 +21,9 @@
 ## Current Position
 
 **Phase:** 1 of 5 (Foundation - Web UI + Visual Engine)
-**Plan:** 7 of 8 completed
-**Status:** In progress
-**Last activity:** 2026-01-26 - Completed 01-07-PLAN.md (Mobile-friendly UI)
+**Plan:** 8 of 8 (pending checkpoint approval)
+**Status:** Awaiting human verification
+**Last activity:** 2026-01-27 - Executed 01-08-PLAN.md (Integration)
 
 **Plans:**
 - ✅ 01-01: Project scaffolding (Next.js + R3F setup)
@@ -33,16 +33,16 @@
 - ✅ 01-05: Ethereal Mist mode (soft clouds)
 - ✅ 01-06: Ethereal Flame mode (warm upward drift)
 - ✅ 01-07: Mobile-friendly UI (control panels)
-- 01-08: Integration (wire audio to visuals)
+- ✅ 01-08: Integration (wire audio to visuals) - pending checkpoint
 
 **Progress:**
 ```
-Phase 1: [███████░░░] 87.5% (7/8 plans)
+Phase 1: [██████████] 100% (8/8 plans) - PENDING VERIFICATION
 Phase 2: [░░░░░░░░░░] 0%
 Phase 3: [░░░░░░░░░░] 0%
 Phase 4: [░░░░░░░░░░] 0%
 Phase 5: [░░░░░░░░░░] 0%
-Overall: [█░░░░░░░░░] 17.1% (7/41 plans estimated)
+Overall: [██░░░░░░░░] 19.5% (8/41 plans estimated)
 ```
 
 ---
@@ -92,6 +92,10 @@ Overall: [█░░░░░░░░░] 17.1% (7/41 plans estimated)
 | 2026-01-26 | Collapsible control panel (01-07) | Maximizes visual area when controls not needed |
 | 2026-01-26 | Semi-transparent controls (01-07) | bg-black/70 backdrop-blur-md doesn't obstruct visuals |
 | 2026-01-26 | Debug overlay toggle (01-07) | Audio levels visible during development, hideable in production |
+| 2026-01-27 | getState() pattern in useFrame (01-08) | Prevents React re-renders on every audio frame, maintaining 60fps |
+| 2026-01-27 | 0.6 lerp factor for audio (01-08) | Fast but smooth audio response - faster than typical 0.1-0.3 |
+| 2026-01-27 | Immediate beat detection (01-08) | No lerp for isBeat flag, ensures snappy pulse response |
+| 2026-01-27 | Subtle skybox modulation (01-08) | 0.3/0.2 amplitude/bass multipliers prevent jarring rotation changes |
 
 ### Technical Context
 
@@ -114,24 +118,25 @@ None currently.
 - [x] Implement Ethereal Mist mode (01-05 complete)
 - [x] Implement Ethereal Flame mode (01-06 complete)
 - [x] Create mobile-friendly UI controls (01-07 complete)
-- [ ] Continue executing Phase 1 plans (1 remaining: 01-08)
+- [x] Wire audio to visuals (01-08 complete - pending verification)
+- [ ] Phase 1 human verification checkpoint
 
 ---
 
 ## Session Continuity
 
 ### Last Session
-- **Date:** 2026-01-26
-- **Action:** Executed plan 01-07 (Mobile-friendly UI)
-- **Outcome:** Touch-optimized control panel with mode switching, preset selection, and collapsible layout
+- **Date:** 2026-01-27
+- **Action:** Executed plan 01-08 (Integration)
+- **Outcome:** Full audio-visual integration verified (Tasks 1-2 already implemented), awaiting checkpoint
 
-**Stopped at:** Completed 01-07-PLAN.md
+**Stopped at:** 01-08 Task 3 checkpoint (human-verify)
 **Resume file:** None
 
 ### Next Session Should
 1. Read this STATE.md for context
-2. Execute final Phase 1 plan: 01-08 (Integration - wire audio to visuals)
-3. Note: Phase 1 nearly complete - 7/8 plans done in same day
+2. Get user approval at Phase 1 checkpoint
+3. After approval: Complete Phase 1, begin Phase 2 planning
 
 ### Context to Preserve
 - Research recommends investigating shader portability in Phase 3
@@ -140,4 +145,4 @@ None currently.
 
 ---
 
-*Last updated: 2026-01-26 18:24:00 UTC*
+*Last updated: 2026-01-27 12:00:00 UTC*
