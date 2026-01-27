@@ -17,13 +17,21 @@ import { ModeSelector } from './ModeSelector';
 import { PresetSelector } from './PresetSelector';
 import { AudioControls } from './AudioControls';
 import { TemplateGallery } from './TemplateGallery';
+import { SaveTemplateDialog } from './SaveTemplateDialog';
+import { AdvancedEditor } from './AdvancedEditor';
+import { ScreenshotCaptureRef } from './ScreenshotCapture';
 import { useVisualStore } from '@/lib/stores/visualStore';
 
-export function ControlPanel() {
+interface ControlPanelProps {
+  screenshotRef?: React.RefObject<ScreenshotCaptureRef | null>;
+}
+
+export function ControlPanel({ screenshotRef }: ControlPanelProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [showDebug, setShowDebug] = useState(true);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const skyboxRotationSpeed = useVisualStore((state) => state.skyboxRotationSpeed);
   const setSkyboxRotationSpeed = useVisualStore((state) => state.setSkyboxRotationSpeed);
   // Water state
@@ -83,6 +91,35 @@ export function ControlPanel() {
               {showTemplates && (
                 <div className="mt-3">
                   <TemplateGallery onSaveNew={() => setShowSaveDialog(true)} />
+                </div>
+              )}
+            </div>
+
+            {/* Advanced Editor - Collapsible */}
+            <div className="mb-4 border-b border-white/10 pb-4">
+              <button
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="
+                  flex items-center justify-between w-full
+                  text-white/80 hover:text-white
+                  text-sm font-medium
+                  py-2
+                "
+              >
+                <span>Advanced Editor</span>
+                <svg
+                  className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {showAdvanced && (
+                <div className="mt-3 max-h-[50vh] overflow-y-auto pr-2">
+                  <AdvancedEditor />
                 </div>
               )}
             </div>
@@ -204,6 +241,15 @@ export function ControlPanel() {
       <div className={isExpanded && showDebug ? "" : "sr-only"}>
         <AudioControls />
       </div>
+
+      {/* Save Template Dialog */}
+      {screenshotRef && (
+        <SaveTemplateDialog
+          isOpen={showSaveDialog}
+          onClose={() => setShowSaveDialog(false)}
+          screenshotRef={screenshotRef}
+        />
+      )}
     </div>
   );
 }

@@ -1,16 +1,18 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { ParticleSystem } from '@/components/canvas/ParticleSystem';
 import { StarNestSkybox } from '@/components/canvas/StarNestSkybox';
 import { WaterPlane } from '@/components/canvas/WaterPlane';
+import { ScreenshotCapture, ScreenshotCaptureRef } from '@/components/ui/ScreenshotCapture';
 import { ControlPanel } from '@/components/ui/ControlPanel';
 import { useVisualStore } from '@/lib/stores/visualStore';
 
 export default function Home() {
+  const screenshotRef = useRef<ScreenshotCaptureRef>(null);
   const skyboxPreset = useVisualStore((state) => state.skyboxPreset);
   const skyboxRotationSpeed = useVisualStore((state) => state.skyboxRotationSpeed);
   const waterEnabled = useVisualStore((state) => state.waterEnabled);
@@ -22,11 +24,18 @@ export default function Home() {
       <Canvas
         camera={{ position: [0, 2, 10], fov: 50 }}
         dpr={[1, 2]}
-        gl={{ antialias: true, powerPreference: 'high-performance' }}
+        gl={{
+          antialias: true,
+          powerPreference: 'high-performance',
+          preserveDrawingBuffer: true,  // Required for screenshot capture (plan 02-04)
+        }}
         style={{ background: '#000000', position: 'absolute', zIndex: 1 }}
       >
         {/* Star Nest skybox renders behind everything */}
         <StarNestSkybox preset={skyboxPreset} rotationSpeed={skyboxRotationSpeed} />
+
+        {/* Screenshot capture component for template thumbnails */}
+        <ScreenshotCapture ref={screenshotRef} />
 
         {/* Water plane (optional) - renders below particles */}
         {waterEnabled && (
@@ -52,7 +61,7 @@ export default function Home() {
       </Canvas>
 
       {/* Control panel fixed at bottom - includes mode selector, preset selector, and audio controls */}
-      <ControlPanel />
+      <ControlPanel screenshotRef={screenshotRef} />
     </main>
   );
 }
