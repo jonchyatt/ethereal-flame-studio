@@ -8,23 +8,23 @@
 
 **Core Value:** Phone to published video without touching a computer
 
-**Current Focus:** Phase 2 complete, ready for Phase 3 planning
+**Current Focus:** Phase 3 complete, ready for Phase 4 planning
 
 **Key Files:**
 - `.planning/PROJECT.md` - Project definition
 - `.planning/REQUIREMENTS.md` - v1 requirements (41 total)
 - `.planning/ROADMAP.md` - Phase structure
 - `.planning/research/SUMMARY.md` - Architecture decisions
-- `.planning/phases/02-templates/02-SUMMARY.md` - Phase 2 summary
+- `.planning/phases/03-rendering/03-SUMMARY.md` - Phase 3 summary
 
 ---
 
 ## Current Position
 
-**Phase:** 2 of 5 (Template System) - COMPLETE
-**Plan:** 6/6 complete
-**Status:** Ready for Phase 3 planning
-**Last activity:** 2026-01-27 - Completed Phase 2 (Template System)
+**Phase:** 3 of 5 (Rendering Pipeline) - COMPLETE
+**Plan:** 8/8 complete
+**Status:** Ready for Phase 4 planning
+**Last activity:** 2026-01-27 - Completed Phase 3 (Rendering Pipeline)
 
 **Phase 1 (COMPLETE):**
 - [x] 01-01: Project scaffolding
@@ -44,14 +44,24 @@
 - [x] 02-05: Advanced editor
 - [x] 02-06: Verification (user pre-approved)
 
+**Phase 3 (COMPLETE):**
+- [x] 03-01: Pre-analysis for offline rendering
+- [x] 03-02: Frame capture system
+- [x] 03-03: Flat export pipeline (1080p/4K)
+- [x] 03-04: 360 monoscopic pipeline
+- [x] 03-05: 360 stereoscopic pipeline
+- [x] 03-06: FFmpeg + VR metadata
+- [x] 03-07: Headless rendering mode
+- [x] 03-08: Render queue with persistence
+
 **Progress:**
 ```
 Phase 1: [##########] 100% (8/8 plans) - COMPLETE
 Phase 2: [##########] 100% (6/6 plans) - COMPLETE
-Phase 3: [..........] 0% (planned)
+Phase 3: [##########] 100% (8/8 plans) - COMPLETE
 Phase 4: [..........] 0% (planned)
 Phase 5: [..........] 0% (planned)
-Overall: [###.......] 34% (14/41 plans)
+Overall: [######....] 54% (22/41 plans)
 ```
 
 **Note:** Visual quality (particle asymmetry, organic shapes) flagged for redesign after pipeline complete.
@@ -65,8 +75,8 @@ Overall: [###.......] 34% (14/41 plans)
 | Requirements (v1) | 41 |
 | Requirements mapped | 41 |
 | Phases total | 5 |
-| Phases complete | 2 |
-| Plans complete | 14 |
+| Phases complete | 3 |
+| Plans complete | 22 |
 
 ---
 
@@ -113,6 +123,14 @@ Overall: [###.......] 34% (14/41 plans)
 | 2026-01-27 | 150x150 JPEG thumbnails (02-04) | Center-crop for consistent aspect ratio |
 | 2026-01-27 | Ref-based screenshot capture (02-04) | Invisible component inside Canvas |
 | 2026-01-27 | selectSerializableState pattern (02-01) | Extract saveable state from stores |
+| 2026-01-27 | IndexedDB caching for pre-analysis (03-01) | 7-day cache avoids re-analyzing same audio |
+| 2026-01-27 | Double-buffering for frame capture (03-02) | Prevents GPU stalls during async readback |
+| 2026-01-27 | Seeded RNG for particle positions (03-03) | Enables deterministic frame-accurate rendering |
+| 2026-01-27 | Cubemap to equirect via shader (03-04) | GPU-accelerated conversion, correct spherical projection |
+| 2026-01-27 | 64mm IPD for stereo capture (03-05) | Standard human interpupillary distance for VR |
+| 2026-01-27 | Top/Bottom stereo layout (03-05) | YouTube VR specification: left eye on top |
+| 2026-01-27 | Python spatial-media for VR metadata (03-06) | Google's official tool for sv3d/st3d atoms |
+| 2026-01-27 | File-based job queue for render server (03-07) | Simple, filesystem-based persistence without database |
 
 ### Technical Context
 
@@ -121,6 +139,7 @@ Overall: [###.......] 34% (14/41 plans)
 - **Particle count:** Only need ~1000-2000 particles with proper lifetime curves
 - **VR metadata:** Must use Google Spatial Media tools for sv3d/st3d metadata injection
 - **Template system:** 6 built-in presets, localStorage persistence for user templates
+- **Render pipeline:** CubeCamera for 360, FFmpeg for encoding, Docker for headless
 
 ### Blockers
 
@@ -130,9 +149,9 @@ None currently.
 
 - [x] Phase 1: Foundation (Web UI + Visual Engine)
 - [x] Phase 2: Template System
-- [ ] Phase 3: Recording (audio upload, timeline, MP4 export)
-- [ ] Phase 4: Server Rendering (8K/VR via Blender)
-- [ ] Phase 5: Automation (export templates, VR hosting)
+- [x] Phase 3: Rendering Pipeline (frame capture, export, headless)
+- [ ] Phase 4: Server Rendering (cloud deployment, API integration)
+- [ ] Phase 5: Automation (n8n workflows, VR hosting)
 
 ---
 
@@ -140,29 +159,33 @@ None currently.
 
 ### Last Session
 - **Date:** 2026-01-27
-- **Action:** Executed all Phase 2 plans (02-01 through 02-06)
-- **Outcome:** Complete template system implemented
+- **Action:** Executed all Phase 3 plans (03-01 through 03-08)
+- **Outcome:** Complete rendering pipeline implemented
 
 **Commits:**
-- `b49069c` feat(02-01): template types and store
-- `92e7824` feat(02-02): 6 built-in presets
-- `1e60c6f` feat(02-03): template gallery UI
-- `1ad0e34` feat(02-04): save template with screenshot
-- `977059b` feat(02-05): advanced parameter editor
+- `4410967` feat(03-01): add PreAnalyzer for offline audio analysis
+- `920f344` feat(03-02): add frame capture system with async reading
+- `43c63a7` feat(03-03): add flat export pipeline with UI
+- `7e70929` feat(03-04): add 360 monoscopic capture pipeline
+- `41cfcc5` feat(03-05): add 360 stereoscopic capture pipeline
+- `34b02cd` feat(03-06): add FFmpeg encoding and VR metadata injection
+- `8d81ab2` feat(03-07): add headless rendering mode with Docker support
+- `2d53423` feat(03-08): add render queue with IndexedDB persistence
 
-**Stopped at:** Phase 2 complete
+**Stopped at:** Phase 3 complete
 **Resume file:** None
 
 ### Next Session Should
 1. Read this STATE.md for context
-2. Plan Phase 3 (Recording)
-3. Execute Phase 3 plans
+2. Plan Phase 4 (Server Rendering / Cloud Deployment)
+3. Execute Phase 4 plans
 
 ### Context to Preserve
-- Research recommends investigating shader portability in Phase 3
-- User rarely has direct computer access (phone-first workflow is critical)
-- Reference code exists in reset-biology-website (breathing orb, audio reactive orb, skybox)
-- Template system ready: 6 presets, save/load, advanced editor
+- Rendering pipeline complete: 1080p/4K flat, 360 mono/stereo, headless Docker
+- ExportPipeline unifies all export types with consistent API
+- RenderQueue provides persistent job management
+- Python script inject-metadata.py for VR metadata
+- Dockerfile ready with Chromium, xvfb, FFmpeg
 
 ---
 
