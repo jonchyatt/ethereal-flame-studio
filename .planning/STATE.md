@@ -8,23 +8,23 @@
 
 **Core Value:** Phone to published video without touching a computer
 
-**Current Focus:** Phase 4 complete, ready for Phase 5 planning
+**Current Focus:** ALL PHASES COMPLETE - Project v1 finished
 
 **Key Files:**
 - `.planning/PROJECT.md` - Project definition
 - `.planning/REQUIREMENTS.md` - v1 requirements (41 total)
 - `.planning/ROADMAP.md` - Phase structure
 - `.planning/research/SUMMARY.md` - Architecture decisions
-- `.planning/phases/04-automation/04-SUMMARY.md` - Phase 4 summary
+- `.planning/phases/05-n8n/05-SUMMARY.md` - Phase 5 summary
 
 ---
 
 ## Current Position
 
-**Phase:** 4 of 5 (Automation) - COMPLETE
-**Plan:** 9/9 complete
-**Status:** Ready for Phase 5 planning
-**Last activity:** 2026-01-27 - Completed Phase 4 (Automation)
+**Phase:** 5 of 5 (n8n Integration) - COMPLETE
+**Plan:** ALL COMPLETE
+**Status:** PROJECT v1 COMPLETE
+**Last activity:** 2026-01-27 - Completed Phase 5 (n8n Integration + Remote Access)
 
 **Phase 1 (COMPLETE):**
 - [x] 01-01: Project scaffolding
@@ -65,17 +65,23 @@
 - [x] 04-08: Google Sheets metadata export
 - [x] 04-09: Batch upload UI
 
+**Phase 5 (COMPLETE):**
+- [x] 05-01: Cloudflare Tunnel setup
+- [x] 05-02: n8n self-hosted deployment
+- [x] 05-03: Webhook integration (render -> n8n)
+- [x] 05-04: YouTube upload workflow
+
 **Progress:**
 ```
 Phase 1: [##########] 100% (8/8 plans) - COMPLETE
 Phase 2: [##########] 100% (6/6 plans) - COMPLETE
 Phase 3: [##########] 100% (8/8 plans) - COMPLETE
 Phase 4: [##########] 100% (9/9 plans) - COMPLETE
-Phase 5: [..........] 0% (planned)
-Overall: [########..] 76% (31/41 plans)
+Phase 5: [##########] 100% (4/4 plans) - COMPLETE
+Overall: [##########] 100% (35/35 plans)
 ```
 
-**Note:** Visual quality (particle asymmetry, organic shapes) flagged for redesign after pipeline complete.
+**Note:** Visual quality (particle asymmetry, organic shapes) flagged for v2 redesign.
 
 ---
 
@@ -86,8 +92,8 @@ Overall: [########..] 76% (31/41 plans)
 | Requirements (v1) | 41 |
 | Requirements mapped | 41 |
 | Phases total | 5 |
-| Phases complete | 4 |
-| Plans complete | 31 |
+| Phases complete | 5 |
+| Plans complete | 35 |
 
 ---
 
@@ -140,7 +146,7 @@ Overall: [########..] 76% (31/41 plans)
 | 2026-01-27 | Cubemap to equirect via shader (03-04) | GPU-accelerated conversion, correct spherical projection |
 | 2026-01-27 | 64mm IPD for stereo capture (03-05) | Standard human interpupillary distance for VR |
 | 2026-01-27 | Top/Bottom stereo layout (03-05) | YouTube VR specification: left eye on top |
-| 2026-01-27 | Python spatial-media for VR metadata (03-06) | Google's official tool for sv3d/st3d atoms |
+| 2026-01-27 | Python spatial-media for VR metadata (03-06) | Google's official tool for sv3d/st3d metadata injection |
 | 2026-01-27 | File-based job queue for render server (03-07) | Simple, filesystem-based persistence without database |
 | 2026-01-27 | SQLite with WAL mode (04-01) | Concurrent read safety for batch workers |
 | 2026-01-27 | better-sqlite3 sync API (04-01) | Simpler than async, high performance for Node.js |
@@ -151,6 +157,11 @@ Overall: [########..] 76% (31/41 plans)
 | 2026-01-27 | rclone over Google Drive API (04-06) | Simpler setup, built-in retry logic, resumable uploads |
 | 2026-01-27 | ntfy over web push (04-07) | Self-hosted option, simple HTTP API, no VAPID keys |
 | 2026-01-27 | Google Sheets API for export (04-08) | Human-readable view, collaboration-friendly |
+| 2026-01-27 | Self-hosted n8n (05-02) | YouTube upload requires custom OAuth callback URL |
+| 2026-01-27 | Docker profiles for optional services (05-01) | Clean separation of automation and remote access services |
+| 2026-01-27 | Cloudflare Tunnel over VPN (05-01) | Free, no port exposure, encrypted end-to-end |
+| 2026-01-27 | Fire-and-forget webhooks (05-03) | Don't block render queue on notification delivery |
+| 2026-01-27 | Exponential backoff for retries (05-03) | Graceful handling of transient failures |
 
 ### Technical Context
 
@@ -163,10 +174,12 @@ Overall: [########..] 76% (31/41 plans)
 - **Batch infrastructure:** SQLite + BullMQ + Redis for persistent job queue
 - **Whisper service:** Python FastAPI microservice with GPU support via CUDA
 - **External services:** rclone for Google Drive, ntfy for notifications, googleapis for Sheets
+- **Remote access:** Cloudflare Tunnel for secure access without port forwarding
+- **Workflow automation:** Self-hosted n8n with YouTube OAuth for auto-publishing
 
 ### Blockers
 
-None currently.
+None - project complete.
 
 ### TODOs
 
@@ -174,7 +187,12 @@ None currently.
 - [x] Phase 2: Template System
 - [x] Phase 3: Rendering Pipeline (frame capture, export, headless)
 - [x] Phase 4: Automation (batch queue, transcription, sync, notifications)
-- [ ] Phase 5: n8n Integration (workflow automation, VR hosting)
+- [x] Phase 5: n8n Integration (workflow automation, remote access)
+
+**Future Considerations (v2):**
+- [ ] Visual quality improvements (particle asymmetry, organic shapes)
+- [ ] 8K rendering via Blender integration
+- [ ] Multi-platform posting via Blotato
 
 ---
 
@@ -182,37 +200,38 @@ None currently.
 
 ### Last Session
 - **Date:** 2026-01-27
-- **Action:** Executed all Phase 4 plans (04-01 through 04-09)
-- **Outcome:** Complete batch automation pipeline implemented
+- **Action:** Executed Phase 5 plans (05-01 through 05-04)
+- **Outcome:** Complete n8n integration and remote access pipeline
 
-**Commits:**
-- `b8322c2` feat(04-01): add SQLite database and file naming utilities
-- `7ef785a` feat(04-02): add BullMQ batch queue infrastructure
-- `ea0db67` feat(04-03): add BullMQ render worker with post-processing
-- `fd45614` feat(04-04): add faster-whisper transcription microservice
-- `85f633d` feat(04-05): add transcription queue integration
-- `16f67e8` feat(04-06): add Google Drive sync via rclone
-- `9f4f098` feat(04-07): add ntfy push notifications
-- `172389e` feat(04-08): add Google Sheets metadata export
-- `d73471e` feat(04-09): add batch upload UI and API
+**Phase 5 Commits:**
+- `509ee34` feat(05-01,05-02): add Cloudflare Tunnel and n8n services
+- `fa12fee` feat(05-03): add webhook notifier for n8n integration
+- `84b5d71` feat(05-04): add YouTube upload workflow documentation
 
-**Stopped at:** Phase 4 complete
+**Stopped at:** PROJECT COMPLETE
 **Resume file:** None
 
-### Next Session Should
-1. Read this STATE.md for context
-2. Plan Phase 5 (n8n Integration / VR Hosting)
-3. Execute Phase 5 plans
+### Project Complete
+
+The phone-to-published-video pipeline is now fully implemented:
+
+1. **Trigger** render from phone (via Cloudflare Tunnel remote access)
+2. **Render** video with template (Web UI or API)
+3. **Transcribe** audio via Whisper (for video description)
+4. **Sync** to Google Drive (via rclone)
+5. **Notify** n8n via webhook (on completion)
+6. **Upload** to YouTube (via n8n workflow)
+7. **Alert** user (via ntfy push notification)
 
 ### Context to Preserve
-- Batch pipeline complete: SQLite metadata, BullMQ queue, workers
-- Whisper transcription via separate Python microservice
-- Google Drive sync via rclone with retry logic
-- ntfy notifications for mobile alerts
-- Google Sheets export for visibility
-- Batch UI at /batch with template/format selection
-- All services containerized in docker-compose.yml
+- All 5 phases complete with 35 plans executed
+- Docker Compose orchestrates all services
+- Documentation in /docs for user setup:
+  - REMOTE_ACCESS.md (Cloudflare Tunnel)
+  - N8N_SETUP.md (n8n + YouTube OAuth)
+  - N8N_WORKFLOWS.md (workflow configuration)
+  - google-drive-setup.md (rclone configuration)
 
 ---
 
-*Last updated: 2026-01-27*
+*Last updated: 2026-01-27 - PROJECT v1 COMPLETE*
