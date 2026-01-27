@@ -8,42 +8,53 @@
 
 **Core Value:** Phone to published video without touching a computer
 
-**Current Focus:** Roadmap complete, ready for Phase 1 planning
+**Current Focus:** Phase 2 complete, ready for Phase 3 planning
 
 **Key Files:**
 - `.planning/PROJECT.md` - Project definition
 - `.planning/REQUIREMENTS.md` - v1 requirements (41 total)
 - `.planning/ROADMAP.md` - Phase structure
 - `.planning/research/SUMMARY.md` - Architecture decisions
+- `.planning/phases/02-templates/02-SUMMARY.md` - Phase 2 summary
 
 ---
 
 ## Current Position
 
-**Phase:** 1 of 5 (Foundation - Web UI + Visual Engine)
-**Plan:** 8 of 8 (pending checkpoint approval)
-**Status:** Awaiting human verification
-**Last activity:** 2026-01-27 - Executed 01-08-PLAN.md (Integration)
+**Phase:** 2 of 5 (Template System) - COMPLETE
+**Plan:** 6/6 complete
+**Status:** Ready for Phase 3 planning
+**Last activity:** 2026-01-27 - Completed Phase 2 (Template System)
 
-**Plans:**
-- ✅ 01-01: Project scaffolding (Next.js + R3F setup)
-- ✅ 01-02: Audio analyzer (FFT, frequency bands, beat detection)
-- ✅ 01-03: Particle system core (lifetime, size curve, dual-layer)
-- ✅ 01-04: Star Nest skybox (procedural background)
-- ✅ 01-05: Ethereal Mist mode (soft clouds)
-- ✅ 01-06: Ethereal Flame mode (warm upward drift)
-- ✅ 01-07: Mobile-friendly UI (control panels)
-- ✅ 01-08: Integration (wire audio to visuals) - pending checkpoint
+**Phase 1 (COMPLETE):**
+- [x] 01-01: Project scaffolding
+- [x] 01-02: Audio analyzer
+- [x] 01-03: Particle system core
+- [x] 01-04: Star Nest skybox
+- [x] 01-05: Ethereal Mist mode
+- [x] 01-06: Ethereal Flame mode
+- [x] 01-07: Mobile-friendly UI
+- [x] 01-08: Integration (APPROVED - visual quality deferred)
+
+**Phase 2 (COMPLETE):**
+- [x] 02-01: Template types + store
+- [x] 02-02: Built-in presets (6 curated)
+- [x] 02-03: Template gallery UI
+- [x] 02-04: Save template with screenshot
+- [x] 02-05: Advanced editor
+- [x] 02-06: Verification (user pre-approved)
 
 **Progress:**
 ```
-Phase 1: [██████████] 100% (8/8 plans) - PENDING VERIFICATION
-Phase 2: [░░░░░░░░░░] 0%
-Phase 3: [░░░░░░░░░░] 0%
-Phase 4: [░░░░░░░░░░] 0%
-Phase 5: [░░░░░░░░░░] 0%
-Overall: [██░░░░░░░░] 19.5% (8/41 plans estimated)
+Phase 1: [##########] 100% (8/8 plans) - COMPLETE
+Phase 2: [##########] 100% (6/6 plans) - COMPLETE
+Phase 3: [..........] 0% (planned)
+Phase 4: [..........] 0% (planned)
+Phase 5: [..........] 0% (planned)
+Overall: [###.......] 34% (14/41 plans)
 ```
+
+**Note:** Visual quality (particle asymmetry, organic shapes) flagged for redesign after pipeline complete.
 
 ---
 
@@ -54,8 +65,8 @@ Overall: [██░░░░░░░░] 19.5% (8/41 plans estimated)
 | Requirements (v1) | 41 |
 | Requirements mapped | 41 |
 | Phases total | 5 |
-| Phases complete | 0 |
-| Current streak | 0 days |
+| Phases complete | 2 |
+| Plans complete | 14 |
 
 ---
 
@@ -76,7 +87,7 @@ Overall: [██░░░░░░░░] 19.5% (8/41 plans estimated)
 | 2026-01-26 | Beat threshold 0.05 (01-02) | Low threshold for sensitive bass detection with 80ms cooldown |
 | 2026-01-26 | Backward compatibility aliases (01-02) | mids/treble mirror mid/high for existing components |
 | 2026-01-26 | CPU lifetime management (01-03) | Float32Array refs for zero GC pressure, organic particle lifecycle |
-| 2026-01-26 | Size-over-lifetime curve (01-03) | 37% birth → 100% at 20% life → 50% death (Unity reference) |
+| 2026-01-26 | Size-over-lifetime curve (01-03) | 37% birth -> 100% at 20% life -> 50% death (Unity reference) |
 | 2026-01-26 | BackSide skybox rendering (01-04) | Large sphere with BackSide material for infinite background |
 | 2026-01-26 | DarkWorld1 as default skybox (01-04) | User's preferred preset (THE ONE) |
 | 2026-01-26 | Peak lifetime at 50-60% for mist (01-05) | Creates centered, gentle bloom effect for cloud-like particles |
@@ -86,7 +97,7 @@ Overall: [██░░░░░░░░] 19.5% (8/41 plans estimated)
 | 2026-01-26 | GLSL webpack loader (01-05) | Fixed pre-existing build error blocking verification |
 | 2026-01-26 | Tailwind v4 PostCSS plugin (01-05) | Required @tailwindcss/postcss for build compatibility |
 | 2026-01-26 | 70% upward velocity bias (01-06) | Creates convincing fire effect while maintaining organic spread |
-| 2026-01-26 | Age-based flame colors (01-06) | Yellow→Orange→Red mimics natural fire temperature gradient |
+| 2026-01-26 | Age-based flame colors (01-06) | Yellow->Orange->Red mimics natural fire temperature gradient |
 | 2026-01-26 | Sin/cos turbulence for flame (01-06) | Organic flicker without perlin noise overhead |
 | 2026-01-26 | Touch-friendly 44px minimum (01-07) | Mobile usability per iOS/Android guidelines |
 | 2026-01-26 | Collapsible control panel (01-07) | Maximizes visual area when controls not needed |
@@ -96,6 +107,12 @@ Overall: [██░░░░░░░░] 19.5% (8/41 plans estimated)
 | 2026-01-27 | 0.6 lerp factor for audio (01-08) | Fast but smooth audio response - faster than typical 0.1-0.3 |
 | 2026-01-27 | Immediate beat detection (01-08) | No lerp for isBeat flag, ensures snappy pulse response |
 | 2026-01-27 | Subtle skybox modulation (01-08) | 0.3/0.2 amplitude/bass multipliers prevent jarring rotation changes |
+| 2026-01-27 | crypto.randomUUID() for template IDs (02-01) | Browser native, no external dependencies |
+| 2026-01-27 | zustand persist for localStorage (02-01) | Only user templates persisted, built-ins from code |
+| 2026-01-27 | preserveDrawingBuffer for screenshots (02-04) | Required for canvas.toDataURL() to work |
+| 2026-01-27 | 150x150 JPEG thumbnails (02-04) | Center-crop for consistent aspect ratio |
+| 2026-01-27 | Ref-based screenshot capture (02-04) | Invisible component inside Canvas |
+| 2026-01-27 | selectSerializableState pattern (02-01) | Extract saveable state from stores |
 
 ### Technical Context
 
@@ -103,6 +120,7 @@ Overall: [██░░░░░░░░] 19.5% (8/41 plans estimated)
 - **Unity reference:** Size-over-lifetime curve is key to ethereal look (37% birth, 100% at 20% life, 50% death)
 - **Particle count:** Only need ~1000-2000 particles with proper lifetime curves
 - **VR metadata:** Must use Google Spatial Media tools for sv3d/st3d metadata injection
+- **Template system:** 6 built-in presets, localStorage persistence for user templates
 
 ### Blockers
 
@@ -110,16 +128,11 @@ None currently.
 
 ### TODOs
 
-- [x] Run `/gsd:plan-phase 1` to create Phase 1 execution plan
-- [x] Set up Next.js + Three.js project scaffold (01-01 complete)
-- [x] Implement audio analyzer with FFT (01-02 complete)
-- [x] Port Unity particle system reference to GLSL (01-03 complete)
-- [x] Implement Star Nest skybox (01-04 complete)
-- [x] Implement Ethereal Mist mode (01-05 complete)
-- [x] Implement Ethereal Flame mode (01-06 complete)
-- [x] Create mobile-friendly UI controls (01-07 complete)
-- [x] Wire audio to visuals (01-08 complete - pending verification)
-- [ ] Phase 1 human verification checkpoint
+- [x] Phase 1: Foundation (Web UI + Visual Engine)
+- [x] Phase 2: Template System
+- [ ] Phase 3: Recording (audio upload, timeline, MP4 export)
+- [ ] Phase 4: Server Rendering (8K/VR via Blender)
+- [ ] Phase 5: Automation (export templates, VR hosting)
 
 ---
 
@@ -127,22 +140,30 @@ None currently.
 
 ### Last Session
 - **Date:** 2026-01-27
-- **Action:** Executed plan 01-08 (Integration)
-- **Outcome:** Full audio-visual integration verified (Tasks 1-2 already implemented), awaiting checkpoint
+- **Action:** Executed all Phase 2 plans (02-01 through 02-06)
+- **Outcome:** Complete template system implemented
 
-**Stopped at:** 01-08 Task 3 checkpoint (human-verify)
+**Commits:**
+- `b49069c` feat(02-01): template types and store
+- `92e7824` feat(02-02): 6 built-in presets
+- `1e60c6f` feat(02-03): template gallery UI
+- `1ad0e34` feat(02-04): save template with screenshot
+- `977059b` feat(02-05): advanced parameter editor
+
+**Stopped at:** Phase 2 complete
 **Resume file:** None
 
 ### Next Session Should
 1. Read this STATE.md for context
-2. Get user approval at Phase 1 checkpoint
-3. After approval: Complete Phase 1, begin Phase 2 planning
+2. Plan Phase 3 (Recording)
+3. Execute Phase 3 plans
 
 ### Context to Preserve
 - Research recommends investigating shader portability in Phase 3
 - User rarely has direct computer access (phone-first workflow is critical)
 - Reference code exists in reset-biology-website (breathing orb, audio reactive orb, skybox)
+- Template system ready: 6 presets, save/load, advanced editor
 
 ---
 
-*Last updated: 2026-01-27 12:00:00 UTC*
+*Last updated: 2026-01-27*
