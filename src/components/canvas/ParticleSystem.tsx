@@ -30,7 +30,7 @@ export function ParticleSystem() {
     const audioState = useAudioStore.getState();
 
     // Smooth lerp toward target audio levels (VIS-12)
-    const lerpFactor = 0.15; // Smooth but responsive
+    const lerpFactor = 0.4; // Fast response
     audioLevelsRef.current.bass += (audioState.bass - audioLevelsRef.current.bass) * lerpFactor;
     audioLevelsRef.current.mids += (audioState.mids - audioLevelsRef.current.mids) * lerpFactor;
     audioLevelsRef.current.treble += (audioState.treble - audioLevelsRef.current.treble) * lerpFactor;

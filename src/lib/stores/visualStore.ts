@@ -11,6 +11,10 @@ interface VisualState {
   // Visual mode state (plan 01-05)
   currentMode: VisualMode;
   modeConfigs: Record<VisualMode, VisualModeConfig>;
+  // Water state
+  waterEnabled: boolean;
+  waterColor: string;
+  waterReflectivity: number;
   setIntensity: (intensity: number) => void;
   updateLayer: (id: string, updates: Partial<ParticleLayerConfig>) => void;
   toggleLayer: (id: string) => void;
@@ -19,83 +23,89 @@ interface VisualState {
   setSkyboxRotationSpeed: (speed: number) => void;
   // Visual mode actions
   setMode: (mode: VisualMode) => void;
+  // Water actions
+  setWaterEnabled: (enabled: boolean) => void;
+  setWaterColor: (color: string) => void;
+  setWaterReflectivity: (reflectivity: number) => void;
 }
 
 // Ethereal Flame mode configuration (plan 01-06)
+// Target: 15-20% at rest, expands to 30-40% with audio
 export const ETHEREAL_FLAME_CONFIG: VisualModeConfig = {
   key: 'etherealFlame',
   label: 'Ethereal Flame',
   description: 'Organic upward-drifting fire particles with warm colors',
   colorPalette: {
-    primary: [1.0, 0.6, 0.1],    // Orange
-    secondary: [1.0, 0.3, 0.0],  // Red-orange
-    accent: [1.0, 0.9, 0.3],     // Yellow-white
+    primary: [1.0, 0.5, 0.0],    // Deep orange
+    secondary: [1.0, 0.2, 0.0],  // Red
+    accent: [1.0, 0.8, 0.2],     // Yellow
   },
   skyboxPreset: 'DarkWorld1',
   layers: [
-    // Layer 1: Flame Core - Bright, fast-rising center
+    // Layer 1: Dense rainbow core
     {
       id: 'flame-core',
-      name: 'Flame Core',
+      name: 'Rainbow Core',
       enabled: true,
-      particleCount: 1800,
-      baseSize: 18,            // Medium particles
-      spawnRadius: 0.08,       // Tight spawn at base
-      maxSpeed: 0.06,          // Fast upward drift
-      lifetime: 1.5,           // Short lifetime (fire flickers)
-      audioReactivity: 0.7,    // Strong bass response
-      frequencyBand: 'bass',
-      sizeAtBirth: 0.05,       // Small at birth
-      sizeAtPeak: 1.0,         // Full at peak
-      sizeAtDeath: 0.1,        // Small at death
-      peakLifetime: 0.3,       // Quick bloom, early peak
+      particleCount: 70,          // Dense for rainbow center
+      baseSize: 2.5,
+      spawnRadius: 0.15,
+      maxSpeed: 0.03,
+      lifetime: 2.0,
+      audioReactivity: 2.5,
+      frequencyBand: 'mids',
+      sizeAtBirth: 0.37,
+      sizeAtPeak: 1.0,
+      sizeAtDeath: 0.5,
+      peakLifetime: 0.2,
     },
-    // Layer 2: Ember Layer - Orange/red outer particles
+    // Layer 2: Mid layer
     {
       id: 'flame-embers',
-      name: 'Embers',
+      name: 'Mid Glow',
       enabled: true,
-      particleCount: 1200,
-      baseSize: 12,            // Smaller ember particles
-      spawnRadius: 0.12,       // Slightly wider
-      maxSpeed: 0.04,          // Medium speed
-      lifetime: 2.0,
-      audioReactivity: 0.5,
-      frequencyBand: 'mids',
-      sizeAtBirth: 0.08,
-      sizeAtPeak: 0.9,
-      sizeAtDeath: 0.15,
-      peakLifetime: 0.25,
+      particleCount: 50,
+      baseSize: 3.5,
+      spawnRadius: 0.22,
+      maxSpeed: 0.025,
+      lifetime: 2.3,
+      audioReactivity: 2.0,
+      frequencyBand: 'treble',
+      sizeAtBirth: 0.37,
+      sizeAtPeak: 1.0,
+      sizeAtDeath: 0.5,
+      peakLifetime: 0.2,
     },
-    // Layer 3: Heat Haze - Subtle background warmth
+    // Layer 3: Outer wisps
     {
       id: 'flame-haze',
-      name: 'Heat Haze',
+      name: 'Outer Wisps',
       enabled: true,
-      particleCount: 800,
-      baseSize: 25,
-      spawnRadius: 0.20,
+      particleCount: 35,
+      baseSize: 4.5,
+      spawnRadius: 0.3,
       maxSpeed: 0.02,
-      lifetime: 2.5,
-      audioReactivity: 0.3,
-      frequencyBand: 'treble',
-      sizeAtBirth: 0.1,
+      lifetime: 2.8,
+      audioReactivity: 1.5,
+      frequencyBand: 'bass',
+      sizeAtBirth: 0.37,
       sizeAtPeak: 1.0,
-      sizeAtDeath: 0.2,
-      peakLifetime: 0.4,
+      sizeAtDeath: 0.4,
+      peakLifetime: 0.25,
     },
   ],
 };
 
 // Ethereal Mist mode configuration (plan 01-05)
+// Target: 15-20% at rest, expands to 30-40% with audio
 export const ETHEREAL_MIST_CONFIG: VisualModeConfig = {
   key: 'etherealMist',
   label: 'Ethereal Mist',
   description: 'Soft cloud-like particles floating gently with pastel colors',
   colorPalette: {
-    primary: [0.6, 0.9, 1.0],    // Soft cyan
-    secondary: [0.8, 0.7, 1.0],  // Lavender
-    accent: [1.0, 0.95, 0.9],    // Warm white
+    primary: [0.8, 0.2, 0.9],    // Vibrant magenta
+    secondary: [0.3, 0.6, 1.0],  // Cyan-blue
+    accent: [1.0, 0.4, 0.8],     // Pink
   },
   skyboxPreset: 'DarkWorld1',
   layers: [
@@ -103,64 +113,60 @@ export const ETHEREAL_MIST_CONFIG: VisualModeConfig = {
       id: 'mist-core',
       name: 'Mist Core',
       enabled: true,
-      particleCount: 2000,
-      baseSize: 35,
-      spawnRadius: 1.2,
-      maxSpeed: 0.008,  // Very slow drift
-      lifetime: 5,      // Long lifetime for persistent clouds
-      audioReactivity: 0.25,  // Subtle audio response
-      frequencyBand: 'bass',
-      // Gentle size curve - peak at 50% lifetime for centered bloom
-      sizeAtBirth: 0.37,
+      particleCount: 25,         // Reduced from 60 - fewer, larger particles
+      baseSize: 7.0,             // Increased from 5.0
+      spawnRadius: 0.45,         // Wide spread to show color
+      maxSpeed: 0.015,
+      lifetime: 4.0,
+      audioReactivity: 2.5,      // Moderate
+      frequencyBand: 'mids',
+      sizeAtBirth: 0.25,
       sizeAtPeak: 1.0,
-      sizeAtDeath: 0.5,
-      peakLifetime: 0.5,  // Peak at midpoint for soft, centered clouds
-      // Soft cyan start color
-      colorStart: [0.6, 0.9, 1.0],
-      colorEnd: [0.8, 0.7, 1.0],
+      sizeAtDeath: 0.3,
+      peakLifetime: 0.5,
+      colorStart: [0.8, 0.2, 0.9],   // Magenta
+      colorEnd: [0.3, 0.6, 1.0],     // Cyan
     },
     {
       id: 'ambient-haze',
       name: 'Ambient Haze',
       enabled: true,
-      particleCount: 1500,
-      baseSize: 50,
-      spawnRadius: 2.0,
-      maxSpeed: 0.004,  // Even slower drift for background
-      lifetime: 6,      // Extra long for ambient feel
-      audioReactivity: 0.2,  // Very subtle
-      frequencyBand: 'mids',
-      // Gentle size curve
-      sizeAtBirth: 0.37,
+      particleCount: 20,         // Reduced from 40
+      baseSize: 8.0,             // Increased from 6.5
+      spawnRadius: 0.6,
+      maxSpeed: 0.01,
+      lifetime: 5.0,
+      audioReactivity: 2.0,
+      frequencyBand: 'treble',
+      sizeAtBirth: 0.2,
       sizeAtPeak: 1.0,
-      sizeAtDeath: 0.5,
-      peakLifetime: 0.6,  // Later peak for softer fade
-      // Lavender tint
-      colorStart: [0.8, 0.7, 1.0],
-      colorEnd: [1.0, 0.95, 0.9],
+      sizeAtDeath: 0.25,
+      peakLifetime: 0.55,
+      colorStart: [0.3, 0.6, 1.0],   // Cyan
+      colorEnd: [1.0, 0.4, 0.8],     // Pink
     },
   ],
 };
 
 // Default dual-layer configuration (VIS-05)
+// Target: 15-20% at rest, expands to 30-40% with audio
+// Reduced counts, larger sizes for organic texture-based rendering
 const DEFAULT_LAYERS: ParticleLayerConfig[] = [
   {
     id: 'inner-glow',
     name: 'Inner Glow',
     enabled: true,
-    particleCount: 1500,
-    baseSize: 20,
-    spawnRadius: 0.5,
-    maxSpeed: 0.3,
-    lifetime: 8,
-    audioReactivity: 0.8,
-    frequencyBand: 'bass',
-    // Size over lifetime curve (THE MAGIC)
-    sizeAtBirth: 0.37,
+    particleCount: 35,           // Reduced from 100
+    baseSize: 5.5,               // Increased from 3.5
+    spawnRadius: 0.35,
+    maxSpeed: 0.03,
+    lifetime: 3,
+    audioReactivity: 2.5,
+    frequencyBand: 'mids',
+    sizeAtBirth: 0.2,
     sizeAtPeak: 1.0,
-    sizeAtDeath: 0.5,
-    peakLifetime: 0.2,
-    // Bright white-blue core
+    sizeAtDeath: 0.3,
+    peakLifetime: 0.25,
     colorStart: [0.8, 0.9, 1.0],
     colorEnd: [0.6, 0.8, 1.0],
   },
@@ -168,19 +174,17 @@ const DEFAULT_LAYERS: ParticleLayerConfig[] = [
     id: 'outer-halo',
     name: 'Outer Halo',
     enabled: true,
-    particleCount: 1000,
-    baseSize: 40,
-    spawnRadius: 1.5,
-    maxSpeed: 0.15,
-    lifetime: 12,
-    audioReactivity: 0.5,
-    frequencyBand: 'mids',
-    // Size over lifetime curve
-    sizeAtBirth: 0.37,
+    particleCount: 25,           // Reduced from 70
+    baseSize: 7.0,               // Increased from 5.0
+    spawnRadius: 0.5,
+    maxSpeed: 0.02,
+    lifetime: 4,
+    audioReactivity: 2.0,
+    frequencyBand: 'treble',
+    sizeAtBirth: 0.15,
     sizeAtPeak: 1.0,
-    sizeAtDeath: 0.5,
-    peakLifetime: 0.2,
-    // Soft diffuse glow
+    sizeAtDeath: 0.25,
+    peakLifetime: 0.3,
     colorStart: [0.4, 0.6, 0.9],
     colorEnd: [0.3, 0.5, 0.8],
   },
@@ -198,6 +202,10 @@ export const useVisualStore = create<VisualState>((set) => ({
     etherealMist: ETHEREAL_MIST_CONFIG,
     etherealFlame: ETHEREAL_FLAME_CONFIG,
   },
+  // Water state defaults
+  waterEnabled: false,
+  waterColor: '#0a1828',     // Dark blue
+  waterReflectivity: 0.4,
 
   setIntensity: (intensity) => set({ intensity }),
 
@@ -229,4 +237,9 @@ export const useVisualStore = create<VisualState>((set) => ({
           state.skyboxPreset,
       };
     }),
+
+  // Water setters
+  setWaterEnabled: (enabled) => set({ waterEnabled: enabled }),
+  setWaterColor: (color) => set({ waterColor: color }),
+  setWaterReflectivity: (reflectivity) => set({ waterReflectivity: reflectivity }),
 }));

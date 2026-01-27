@@ -72,7 +72,7 @@ export class AudioAnalyzerSingleton {
       // Create analyser node with 512 FFT size for performance
       this.analyser = this.audioContext.createAnalyser();
       this.analyser.fftSize = 512;
-      this.analyser.smoothingTimeConstant = 0.7;
+      this.analyser.smoothingTimeConstant = 0.6; // Higher = smoother, less jittery
 
       // Create source from audio element
       this.source = this.audioContext.createMediaElementSource(audioElement);
@@ -111,15 +111,24 @@ export class AudioAnalyzerSingleton {
     // Get frequency data from analyser
     this.analyser.getByteFrequencyData(this.dataArray);
 
-    const len = this.dataArray.length;
+    const len = this.dataArray.length; // 256 bins for fftSize=512
 
-    // Calculate frequency band indices
-    // Frequency range: 0Hz to Nyquist (sampleRate / 2)
-    // For 44.1kHz: 0-22050Hz across 256 bins (fftSize/2)
-    const subBassEnd = Math.floor(len * 0.025); // ~0-60Hz
-    const bassEnd = Math.floor(len * 0.1);      // ~60-250Hz
-    const midEnd = Math.floor(len * 0.5);       // ~250Hz-4kHz
-    // high is from midEnd to len                // ~4kHz-22kHz
+    // CORRECT frequency band calculations
+    // With 44.1kHz sample rate and 512 FFT: each bin = 44100/512 = 86.1Hz
+    // Bin 0 = 0Hz, Bin 1 = 86Hz, Bin 2 = 172Hz, etc.
+    const binHz = 86.1; // approximate Hz per bin
+
+    // Sub-bass: 20-60Hz → bins 0-1
+    const subBassEnd = 1;
+    // Bass: 60-250Hz → bins 1-3
+    const bassEnd = 3;
+    // Low-mids: 250-500Hz → bins 3-6
+    const lowMidEnd = 6;
+    // Mids: 500Hz-2kHz → bins 6-23
+    const midEnd = 23;
+    // High-mids: 2kHz-6kHz → bins 23-70
+    const highMidEnd = 70;
+    // Highs: 6kHz+ → bins 70+
 
     // Calculate average amplitude for each band
     let subBassSum = 0;
@@ -132,33 +141,42 @@ export class AudioAnalyzerSingleton {
       const value = this.dataArray[i];
       totalSum += value;
 
-      if (i < subBassEnd) {
+      if (i <= subBassEnd) {
         subBassSum += value;
-      } else if (i < bassEnd) {
+      } else if (i <= bassEnd) {
         bassSum += value;
-      } else if (i < midEnd) {
+      } else if (i <= midEnd) {
+        // Combine low-mids and mids
         midSum += value;
+      } else if (i <= highMidEnd) {
+        // High-mids go to highs
+        highSum += value;
       } else {
         highSum += value;
       }
     }
 
     // Normalize to 0-1 range (255 is max value for Uint8Array)
-    const subBass = subBassEnd > 0 ? (subBassSum / subBassEnd) / 255 : 0;
-    const bass = (bassEnd - subBassEnd) > 0 ? (bassSum / (bassEnd - subBassEnd)) / 255 : 0;
-    const mid = (midEnd - bassEnd) > 0 ? (midSum / (midEnd - bassEnd)) / 255 : 0;
-    const high = (len - midEnd) > 0 ? (highSum / (len - midEnd)) / 255 : 0;
+    const subBassCount = subBassEnd + 1;
+    const bassCount = bassEnd - subBassEnd;
+    const midCount = midEnd - bassEnd;
+    const highCount = len - midEnd;
+
+    const subBass = subBassCount > 0 ? (subBassSum / subBassCount) / 255 : 0;
+    const bassLevel = bassCount > 0 ? (bassSum / bassCount) / 255 : 0;
+    const midLevel = midCount > 0 ? (midSum / midCount) / 255 : 0;
+    const highLevel = highCount > 0 ? (highSum / highCount) / 255 : 0;
 
     this.amplitude = totalSum / len / 255;
-    this.bass = Math.max(subBass, bass); // Combine sub-bass and bass
-    this.mid = mid;
-    this.high = high;
+    this.bass = Math.max(subBass, bassLevel); // Combine sub-bass and bass
+    this.mid = midLevel;
+    this.high = highLevel;
 
     // Beat detection using threshold crossing algorithm
     this.timeSinceLastBeat += deltaTime;
 
-    // Beat signal combines sub-bass and bass (bass weighted at 70%)
-    const beatSignal = Math.max(subBass, bass * 0.7);
+    // Beat signal uses actual bass frequencies (sub-bass + bass)
+    const beatSignal = Math.max(subBass, bassLevel);
 
     // Low threshold for sensitive beat detection
     const threshold = 0.05;

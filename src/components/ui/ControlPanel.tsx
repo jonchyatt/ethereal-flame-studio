@@ -16,10 +16,20 @@ import { useState } from 'react';
 import { ModeSelector } from './ModeSelector';
 import { PresetSelector } from './PresetSelector';
 import { AudioControls } from './AudioControls';
+import { useVisualStore } from '@/lib/stores/visualStore';
 
 export function ControlPanel() {
   const [isExpanded, setIsExpanded] = useState(true);
   const [showDebug, setShowDebug] = useState(true);
+  const skyboxRotationSpeed = useVisualStore((state) => state.skyboxRotationSpeed);
+  const setSkyboxRotationSpeed = useVisualStore((state) => state.setSkyboxRotationSpeed);
+  // Water state
+  const waterEnabled = useVisualStore((state) => state.waterEnabled);
+  const setWaterEnabled = useVisualStore((state) => state.setWaterEnabled);
+  const waterReflectivity = useVisualStore((state) => state.waterReflectivity);
+  const setWaterReflectivity = useVisualStore((state) => state.setWaterReflectivity);
+  const waterColor = useVisualStore((state) => state.waterColor);
+  const setWaterColor = useVisualStore((state) => state.setWaterColor);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
@@ -53,11 +63,80 @@ export function ControlPanel() {
                 <PresetSelector />
               </div>
 
-              {/* Right Column: Placeholder for future controls */}
-              <div className="flex items-center justify-center">
-                <div className="text-white/50 text-sm text-center">
-                  <p>Additional controls will appear here</p>
-                  <p className="text-xs mt-1">(Audio integration in plan 01-08)</p>
+              {/* Right Column: Skybox Controls */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-white/80 text-sm mb-2">
+                    Skybox Rotation Speed: {skyboxRotationSpeed.toFixed(1)}x
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="2"
+                    step="0.1"
+                    value={skyboxRotationSpeed}
+                    onChange={(e) => setSkyboxRotationSpeed(parseFloat(e.target.value))}
+                    className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <div className="flex justify-between text-xs text-white/40 mt-1">
+                    <span>Stopped</span>
+                    <span>Normal</span>
+                    <span>Fast</span>
+                  </div>
+                </div>
+
+                {/* Water Controls */}
+                <div className="border-t border-white/10 pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-white/80 text-sm font-medium">
+                      Water Reflection
+                    </label>
+                    <button
+                      onClick={() => setWaterEnabled(!waterEnabled)}
+                      className={`
+                        px-3 py-1 rounded text-sm min-h-[32px]
+                        transition-all
+                        ${waterEnabled
+                          ? 'bg-blue-500/50 text-white border border-blue-400/50'
+                          : 'bg-white/10 text-white/60 border border-white/10'
+                        }
+                      `}
+                    >
+                      {waterEnabled ? 'ON' : 'OFF'}
+                    </button>
+                  </div>
+
+                  {waterEnabled && (
+                    <div className="space-y-3">
+                      {/* Reflectivity Slider */}
+                      <div>
+                        <label className="block text-white/60 text-xs mb-1">
+                          Reflectivity: {waterReflectivity.toFixed(2)}
+                        </label>
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.05"
+                          value={waterReflectivity}
+                          onChange={(e) => setWaterReflectivity(parseFloat(e.target.value))}
+                          className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Water Color Picker */}
+                      <div className="flex items-center gap-3">
+                        <label className="text-white/60 text-xs">Color:</label>
+                        <input
+                          type="color"
+                          value={waterColor}
+                          onChange={(e) => setWaterColor(e.target.value)}
+                          className="w-8 h-8 rounded cursor-pointer border border-white/20"
+                        />
+                        <span className="text-white/40 text-xs font-mono">{waterColor}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -82,12 +161,17 @@ export function ControlPanel() {
             {/* Audio Controls with Debug Overlay */}
             {showDebug && (
               <div className="mt-4">
-                <AudioControls />
+                {/* Placeholder - actual AudioControls rendered below */}
               </div>
             )}
           </div>
         </div>
       )}
+
+      {/* AudioControls ALWAYS mounted - visibility controlled by CSS */}
+      <div className={isExpanded && showDebug ? "" : "sr-only"}>
+        <AudioControls />
+      </div>
     </div>
   );
 }

@@ -73,29 +73,52 @@ export function ParticleLayer({
     const isFlame = config.id.includes('flame');
 
     for (let i = 0; i < particleCount; i++) {
-      // Random direction on sphere
+      // Random angle on ring (horizontal plane)
       const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      const dirX = Math.sin(phi) * Math.cos(theta);
-      const dirY = Math.sin(phi) * Math.sin(theta);
-      const dirZ = Math.cos(phi);
 
-      // Spawn position
-      const spawnDist = spawnRadius * Math.random();
-      birthPositions[i * 3] = dirX * spawnDist;
-      birthPositions[i * 3 + 1] = dirY * spawnDist;
-      birthPositions[i * 3 + 2] = dirZ * spawnDist;
-
-      // Velocity with flame-specific upward bias
+      // Speed with variation
       const speed = maxSpeed * (0.5 + Math.random() * 0.5);
+
       if (isFlame) {
-        // Flame: predominantly upward with lateral variation
-        const upwardBias = 0.7; // 70% of velocity is upward
-        velocities[i * 3] = dirX * speed * (1 - upwardBias) + (Math.random() - 0.5) * speed * 0.3;
-        velocities[i * 3 + 1] = Math.abs(dirY) * speed * upwardBias + speed * 0.5; // Always positive Y
-        velocities[i * 3 + 2] = dirZ * speed * (1 - upwardBias) + (Math.random() - 0.5) * speed * 0.3;
+        // FLAME: Gentle magnesium-like micro-bursts
+        // Dense center, smaller variations
+        const centerBias = Math.pow(Math.random(), 0.5);
+        const baseRadius = spawnRadius * centerBias * 1.2;
+
+        // MICRO-BLURB effect: small, delicate asymmetric bursts like magnesium sparks
+        const blobAngle = Math.random() * Math.PI * 2;
+        const blobStrength = Math.random() * 0.06; // Much smaller bursts
+        const blobX = Math.cos(blobAngle) * blobStrength;
+        const blobZ = Math.sin(blobAngle) * blobStrength;
+
+        // Subtle asymmetry - gentle, not jarring
+        const asymX = (Math.random() - 0.5) * 0.08;
+        const asymZ = (Math.random() - 0.5) * 0.08;
+
+        birthPositions[i * 3] = Math.cos(theta) * baseRadius + asymX + blobX;
+        birthPositions[i * 3 + 1] = (Math.random() - 0.5) * 0.04;
+        birthPositions[i * 3 + 2] = Math.sin(theta) * baseRadius + asymZ + blobZ;
+
+        // Subtle velocity - flows with the orb, tiny sparks of variance
+        const chaos = 0.04;
+        const vx = (Math.random() - 0.5) * chaos + Math.cos(theta) * speed * 0.15;
+        const vy = speed * (0.01 + Math.random() * 0.025);
+        const vz = (Math.random() - 0.5) * chaos + Math.sin(theta) * speed * 0.15;
+        velocities[i * 3] = vx;
+        velocities[i * 3 + 1] = vy;
+        velocities[i * 3 + 2] = vz;
       } else {
-        // Default: outward velocity
+        // Default: spherical distribution
+        const phi = Math.acos(2 * Math.random() - 1);
+        const dirX = Math.sin(phi) * Math.cos(theta);
+        const dirY = Math.sin(phi) * Math.sin(theta);
+        const dirZ = Math.cos(phi);
+
+        const spawnDist = spawnRadius * Math.random();
+        birthPositions[i * 3] = dirX * spawnDist;
+        birthPositions[i * 3 + 1] = dirY * spawnDist;
+        birthPositions[i * 3 + 2] = dirZ * spawnDist;
+
         velocities[i * 3] = dirX * speed;
         velocities[i * 3 + 1] = dirY * speed;
         velocities[i * 3 + 2] = dirZ * speed;
@@ -131,10 +154,12 @@ export function ParticleLayer({
         colors[i * 3 + 1] = rgb[1];
         colors[i * 3 + 2] = rgb[2];
       } else if (isFlame && colorPalette) {
-        // Flame: start with bright yellow-white
-        colors[i * 3] = colorPalette.accent[0];
-        colors[i * 3 + 1] = colorPalette.accent[1];
-        colors[i * 3 + 2] = colorPalette.accent[2];
+        // Flame: start with saturated rainbow (NOT white/yellow)
+        const particleHue = (i * 0.13) % 1.0;
+        const rgb = hslToRgb(particleHue, 1.0, 0.55);
+        colors[i * 3] = rgb[0];
+        colors[i * 3 + 1] = rgb[1];
+        colors[i * 3 + 2] = rgb[2];
       } else if (colorStart) {
         colors[i * 3] = colorStart[0];
         colors[i * 3 + 1] = colorStart[1];
@@ -189,8 +214,7 @@ export function ParticleLayer({
       bandAmplitude = audioLevels.treble;
     }
 
-    // Beat pulse effect: scale boost on bass hits (AUD-04)
-    const beatPulse = audioLevels.isBeat ? 1.2 : 1.0;
+    // Beat detection is read directly in the particle loop below
 
     for (let i = 0; i < particleCount; i++) {
       // Calculate age
@@ -199,28 +223,42 @@ export function ParticleLayer({
 
       // Respawn if dead
       if (age > particleLifetime) {
-        // New random direction
         const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos(2 * Math.random() - 1);
-        const dirX = Math.sin(phi) * Math.cos(theta);
-        const dirY = Math.sin(phi) * Math.sin(theta);
-        const dirZ = Math.cos(phi);
-
-        // New spawn position
-        const spawnDist = spawnRadius * Math.random();
-        birthPositions[i * 3] = dirX * spawnDist;
-        birthPositions[i * 3 + 1] = dirY * spawnDist;
-        birthPositions[i * 3 + 2] = dirZ * spawnDist;
-
-        // New velocity
         const speed = maxSpeed * (0.5 + Math.random() * 0.5);
+
         if (isFlameMode) {
-          // Flame: predominantly upward with lateral variation
-          const upwardBias = 0.7;
-          velocities[i * 3] = dirX * speed * (1 - upwardBias) + (Math.random() - 0.5) * speed * 0.3;
-          velocities[i * 3 + 1] = Math.abs(dirY) * speed * upwardBias + speed * 0.5;
-          velocities[i * 3 + 2] = dirZ * speed * (1 - upwardBias) + (Math.random() - 0.5) * speed * 0.3;
+          // FLAME: Gentle magnesium-like micro-bursts (respawn)
+          const centerBias = Math.pow(Math.random(), 0.5);
+          const baseRadius = spawnRadius * centerBias * 1.2;
+
+          const blobAngle = Math.random() * Math.PI * 2;
+          const blobStrength = Math.random() * 0.06;
+          const blobX = Math.cos(blobAngle) * blobStrength;
+          const blobZ = Math.sin(blobAngle) * blobStrength;
+
+          const asymX = (Math.random() - 0.5) * 0.08;
+          const asymZ = (Math.random() - 0.5) * 0.08;
+
+          birthPositions[i * 3] = Math.cos(theta) * baseRadius + asymX + blobX;
+          birthPositions[i * 3 + 1] = (Math.random() - 0.5) * 0.04;
+          birthPositions[i * 3 + 2] = Math.sin(theta) * baseRadius + asymZ + blobZ;
+
+          const chaos = 0.04;
+          velocities[i * 3] = (Math.random() - 0.5) * chaos + Math.cos(theta) * speed * 0.15;
+          velocities[i * 3 + 1] = speed * (0.01 + Math.random() * 0.025);
+          velocities[i * 3 + 2] = (Math.random() - 0.5) * chaos + Math.sin(theta) * speed * 0.15;
         } else {
+          // Default: spherical
+          const phi = Math.acos(2 * Math.random() - 1);
+          const dirX = Math.sin(phi) * Math.cos(theta);
+          const dirY = Math.sin(phi) * Math.sin(theta);
+          const dirZ = Math.cos(phi);
+
+          const spawnDist = spawnRadius * Math.random();
+          birthPositions[i * 3] = dirX * spawnDist;
+          birthPositions[i * 3 + 1] = dirY * spawnDist;
+          birthPositions[i * 3 + 2] = dirZ * spawnDist;
+
           velocities[i * 3] = dirX * speed;
           velocities[i * 3 + 1] = dirY * speed;
           velocities[i * 3 + 2] = dirZ * speed;
@@ -243,10 +281,12 @@ export function ParticleLayer({
           colors[i * 3 + 1] = rgb[1];
           colors[i * 3 + 2] = rgb[2];
         } else if (isFlameMode && colorPalette) {
-          // Flame: start with bright yellow-white
-          colors[i * 3] = colorPalette.accent[0];
-          colors[i * 3 + 1] = colorPalette.accent[1];
-          colors[i * 3 + 2] = colorPalette.accent[2];
+          // Flame: saturated rainbow (NOT white/yellow)
+          const particleHue = (i * 0.13 + time * 0.03) % 1.0;
+          const rgb = hslToRgb(particleHue, 1.0, 0.55);
+          colors[i * 3] = rgb[0];
+          colors[i * 3 + 1] = rgb[1];
+          colors[i * 3 + 2] = rgb[2];
         } else {
           // Default: color based on global hue
           const hue = (globalHue + Math.random() * 0.1) % 1;
@@ -295,8 +335,8 @@ export function ParticleLayer({
         } else {
           alpha = 1; // Full opacity
         }
-        // Apply softness multiplier for mist
-        alpha *= 0.7;
+        // Light softness for ethereal look (fewer particles = can use higher alpha)
+        alpha *= 0.6;
       } else {
         // Default: Fade in first 10%, full 10-70%, fade out last 30%
         if (normAge < 0.1) {
@@ -308,18 +348,32 @@ export function ParticleLayer({
         }
       }
 
-      // Flame-specific warm color interpolation
-      if (colorPalette && isFlameMode && age > 0) {
-        // Age-based color: young = bright yellow, old = deep red
-        const colorT = normAge;
+      // Flame-specific: nuanced rainbow center -> warm edges
+      // NO bright white/yellow - keep saturated throughout
+      if (colorPalette && isFlameMode) {
+        const t = normAge;
         let color: [number, number, number];
-        if (colorT < 0.3) {
-          // Young: accent (yellow-white) to primary (orange)
-          color = lerpColor(colorPalette.accent, colorPalette.primary, colorT / 0.3);
+
+        // Rainbow hue per particle with time variation
+        const particleHue = (i * 0.13 + time * 0.02) % 1.0;
+
+        if (t < 0.35) {
+          // Young/center: saturated rainbow (lightness 0.5 = no white)
+          color = hslToRgb(particleHue, 1.0, 0.5);
+        } else if (t < 0.65) {
+          // Mid-age: rainbow fading toward warm orange
+          const warmT = (t - 0.35) / 0.3;
+          const rainbow = hslToRgb(particleHue, 1.0, 0.5);
+          const orange: [number, number, number] = [0.95, 0.5, 0.1];
+          color = lerpColor(rainbow, orange, warmT);
         } else {
-          // Older: primary (orange) to secondary (red)
-          color = lerpColor(colorPalette.primary, colorPalette.secondary, (colorT - 0.3) / 0.7);
+          // Old/edges: orange to deep red
+          const redT = (t - 0.65) / 0.35;
+          const orange: [number, number, number] = [0.95, 0.5, 0.1];
+          const red: [number, number, number] = [0.8, 0.2, 0.1];
+          color = lerpColor(orange, red, redT);
         }
+
         colors[i * 3] = color[0];
         colors[i * 3 + 1] = color[1];
         colors[i * 3 + 2] = color[2];
@@ -329,12 +383,13 @@ export function ParticleLayer({
       let audioSizeMultiplier = 1.0;
       const reactivity = config.audioReactivity || 0;
       if (reactivity > 0) {
-        // bandAmplitude ranges 0-1, map to size variation based on reactivity
-        audioSizeMultiplier = 1.0 + bandAmplitude * reactivity * 0.8;
+        // Strong size reaction to loudness
+        audioSizeMultiplier = 1.0 + bandAmplitude * reactivity * 3.0;
       }
 
-      // Apply beat pulse effect (AUD-04)
-      const finalSizeMultiplier = sizeMult * audioSizeMultiplier * beatPulse;
+      // Apply beat pulse effect (AUD-04) - strong pulse on bass hits
+      const beatPulseEffect = audioLevels.isBeat ? 1.45 : 1.0;
+      const finalSizeMultiplier = sizeMult * audioSizeMultiplier * beatPulseEffect;
 
       // Update size
       sizes[i] = baseSizes[i] * finalSizeMultiplier;
@@ -342,11 +397,11 @@ export function ParticleLayer({
       // Update alpha
       alphas[i] = alpha;
 
-      // Apply audio reactivity to position scale (subtle expansion/contraction)
+      // Apply audio reactivity to position scale (expansion/contraction)
       let scale = 1.0;
       if (reactivity > 0) {
-        // Expand/contract based on audio amplitude (more subtle than size)
-        scale = 1.0 + bandAmplitude * reactivity * 0.3;
+        // Expand/contract based on audio amplitude - subtle but visible
+        scale = 1.0 + bandAmplitude * reactivity * 0.5;
       }
       const bx = birthPositions[i * 3];
       const by = birthPositions[i * 3 + 1];
@@ -356,12 +411,24 @@ export function ParticleLayer({
       const vz = velocities[i * 3 + 2];
 
       if (isFlameMode && age > 0) {
-        // Add organic flicker/turbulence for flame
-        const flicker = Math.sin(age * 15 + i) * 0.005;
-        const turbulence = Math.cos(age * 8 + i * 0.5) * 0.003;
-        positions[i * 3] = (bx + vx * age + flicker) * scale;
-        positions[i * 3 + 1] = (by + vy * age) * scale; // No turbulence on Y (pure upward)
-        positions[i * 3 + 2] = (bz + vz * age + turbulence) * scale;
+        // Gentle turbulence for nebula float effect
+        // Lower frequency, smaller displacement
+        const t1 = Math.sin(age * 6 + i * 0.7) * 0.02;
+        const t2 = Math.cos(age * 4 + i * 1.3) * 0.015;
+        const t3 = Math.sin(age * 2.5 + i * 2.1) * 0.01;
+        const flickerX = t1 + t2;
+        const flickerZ = t2 + t3;
+        const flickerY = Math.sin(age * 3 + i) * 0.007; // Very subtle Y wobble
+
+        positions[i * 3] = (bx + vx * age + flickerX) * scale;
+        positions[i * 3 + 1] = (by + vy * age + flickerY) * scale;
+        positions[i * 3 + 2] = (bz + vz * age + flickerZ) * scale;
+      } else if (isMistMode && age > 0) {
+        // Gentle drifting for mist
+        const drift = Math.sin(age * 2 + i * 0.5) * 0.02;
+        positions[i * 3] = (bx + vx * age + drift) * scale;
+        positions[i * 3 + 1] = (by + vy * age) * scale;
+        positions[i * 3 + 2] = (bz + vz * age + drift * 0.5) * scale;
       } else {
         positions[i * 3] = (bx + vx * age) * scale;
         positions[i * 3 + 1] = (by + vy * age) * scale;
@@ -419,7 +486,10 @@ export function ParticleLayer({
             gl_Position = projectionMatrix * mvPosition;
 
             // Distance-based size attenuation
-            float distanceScale = 100.0 / length(mvPosition.xyz);
+            // At camera distance 12: 150/12 = 12.5x
+            // With baseSize 5.0: gl_PointSize = 5.0 * 12.5 = 62.5 pixels
+            // This creates larger, more visible particles for 15-20% screen coverage
+            float distanceScale = 150.0 / length(mvPosition.xyz);
             gl_PointSize = aSize * distanceScale;
           }
         `}
@@ -430,20 +500,27 @@ export function ParticleLayer({
           varying vec3 vColor;
 
           void main() {
-            vec2 center = gl_PointCoord - 0.5;
-            float dist = length(center);
+            // Distance from center (0 at center, 0.5 at edge)
+            vec2 cxy = gl_PointCoord - 0.5;
+            float dist = length(cxy);
 
-            // Soft circular gradient with smooth falloff
-            float alpha = 1.0 - smoothstep(0.0, 0.5, dist);
-            alpha = pow(alpha, 0.8); // Softer falloff for glow
+            // Soft Gaussian falloff
+            float gaussian = exp(-dist * dist * 5.0);
 
-            // Bright core + soft bloom + halo
-            float core = exp(-dist * 4.0) * 0.8;
-            float bloom = exp(-dist * 1.5) * 0.3;
-            float halo = exp(-dist * 8.0) * 0.4;
+            // Smooth edge fade
+            float edgeFade = smoothstep(0.5, 0.15, dist);
 
-            vec3 color = vColor * uIntensity * (1.0 + core + bloom);
-            float finalAlpha = (alpha + halo) * vAlpha * 0.85;
+            // Combined alpha
+            float alpha = gaussian * edgeFade;
+
+            // Discard very transparent
+            if (alpha < 0.01) discard;
+
+            // Saturated colors without blowing out to white
+            vec3 color = vColor * uIntensity * 0.5;
+
+            // Ghost-like ethereal - NOT white dominant
+            float finalAlpha = alpha * vAlpha * 0.12;
 
             gl_FragColor = vec4(color, finalAlpha);
           }
