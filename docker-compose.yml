@@ -1,17 +1,60 @@
 # Ethereal Flame Studio - Docker Compose Configuration
 #
-# Provides GPU-accelerated headless rendering environment with queue infrastructure.
+# Provides GPU-accelerated headless rendering environment with queue infrastructure,
+# workflow automation via n8n, and secure remote access via Cloudflare Tunnel.
 #
 # Usage:
 #   docker-compose up -d redis         # Start Redis for job queue
 #   docker-compose up -d whisper       # Start Whisper transcription service
+#   docker-compose up -d n8n           # Start n8n workflow automation
+#   docker-compose up -d cloudflared   # Start Cloudflare Tunnel for remote access
 #   docker-compose up -d               # Start all services
 #
-# Phase 3 + Phase 4 services
-
-version: '3.8'
+# Phase 3 + Phase 4 + Phase 5 services
 
 services:
+  # Cloudflare Tunnel for secure remote access (Phase 5)
+  # Enables access to n8n and render server from anywhere without exposing ports
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: ethereal-cloudflared
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - ethereal-network
+    depends_on:
+      - n8n
+    profiles:
+      - remote-access
+
+  # n8n Workflow Automation (Phase 5)
+  # Self-hosted for YouTube OAuth support
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: ethereal-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=${N8N_HOST:-localhost}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://localhost:5678/}
+      - N8N_BASIC_AUTH_ACTIVE=${N8N_BASIC_AUTH_ACTIVE:-true}
+      - N8N_BASIC_AUTH_USER=${N8N_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:-changeme}
+      - GENERIC_TIMEZONE=${TZ:-America/Los_Angeles}
+      - N8N_PAYLOAD_SIZE_MAX=100
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ${RENDER_OUTPUT_DIR:-./output}:/renders:ro
+    networks:
+      - ethereal-network
+    profiles:
+      - automation
+
   # Redis for BullMQ job queue
   redis:
     image: redis:7-alpine
@@ -22,6 +65,8 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    networks:
+      - ethereal-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -86,6 +131,11 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - WHISPER_SERVICE_URL=http://whisper:8001
+      - N8N_WEBHOOK_RENDER_URL=${N8N_WEBHOOK_RENDER_URL:-}
+      - N8N_WEBHOOK_SECRET=${N8N_WEBHOOK_SECRET:-}
+
+    networks:
+      - ethereal-network
 
     # GPU support (NVIDIA)
     # Uncomment if you have NVIDIA GPU and nvidia-docker installed
@@ -128,6 +178,8 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - WHISPER_SERVICE_URL=http://whisper:8001
+    networks:
+      - ethereal-network
     depends_on:
       redis:
         condition: service_healthy
@@ -137,6 +189,11 @@ services:
     profiles:
       - with-ui
 
+networks:
+  ethereal-network:
+    driver: bridge
+
 volumes:
   redis-data:
   whisper-cache:
+  n8n_data:
