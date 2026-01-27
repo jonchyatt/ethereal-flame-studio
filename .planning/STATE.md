@@ -8,23 +8,23 @@
 
 **Core Value:** Phone to published video without touching a computer
 
-**Current Focus:** Phase 3 complete, ready for Phase 4 planning
+**Current Focus:** Phase 4 complete, ready for Phase 5 planning
 
 **Key Files:**
 - `.planning/PROJECT.md` - Project definition
 - `.planning/REQUIREMENTS.md` - v1 requirements (41 total)
 - `.planning/ROADMAP.md` - Phase structure
 - `.planning/research/SUMMARY.md` - Architecture decisions
-- `.planning/phases/03-rendering/03-SUMMARY.md` - Phase 3 summary
+- `.planning/phases/04-automation/04-SUMMARY.md` - Phase 4 summary
 
 ---
 
 ## Current Position
 
-**Phase:** 3 of 5 (Rendering Pipeline) - COMPLETE
-**Plan:** 8/8 complete
-**Status:** Ready for Phase 4 planning
-**Last activity:** 2026-01-27 - Completed Phase 3 (Rendering Pipeline)
+**Phase:** 4 of 5 (Automation) - COMPLETE
+**Plan:** 9/9 complete
+**Status:** Ready for Phase 5 planning
+**Last activity:** 2026-01-27 - Completed Phase 4 (Automation)
 
 **Phase 1 (COMPLETE):**
 - [x] 01-01: Project scaffolding
@@ -54,14 +54,25 @@
 - [x] 03-07: Headless rendering mode
 - [x] 03-08: Render queue with persistence
 
+**Phase 4 (COMPLETE):**
+- [x] 04-01: SQLite database + file naming
+- [x] 04-02: BullMQ queue infrastructure
+- [x] 04-03: Render worker with post-processing
+- [x] 04-04: Whisper transcription microservice
+- [x] 04-05: Transcription queue integration
+- [x] 04-06: Google Drive sync via rclone
+- [x] 04-07: ntfy push notifications
+- [x] 04-08: Google Sheets metadata export
+- [x] 04-09: Batch upload UI
+
 **Progress:**
 ```
 Phase 1: [##########] 100% (8/8 plans) - COMPLETE
 Phase 2: [##########] 100% (6/6 plans) - COMPLETE
 Phase 3: [##########] 100% (8/8 plans) - COMPLETE
-Phase 4: [..........] 0% (planned)
+Phase 4: [##########] 100% (9/9 plans) - COMPLETE
 Phase 5: [..........] 0% (planned)
-Overall: [######....] 54% (22/41 plans)
+Overall: [########..] 76% (31/41 plans)
 ```
 
 **Note:** Visual quality (particle asymmetry, organic shapes) flagged for redesign after pipeline complete.
@@ -75,8 +86,8 @@ Overall: [######....] 54% (22/41 plans)
 | Requirements (v1) | 41 |
 | Requirements mapped | 41 |
 | Phases total | 5 |
-| Phases complete | 3 |
-| Plans complete | 22 |
+| Phases complete | 4 |
+| Plans complete | 31 |
 
 ---
 
@@ -131,6 +142,15 @@ Overall: [######....] 54% (22/41 plans)
 | 2026-01-27 | Top/Bottom stereo layout (03-05) | YouTube VR specification: left eye on top |
 | 2026-01-27 | Python spatial-media for VR metadata (03-06) | Google's official tool for sv3d/st3d atoms |
 | 2026-01-27 | File-based job queue for render server (03-07) | Simple, filesystem-based persistence without database |
+| 2026-01-27 | SQLite with WAL mode (04-01) | Concurrent read safety for batch workers |
+| 2026-01-27 | better-sqlite3 sync API (04-01) | Simpler than async, high performance for Node.js |
+| 2026-01-27 | BullMQ over Bull (04-02) | Active development, native TypeScript, better performance |
+| 2026-01-27 | Redis noeviction policy (04-02) | Critical - BullMQ fails if Redis evicts job data |
+| 2026-01-27 | faster-whisper over OpenAI API (04-04) | 4x faster, local GPU, no API costs |
+| 2026-01-27 | Separate Whisper microservice (04-04) | Isolates Python from Node.js, independent scaling |
+| 2026-01-27 | rclone over Google Drive API (04-06) | Simpler setup, built-in retry logic, resumable uploads |
+| 2026-01-27 | ntfy over web push (04-07) | Self-hosted option, simple HTTP API, no VAPID keys |
+| 2026-01-27 | Google Sheets API for export (04-08) | Human-readable view, collaboration-friendly |
 
 ### Technical Context
 
@@ -140,6 +160,9 @@ Overall: [######....] 54% (22/41 plans)
 - **VR metadata:** Must use Google Spatial Media tools for sv3d/st3d metadata injection
 - **Template system:** 6 built-in presets, localStorage persistence for user templates
 - **Render pipeline:** CubeCamera for 360, FFmpeg for encoding, Docker for headless
+- **Batch infrastructure:** SQLite + BullMQ + Redis for persistent job queue
+- **Whisper service:** Python FastAPI microservice with GPU support via CUDA
+- **External services:** rclone for Google Drive, ntfy for notifications, googleapis for Sheets
 
 ### Blockers
 
@@ -150,8 +173,8 @@ None currently.
 - [x] Phase 1: Foundation (Web UI + Visual Engine)
 - [x] Phase 2: Template System
 - [x] Phase 3: Rendering Pipeline (frame capture, export, headless)
-- [ ] Phase 4: Server Rendering (cloud deployment, API integration)
-- [ ] Phase 5: Automation (n8n workflows, VR hosting)
+- [x] Phase 4: Automation (batch queue, transcription, sync, notifications)
+- [ ] Phase 5: n8n Integration (workflow automation, VR hosting)
 
 ---
 
@@ -159,33 +182,36 @@ None currently.
 
 ### Last Session
 - **Date:** 2026-01-27
-- **Action:** Executed all Phase 3 plans (03-01 through 03-08)
-- **Outcome:** Complete rendering pipeline implemented
+- **Action:** Executed all Phase 4 plans (04-01 through 04-09)
+- **Outcome:** Complete batch automation pipeline implemented
 
 **Commits:**
-- `4410967` feat(03-01): add PreAnalyzer for offline audio analysis
-- `920f344` feat(03-02): add frame capture system with async reading
-- `43c63a7` feat(03-03): add flat export pipeline with UI
-- `7e70929` feat(03-04): add 360 monoscopic capture pipeline
-- `41cfcc5` feat(03-05): add 360 stereoscopic capture pipeline
-- `34b02cd` feat(03-06): add FFmpeg encoding and VR metadata injection
-- `8d81ab2` feat(03-07): add headless rendering mode with Docker support
-- `2d53423` feat(03-08): add render queue with IndexedDB persistence
+- `b8322c2` feat(04-01): add SQLite database and file naming utilities
+- `7ef785a` feat(04-02): add BullMQ batch queue infrastructure
+- `ea0db67` feat(04-03): add BullMQ render worker with post-processing
+- `fd45614` feat(04-04): add faster-whisper transcription microservice
+- `85f633d` feat(04-05): add transcription queue integration
+- `16f67e8` feat(04-06): add Google Drive sync via rclone
+- `9f4f098` feat(04-07): add ntfy push notifications
+- `172389e` feat(04-08): add Google Sheets metadata export
+- `d73471e` feat(04-09): add batch upload UI and API
 
-**Stopped at:** Phase 3 complete
+**Stopped at:** Phase 4 complete
 **Resume file:** None
 
 ### Next Session Should
 1. Read this STATE.md for context
-2. Plan Phase 4 (Server Rendering / Cloud Deployment)
-3. Execute Phase 4 plans
+2. Plan Phase 5 (n8n Integration / VR Hosting)
+3. Execute Phase 5 plans
 
 ### Context to Preserve
-- Rendering pipeline complete: 1080p/4K flat, 360 mono/stereo, headless Docker
-- ExportPipeline unifies all export types with consistent API
-- RenderQueue provides persistent job management
-- Python script inject-metadata.py for VR metadata
-- Dockerfile ready with Chromium, xvfb, FFmpeg
+- Batch pipeline complete: SQLite metadata, BullMQ queue, workers
+- Whisper transcription via separate Python microservice
+- Google Drive sync via rclone with retry logic
+- ntfy notifications for mobile alerts
+- Google Sheets export for visibility
+- Batch UI at /batch with template/format selection
+- All services containerized in docker-compose.yml
 
 ---
 
