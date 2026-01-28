@@ -86,24 +86,32 @@ export function ParticleLayer({
       const speed = maxSpeed * (0.5 + Math.random() * 0.5);
 
       if (isFlame) {
-        // FLAME: Gentle magnesium-like micro-bursts
-        // Dense center, smaller variations
+        // FLAME: 3D organic blob with asymmetry in all axes
         const centerBias = Math.pow(Math.random(), 0.5);
         const baseRadius = spawnRadius * centerBias * 1.2;
 
-        // MICRO-BLURB effect: small, delicate asymmetric bursts like magnesium sparks
-        const blobAngle = Math.random() * Math.PI * 2;
-        const blobStrength = Math.random() * 0.06; // Much smaller bursts
-        const blobX = Math.cos(blobAngle) * blobStrength;
-        const blobZ = Math.sin(blobAngle) * blobStrength;
+        // 3D blob effect - asymmetric bulges in all directions
+        const blobPhi = Math.acos(2 * Math.random() - 1); // Random elevation for blob
+        const blobTheta = Math.random() * Math.PI * 2; // Random azimuth for blob
+        const blobStrength = Math.random() * 0.06;
+        const blobX = Math.sin(blobPhi) * Math.cos(blobTheta) * blobStrength;
+        const blobY = Math.sin(blobPhi) * Math.sin(blobTheta) * blobStrength;
+        const blobZ = Math.cos(blobPhi) * blobStrength;
 
-        // Subtle asymmetry - gentle, not jarring
+        // 3D asymmetry - gentle variation in all axes
         const asymX = (Math.random() - 0.5) * 0.08;
+        const asymY = (Math.random() - 0.5) * 0.08;
         const asymZ = (Math.random() - 0.5) * 0.08;
 
-        birthPositions[i * 3] = Math.cos(theta) * baseRadius + asymX + blobX;
-        birthPositions[i * 3 + 1] = (Math.random() - 0.5) * 0.04;
-        birthPositions[i * 3 + 2] = Math.sin(theta) * baseRadius + asymZ + blobZ;
+        // Spherical base position with 3D organic variation
+        const phi = Math.acos(2 * Math.random() - 1);
+        const basePosX = Math.sin(phi) * Math.cos(theta) * baseRadius;
+        const basePosY = Math.sin(phi) * Math.sin(theta) * baseRadius;
+        const basePosZ = Math.cos(phi) * baseRadius;
+
+        birthPositions[i * 3] = basePosX + asymX + blobX;
+        birthPositions[i * 3 + 1] = basePosY + asymY + blobY;
+        birthPositions[i * 3 + 2] = basePosZ + asymZ + blobZ;
 
         // Varied velocity - particles leave in random directions from center
         const randomPhi = Math.acos(2 * Math.random() - 1); // Random elevation
@@ -116,23 +124,32 @@ export function ParticleLayer({
         velocities[i * 3 + 1] = dirY * velSpeed;
         velocities[i * 3 + 2] = dirZ * velSpeed;
       } else {
-        // Default/Mist: same organic spawn as Flame for consistent undulation
+        // Default/Mist: same 3D organic spawn as Flame
         const centerBias = Math.pow(Math.random(), 0.5);
         const baseRadius = spawnRadius * centerBias * 1.2;
 
-        // Blob effect for organic asymmetry
-        const blobAngle = Math.random() * Math.PI * 2;
+        // 3D blob effect - asymmetric bulges in all directions
+        const blobPhi = Math.acos(2 * Math.random() - 1);
+        const blobTheta = Math.random() * Math.PI * 2;
         const blobStrength = Math.random() * 0.06;
-        const blobX = Math.cos(blobAngle) * blobStrength;
-        const blobZ = Math.sin(blobAngle) * blobStrength;
+        const blobX = Math.sin(blobPhi) * Math.cos(blobTheta) * blobStrength;
+        const blobY = Math.sin(blobPhi) * Math.sin(blobTheta) * blobStrength;
+        const blobZ = Math.cos(blobPhi) * blobStrength;
 
-        // Subtle asymmetry
+        // 3D asymmetry
         const asymX = (Math.random() - 0.5) * 0.08;
+        const asymY = (Math.random() - 0.5) * 0.08;
         const asymZ = (Math.random() - 0.5) * 0.08;
 
-        birthPositions[i * 3] = Math.cos(theta) * baseRadius + asymX + blobX;
-        birthPositions[i * 3 + 1] = (Math.random() - 0.5) * 0.04;
-        birthPositions[i * 3 + 2] = Math.sin(theta) * baseRadius + asymZ + blobZ;
+        // Spherical base position with 3D organic variation
+        const phi = Math.acos(2 * Math.random() - 1);
+        const basePosX = Math.sin(phi) * Math.cos(theta) * baseRadius;
+        const basePosY = Math.sin(phi) * Math.sin(theta) * baseRadius;
+        const basePosZ = Math.cos(phi) * baseRadius;
+
+        birthPositions[i * 3] = basePosX + asymX + blobX;
+        birthPositions[i * 3 + 1] = basePosY + asymY + blobY;
+        birthPositions[i * 3 + 2] = basePosZ + asymZ + blobZ;
 
         // Random velocity direction
         const velPhi = Math.acos(2 * Math.random() - 1);
@@ -257,23 +274,34 @@ export function ParticleLayer({
         const speed = maxSpeed * (0.5 + Math.random() * 0.5);
 
         if (isFlameMode) {
-          // FLAME: Gentle magnesium-like micro-bursts (respawn)
+          // FLAME: 3D organic blob respawn
           const centerBias = Math.pow(Math.random(), 0.5);
           const baseRadius = spawnRadius * centerBias * 1.2;
 
-          const blobAngle = Math.random() * Math.PI * 2;
+          // 3D blob effect
+          const blobPhi = Math.acos(2 * Math.random() - 1);
+          const blobTheta = Math.random() * Math.PI * 2;
           const blobStrength = Math.random() * 0.06;
-          const blobX = Math.cos(blobAngle) * blobStrength;
-          const blobZ = Math.sin(blobAngle) * blobStrength;
+          const blobX = Math.sin(blobPhi) * Math.cos(blobTheta) * blobStrength;
+          const blobY = Math.sin(blobPhi) * Math.sin(blobTheta) * blobStrength;
+          const blobZ = Math.cos(blobPhi) * blobStrength;
 
+          // 3D asymmetry
           const asymX = (Math.random() - 0.5) * 0.08;
+          const asymY = (Math.random() - 0.5) * 0.08;
           const asymZ = (Math.random() - 0.5) * 0.08;
 
-          birthPositions[i * 3] = Math.cos(theta) * baseRadius + asymX + blobX;
-          birthPositions[i * 3 + 1] = (Math.random() - 0.5) * 0.04;
-          birthPositions[i * 3 + 2] = Math.sin(theta) * baseRadius + asymZ + blobZ;
+          // Spherical base position
+          const phi = Math.acos(2 * Math.random() - 1);
+          const basePosX = Math.sin(phi) * Math.cos(theta) * baseRadius;
+          const basePosY = Math.sin(phi) * Math.sin(theta) * baseRadius;
+          const basePosZ = Math.cos(phi) * baseRadius;
 
-          // Varied velocity - particles leave in random directions
+          birthPositions[i * 3] = basePosX + asymX + blobX;
+          birthPositions[i * 3 + 1] = basePosY + asymY + blobY;
+          birthPositions[i * 3 + 2] = basePosZ + asymZ + blobZ;
+
+          // Random velocity direction
           const randomPhi = Math.acos(2 * Math.random() - 1);
           const randomTheta = Math.random() * Math.PI * 2;
           const dirX = Math.sin(randomPhi) * Math.cos(randomTheta);
@@ -284,23 +312,32 @@ export function ParticleLayer({
           velocities[i * 3 + 1] = dirY * velSpeed;
           velocities[i * 3 + 2] = dirZ * velSpeed;
         } else {
-          // Default/Mist: same organic spawn as Flame for consistent undulation
+          // Default/Mist: same 3D organic blob respawn
           const centerBias = Math.pow(Math.random(), 0.5);
           const baseRadius = spawnRadius * centerBias * 1.2;
 
-          // Blob effect for organic asymmetry
-          const blobAngle = Math.random() * Math.PI * 2;
+          // 3D blob effect
+          const blobPhi = Math.acos(2 * Math.random() - 1);
+          const blobTheta = Math.random() * Math.PI * 2;
           const blobStrength = Math.random() * 0.06;
-          const blobX = Math.cos(blobAngle) * blobStrength;
-          const blobZ = Math.sin(blobAngle) * blobStrength;
+          const blobX = Math.sin(blobPhi) * Math.cos(blobTheta) * blobStrength;
+          const blobY = Math.sin(blobPhi) * Math.sin(blobTheta) * blobStrength;
+          const blobZ = Math.cos(blobPhi) * blobStrength;
 
-          // Subtle asymmetry
+          // 3D asymmetry
           const asymX = (Math.random() - 0.5) * 0.08;
+          const asymY = (Math.random() - 0.5) * 0.08;
           const asymZ = (Math.random() - 0.5) * 0.08;
 
-          birthPositions[i * 3] = Math.cos(theta) * baseRadius + asymX + blobX;
-          birthPositions[i * 3 + 1] = (Math.random() - 0.5) * 0.04;
-          birthPositions[i * 3 + 2] = Math.sin(theta) * baseRadius + asymZ + blobZ;
+          // Spherical base position
+          const phi = Math.acos(2 * Math.random() - 1);
+          const basePosX = Math.sin(phi) * Math.cos(theta) * baseRadius;
+          const basePosY = Math.sin(phi) * Math.sin(theta) * baseRadius;
+          const basePosZ = Math.cos(phi) * baseRadius;
+
+          birthPositions[i * 3] = basePosX + asymX + blobX;
+          birthPositions[i * 3 + 1] = basePosY + asymY + blobY;
+          birthPositions[i * 3 + 2] = basePosZ + asymZ + blobZ;
 
           // Random velocity direction
           const velPhi = Math.acos(2 * Math.random() - 1);
