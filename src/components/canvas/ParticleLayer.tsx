@@ -116,18 +116,25 @@ export function ParticleLayer({
         velocities[i * 3 + 1] = dirY * velSpeed;
         velocities[i * 3 + 2] = dirZ * velSpeed;
       } else {
-        // Default/Mist: spherical distribution with random velocities
-        const phi = Math.acos(2 * Math.random() - 1);
-        const dirX = Math.sin(phi) * Math.cos(theta);
-        const dirY = Math.sin(phi) * Math.sin(theta);
-        const dirZ = Math.cos(phi);
+        // Default/Mist: same organic spawn as Flame for consistent undulation
+        const centerBias = Math.pow(Math.random(), 0.5);
+        const baseRadius = spawnRadius * centerBias * 1.2;
 
-        const spawnDist = spawnRadius * Math.random();
-        birthPositions[i * 3] = dirX * spawnDist;
-        birthPositions[i * 3 + 1] = dirY * spawnDist;
-        birthPositions[i * 3 + 2] = dirZ * spawnDist;
+        // Blob effect for organic asymmetry
+        const blobAngle = Math.random() * Math.PI * 2;
+        const blobStrength = Math.random() * 0.06;
+        const blobX = Math.cos(blobAngle) * blobStrength;
+        const blobZ = Math.sin(blobAngle) * blobStrength;
 
-        // Random velocity direction (not just outward)
+        // Subtle asymmetry
+        const asymX = (Math.random() - 0.5) * 0.08;
+        const asymZ = (Math.random() - 0.5) * 0.08;
+
+        birthPositions[i * 3] = Math.cos(theta) * baseRadius + asymX + blobX;
+        birthPositions[i * 3 + 1] = (Math.random() - 0.5) * 0.04;
+        birthPositions[i * 3 + 2] = Math.sin(theta) * baseRadius + asymZ + blobZ;
+
+        // Random velocity direction
         const velPhi = Math.acos(2 * Math.random() - 1);
         const velTheta = Math.random() * Math.PI * 2;
         const velDirX = Math.sin(velPhi) * Math.cos(velTheta);
@@ -277,18 +284,25 @@ export function ParticleLayer({
           velocities[i * 3 + 1] = dirY * velSpeed;
           velocities[i * 3 + 2] = dirZ * velSpeed;
         } else {
-          // Default/Mist: spherical with random velocities
-          const phi = Math.acos(2 * Math.random() - 1);
-          const dirX = Math.sin(phi) * Math.cos(theta);
-          const dirY = Math.sin(phi) * Math.sin(theta);
-          const dirZ = Math.cos(phi);
+          // Default/Mist: same organic spawn as Flame for consistent undulation
+          const centerBias = Math.pow(Math.random(), 0.5);
+          const baseRadius = spawnRadius * centerBias * 1.2;
 
-          const spawnDist = spawnRadius * Math.random();
-          birthPositions[i * 3] = dirX * spawnDist;
-          birthPositions[i * 3 + 1] = dirY * spawnDist;
-          birthPositions[i * 3 + 2] = dirZ * spawnDist;
+          // Blob effect for organic asymmetry
+          const blobAngle = Math.random() * Math.PI * 2;
+          const blobStrength = Math.random() * 0.06;
+          const blobX = Math.cos(blobAngle) * blobStrength;
+          const blobZ = Math.sin(blobAngle) * blobStrength;
 
-          // Random velocity direction (not just outward)
+          // Subtle asymmetry
+          const asymX = (Math.random() - 0.5) * 0.08;
+          const asymZ = (Math.random() - 0.5) * 0.08;
+
+          birthPositions[i * 3] = Math.cos(theta) * baseRadius + asymX + blobX;
+          birthPositions[i * 3 + 1] = (Math.random() - 0.5) * 0.04;
+          birthPositions[i * 3 + 2] = Math.sin(theta) * baseRadius + asymZ + blobZ;
+
+          // Random velocity direction
           const velPhi = Math.acos(2 * Math.random() - 1);
           const velTheta = Math.random() * Math.PI * 2;
           const velDirX = Math.sin(velPhi) * Math.cos(velTheta);
