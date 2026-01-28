@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useLoader } from '@react-three/fiber';
 import * as THREE from 'three';
 import { ParticleLayerConfig } from '@/types';
 
@@ -34,6 +34,9 @@ export function ParticleLayer({
   const pointsRef = useRef<THREE.Points>(null);
   const geometryRef = useRef<THREE.BufferGeometry>(null);
 
+  // Load soft particle texture from Unity
+  const particleTexture = useLoader(THREE.TextureLoader, '/textures/circle_particle.png');
+
   const {
     particleCount,
     baseSize,
@@ -54,6 +57,9 @@ export function ParticleLayer({
   const velocitiesRef = useRef<Float32Array>(new Float32Array(particleCount * 3));
   const birthPositionsRef = useRef<Float32Array>(new Float32Array(particleCount * 3));
   const baseSizesRef = useRef<Float32Array>(new Float32Array(particleCount));
+
+  // Smoothed audio values for fluid response
+  const smoothedAudioRef = useRef({ amplitude: 0, beat: 1.0 });
 
   // GPU buffer attributes
   const { positions, sizes, colors, alphas } = useMemo(() => {
@@ -99,16 +105,18 @@ export function ParticleLayer({
         birthPositions[i * 3 + 1] = (Math.random() - 0.5) * 0.04;
         birthPositions[i * 3 + 2] = Math.sin(theta) * baseRadius + asymZ + blobZ;
 
-        // Subtle velocity - flows with the orb, tiny sparks of variance
-        const chaos = 0.04;
-        const vx = (Math.random() - 0.5) * chaos + Math.cos(theta) * speed * 0.15;
-        const vy = speed * (0.01 + Math.random() * 0.025);
-        const vz = (Math.random() - 0.5) * chaos + Math.sin(theta) * speed * 0.15;
-        velocities[i * 3] = vx;
-        velocities[i * 3 + 1] = vy;
-        velocities[i * 3 + 2] = vz;
+        // Varied velocity - particles leave in random directions from center
+        const randomPhi = Math.acos(2 * Math.random() - 1); // Random elevation
+        const randomTheta = Math.random() * Math.PI * 2; // Random azimuth
+        const dirX = Math.sin(randomPhi) * Math.cos(randomTheta);
+        const dirY = Math.sin(randomPhi) * Math.sin(randomTheta);
+        const dirZ = Math.cos(randomPhi);
+        const velSpeed = speed * (0.3 + Math.random() * 0.7);
+        velocities[i * 3] = dirX * velSpeed;
+        velocities[i * 3 + 1] = dirY * velSpeed;
+        velocities[i * 3 + 2] = dirZ * velSpeed;
       } else {
-        // Default: spherical distribution
+        // Default/Mist: spherical distribution with random velocities
         const phi = Math.acos(2 * Math.random() - 1);
         const dirX = Math.sin(phi) * Math.cos(theta);
         const dirY = Math.sin(phi) * Math.sin(theta);
@@ -119,17 +127,24 @@ export function ParticleLayer({
         birthPositions[i * 3 + 1] = dirY * spawnDist;
         birthPositions[i * 3 + 2] = dirZ * spawnDist;
 
-        velocities[i * 3] = dirX * speed;
-        velocities[i * 3 + 1] = dirY * speed;
-        velocities[i * 3 + 2] = dirZ * speed;
+        // Random velocity direction (not just outward)
+        const velPhi = Math.acos(2 * Math.random() - 1);
+        const velTheta = Math.random() * Math.PI * 2;
+        const velDirX = Math.sin(velPhi) * Math.cos(velTheta);
+        const velDirY = Math.sin(velPhi) * Math.sin(velTheta);
+        const velDirZ = Math.cos(velPhi);
+        const velSpeed = speed * (0.3 + Math.random() * 0.7);
+        velocities[i * 3] = velDirX * velSpeed;
+        velocities[i * 3 + 1] = velDirY * velSpeed;
+        velocities[i * 3 + 2] = velDirZ * velSpeed;
       }
 
       // Stagger birth times
       birthTimes[i] = -Math.random() * lifetime;
       lifetimes[i] = lifetime * (0.8 + Math.random() * 0.4);
 
-      // Random base size with variation
-      baseSizes[i] = baseSize * (0.7 + Math.random() * 0.6);
+      // Random base size with very wide variation (0.15x to 2.0x)
+      baseSizes[i] = baseSize * (0.15 + Math.random() * 1.85);
 
       // Initial position
       positions[i * 3] = birthPositions[i * 3];
@@ -214,7 +229,15 @@ export function ParticleLayer({
       bandAmplitude = audioLevels.treble;
     }
 
-    // Beat detection is read directly in the particle loop below
+    // Smooth audio response for fluid motion (lerp toward target)
+    const smoothing = 0.08; // Lower = smoother, higher = more responsive
+    const smoothed = smoothedAudioRef.current;
+    smoothed.amplitude += (bandAmplitude - smoothed.amplitude) * smoothing;
+
+    // Smooth beat pulse (quick attack, slow decay)
+    const targetBeat = audioLevels.isBeat ? 1.35 : 1.0;
+    const beatSmoothing = audioLevels.isBeat ? 0.3 : 0.06; // Fast attack, slow decay
+    smoothed.beat += (targetBeat - smoothed.beat) * beatSmoothing;
 
     for (let i = 0; i < particleCount; i++) {
       // Calculate age
@@ -243,12 +266,18 @@ export function ParticleLayer({
           birthPositions[i * 3 + 1] = (Math.random() - 0.5) * 0.04;
           birthPositions[i * 3 + 2] = Math.sin(theta) * baseRadius + asymZ + blobZ;
 
-          const chaos = 0.04;
-          velocities[i * 3] = (Math.random() - 0.5) * chaos + Math.cos(theta) * speed * 0.15;
-          velocities[i * 3 + 1] = speed * (0.01 + Math.random() * 0.025);
-          velocities[i * 3 + 2] = (Math.random() - 0.5) * chaos + Math.sin(theta) * speed * 0.15;
+          // Varied velocity - particles leave in random directions
+          const randomPhi = Math.acos(2 * Math.random() - 1);
+          const randomTheta = Math.random() * Math.PI * 2;
+          const dirX = Math.sin(randomPhi) * Math.cos(randomTheta);
+          const dirY = Math.sin(randomPhi) * Math.sin(randomTheta);
+          const dirZ = Math.cos(randomPhi);
+          const velSpeed = speed * (0.3 + Math.random() * 0.7);
+          velocities[i * 3] = dirX * velSpeed;
+          velocities[i * 3 + 1] = dirY * velSpeed;
+          velocities[i * 3 + 2] = dirZ * velSpeed;
         } else {
-          // Default: spherical
+          // Default/Mist: spherical with random velocities
           const phi = Math.acos(2 * Math.random() - 1);
           const dirX = Math.sin(phi) * Math.cos(theta);
           const dirY = Math.sin(phi) * Math.sin(theta);
@@ -259,9 +288,16 @@ export function ParticleLayer({
           birthPositions[i * 3 + 1] = dirY * spawnDist;
           birthPositions[i * 3 + 2] = dirZ * spawnDist;
 
-          velocities[i * 3] = dirX * speed;
-          velocities[i * 3 + 1] = dirY * speed;
-          velocities[i * 3 + 2] = dirZ * speed;
+          // Random velocity direction (not just outward)
+          const velPhi = Math.acos(2 * Math.random() - 1);
+          const velTheta = Math.random() * Math.PI * 2;
+          const velDirX = Math.sin(velPhi) * Math.cos(velTheta);
+          const velDirY = Math.sin(velPhi) * Math.sin(velTheta);
+          const velDirZ = Math.cos(velPhi);
+          const velSpeed = speed * (0.3 + Math.random() * 0.7);
+          velocities[i * 3] = velDirX * velSpeed;
+          velocities[i * 3 + 1] = velDirY * velSpeed;
+          velocities[i * 3 + 2] = velDirZ * velSpeed;
         }
 
         // Reset birth time
@@ -379,17 +415,16 @@ export function ParticleLayer({
         colors[i * 3 + 2] = color[2];
       }
 
-      // Apply audio reactivity to size (VIS-08, VIS-09)
+      // Apply audio reactivity to size (VIS-08, VIS-09) using smoothed values
       let audioSizeMultiplier = 1.0;
       const reactivity = config.audioReactivity || 0;
       if (reactivity > 0) {
-        // Strong size reaction to loudness
-        audioSizeMultiplier = 1.0 + bandAmplitude * reactivity * 3.0;
+        // Smooth size reaction to loudness
+        audioSizeMultiplier = 1.0 + smoothed.amplitude * reactivity * 3.0;
       }
 
-      // Apply beat pulse effect (AUD-04) - strong pulse on bass hits
-      const beatPulseEffect = audioLevels.isBeat ? 1.45 : 1.0;
-      const finalSizeMultiplier = sizeMult * audioSizeMultiplier * beatPulseEffect;
+      // Apply smoothed beat pulse effect (AUD-04)
+      const finalSizeMultiplier = sizeMult * audioSizeMultiplier * smoothed.beat;
 
       // Update size
       sizes[i] = baseSizes[i] * finalSizeMultiplier;
@@ -397,11 +432,11 @@ export function ParticleLayer({
       // Update alpha
       alphas[i] = alpha;
 
-      // Apply audio reactivity to position scale (expansion/contraction)
+      // Apply audio reactivity to position scale (expansion/contraction) using smoothed values
       let scale = 1.0;
       if (reactivity > 0) {
-        // Expand/contract based on audio amplitude - subtle but visible
-        scale = 1.0 + bandAmplitude * reactivity * 0.5;
+        // Expand/contract based on smoothed audio amplitude
+        scale = 1.0 + smoothed.amplitude * reactivity * 0.5;
       }
       const bx = birthPositions[i * 3];
       const by = birthPositions[i * 3 + 1];
@@ -469,6 +504,7 @@ export function ParticleLayer({
         blending={THREE.AdditiveBlending}
         uniforms={{
           uIntensity: { value: intensity },
+          uTexture: { value: particleTexture },
         }}
         vertexShader={`
           attribute float aSize;
@@ -495,32 +531,35 @@ export function ParticleLayer({
         `}
         fragmentShader={`
           uniform float uIntensity;
+          uniform sampler2D uTexture;
 
           varying float vAlpha;
           varying vec3 vColor;
 
           void main() {
-            // Distance from center (0 at center, 0.5 at edge)
-            vec2 cxy = gl_PointCoord - 0.5;
-            float dist = length(cxy);
+            // Sample the soft gradient texture from Unity
+            vec4 texColor = texture2D(uTexture, gl_PointCoord);
+            float texAlpha = texColor.a;
 
-            // Soft Gaussian falloff
-            float gaussian = exp(-dist * dist * 5.0);
+            // Distance from center for additional edge softening
+            vec2 center = gl_PointCoord - 0.5;
+            float dist = length(center) * 2.0; // 0 at center, 1 at edge
 
-            // Smooth edge fade
-            float edgeFade = smoothstep(0.5, 0.15, dist);
+            // Tighter exponential falloff - more compact individual particle mist
+            // Higher multiplier = tighter/smaller mist per particle
+            float edgeFade = exp(-dist * dist * 4.5);
 
-            // Combined alpha
-            float alpha = gaussian * edgeFade;
+            // Combine: texture shape + exponential softening
+            float alpha = texAlpha * edgeFade;
 
-            // Discard very transparent
+            // Discard very transparent pixels
             if (alpha < 0.01) discard;
 
-            // Saturated colors without blowing out to white
-            vec3 color = vColor * uIntensity * 0.5;
+            // Apply color - reduce intensity to prevent white blowout
+            vec3 color = vColor * uIntensity * 0.7;
 
-            // Ghost-like ethereal - NOT white dominant
-            float finalAlpha = alpha * vAlpha * 0.12;
+            // Moderate alpha for visible but ethereal particles
+            float finalAlpha = alpha * vAlpha * 0.35;
 
             gl_FragColor = vec4(color, finalAlpha);
           }
