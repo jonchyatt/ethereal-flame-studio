@@ -2,6 +2,14 @@
 
 Secure access to your home render server from anywhere without exposing ports or using a VPN.
 
+## Quick Start
+
+```batch
+deploy.bat → Choose "3" (Full stack + Remote access)
+```
+
+The script will prompt for your Cloudflare Tunnel token if not already configured.
+
 ## Overview
 
 Cloudflare Tunnel creates an outbound-only encrypted connection from your server to Cloudflare's edge network. This allows you to access n8n and the render API from your phone or any device, anywhere in the world.

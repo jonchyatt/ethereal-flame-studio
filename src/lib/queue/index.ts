@@ -8,10 +8,13 @@
 
 // Phase 3: Browser-side queue
 export * from './RenderQueue';
-export * from './JobStore';
+export { JobStore, type RenderJob } from './JobStore';
+// Use JobStatus from JobStore for browser-side (Phase 3)
+export { type JobStatus } from './JobStore';
 
 // Phase 4: Server-side BullMQ queue
 export * from './connection';
-export * from './types';
+// Export types except JobStatus (already exported from JobStore)
+export { type AudioFile, type BatchJobData, type RenderJobData } from './types';
 export * from './bullmqQueue';
 export * from './shutdown';

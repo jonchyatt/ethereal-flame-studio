@@ -1,5 +1,7 @@
 # Google Drive Setup for Ethereal Flame Studio
 
+> **Note:** Run `deploy.bat → "2"` first to start Docker services, then configure rclone as described below.
+
 ## Prerequisites
 
 1. Install rclone: https://rclone.org/install/

@@ -488,6 +488,9 @@ export function StarNestSkybox({
 
   // Use refs to avoid stale closure issues
   const presetRef = useRef(preset);
+  // Track accumulated time for smooth audio-modulated rotation
+  const accumulatedTimeRef = useRef(0);
+  const lastClockTimeRef = useRef(0);
 
   useEffect(() => {
     presetRef.current = preset;
@@ -531,8 +534,24 @@ export function StarNestSkybox({
     if (!materialRef.current) return;
     const currentPreset = presetRef.current;
 
-    // Update time - constant rotation, NOT tied to audio
-    materialRef.current.uniforms.uTime.value = clock.elapsedTime;
+    // Calculate delta time for smooth incremental updates
+    const currentClockTime = clock.elapsedTime;
+    const deltaTime = currentClockTime - lastClockTimeRef.current;
+    lastClockTimeRef.current = currentClockTime;
+
+    // Get audio state for rotation modulation (VIS-07)
+    const audioState = useAudioStore.getState();
+    const amplitude = audioState.amplitude;
+    const bass = audioState.bass;
+
+    // Modulate time increment with audio: faster rotation when louder
+    // Audio boosts speed by up to 50% (0.3 amplitude + 0.2 bass contribution)
+    // Using incremental accumulation prevents time from jumping backwards
+    const audioModulation = 1.0 + (amplitude * 0.3 + bass * 0.2);
+    accumulatedTimeRef.current += deltaTime * audioModulation;
+
+    // Update time with smoothly accumulated value (never jumps backward)
+    materialRef.current.uniforms.uTime.value = accumulatedTimeRef.current;
 
     // Update ALL preset uniforms every frame (ensures preset switching works)
     materialRef.current.uniforms.uIterations.value = currentPreset.iterations;
@@ -561,8 +580,8 @@ export function StarNestSkybox({
   });
 
   return (
-    <mesh ref={meshRef} scale={[-1, 1, 1]}>
-      {/* Large sphere as skybox geometry */}
+    <mesh ref={meshRef}>
+      {/* Large sphere as skybox geometry - BackSide handles inside rendering */}
       <sphereGeometry args={[100, 64, 64]} />
       <shaderMaterial
         ref={materialRef}

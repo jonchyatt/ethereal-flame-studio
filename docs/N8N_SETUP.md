@@ -2,6 +2,14 @@
 
 Self-hosted n8n workflow automation with YouTube OAuth for automated video uploads.
 
+## Quick Start
+
+```batch
+deploy.bat → Choose "4" (Everything - Full + Remote + n8n)
+```
+
+This starts n8n at http://localhost:5678. Continue below for YouTube OAuth setup.
+
 ## Why Self-Hosted n8n?
 
 YouTube video upload via n8n requires **self-hosted n8n** (not n8n Cloud). This is because Google blocks the OAuth callback URL used by n8n Cloud for upload scopes. Self-hosted n8n allows you to use your own OAuth credentials with a custom callback URL.

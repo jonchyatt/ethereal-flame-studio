@@ -3,7 +3,7 @@
  * Prevents stalled jobs when server restarts.
  */
 
-import { closeQueue } from './renderQueue';
+import { closeQueue } from './bullmqQueue';
 
 let isShuttingDown = false;
 
