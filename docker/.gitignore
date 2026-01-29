@@ -1,0 +1,17 @@
+# Environment files with secrets
+.env
+.env.*
+!.env.example
+
+# rclone configuration (contains Google credentials)
+rclone.conf
+
+# Local config directory
+config/
+
+# Temporary files
+*.tmp
+*.log
+
+# Docker build cache
+.docker-cache/

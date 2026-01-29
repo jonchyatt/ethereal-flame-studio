@@ -1,0 +1,287 @@
+# Ethereal Flame Studio - Production Docker Stack
+#
+# This compose file deploys the complete render farm infrastructure:
+# - Redis (job queue backend for BullMQ)
+# - n8n (workflow automation + YouTube publishing)
+# - cloudflared (secure remote access via Cloudflare Tunnel)
+# - faster-whisper (audio transcription service)
+# - render-worker (video rendering service)
+#
+# Prerequisites:
+# 1. Copy .env.example to .env and configure all variables
+# 2. Create Cloudflare Tunnel at: Zero Trust > Networks > Tunnels
+# 3. Configure Google OAuth for YouTube (see docs/N8N_SETUP.md)
+# 4. NVIDIA Container Toolkit installed for GPU services
+#
+# Usage:
+#   docker compose -f docker-compose.production.yml up -d
+#
+# Multi-machine deployment:
+#   Each render machine runs its own stack with unique MACHINE_ID
+#   and CLOUDFLARE_TUNNEL_TOKEN for per-machine tunnel routing
+
+version: '3.8'
+
+services:
+  # =============================================================================
+  # REDIS - Job Queue Backend
+  # =============================================================================
+  # BullMQ requires Redis with noeviction policy (keys must never be evicted)
+  # Uses custom redis.conf for production settings
+  redis:
+    image: redis:7-alpine
+    container_name: ethereal-redis
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - ethereal-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  # =============================================================================
+  # N8N - Workflow Automation
+  # =============================================================================
+  # Self-hosted n8n is REQUIRED for YouTube uploads (n8n Cloud blocked by Google)
+  # Handles: render complete webhooks, YouTube publishing, notifications
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: ethereal-n8n
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    environment:
+      # Host configuration (must match Cloudflare Tunnel public hostname)
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL}
+
+      # Authentication
+      - N8N_BASIC_AUTH_ACTIVE=${N8N_BASIC_AUTH_ACTIVE:-true}
+      - N8N_BASIC_AUTH_USER=${N8N_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD}
+
+      # Performance tuning for video handling
+      - N8N_PAYLOAD_SIZE_MAX=${N8N_PAYLOAD_SIZE_MAX:-100}
+      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=${N8N_SAVE_SUCCESS_EXECUTIONS:-all}
+      - EXECUTIONS_DATA_SAVE_ON_ERROR=${N8N_SAVE_ERROR_EXECUTIONS:-all}
+
+      # Timezone
+      - GENERIC_TIMEZONE=${TZ:-America/Los_Angeles}
+      - TZ=${TZ:-America/Los_Angeles}
+
+      # Database (default SQLite, can use PostgreSQL for production)
+      - DB_TYPE=${N8N_DB_TYPE:-sqlite}
+
+      # Encryption key for credentials (generate with: openssl rand -hex 32)
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+    volumes:
+      # Persist n8n data (workflows, credentials, executions)
+      - n8n_data:/home/node/.n8n
+      # Read-only access to rendered videos for upload
+      - ${RENDER_OUTPUT_DIR:-./renders}:/renders:ro
+    networks:
+      - ethereal-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5678/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  # =============================================================================
+  # CLOUDFLARED - Secure Remote Access
+  # =============================================================================
+  # Cloudflare Tunnel provides secure access without exposing ports
+  # No inbound firewall rules needed - outbound connection only
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: ethereal-cloudflared
+    restart: unless-stopped
+    depends_on:
+      - n8n
+      - render-worker
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - ethereal-network
+    # No ports exposed - tunnel is outbound only
+
+  # =============================================================================
+  # FASTER-WHISPER - Audio Transcription Service
+  # =============================================================================
+  # Provides Whisper transcription via REST API for video descriptions
+  # GPU-accelerated: 4x faster than original Whisper
+  # API endpoint: POST /transcribe with audio file
+  faster-whisper:
+    build:
+      context: ./whisper
+      dockerfile: Dockerfile
+    image: ethereal-whisper:latest
+    container_name: ethereal-whisper
+    restart: unless-stopped
+    ports:
+      - "${WHISPER_PORT:-9000}:9000"
+    environment:
+      - WHISPER_MODEL=${WHISPER_MODEL:-large-v3}
+      - WHISPER_DEVICE=${WHISPER_DEVICE:-cuda}
+      - WHISPER_COMPUTE_TYPE=${WHISPER_COMPUTE_TYPE:-float16}
+      - WHISPER_BEAM_SIZE=${WHISPER_BEAM_SIZE:-5}
+      - WHISPER_LANGUAGE=${WHISPER_LANGUAGE:-en}
+    volumes:
+      # Model cache persists across restarts (avoids re-downloading)
+      - whisper_cache:/root/.cache/huggingface
+      # Access to audio files for transcription
+      - ${AUDIO_INPUT_DIR:-./audio}:/audio:ro
+    networks:
+      - ethereal-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s  # Model loading takes time
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          memory: 8G  # large-v3 needs ~4.5GB VRAM + system memory
+
+  # =============================================================================
+  # RENDER WORKER - Video Rendering Service
+  # =============================================================================
+  # BullMQ worker that processes render jobs from Redis queue
+  # GPU-accelerated FFmpeg/rendering with NVENC support
+  render-worker:
+    build:
+      context: ..
+      dockerfile: docker/render-worker/Dockerfile
+    image: ethereal-render-worker:latest
+    container_name: ethereal-render-worker-${MACHINE_ID:-default}
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "${RENDER_API_PORT:-3000}:3000"
+    environment:
+      # Machine identification (for multi-machine farm)
+      - MACHINE_ID=${MACHINE_ID:-default}
+
+      # Redis connection
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+
+      # Queue configuration
+      - QUEUE_CONCURRENCY=${QUEUE_CONCURRENCY:-1}
+      - JOB_TIMEOUT_MS=${JOB_TIMEOUT_MS:-3600000}
+
+      # Render settings
+      - RENDER_OUTPUT_DIR=/renders
+      - RENDER_TEMP_DIR=/tmp/renders
+      - DEFAULT_TEMPLATE=${DEFAULT_TEMPLATE:-ethereal-flame}
+
+      # Whisper service URL (for transcription)
+      - WHISPER_API_URL=http://faster-whisper:9000
+
+      # n8n webhook (for render complete notifications)
+      - N8N_WEBHOOK_URL=${N8N_RENDER_COMPLETE_WEBHOOK}
+      - N8N_WEBHOOK_SECRET=${N8N_WEBHOOK_SECRET}
+
+      # Google Drive sync (via rclone)
+      - GDRIVE_ENABLED=${GDRIVE_ENABLED:-false}
+      - RCLONE_CONFIG_PATH=/config/rclone.conf
+      - GDRIVE_REMOTE_PATH=${GDRIVE_REMOTE_PATH:-EtherealFlame/Renders}
+
+      # Notifications
+      - NTFY_ENABLED=${NTFY_ENABLED:-false}
+      - NTFY_URL=${NTFY_URL:-https://ntfy.sh}
+      - NTFY_TOPIC=${NTFY_TOPIC:-ethereal-renders}
+    volumes:
+      # Rendered video output
+      - ${RENDER_OUTPUT_DIR:-./renders}:/renders
+      # Temporary files during rendering
+      - render_temp:/tmp/renders
+      # Audio input files
+      - ${AUDIO_INPUT_DIR:-./audio}:/audio:ro
+      # rclone configuration for Google Drive
+      - ${RCLONE_CONFIG_DIR:-./config}:/config:ro
+      # SQLite metadata database
+      - render_db:/data
+    networks:
+      - ethereal-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu, video]  # video for NVENC
+        limits:
+          memory: 16G
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  ethereal-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+volumes:
+  # Redis data persistence (job queue state)
+  redis_data:
+    driver: local
+
+  # n8n data (workflows, credentials, execution history)
+  n8n_data:
+    driver: local
+
+  # Whisper model cache (prevents re-download on restart)
+  whisper_cache:
+    driver: local
+
+  # Render temporary files (cleared on container restart)
+  render_temp:
+    driver: local
+
+  # Render metadata database (SQLite)
+  render_db:
+    driver: local
