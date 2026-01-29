@@ -34,7 +34,7 @@ interface VisualState {
 
 // Ethereal Flame mode configuration
 // WARM FIRE COLORS like reset-biology breathing rainbow orb
-// Inner: #ff6d77 (coral/salmon), Outer: #ff4400 (orange-red)
+// Settings matched to DEFAULT_LAYERS which produce organic undulating effect
 export const ETHEREAL_FLAME_CONFIG: VisualModeConfig = {
   key: 'etherealFlame',
   label: 'Ethereal Flame',
@@ -46,56 +46,43 @@ export const ETHEREAL_FLAME_CONFIG: VisualModeConfig = {
   },
   skyboxPreset: 'DarkWorld1',
   layers: [
-    // Layer 1: Dense core - compact, bright
+    // Layer 1: Inner Glow - matched to DEFAULT_LAYERS for organic look
     {
-      id: 'flame-core',
-      name: 'Core Mist',
+      id: 'inner-glow',           // ID without 'flame' to use else branch
+      name: 'Inner Glow',
       enabled: true,
-      particleCount: 60,
-      baseSize: 4.0,
-      spawnRadius: 0.04,          // HALF again - very compact core
-      maxSpeed: 0.015,            // Slow drift
-      lifetime: 3.0,
-      audioReactivity: 2.0,
+      particleCount: 35,          // Matched to DEFAULT_LAYERS
+      baseSize: 5.5,              // Matched to DEFAULT_LAYERS
+      spawnRadius: 0.35,          // KEY: Large radius for organic effect
+      maxSpeed: 0.03,
+      lifetime: 3,
+      audioReactivity: 2.5,
       frequencyBand: 'mids',
-      sizeAtBirth: 0.3,
-      sizeAtPeak: 1.0,
-      sizeAtDeath: 0.4,
-      peakLifetime: 0.25,
-    },
-    // Layer 2: Mid haze
-    {
-      id: 'flame-mid',
-      name: 'Mid Haze',
-      enabled: true,
-      particleCount: 45,
-      baseSize: 5.0,
-      spawnRadius: 0.06,          // HALF again
-      maxSpeed: 0.012,
-      lifetime: 3.5,
-      audioReactivity: 1.8,
-      frequencyBand: 'treble',
-      sizeAtBirth: 0.25,
-      sizeAtPeak: 1.0,
-      sizeAtDeath: 0.35,
-      peakLifetime: 0.3,
-    },
-    // Layer 3: Outer wisps - still compact
-    {
-      id: 'flame-outer',
-      name: 'Outer Wisps',
-      enabled: true,
-      particleCount: 30,
-      baseSize: 6.0,
-      spawnRadius: 0.075,         // HALF again
-      maxSpeed: 0.01,
-      lifetime: 4.0,
-      audioReactivity: 1.5,
-      frequencyBand: 'bass',
       sizeAtBirth: 0.2,
       sizeAtPeak: 1.0,
       sizeAtDeath: 0.3,
-      peakLifetime: 0.35,
+      peakLifetime: 0.25,
+      colorStart: [0.8, 0.9, 1.0],
+      colorEnd: [0.6, 0.8, 1.0],
+    },
+    // Layer 2: Outer Halo - matched to DEFAULT_LAYERS for organic look
+    {
+      id: 'outer-halo',           // ID without 'flame' to use else branch
+      name: 'Outer Halo',
+      enabled: true,
+      particleCount: 25,          // Matched to DEFAULT_LAYERS
+      baseSize: 7.0,              // Matched to DEFAULT_LAYERS
+      spawnRadius: 0.5,           // KEY: Large radius for organic effect
+      maxSpeed: 0.02,
+      lifetime: 4,
+      audioReactivity: 2.0,
+      frequencyBand: 'treble',
+      sizeAtBirth: 0.15,
+      sizeAtPeak: 1.0,
+      sizeAtDeath: 0.25,
+      peakLifetime: 0.3,
+      colorStart: [0.4, 0.6, 0.9],
+      colorEnd: [0.3, 0.5, 0.8],
     },
   ],
 };

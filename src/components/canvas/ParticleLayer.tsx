@@ -258,9 +258,9 @@ export function ParticleLayer({
     const smoothed = smoothedAudioRef.current;
     smoothed.amplitude += (bandAmplitude - smoothed.amplitude) * smoothing;
 
-    // Smooth beat pulse (quick attack, slow decay)
-    const targetBeat = audioLevels.isBeat ? 1.35 : 1.0;
-    const beatSmoothing = audioLevels.isBeat ? 0.3 : 0.06; // Fast attack, slow decay
+    // Smooth beat pulse (quick attack, slow decay) - visible but not overwhelming
+    const targetBeat = audioLevels.isBeat ? 1.15 : 1.0; // Visible beat pulse
+    const beatSmoothing = audioLevels.isBeat ? 0.3 : 0.05; // Quick attack, moderate decay
     smoothed.beat += (targetBeat - smoothed.beat) * beatSmoothing;
 
     for (let i = 0; i < particleCount; i++) {
@@ -467,11 +467,14 @@ export function ParticleLayer({
       }
 
       // Apply audio reactivity to size (VIS-08, VIS-09) using smoothed values
+      // Moderate multipliers - visible reaction while preserving organic look
       let audioSizeMultiplier = 1.0;
       const reactivity = config.audioReactivity || 0;
       if (reactivity > 0) {
-        // Smooth size reaction to loudness
-        audioSizeMultiplier = 1.0 + smoothed.amplitude * reactivity * 3.0;
+        // Visible size reaction - up to ~1.4x at full amplitude
+        const rawMultiplier = 1.0 + smoothed.amplitude * reactivity * 0.5;
+        // Cap at 1.4x to prevent blowout while allowing visible response
+        audioSizeMultiplier = Math.min(rawMultiplier, 1.4);
       }
 
       // Apply smoothed beat pulse effect (AUD-04)
@@ -480,14 +483,23 @@ export function ParticleLayer({
       // Update size
       sizes[i] = baseSizes[i] * finalSizeMultiplier;
 
-      // Update alpha
-      alphas[i] = alpha;
+      // Update alpha - AUDIO-DRIVEN VISIBILITY
+      // Silence = invisible, sound = visible
+      // Use power curve for more dramatic on/off effect
+      const audioVisibility = Math.pow(smoothed.amplitude, 0.5); // sqrt for faster rise
+      const minVisibility = 0.05; // Tiny baseline so it doesn't completely vanish
+      const visibilityMultiplier = minVisibility + audioVisibility * (1.0 - minVisibility);
+
+      alphas[i] = alpha * visibilityMultiplier;
 
       // Apply audio reactivity to position scale (expansion/contraction) using smoothed values
+      // Moderate expansion - visible "breathing" effect
       let scale = 1.0;
       if (reactivity > 0) {
-        // Expand/contract based on smoothed audio amplitude
-        scale = 1.0 + smoothed.amplitude * reactivity * 0.5;
+        // Visible expansion - up to ~1.2x
+        const rawScale = 1.0 + smoothed.amplitude * reactivity * 0.15;
+        // Cap at 1.2x for visible but controlled breathing
+        scale = Math.min(rawScale, 1.2);
       }
       const bx = birthPositions[i * 3];
       const by = birthPositions[i * 3 + 1];
