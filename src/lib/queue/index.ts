@@ -14,7 +14,7 @@ export { type JobStatus } from './JobStore';
 
 // Phase 4: Server-side BullMQ queue
 export * from './connection';
-// Export types except JobStatus (already exported from JobStore)
-export { type AudioFile, type BatchJobData, type RenderJobData } from './types';
+// Export types - note: JobStatus now comes from schema types via types.ts
+export { type AudioFile, type BatchJobData, type RenderJobData, type RenderQueueJobData } from './types';
 export * from './bullmqQueue';
 export * from './shutdown';

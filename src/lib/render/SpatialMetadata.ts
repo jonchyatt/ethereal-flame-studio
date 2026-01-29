@@ -1,16 +1,35 @@
 /**
  * SpatialMetadata - VR spatial metadata injection for 360 videos
  *
- * Injects Google Spatial Media metadata required for YouTube and VR
- * headsets to recognize and play 360/VR videos correctly.
+ * This file provides backward compatibility exports.
+ * The main implementation is in SpatialMetadataInjector.ts
  *
  * Phase 3, Plan 03-06
  */
 
+// Re-export everything from the main implementation
+export {
+  SpatialMetadataInjector,
+  injectSpatialMetadata,
+  checkPythonAvailable,
+  checkSpatialMediaAvailable,
+  getInstallCommand,
+  YOUTUBE_360_REQUIREMENTS,
+  VR_HEADSET_COMPATIBILITY,
+  ASPECT_RATIOS,
+  type StereoMode,
+  type ProjectionType,
+  type SpatialMetadataOptions,
+  type MetadataProgress,
+  type MetadataResult,
+  type MetadataInspectionResult,
+} from './SpatialMetadataInjector';
+
+// Backward compatibility types
 /**
- * Options for spatial metadata injection
+ * @deprecated Use SpatialMetadataOptions from SpatialMetadataInjector instead
  */
-export interface SpatialMetadataOptions {
+export interface SpatialMetadataOptionsLegacy {
   inputPath: string;
   outputPath: string;
   isStereo: boolean;
@@ -18,7 +37,7 @@ export interface SpatialMetadataOptions {
 }
 
 /**
- * Metadata injection result
+ * @deprecated Use MetadataResult from SpatialMetadataInjector instead
  */
 export interface SpatialMetadataResult {
   success: boolean;
@@ -29,10 +48,9 @@ export interface SpatialMetadataResult {
 /**
  * Build Python command for spatial media injection
  *
- * Uses Google's spatial-media library:
- * https://github.com/google/spatial-media
+ * @deprecated Use SpatialMetadataInjector class instead
  */
-export function buildSpatialMediaCommand(options: SpatialMetadataOptions): string[] {
+export function buildSpatialMediaCommand(options: SpatialMetadataOptionsLegacy): string[] {
   const { inputPath, outputPath, isStereo, stereoMode = 'top-bottom' } = options;
 
   const args: string[] = [];
@@ -54,7 +72,7 @@ export function buildSpatialMediaCommand(options: SpatialMetadataOptions): strin
 /**
  * Get Python script content for spatial metadata injection
  *
- * This script is saved to scripts/inject-metadata.py and called from Node.js
+ * @deprecated The script is now managed by SpatialMetadataInjector
  */
 export function getSpatialMediaScript(): string {
   return `#!/usr/bin/env python3
@@ -66,19 +84,31 @@ Usage:
   python inject-metadata.py input.mp4 output.mp4 stereo
 
 Requires: pip install spatialmedia
+
+Phase 3, Plan 03-06
 """
 
 import sys
 import os
 
+
 def main():
     if len(sys.argv) < 4:
         print("Usage: python inject-metadata.py <input> <output> <mono|stereo>")
+        print("")
+        print("Arguments:")
+        print("  input   - Input MP4 file (without spatial metadata)")
+        print("  output  - Output MP4 file (with spatial metadata)")
+        print("  mode    - 'mono' for monoscopic 360, 'stereo' for stereoscopic 3D 360")
         sys.exit(1)
 
     input_path = sys.argv[1]
     output_path = sys.argv[2]
-    mode = sys.argv[3]
+    mode = sys.argv[3].lower()
+
+    if mode not in ['mono', 'stereo']:
+        print(f"Error: Mode must be 'mono' or 'stereo', got '{mode}'")
+        sys.exit(1)
 
     if not os.path.exists(input_path):
         print(f"Error: Input file not found: {input_path}")
@@ -87,24 +117,43 @@ def main():
     try:
         from spatialmedia import metadata_utils
     except ImportError:
-        print("Error: spatialmedia not installed. Run: pip install spatialmedia")
+        print("Error: spatialmedia not installed.")
+        print("Install with: pip install spatialmedia")
+        print("Or: pip3 install spatialmedia")
         sys.exit(1)
 
     try:
+        print(f"Processing: {input_path}")
+        print(f"Mode: {mode}")
+
         # Create metadata object
         metadata = metadata_utils.Metadata()
+
+        # Generate spherical video metadata
+        # For stereo, use top-bottom layout (left eye on top, YouTube VR spec)
+        stereo_mode = "top-bottom" if mode == "stereo" else None
         metadata.video = metadata_utils.generate_spherical_xml(
-            stereo_mode="top-bottom" if mode == "stereo" else None
+            stereo_mode=stereo_mode
         )
 
-        # Inject metadata
+        # Inject metadata into the video file
         metadata_utils.inject_metadata(input_path, output_path, metadata)
 
+        # Verify output exists
+        if not os.path.exists(output_path):
+            print("Error: Output file was not created")
+            sys.exit(1)
+
+        output_size = os.path.getsize(output_path)
         print(f"Success: Metadata injected into {output_path}")
+        print(f"Output size: {output_size / 1024 / 1024:.1f} MB")
 
     except Exception as e:
         print(f"Error: Failed to inject metadata: {e}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
@@ -113,84 +162,9 @@ if __name__ == "__main__":
 
 /**
  * Validate that spatial-media Python package is available
+ *
+ * @deprecated Use checkSpatialMediaAvailable from SpatialMetadataInjector instead
  */
 export function getPythonValidationScript(): string {
   return 'python3 -c "from spatialmedia import metadata_utils; print(\'spatial-media available\')"';
 }
-
-/**
- * Get pip install command for spatial-media
- */
-export function getInstallCommand(): string {
-  return 'pip install spatialmedia';
-}
-
-/**
- * Placeholder class for server-side metadata injection
- *
- * Actual implementation requires Node.js child_process
- */
-export class SpatialMetadataInjector {
-  /**
-   * Inject spatial metadata into video file
-   *
-   * Note: This is a placeholder. Actual implementation in scripts/headless-render.ts
-   */
-  static async inject(options: SpatialMetadataOptions): Promise<SpatialMetadataResult> {
-    console.log('SpatialMetadataInjector.inject() - Server-side injection required');
-    console.log('Options:', options);
-
-    return {
-      success: false,
-      outputPath: options.outputPath,
-      error: 'Server-side injection required. Use scripts/headless-render.ts',
-    };
-  }
-
-  /**
-   * Check if input file has spatial metadata
-   */
-  static async checkMetadata(filePath: string): Promise<{ hasSpatialMetadata: boolean; details?: string }> {
-    console.log('SpatialMetadataInjector.checkMetadata() - Server-side check required');
-    console.log('File:', filePath);
-
-    return {
-      hasSpatialMetadata: false,
-      details: 'Server-side check required',
-    };
-  }
-}
-
-/**
- * YouTube 360 video requirements
- */
-export const YOUTUBE_360_REQUIREMENTS = {
-  format: 'MP4 (H.264 or H.265)',
-  metadata: 'V2 Spherical Video Metadata',
-  monoResolutions: ['4096x2048', '5120x2560', '5760x2880', '7680x3840'],
-  stereoResolutions: ['4096x4096', '5120x5120', '8192x8192'],
-  stereoLayout: 'Top/Bottom (left eye on top)',
-  maxBitrate: '150 Mbps',
-  maxFrameRate: '60 fps',
-};
-
-/**
- * VR headset compatibility notes
- */
-export const VR_HEADSET_COMPATIBILITY = {
-  metaQuest: {
-    formats: ['MP4 H.264', 'MP4 H.265'],
-    maxResolution: '5760x2880 (mono), 5760x5760 (stereo)',
-    notes: 'Best with H.265 for file size',
-  },
-  appleVisionPro: {
-    formats: ['MP4 H.265'],
-    maxResolution: '7680x3840 (mono)',
-    notes: 'Requires HEVC Main 10 profile for HDR',
-  },
-  picoPro: {
-    formats: ['MP4 H.264', 'MP4 H.265'],
-    maxResolution: '5760x2880 (mono)',
-    notes: 'Similar to Meta Quest',
-  },
-};
