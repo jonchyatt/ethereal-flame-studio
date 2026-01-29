@@ -64,7 +64,7 @@ export function ControlPanel({ screenshotRef }: ControlPanelProps) {
 
       {/* Main Control Panel */}
       {isExpanded && (
-        <div className="bg-black/70 backdrop-blur-md border-t border-white/10 p-4">
+        <div className="bg-black/70 backdrop-blur-md border-t border-white/10 p-4 max-h-[70vh] overflow-y-auto">
           <div className="max-w-4xl mx-auto">
             {/* Templates Section - Collapsible */}
             <div className="mb-4 border-b border-white/10 pb-4">

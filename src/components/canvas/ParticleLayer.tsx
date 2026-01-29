@@ -253,9 +253,12 @@ export function ParticleLayer({
       bandAmplitude = audioLevels.treble;
     }
 
-    // Smooth audio response for fluid motion (lerp toward target)
-    const smoothing = 0.08; // Lower = smoother, higher = more responsive
+    // Asymmetric smoothing - fast attack (bloom up), slow decay (fade down)
     const smoothed = smoothedAudioRef.current;
+    const attackSmoothing = 0.4; // Very fast rise when audio increases
+    const releaseSmoothing = 0.04; // Slow fade when audio decreases
+    const isRising = bandAmplitude > smoothed.amplitude;
+    const smoothing = isRising ? attackSmoothing : releaseSmoothing;
     smoothed.amplitude += (bandAmplitude - smoothed.amplitude) * smoothing;
 
     // Smooth beat pulse (quick attack, slow decay) - visible but not overwhelming
@@ -484,10 +487,10 @@ export function ParticleLayer({
       sizes[i] = baseSizes[i] * finalSizeMultiplier;
 
       // Update alpha - AUDIO-DRIVEN VISIBILITY
-      // Silence = invisible, sound = visible
+      // Low visibility when silent, full visibility with audio
       // Use power curve for more dramatic on/off effect
       const audioVisibility = Math.pow(smoothed.amplitude, 0.5); // sqrt for faster rise
-      const minVisibility = 0.05; // Tiny baseline so it doesn't completely vanish
+      const minVisibility = 0.15; // Low baseline - particles fade when quiet but don't vanish
       const visibilityMultiplier = minVisibility + audioVisibility * (1.0 - minVisibility);
 
       alphas[i] = alpha * visibilityMultiplier;

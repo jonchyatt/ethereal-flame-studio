@@ -171,45 +171,45 @@ export function AudioControls() {
           )}
 
           {/* Debug Overlay - Audio Levels */}
-          <div className="ml-auto flex items-center gap-6 text-xs font-mono">
+          <div className="ml-auto flex items-center gap-3 text-xs font-mono">
             {/* Bass */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <span className="text-white/60 uppercase">Bass:</span>
-              <div className="w-24 h-2 bg-white/10 rounded-full overflow-hidden">
+              <div className="w-12 h-2 bg-white/10 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-red-500 transition-all duration-75"
                   style={{ width: `${bass * 100}%` }}
                 />
               </div>
-              <span className="text-white w-12 text-right">
+              <span className="text-white w-8 text-right">
                 {(bass * 100).toFixed(0)}%
               </span>
             </div>
 
             {/* Mids */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <span className="text-white/60 uppercase">Mids:</span>
-              <div className="w-24 h-2 bg-white/10 rounded-full overflow-hidden">
+              <div className="w-12 h-2 bg-white/10 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-yellow-500 transition-all duration-75"
                   style={{ width: `${mid * 100}%` }}
                 />
               </div>
-              <span className="text-white w-12 text-right">
+              <span className="text-white w-8 text-right">
                 {(mid * 100).toFixed(0)}%
               </span>
             </div>
 
             {/* Treble */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <span className="text-white/60 uppercase">High:</span>
-              <div className="w-24 h-2 bg-white/10 rounded-full overflow-hidden">
+              <div className="w-12 h-2 bg-white/10 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-blue-500 transition-all duration-75"
                   style={{ width: `${high * 100}%` }}
                 />
               </div>
-              <span className="text-white w-12 text-right">
+              <span className="text-white w-8 text-right">
                 {(high * 100).toFixed(0)}%
               </span>
             </div>

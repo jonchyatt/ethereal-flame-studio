@@ -183,7 +183,7 @@ const DEFAULT_LAYERS: ParticleLayerConfig[] = [
 ];
 
 export const useVisualStore = create<VisualState>((set) => ({
-  intensity: 1.0,
+  intensity: 1.7,
   layers: DEFAULT_LAYERS,
   // Initialize skybox with DarkWorld1 (THE ONE)
   skyboxPreset: STAR_NEST_PRESETS[0],
