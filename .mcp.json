@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "vercel": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@anthropic-ai/vercel-mcp@latest"
+      ],
+      "env": {}
+    }
+  }
+}
