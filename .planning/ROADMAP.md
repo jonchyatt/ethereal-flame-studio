@@ -1,14 +1,15 @@
 # Roadmap: Ethereal Flame Studio
 
 **Created:** 2026-01-26
+**Updated:** 2026-01-28
 **Depth:** Comprehensive
-**Coverage:** 41/41 v1 requirements mapped
+**Coverage:** 57 requirements across 6 phases
 
 ---
 
 ## Overview
 
-This roadmap transforms audio files into publication-ready 360 VR and social media videos through five phases: (1) Web UI with visual engine and audio reactivity, (2) template system for preset management, (3) high-fidelity rendering pipeline for 8K output, (4) batch automation with Whisper and Drive integration, and (5) remote access with n8n workflow automation.
+This roadmap transforms audio files into publication-ready 360 VR and social media videos through six phases: (1) Web UI with visual engine and audio reactivity, (2) template system for preset management, (3) high-fidelity rendering pipeline with YouTube-optimized encoding, (4) batch automation with multi-machine render farm and Whisper transcription, (5) n8n workflow automation with Claude Code integration, and (6) YouTube channel optimization with multi-platform expansion.
 
 ---
 
@@ -23,14 +24,14 @@ This roadmap transforms audio files into publication-ready 360 VR and social med
 **Plans:** 8 plans in 5 waves
 
 Plans:
-- [ ] 01-01-PLAN.md — Project scaffolding (Next.js + R3F setup)
-- [ ] 01-02-PLAN.md — Audio analyzer (FFT, frequency bands, beat detection)
-- [ ] 01-03-PLAN.md — Particle system core (lifetime, size curve, dual-layer)
-- [ ] 01-04-PLAN.md — Star Nest skybox (procedural background)
-- [ ] 01-05-PLAN.md — Ethereal Mist mode (soft clouds)
-- [ ] 01-06-PLAN.md — Ethereal Flame mode (warm upward drift)
-- [ ] 01-07-PLAN.md — Mobile-friendly UI (control panels)
-- [ ] 01-08-PLAN.md — Integration (wire audio to visuals)
+- [x] 01-01-PLAN.md — Project scaffolding (Next.js + R3F setup)
+- [x] 01-02-PLAN.md — Audio analyzer (FFT, frequency bands, beat detection)
+- [x] 01-03-PLAN.md — Particle system core (lifetime, size curve, dual-layer)
+- [x] 01-04-PLAN.md — Star Nest skybox (procedural background)
+- [x] 01-05-PLAN.md — Ethereal Mist mode (soft clouds)
+- [x] 01-06-PLAN.md — Ethereal Flame mode (warm upward drift)
+- [x] 01-07-PLAN.md — Mobile-friendly UI (control panels)
+- [x] 01-08-PLAN.md — Integration (wire audio to visuals)
 
 **Wave Structure:**
 - Wave 1: 01-01 (scaffolding)
@@ -65,6 +66,8 @@ Plans:
 4. Star Nest skybox rotates subtly during playback
 5. Bass/mids/treble independently influence different visual properties
 
+**Status:** COMPLETE
+
 ---
 
 ### Phase 2: Template System
@@ -76,12 +79,12 @@ Plans:
 **Plans:** 6 plans in 4 waves
 
 Plans:
-- [ ] 02-01-PLAN.md — Template types and store with persistence (TPL-01/TPL-05 foundation)
-- [ ] 02-02-PLAN.md — Built-in curated presets (TPL-03)
-- [ ] 02-03-PLAN.md — Template gallery UI with thumbnails (TPL-02/TPL-06)
-- [ ] 02-04-PLAN.md — Save template with screenshot capture (TPL-01 complete)
-- [ ] 02-05-PLAN.md — Advanced parameter editor (TPL-04)
-- [ ] 02-06-PLAN.md — Phase 2 verification checkpoint
+- [x] 02-01-PLAN.md — Template types and store with persistence (TPL-01/TPL-05 foundation)
+- [x] 02-02-PLAN.md — Built-in curated presets (TPL-03)
+- [x] 02-03-PLAN.md — Template gallery UI with thumbnails (TPL-02/TPL-06)
+- [x] 02-04-PLAN.md — Save template with screenshot capture (TPL-01 complete)
+- [x] 02-05-PLAN.md — Advanced parameter editor (TPL-04)
+- [x] 02-06-PLAN.md — Phase 2 verification checkpoint
 
 **Wave Structure:**
 - Wave 1: 02-01, 02-02 (foundation + presets - parallel)
@@ -103,15 +106,17 @@ Plans:
 3. User sees thumbnail previews distinguishing different presets
 4. Advanced users access full slider panel for fine-grained control
 
+**Status:** COMPLETE
+
 ---
 
 ### Phase 3: Rendering Pipeline
 
-**Goal:** User can export publication-quality videos in multiple formats up to 8K
+**Goal:** User can export publication-quality videos optimized for YouTube and social platforms
 
 **Dependencies:** Phase 1 (visual engine), Phase 2 (templates define what to render)
 
-**Plans:** 8 plans in 6 waves
+**Plans:** 11 plans in 7 waves
 
 Plans:
 - [ ] 03-01-PLAN.md — Pre-analysis for offline rendering (amplitude-per-frame)
@@ -120,8 +125,11 @@ Plans:
 - [ ] 03-04-PLAN.md — 360 monoscopic pipeline (CubeCamera + equirectangular)
 - [ ] 03-05-PLAN.md — 360 stereoscopic pipeline (dual CubeCamera + stack)
 - [ ] 03-06-PLAN.md — FFmpeg integration + VR metadata injection
-- [ ] 03-07-PLAN.md — Headless rendering mode (Puppeteer + xvfb)
+- [ ] 03-07-PLAN.md — Headless rendering mode (Puppeteer + real GPU)
 - [ ] 03-08-PLAN.md — Render queue with persistence (IndexedDB/SQLite)
+- [ ] 03-09-PLAN.md — YouTube-optimized encoding presets (codec, bitrate, HDR)
+- [ ] 03-10-PLAN.md — Platform-specific output formats (Shorts, Reels, TikTok)
+- [ ] 03-11-PLAN.md — Render settings UI (format selector, quality options)
 
 **Wave Structure:**
 - Wave 1: 03-01 (pre-analysis)
@@ -130,6 +138,7 @@ Plans:
 - Wave 4: 03-05 (stereoscopic)
 - Wave 5: 03-06 (encoding + metadata)
 - Wave 6: 03-07, 03-08 (headless + queue - parallel)
+- Wave 7: 03-09, 03-10, 03-11 (YouTube optimization + platform formats - parallel)
 
 **Requirements:**
 - AUD-03: Pre-analysis for offline rendering (amplitude-per-frame data)
@@ -141,6 +150,10 @@ Plans:
 - RND-06: VR spatial metadata injection (Spherical Video V2)
 - RND-07: Headless rendering mode (command line, no GUI)
 - RND-08: Render queue with job persistence (survives browser close)
+- RND-09: YouTube-optimized H.264/VP9 encoding (12-45 Mbps based on resolution)
+- RND-10: YouTube Shorts format (9:16, 1080x1920, max 60s)
+- RND-11: Instagram Reels format (9:16, 1080x1920, max 90s)
+- RND-12: TikTok format (9:16, 1080x1920, max 10min)
 
 **Success Criteria:**
 1. User clicks "Render 1080p" and receives downloadable MP4 matching preview
@@ -148,16 +161,42 @@ Plans:
 3. Rendered 360 video uploads to YouTube and displays in VR mode correctly
 4. User queues multiple renders, closes browser, returns to find completed jobs
 5. Render server processes jobs via CLI without GUI dependencies
+6. YouTube accepts rendered video without re-encoding warnings
+7. User can select "YouTube Shorts" and get properly formatted vertical video
 
 ---
 
-### Phase 4: Automation
+### Phase 4: Automation + Multi-Machine Render Farm
 
-**Goal:** User can batch-process multiple audio files with automatic organization
+**Goal:** User can batch-process audio files across multiple home machines with auto-organization
 
 **Dependencies:** Phase 3 (rendering pipeline must work for batch processing)
 
-**Plans:** (created by /gsd:plan-phase)
+**Plans:** 14 plans in 6 waves
+
+Plans:
+- [ ] 04-01-PLAN.md — SQLite metadata database and file naming conventions
+- [ ] 04-02-PLAN.md — BullMQ batch queue infrastructure
+- [ ] 04-03-PLAN.md — Render worker with post-processing
+- [ ] 04-04-PLAN.md — Whisper transcription microservice (faster-whisper)
+- [ ] 04-05-PLAN.md — Transcription queue integration
+- [ ] 04-06-PLAN.md — Google Drive sync via rclone
+- [ ] 04-07-PLAN.md — Push notifications via ntfy/email
+- [ ] 04-08-PLAN.md — Google Sheets metadata export
+- [ ] 04-09-PLAN.md — Batch upload web UI
+- [ ] 04-10-PLAN.md — Multi-machine render farm configuration
+- [ ] 04-11-PLAN.md — Machine registry and health monitoring
+- [ ] 04-12-PLAN.md — Video metadata templates (titles, descriptions, tags)
+- [ ] 04-13-PLAN.md — Machine selector UI component
+- [ ] 04-14-PLAN.md — Render job routing to selected machine
+
+**Wave Structure:**
+- Wave 1: 04-01, 04-02 (database + queue foundation - parallel)
+- Wave 2: 04-03, 04-04 (workers - parallel)
+- Wave 3: 04-05, 04-06, 04-07 (integrations - parallel)
+- Wave 4: 04-08, 04-09 (UI + export - parallel)
+- Wave 5: 04-10, 04-11 (multi-machine infrastructure - parallel)
+- Wave 6: 04-12, 04-13, 04-14 (metadata + routing - parallel)
 
 **Requirements:**
 - AUD-05: Whisper transcription for auto-generating video descriptions
@@ -166,44 +205,111 @@ Plans:
 - AUT-03: Naming convention enforcement ([Date]_[AudioName]_[Format].mp4)
 - AUT-04: Metadata database (Google Sheets or local CSV)
 - INF-03: Job status notifications (push or polling)
+- FARM-01: Machine registry (list of render machines with specs)
+- FARM-02: Per-machine Cloudflare Tunnel configuration
+- FARM-03: Health check endpoint on each render machine
+- FARM-04: Machine selector dropdown in web UI
+- FARM-05: Render job routing to user-selected machine
+- META-01: Title template with variable substitution
+- META-02: Description template with Whisper transcript insertion
+- META-03: Tag suggestions based on audio content/filename
 
 **Success Criteria:**
 1. User uploads 5 audio files, selects template, all render overnight with proper names
 2. Completed videos appear in Google Drive folder automatically
 3. Each video has Whisper-generated description in metadata spreadsheet
 4. User receives notification when batch completes
+5. User can select "Desktop" or "Laptop" as render target
+6. Render job goes to correct machine based on selection
+7. If selected machine is offline, user sees error before submitting
 
 ---
 
-### Phase 5: n8n Integration + Remote Access
+### Phase 5: n8n Integration + Claude Code Workflow Generation
 
-**Goal:** User can trigger renders from phone and have videos auto-post to social media
+**Goal:** User can trigger renders from phone with n8n workflows auto-generated by Claude Code
 
 **Dependencies:** Phase 4 (automation infrastructure must exist)
 
-**Plans:** 4 plans in 3 waves
+**Plans:** 8 plans in 4 waves
 
 Plans:
-- [ ] 05-01-PLAN.md — Cloudflare Tunnel setup (secure remote access)
+- [ ] 05-01-PLAN.md — Cloudflare Tunnel setup (secure remote access per machine)
 - [ ] 05-02-PLAN.md — n8n self-hosted deployment (YouTube OAuth)
 - [ ] 05-03-PLAN.md — Render complete webhook (server to n8n integration)
 - [ ] 05-04-PLAN.md — YouTube upload workflow (auto-publish with Whisper descriptions)
+- [ ] 05-05-PLAN.md — n8n MCP + Skills setup for Claude Code workflow generation
+- [ ] 05-06-PLAN.md — Web app "Render" button with n8n job submission
+- [ ] 05-07-PLAN.md — Render job status polling and progress display
+- [ ] 05-08-PLAN.md — Multi-platform posting workflow (Blotato integration)
 
 **Wave Structure:**
 - Wave 1: 05-01, 05-02 (infrastructure - parallel)
-- Wave 2: 05-03 (webhook integration)
-- Wave 3: 05-04 (YouTube workflow)
+- Wave 2: 05-03, 05-05 (webhook + n8n MCP - parallel)
+- Wave 3: 05-04, 05-06 (YouTube workflow + web app - parallel)
+- Wave 4: 05-07, 05-08 (status + multi-platform - parallel)
 
 **Requirements:**
 - AUT-05: n8n webhook trigger on render complete
 - AUT-06: n8n workflow for auto-posting to YouTube, social platforms
 - INF-02: Remote access to home render server (Cloudflare Tunnel)
+- N8N-01: n8n MCP server connected to Claude Code project
+- N8N-02: n8n Skills installed for workflow generation
+- N8N-03: Claude Code can create/edit/deploy n8n workflows
+- WEBAPP-01: "Render" button in preview UI sends job to n8n
+- WEBAPP-02: Machine selector dropdown in render dialog
+- WEBAPP-03: Format selector (YouTube 1080p, 4K, Shorts, VR, etc.)
+- WEBAPP-04: Job progress indicator (submitted → rendering → encoding → uploading)
 
 **Success Criteria:**
 1. User triggers render from phone while away from home
 2. Completed video auto-posts to YouTube with Whisper-generated description
 3. User's home render server is securely accessible via Cloudflare Tunnel
 4. Complete phone-to-published flow works without touching a computer
+5. Claude Code can generate new n8n workflows from natural language requests
+6. User sees render progress in web app (not just notification at end)
+
+---
+
+### Phase 6: YouTube Channel Optimization + Multi-Platform Expansion
+
+**Goal:** Optimize video SEO, automate thumbnails, expand to TikTok/Instagram/other platforms
+
+**Dependencies:** Phase 5 (n8n workflows must exist for automation)
+
+**Plans:** 6 plans in 3 waves
+
+Plans:
+- [ ] 06-01-PLAN.md — Thumbnail auto-generation (extract key frame, add branding)
+- [ ] 06-02-PLAN.md — YouTube SEO optimization (titles, descriptions, tags research)
+- [ ] 06-03-PLAN.md — Video scheduling workflow (publish at optimal times)
+- [ ] 06-04-PLAN.md — TikTok posting workflow (via Blotato or direct API)
+- [ ] 06-05-PLAN.md — Instagram Reels posting workflow
+- [ ] 06-06-PLAN.md — Analytics dashboard (track views, engagement across platforms)
+
+**Wave Structure:**
+- Wave 1: 06-01, 06-02 (thumbnail + SEO - parallel)
+- Wave 2: 06-03 (scheduling)
+- Wave 3: 06-04, 06-05, 06-06 (multi-platform + analytics - parallel)
+
+**Requirements:**
+- YT-01: Auto-generate thumbnail from video frame with text overlay
+- YT-02: Title templates with SEO keywords
+- YT-03: Description templates with timestamps, links, hashtags
+- YT-04: Tag generation based on content category
+- YT-05: Scheduled publishing (upload private, publish at set time)
+- MULTI-01: TikTok posting (9:16 format, captions, sounds)
+- MULTI-02: Instagram Reels posting (9:16, hashtags)
+- MULTI-03: Cross-platform status tracking in Google Sheets
+- ANALYTICS-01: View count tracking per platform
+- ANALYTICS-02: Engagement metrics (likes, comments, shares)
+
+**Success Criteria:**
+1. Every video gets auto-generated thumbnail matching channel branding
+2. Titles and descriptions follow SEO best practices
+3. Videos publish at scheduled times without manual intervention
+4. Same content posts to YouTube, TikTok, Instagram with platform-specific formatting
+5. User can see performance metrics in a single dashboard
 
 ---
 
@@ -211,35 +317,37 @@ Plans:
 
 | Phase | Name | Status | Requirements | Plans |
 |-------|------|--------|--------------|-------|
-| 1 | Foundation - Web UI + Visual Engine | Planned | 17 | 8 |
-| 2 | Template System | Planned | 6 | 6 |
-| 3 | Rendering Pipeline | Planned | 9 | 8 |
-| 4 | Automation | Not Started | 6 | TBD |
-| 5 | n8n Integration + Remote Access | Planned | 3 | 4 |
+| 1 | Foundation - Web UI + Visual Engine | Complete | 17 | 8 |
+| 2 | Template System | Complete | 6 | 6 |
+| 3 | Rendering Pipeline | Planned | 13 | 11 |
+| 4 | Automation + Multi-Machine | Planned | 14 | 14 |
+| 5 | n8n + Claude Code Integration | Planned | 10 | 8 |
+| 6 | YouTube + Multi-Platform | Planned | 10 | 6 |
 
-**Total:** 41 requirements across 5 phases
+**Total:** 57 requirements across 6 phases (70 total requirements including Phase 1-2)
 
 ---
 
 ## Phase Dependencies
 
 ```
-Phase 1 (Foundation)
+Phase 1 (Foundation) ✅
     |
     v
-Phase 2 (Templates)
+Phase 2 (Templates) ✅
     |
     v
-Phase 3 (Rendering)
+Phase 3 (Rendering) ← YouTube optimization + platform formats
     |
     v
-Phase 4 (Automation)
+Phase 4 (Automation) ← Multi-machine render farm
     |
     v
-Phase 5 (n8n + Remote)
+Phase 5 (n8n + Remote) ← Claude Code workflow generation
+    |
+    v
+Phase 6 (YouTube + Multi-Platform) ← NEW PHASE
 ```
-
-All phases are sequential. Each depends on the previous.
 
 ---
 
@@ -247,10 +355,34 @@ All phases are sequential. Each depends on the previous.
 
 | Phase | Flag | Notes |
 |-------|------|-------|
-| Phase 3 | COMPLETE | Research completed 2026-01-27, see 03-RESEARCH.md |
-| Phase 4 | STANDARD | Whisper integration is well-documented |
-| Phase 5 | COMPLETE | Research completed 2026-01-27, see 05-RESEARCH.md |
+| Phase 3 | NEEDS UPDATE | Add YouTube encoding specs, platform formats |
+| Phase 4 | NEEDS RESEARCH | Multi-machine render farm architecture |
+| Phase 5 | NEEDS RESEARCH | n8n MCP + Skills integration for Claude Code |
+| Phase 6 | NEEDS RESEARCH | Thumbnail generation, SEO, multi-platform APIs |
 
 ---
 
-*Last updated: 2026-01-27*
+## Key Architecture Decisions
+
+### Multi-Machine Render Farm
+- Each machine runs render server + Cloudflare Tunnel
+- Machine registry stored in config file or database
+- Health check API on each machine
+- User selects machine from dropdown before rendering
+- n8n routes job to selected machine's tunnel URL
+
+### n8n + Claude Code Integration
+- n8n MCP server connects Claude Code to n8n instance
+- n8n Skills teach Claude Code how to build workflows
+- Claude Code can CREATE, EDIT, DEPLOY workflows from conversation
+- Eliminates manual n8n workflow building
+
+### YouTube Optimization
+- FFmpeg encoding presets match YouTube recommendations
+- Avoid re-encoding on upload (proper codec, bitrate, container)
+- Auto-generate thumbnails from key frames
+- SEO templates for titles, descriptions, tags
+
+---
+
+*Last updated: 2026-01-28*
