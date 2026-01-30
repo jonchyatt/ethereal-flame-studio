@@ -145,33 +145,34 @@ function getQuaternionFromOrientation(
                       Math.abs(screenOrientation - 270) < 10;
 
   if (isLandscape) {
-    // Landscape mode - swap axes for proper VR viewing
-    // When phone is landscape, gamma becomes pitch, beta becomes roll
-    // screenOrientation: 90 = rotated CCW (home button right), -90 = rotated CW (home button left)
-    const adjustedOrientation = screenOrientation > 0 ? 1 : -1;
+    // Landscape mode - phone rotated 90° or 270°
+    // screenOrientation: 90 = CCW (home button right), 270 = CW (home button left)
+    const isLandscapeLeft = screenOrientation < 180; // 90 = landscape left
 
-    // Create quaternion for landscape VR viewing
-    // alpha = yaw (looking left/right)
-    // gamma = pitch (looking up/down) in landscape
-    // beta = roll (tilting head) in landscape
-    const yaw = alphaRad;
-    const pitch = gammaRad * adjustedOrientation;
-    const roll = -betaRad * adjustedOrientation;
+    // In landscape, we need to transform the device orientation
+    // The key insight: apply a 90° rotation to account for the phone being sideways
+    const euler = new THREE.Euler();
 
-    // Build quaternion from yaw, pitch, roll
-    const cy = Math.cos(yaw * 0.5);
-    const sy = Math.sin(yaw * 0.5);
-    const cp = Math.cos(pitch * 0.5);
-    const sp = Math.sin(pitch * 0.5);
-    const cr = Math.cos(roll * 0.5);
-    const sr = Math.sin(roll * 0.5);
+    if (isLandscapeLeft) {
+      // Landscape left (90°): phone rotated CCW
+      // Remap: alpha→yaw, gamma→pitch, beta→roll
+      euler.set(
+        gammaRad,           // pitch: gamma controls up/down
+        alphaRad,           // yaw: alpha controls left/right
+        -betaRad,           // roll: beta controls head tilt
+        'YXZ'
+      );
+    } else {
+      // Landscape right (270°): phone rotated CW
+      euler.set(
+        -gammaRad,          // pitch: gamma inverted
+        alphaRad,           // yaw: alpha controls left/right
+        betaRad,            // roll: beta inverted
+        'YXZ'
+      );
+    }
 
-    quaternion.set(
-      sr * cp * cy - cr * sp * sy,  // x
-      cr * sp * cy + sr * cp * sy,  // y
-      cr * cp * sy - sr * sp * cy,  // z
-      cr * cp * cy + sr * sp * sy   // w
-    );
+    quaternion.setFromEuler(euler);
   } else {
     // Portrait mode - use standard device orientation
     const euler = new THREE.Euler();
