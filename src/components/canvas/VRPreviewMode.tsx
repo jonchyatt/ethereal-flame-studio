@@ -145,30 +145,31 @@ function getQuaternionFromOrientation(
                       Math.abs(screenOrientation - 270) < 10;
 
   if (isLandscape) {
-    // Landscape mode - use portrait logic then rotate to account for phone orientation
-    // screenOrientation: 90 = CCW (home button right), 270 = CW (home button left)
+    // Landscape mode - rotate axis assignments from portrait
+    // Portrait uses: euler.set(betaRad, alphaRad, -gammaRad, 'YXZ')
+    // which maps: X=beta(pitch), Y=alpha(yaw), Z=-gamma(roll)
+    //
+    // For landscape, cycle the assignments one step:
+    // X=gamma, Y=beta, Z=-alpha
     const isLandscapeLeft = screenOrientation < 180; // 90 = landscape left
 
-    // First: apply portrait orientation (which works perfectly)
     const euler = new THREE.Euler();
-    euler.set(betaRad, alphaRad, -gammaRad, 'YXZ');
+    if (isLandscapeLeft) {
+      euler.set(gammaRad, betaRad, -alphaRad, 'YXZ');
+    } else {
+      euler.set(-gammaRad, -betaRad, alphaRad, 'YXZ');
+    }
     quaternion.setFromEuler(euler);
 
-    // Second: rotate to account for screen being sideways
-    const screenRotation = new THREE.Quaternion();
-    if (isLandscapeLeft) {
-      // Phone rotated 90° CCW - rotate view 90° CW around Z to compensate
-      screenRotation.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI / 2);
-    } else {
-      // Phone rotated 90° CW - rotate view 90° CCW around Z to compensate
-      screenRotation.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
-    }
-    quaternion.multiply(screenRotation);
+    // Apply screen orientation correction
+    const screenQuat = new THREE.Quaternion();
+    screenQuat.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -orientRad);
+    quaternion.multiply(screenQuat);
 
-    // Third: apply the standard -90° X rotation (camera looks out back of device)
-    const xRotation = new THREE.Quaternion();
-    xRotation.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-    quaternion.multiply(xRotation);
+    // Rotate -90 degrees around X to look out back of device
+    const xQuat = new THREE.Quaternion();
+    xQuat.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+    quaternion.multiply(xQuat);
   } else {
     // Portrait mode - use standard device orientation
     const euler = new THREE.Euler();
