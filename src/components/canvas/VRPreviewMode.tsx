@@ -149,31 +149,29 @@ function getQuaternionFromOrientation(
     // screenOrientation: 90 = CCW (home button right), 270 = CW (home button left)
     const isLandscapeLeft = screenOrientation < 180; // 90 = landscape left
 
-    // In landscape on iOS:
-    // - beta controls yaw (looking left/right)
-    // - gamma controls pitch (looking up/down)
-    // - alpha controls roll (head tilt)
-    const euler = new THREE.Euler();
+    // Build quaternion by composing individual rotations
+    // This gives us more control than Euler angles
+    const yawQuat = new THREE.Quaternion();
+    const pitchQuat = new THREE.Quaternion();
+    const rollQuat = new THREE.Quaternion();
 
     if (isLandscapeLeft) {
       // Landscape left (90°): phone rotated CCW
-      euler.set(
-        gammaRad,           // pitch: gamma controls up/down
-        betaRad,            // yaw: beta controls left/right
-        -alphaRad,          // roll: alpha controls head tilt
-        'YXZ'
-      );
+      // After testing: need to find correct axis mapping
+      yawQuat.setFromAxisAngle(new THREE.Vector3(0, 1, 0), alphaRad);   // Y-axis rotation
+      pitchQuat.setFromAxisAngle(new THREE.Vector3(1, 0, 0), gammaRad); // X-axis rotation
+      rollQuat.setFromAxisAngle(new THREE.Vector3(0, 0, 1), betaRad);   // Z-axis rotation
     } else {
       // Landscape right (270°): phone rotated CW
-      euler.set(
-        -gammaRad,          // pitch: gamma inverted
-        -betaRad,           // yaw: beta inverted
-        alphaRad,           // roll: alpha inverted
-        'YXZ'
-      );
+      yawQuat.setFromAxisAngle(new THREE.Vector3(0, 1, 0), alphaRad);
+      pitchQuat.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -gammaRad);
+      rollQuat.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -betaRad);
     }
 
-    quaternion.setFromEuler(euler);
+    // Compose: yaw first, then pitch, then roll
+    quaternion.copy(yawQuat);
+    quaternion.multiply(pitchQuat);
+    quaternion.multiply(rollQuat);
   } else {
     // Portrait mode - use standard device orientation
     const euler = new THREE.Euler();
