@@ -117,6 +117,12 @@ function useVRContext() {
 
 /**
  * Converts device orientation angles to a Three.js quaternion
+ * Optimized for iOS landscape VR viewing
+ *
+ * Device orientation (relative to Earth):
+ * - alpha: compass direction (0-360), rotation around Z
+ * - beta: front-to-back tilt (-180 to 180), rotation around X
+ * - gamma: left-to-right tilt (-90 to 90), rotation around Y
  */
 function getQuaternionFromOrientation(
   alpha: number,
@@ -124,26 +130,59 @@ function getQuaternionFromOrientation(
   gamma: number,
   screenOrientation: number
 ): THREE.Quaternion {
+  // Convert to radians
   const alphaRad = THREE.MathUtils.degToRad(alpha);
   const betaRad = THREE.MathUtils.degToRad(beta);
   const gammaRad = THREE.MathUtils.degToRad(gamma);
-  const screenOrientationRad = THREE.MathUtils.degToRad(screenOrientation);
-
-  const euler = new THREE.Euler();
-  euler.set(betaRad, alphaRad, -gammaRad, 'YXZ');
+  const orientRad = THREE.MathUtils.degToRad(screenOrientation);
 
   const quaternion = new THREE.Quaternion();
-  quaternion.setFromEuler(euler);
 
-  // Adjust for screen orientation (landscape)
-  const screenQuaternion = new THREE.Quaternion();
-  screenQuaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -screenOrientationRad);
-  quaternion.multiply(screenQuaternion);
+  // For landscape orientation on iOS, we need to remap the axes
+  // Screen orientation 90 = landscape left, -90/270 = landscape right
+  if (Math.abs(screenOrientation) === 90 || screenOrientation === 270) {
+    // Landscape mode - swap axes for proper VR viewing
+    // When phone is landscape, gamma becomes pitch, beta becomes roll
+    const adjustedOrientation = screenOrientation === 90 ? 1 : -1;
 
-  // Align with Three.js coordinate system
-  const worldQuaternion = new THREE.Quaternion();
-  worldQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-  quaternion.multiply(worldQuaternion);
+    // Create quaternion for landscape VR viewing
+    // alpha = yaw (looking left/right)
+    // gamma = pitch (looking up/down) in landscape
+    // beta = roll (tilting head) in landscape
+    const yaw = alphaRad;
+    const pitch = gammaRad * adjustedOrientation;
+    const roll = -betaRad * adjustedOrientation;
+
+    // Build quaternion from yaw, pitch, roll
+    const cy = Math.cos(yaw * 0.5);
+    const sy = Math.sin(yaw * 0.5);
+    const cp = Math.cos(pitch * 0.5);
+    const sp = Math.sin(pitch * 0.5);
+    const cr = Math.cos(roll * 0.5);
+    const sr = Math.sin(roll * 0.5);
+
+    quaternion.set(
+      sr * cp * cy - cr * sp * sy,  // x
+      cr * sp * cy + sr * cp * sy,  // y
+      cr * cp * sy - sr * sp * cy,  // z
+      cr * cp * cy + sr * sp * sy   // w
+    );
+  } else {
+    // Portrait mode - use standard device orientation
+    const euler = new THREE.Euler();
+    euler.set(betaRad, alphaRad, -gammaRad, 'YXZ');
+    quaternion.setFromEuler(euler);
+
+    // Apply screen orientation correction
+    const screenQuat = new THREE.Quaternion();
+    screenQuat.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -orientRad);
+    quaternion.multiply(screenQuat);
+
+    // Rotate -90 degrees around X to look out back of device
+    const xQuat = new THREE.Quaternion();
+    xQuat.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+    quaternion.multiply(xQuat);
+  }
 
   return quaternion;
 }

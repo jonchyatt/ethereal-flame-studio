@@ -96,8 +96,8 @@ export default function Home() {
       )}
 
       {/* Control panel fixed at bottom - includes mode selector, preset selector, and audio controls */}
-      {/* Always mounted to preserve audio state, hidden in VR mode via CSS */}
-      <div className={isVRMode ? "sr-only" : ""}>
+      {/* Always mounted to preserve audio state, hidden and non-interactive in VR mode */}
+      <div className={isVRMode ? "invisible pointer-events-none absolute -z-50" : ""}>
         <ControlPanel screenshotRef={screenshotRef} />
       </div>
 
