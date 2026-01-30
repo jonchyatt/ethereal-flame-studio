@@ -140,10 +140,15 @@ function getQuaternionFromOrientation(
 
   // For landscape orientation on iOS, we need to remap the axes
   // Screen orientation 90 = landscape left, -90/270 = landscape right
-  if (Math.abs(screenOrientation) === 90 || screenOrientation === 270) {
+  // Also check for values close to 90/-90 due to floating point
+  const isLandscape = Math.abs(Math.abs(screenOrientation) - 90) < 10 ||
+                      Math.abs(screenOrientation - 270) < 10;
+
+  if (isLandscape) {
     // Landscape mode - swap axes for proper VR viewing
     // When phone is landscape, gamma becomes pitch, beta becomes roll
-    const adjustedOrientation = screenOrientation === 90 ? 1 : -1;
+    // screenOrientation: 90 = rotated CCW (home button right), -90 = rotated CW (home button left)
+    const adjustedOrientation = screenOrientation > 0 ? 1 : -1;
 
     // Create quaternion for landscape VR viewing
     // alpha = yaw (looking left/right)
@@ -188,24 +193,70 @@ function getQuaternionFromOrientation(
 }
 
 /**
+ * Get screen orientation angle - iOS compatible
+ * Returns: 0 (portrait), 90 (landscape left), -90/270 (landscape right)
+ */
+function getScreenOrientation(): number {
+  // Try standard API first (works on Android/desktop)
+  if (window.screen.orientation?.angle !== undefined) {
+    return window.screen.orientation.angle;
+  }
+
+  // iOS fallback - use deprecated window.orientation
+  if (typeof (window as { orientation?: number }).orientation === 'number') {
+    return (window as { orientation: number }).orientation;
+  }
+
+  // Last resort - detect from window dimensions
+  if (window.innerWidth > window.innerHeight) {
+    return 90; // Assume landscape left
+  }
+
+  return 0; // Portrait
+}
+
+/**
  * VR Camera Controller - uses gyroscope for camera rotation
  */
 function VRCameraController({ orientation }: { orientation: { alpha: number; beta: number; gamma: number } | null }) {
   const { camera } = useThree();
-  const screenOrientationRef = useRef(0);
+  const screenOrientationRef = useRef(getScreenOrientation());
 
   useEffect(() => {
     const updateScreenOrientation = () => {
-      screenOrientationRef.current = window.screen.orientation?.angle || 0;
+      screenOrientationRef.current = getScreenOrientation();
+      console.log('[VR] Screen orientation:', screenOrientationRef.current);
     };
 
     updateScreenOrientation();
+
+    // Listen for both standard and iOS orientation changes
     window.addEventListener('orientationchange', updateScreenOrientation);
-    return () => window.removeEventListener('orientationchange', updateScreenOrientation);
+    window.addEventListener('resize', updateScreenOrientation);
+
+    return () => {
+      window.removeEventListener('orientationchange', updateScreenOrientation);
+      window.removeEventListener('resize', updateScreenOrientation);
+    };
   }, []);
+
+  // Debug: log orientation periodically
+  const debugCountRef = useRef(0);
 
   useFrame(() => {
     if (!orientation) return;
+
+    // Log every 60 frames (~1 second)
+    debugCountRef.current++;
+    if (debugCountRef.current % 60 === 0) {
+      console.log('[VR] Orientation:', {
+        screen: screenOrientationRef.current,
+        alpha: orientation.alpha.toFixed(1),
+        beta: orientation.beta.toFixed(1),
+        gamma: orientation.gamma.toFixed(1),
+        isLandscape: Math.abs(Math.abs(screenOrientationRef.current) - 90) < 10
+      });
+    }
 
     const quaternion = getQuaternionFromOrientation(
       orientation.alpha,
