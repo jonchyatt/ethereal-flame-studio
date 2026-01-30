@@ -16,6 +16,13 @@ import { notifyRenderComplete, buildWebhookPayload } from '../services/webhookNo
 import { renderVideo, RenderVideoProgress } from '../render/renderVideo';
 import { OutputFormat } from '../render/FFmpegEncoder';
 
+/**
+ * Log worker messages with timestamp
+ */
+function workerLog(message: string): void {
+  console.log(`[Worker] ${message}`);
+}
+
 let worker: Worker<RenderJobData> | null = null;
 
 /**
@@ -24,7 +31,8 @@ let worker: Worker<RenderJobData> | null = null;
 async function processRenderJob(job: Job<RenderJobData>): Promise<void> {
   const { batchId, audioFile, template, outputFormat } = job.data;
 
-  console.log(`[Worker] Processing job ${job.id}: ${audioFile.originalName} -> ${outputFormat}`);
+  // Log to file for debugging
+  workerLog(`Processing job ${job.id}: ${audioFile.originalName} -> ${outputFormat}`);
 
   // Create database record if not exists
   let renderDbId = job.data.renderDbId;
@@ -47,15 +55,16 @@ async function processRenderJob(job: Job<RenderJobData>): Promise<void> {
     await markRenderProcessing(renderDbId);
     await job.updateProgress(5);
 
-    // Generate temp output path
-    const tempOutputPath = `${process.env.RENDER_OUTPUT_DIR || '/tmp'}/render_${renderDbId}_${Date.now()}.mp4`;
+    // Generate temp output path - use proper Windows temp directory
+    const tempDir = process.env.RENDER_OUTPUT_DIR || process.env.TEMP || 'C:/temp';
+    const tempOutputPath = `${tempDir}/render_${renderDbId}_${Date.now()}.mp4`;
 
     // Run the actual render pipeline
-    console.log(`[Worker] Starting render: ${audioFile.originalName} -> ${template} -> ${outputFormat}`);
-    console.log(`[Worker] Audio path: ${audioFile.path}`);
-    console.log(`[Worker] Output path: ${tempOutputPath}`);
+    workerLog(`Starting render: ${audioFile.originalName} -> ${template} -> ${outputFormat}`);
+    workerLog(`Audio path: ${audioFile.path}`);
+    workerLog(`Output path: ${tempOutputPath}`);
 
-    console.log(`[Worker] Calling renderVideo now...`);
+    let lastStage = '';
     const renderResult = await renderVideo({
       audioPath: audioFile.path,
       outputPath: tempOutputPath,
@@ -66,21 +75,21 @@ async function processRenderJob(job: Job<RenderJobData>): Promise<void> {
       onProgress: (progress: RenderVideoProgress) => {
         // Map render progress (0-100) to job progress (5-90)
         const jobProgress = 5 + (progress.overallProgress * 0.85);
-        console.log(`[Worker] Progress: ${progress.stage} ${progress.overallProgress.toFixed(0)}% -> job ${jobProgress.toFixed(0)}%`);
         job.updateProgress(Math.round(jobProgress));
+
+        // Log only when stage changes
+        if (progress.stage !== lastStage) {
+          workerLog(`${progress.stage}: ${progress.message}`);
+          lastStage = progress.stage;
+        }
       },
     });
-
-    console.log(`[Worker] renderVideo returned: success=${renderResult.success}, duration=${renderResult.duration.toFixed(1)}s`);
-    if (renderResult.error) {
-      console.log(`[Worker] renderVideo error: ${renderResult.error}`);
-    }
 
     if (!renderResult.success) {
       throw new Error(`Render failed: ${renderResult.error}`);
     }
 
-    console.log(`[Worker] Render complete in ${renderResult.duration.toFixed(1)}s`);
+    workerLog(`Render complete in ${renderResult.duration.toFixed(1)}s (${renderResult.stages.capture.frames} frames)`);
     await job.updateProgress(90);
 
     // Post-process: rename, update metadata
@@ -88,7 +97,7 @@ async function processRenderJob(job: Job<RenderJobData>): Promise<void> {
 
     await job.updateProgress(100);
 
-    console.log(`[Worker] Completed: ${result.fileName} (${(result.fileSizeBytes / 1024 / 1024).toFixed(1)} MB)`);
+    workerLog(`Completed: ${result.fileName} (${(result.fileSizeBytes / 1024 / 1024).toFixed(1)} MB)`);
 
     // Queue transcription job (will be implemented in 04-05)
     try {
@@ -98,10 +107,10 @@ async function processRenderJob(job: Job<RenderJobData>): Promise<void> {
         audioPath: audioFile.path,
         audioName: audioFile.originalName.replace(/\.[^/.]+$/, ''),
       });
-      console.log(`[Worker] Queued transcription for: ${audioFile.originalName}`);
+      workerLog(`Queued transcription for: ${audioFile.originalName}`);
     } catch {
       // Transcription module not available yet - skip
-      console.log('[Worker] Transcription skipped (module not available)');
+      workerLog('Transcription skipped (module not available)');
     }
 
     // Check batch completion and notify (will be implemented in 04-07)
@@ -126,12 +135,12 @@ async function processRenderJob(job: Job<RenderJobData>): Promise<void> {
       batchId,
     });
     notifyRenderComplete(webhookPayload).catch((err) => {
-      console.error('[Worker] Webhook notification failed:', err);
+      workerLog(`Webhook notification failed: ${err}`);
     });
 
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error(`[Worker] Failed job ${job.id}:`, message);
+    workerLog(`FAILED job ${job.id}: ${message}`);
     await markRenderFailed(renderDbId, message);
 
     // Send individual failure notification (will be implemented in 04-07)
@@ -151,7 +160,7 @@ async function processRenderJob(job: Job<RenderJobData>): Promise<void> {
       errorMessage: message,
     });
     notifyRenderComplete(failurePayload).catch((err) => {
-      console.error('[Worker] Failure webhook notification failed:', err);
+      workerLog(`Failure webhook notification failed: ${err}`);
     });
 
     throw error; // Re-throw for BullMQ retry handling
