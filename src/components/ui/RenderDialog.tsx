@@ -131,6 +131,21 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
     return () => clearInterval(pollInterval);
   }, [jobStatus?.id, renderState]);
 
+  // Convert File to base64
+  const fileToBase64 = useCallback((file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove data URL prefix (e.g., "data:audio/mpeg;base64,")
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }, []);
+
   // Submit render job
   const handleSubmit = useCallback(async () => {
     if (!audioFile && !audioPath) {
@@ -142,11 +157,21 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
     setError(null);
 
     try {
+      // Build audio input - convert file to base64 if needed
+      let audioInput: { type: string; path?: string; data?: string; filename?: string };
+
+      if (audioPath) {
+        audioInput = { type: 'path', path: audioPath };
+      } else if (audioFile) {
+        const base64Data = await fileToBase64(audioFile);
+        audioInput = { type: 'base64', data: base64Data, filename: audioFile.name };
+      } else {
+        throw new Error('No audio source');
+      }
+
       // Build request body
       const body = {
-        audio: audioPath
-          ? { type: 'path', path: audioPath }
-          : { type: 'base64', data: '', filename: audioFile!.name }, // TODO: Convert file to base64
+        audio: audioInput,
         outputFormat: selectedFormat,
         fps: selectedFps,
         renderSettings: { template },
