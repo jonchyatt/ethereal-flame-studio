@@ -176,7 +176,7 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
         audio: audioInput,
         outputFormat: selectedFormat,
         fps: selectedFps,
-        renderSettings: { template },
+        renderSettings: { visualMode: template },
         transcribe: enableTranscription,
         upload: enableGoogleDrive,
       };
@@ -198,7 +198,16 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
         });
         setRenderState('queued');
       } else {
-        setError(data.error?.message || 'Failed to submit job');
+        // Show detailed validation errors if available
+        let errorMsg = data.error?.message || 'Failed to submit job';
+        if (data.error?.details) {
+          const details = Object.entries(data.error.details)
+            .map(([field, msgs]) => `${field}: ${(msgs as string[]).join(', ')}`)
+            .join('; ');
+          errorMsg += ` (${details})`;
+        }
+        console.error('[RenderDialog] Submission failed:', data.error);
+        setError(errorMsg);
         setRenderState('error');
       }
     } catch (err) {
