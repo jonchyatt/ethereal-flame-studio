@@ -171,12 +171,16 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
         throw new Error('No audio source');
       }
 
+      // Map template names to schema values
+      // UI uses 'etherealFlame'/'etherealMist', schema expects 'flame'/'mist'
+      const visualMode = template === 'etherealMist' ? 'mist' : 'flame';
+
       // Build request body
       const body = {
         audio: audioInput,
         outputFormat: selectedFormat,
         fps: selectedFps,
-        renderSettings: { visualMode: template },
+        renderSettings: { visualMode },
         transcribe: enableTranscription,
         upload: enableGoogleDrive,
       };
