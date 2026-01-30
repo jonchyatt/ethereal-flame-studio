@@ -149,25 +149,26 @@ function getQuaternionFromOrientation(
     // screenOrientation: 90 = CCW (home button right), 270 = CW (home button left)
     const isLandscapeLeft = screenOrientation < 180; // 90 = landscape left
 
-    // In landscape, we need to transform the device orientation
-    // The key insight: apply a 90° rotation to account for the phone being sideways
+    // In landscape on iOS:
+    // - beta controls yaw (looking left/right)
+    // - gamma controls pitch (looking up/down)
+    // - alpha controls roll (head tilt)
     const euler = new THREE.Euler();
 
     if (isLandscapeLeft) {
       // Landscape left (90°): phone rotated CCW
-      // Remap: alpha→yaw, gamma→pitch, beta→roll
       euler.set(
         gammaRad,           // pitch: gamma controls up/down
-        alphaRad,           // yaw: alpha controls left/right
-        -betaRad,           // roll: beta controls head tilt
+        betaRad,            // yaw: beta controls left/right
+        -alphaRad,          // roll: alpha controls head tilt
         'YXZ'
       );
     } else {
       // Landscape right (270°): phone rotated CW
       euler.set(
         -gammaRad,          // pitch: gamma inverted
-        alphaRad,           // yaw: alpha controls left/right
-        betaRad,            // roll: beta inverted
+        -betaRad,           // yaw: beta inverted
+        alphaRad,           // roll: alpha inverted
         'YXZ'
       );
     }
