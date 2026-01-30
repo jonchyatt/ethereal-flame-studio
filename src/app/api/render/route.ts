@@ -186,7 +186,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRen
           originalName: audioName,
           duration: audioDuration,
         },
-        input.renderSettings?.template || 'flame',
+        input.renderSettings?.visualMode || 'flame',
         input.outputFormat,
         {
           fps: input.fps,
