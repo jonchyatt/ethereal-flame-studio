@@ -118,6 +118,51 @@ export async function getBatchStatus(batchId: string): Promise<{
 }
 
 /**
+ * Add a single render job to the queue.
+ *
+ * @param audioFile - Audio file to process
+ * @param template - Visual template to use (flame, mist)
+ * @param outputFormat - Output format (flat-1080p, 360-mono-4k, etc.)
+ * @param options - Additional options
+ * @returns Job ID
+ */
+export async function addRenderJob(
+  audioFile: AudioFile,
+  template: string,
+  outputFormat: string,
+  options?: {
+    fps?: number;
+    transcribe?: boolean;
+    uploadToGDrive?: boolean;
+    priority?: number;
+  }
+): Promise<{ jobId: string; batchId: string }> {
+  const batchId = uuid();
+
+  const job = await renderQueue.add(
+    'render',
+    {
+      batchId,
+      audioFile,
+      template,
+      outputFormat,
+      renderDbId: '', // Set by worker after DB insert
+      options: {
+        fps: options?.fps || 30,
+        transcribe: options?.transcribe ?? true,
+        uploadToGDrive: options?.uploadToGDrive ?? false,
+      },
+    },
+    {
+      jobId: `${batchId}-${audioFile.id}-${outputFormat}`,
+      priority: options?.priority,
+    }
+  );
+
+  return { jobId: job.id || '', batchId };
+}
+
+/**
  * Close queue connections gracefully.
  */
 export async function closeQueue(): Promise<void> {

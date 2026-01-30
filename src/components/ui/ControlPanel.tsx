@@ -20,8 +20,10 @@ import { AudioControls } from './AudioControls';
 import { TemplateGallery } from './TemplateGallery';
 import { SaveTemplateDialog } from './SaveTemplateDialog';
 import { AdvancedEditor } from './AdvancedEditor';
+import { RenderDialog } from './RenderDialog';
 import { ScreenshotCaptureRef } from './ScreenshotCapture';
 import { useVisualStore } from '@/lib/stores/visualStore';
+import { useAudioStore } from '@/lib/stores/audioStore';
 
 interface ControlPanelProps {
   screenshotRef?: React.RefObject<ScreenshotCaptureRef | null>;
@@ -34,8 +36,11 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
   const [showTemplates, setShowTemplates] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showRenderDialog, setShowRenderDialog] = useState(false);
   const skyboxRotationSpeed = useVisualStore((state) => state.skyboxRotationSpeed);
   const setSkyboxRotationSpeed = useVisualStore((state) => state.setSkyboxRotationSpeed);
+  const audioFile = useAudioStore((state) => state.audioFile);
+  const currentMode = useVisualStore((state) => state.mode);
   // Water state
   const waterEnabled = useVisualStore((state) => state.waterEnabled);
   const setWaterEnabled = useVisualStore((state) => state.setWaterEnabled);
@@ -210,6 +215,46 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
                   )}
                 </div>
 
+                {/* Render Video Button */}
+                <div className="border-t border-white/10 pt-4">
+                  <button
+                    onClick={() => setShowRenderDialog(true)}
+                    className={`
+                      w-full px-4 py-3
+                      ${audioFile
+                        ? 'bg-gradient-to-r from-green-600/50 to-emerald-600/50 hover:from-green-500/60 hover:to-emerald-500/60 border-green-400/30'
+                        : 'bg-white/10 border-white/10 cursor-not-allowed opacity-50'
+                      }
+                      border
+                      rounded-lg
+                      text-white font-medium
+                      transition-all
+                      flex items-center justify-center gap-2
+                      min-h-[48px]
+                    `}
+                    disabled={!audioFile}
+                    title={audioFile ? 'Open render dialog' : 'Upload audio first'}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      />
+                    </svg>
+                    Render Video
+                  </button>
+                  <p className="text-white/40 text-xs mt-2 text-center">
+                    {audioFile ? 'Server-side render with 360 VR support' : 'Upload audio to enable rendering'}
+                  </p>
+                </div>
+
                 {/* VR Preview Mode Button */}
                 {onEnterVRMode && (
                   <div className="border-t border-white/10 pt-4">
@@ -296,6 +341,14 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
           screenshotRef={screenshotRef}
         />
       )}
+
+      {/* Render Dialog */}
+      <RenderDialog
+        isOpen={showRenderDialog}
+        onClose={() => setShowRenderDialog(false)}
+        audioFile={audioFile}
+        template={currentMode}
+      />
     </div>
   );
 }

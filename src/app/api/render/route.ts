@@ -9,7 +9,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { v4 as uuid } from 'uuid';
 import { ServerJobStore } from '@/lib/queue/ServerJobStore';
+import { addRenderJob } from '@/lib/queue/bullmqQueue';
 import {
   SubmitRenderRequestSchema,
   ListJobsQuerySchema,
@@ -175,8 +177,30 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRen
       input.fps
     );
 
-    // In production, we would add the job to BullMQ here
-    // await renderQueue.add('render', { jobId: job.id }, { priority: input.priority });
+    // Add job to BullMQ render queue
+    try {
+      const { jobId: bullmqJobId, batchId } = await addRenderJob(
+        {
+          id: uuid(),
+          path: audioPath,
+          originalName: audioName,
+          duration: audioDuration,
+        },
+        input.renderSettings?.template || 'flame',
+        input.outputFormat,
+        {
+          fps: input.fps,
+          transcribe: input.transcribe,
+          uploadToGDrive: input.upload,
+          priority: input.priority,
+        }
+      );
+
+      console.log(`[API] Job ${job.id} submitted to BullMQ as ${bullmqJobId}`);
+    } catch (queueError) {
+      console.warn('[API] Failed to add job to BullMQ (queue may not be available):', queueError);
+      // Continue without failing - job is tracked in ServerJobStore
+    }
 
     return NextResponse.json({
       success: true,

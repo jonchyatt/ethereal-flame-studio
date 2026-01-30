@@ -274,4 +274,10 @@ export interface RenderJobData {
   outputFormat: string;
   /** Database render ID (set by worker) */
   renderDbId: string;
+  /** Additional render options */
+  options?: {
+    fps?: number;
+    transcribe?: boolean;
+    uploadToGDrive?: boolean;
+  };
 }
