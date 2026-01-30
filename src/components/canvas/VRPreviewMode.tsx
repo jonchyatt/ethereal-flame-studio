@@ -138,54 +138,31 @@ function getQuaternionFromOrientation(
 
   const quaternion = new THREE.Quaternion();
 
-  // For landscape orientation on iOS, we need to remap the axes
-  // Screen orientation 90 = landscape left, -90/270 = landscape right
-  // Also check for values close to 90/-90 due to floating point
-  const isLandscape = Math.abs(Math.abs(screenOrientation) - 90) < 10 ||
-                      Math.abs(screenOrientation - 270) < 10;
+  // Use the SAME device orientation math for all screen orientations
+  // Device orientation angles (alpha, beta, gamma) describe the phone's
+  // orientation relative to Earth - this doesn't change when you rotate the screen.
+  //
+  // The key insight: portrait works because beta (pitch) has full range [-180, 180].
+  // Previous landscape code broke because it swapped gamma into pitch position,
+  // but gamma is clamped to [-90, 90], causing gimbal lock at the poles.
+  //
+  // Solution: Always use the same Euler conversion (beta for pitch),
+  // and let the screen orientation quaternion handle portrait vs landscape.
 
-  if (isLandscape) {
-    // Landscape mode - rotate axis assignments from portrait
-    // Portrait uses: euler.set(betaRad, alphaRad, -gammaRad, 'YXZ')
-    // which maps: X=beta(pitch), Y=alpha(yaw), Z=-gamma(roll)
-    //
-    // For landscape, cycle the assignments one step:
-    // X=gamma, Y=beta, Z=-alpha
-    const isLandscapeLeft = screenOrientation < 180; // 90 = landscape left
+  const euler = new THREE.Euler();
+  euler.set(betaRad, alphaRad, -gammaRad, 'YXZ');
+  quaternion.setFromEuler(euler);
 
-    const euler = new THREE.Euler();
-    if (isLandscapeLeft) {
-      euler.set(gammaRad, betaRad, -alphaRad, 'YXZ');
-    } else {
-      euler.set(-gammaRad, -betaRad, alphaRad, 'YXZ');
-    }
-    quaternion.setFromEuler(euler);
+  // Apply screen orientation correction
+  // This rotates the view to match the physical screen rotation
+  const screenQuat = new THREE.Quaternion();
+  screenQuat.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -orientRad);
+  quaternion.multiply(screenQuat);
 
-    // Apply screen orientation correction
-    const screenQuat = new THREE.Quaternion();
-    screenQuat.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -orientRad);
-    quaternion.multiply(screenQuat);
-
-    // Rotate -90 degrees around X to look out back of device
-    const xQuat = new THREE.Quaternion();
-    xQuat.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-    quaternion.multiply(xQuat);
-  } else {
-    // Portrait mode - use standard device orientation
-    const euler = new THREE.Euler();
-    euler.set(betaRad, alphaRad, -gammaRad, 'YXZ');
-    quaternion.setFromEuler(euler);
-
-    // Apply screen orientation correction
-    const screenQuat = new THREE.Quaternion();
-    screenQuat.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -orientRad);
-    quaternion.multiply(screenQuat);
-
-    // Rotate -90 degrees around X to look out back of device
-    const xQuat = new THREE.Quaternion();
-    xQuat.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-    quaternion.multiply(xQuat);
-  }
+  // Rotate -90 degrees around X to look out back of device (camera points away from screen)
+  const xQuat = new THREE.Quaternion();
+  xQuat.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+  quaternion.multiply(xQuat);
 
   return quaternion;
 }
