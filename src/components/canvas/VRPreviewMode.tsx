@@ -45,6 +45,7 @@ export function VRContextProvider({ children }: { children: React.ReactNode }) {
       return false;
     }
 
+    // Always allow retry by setting to requesting state
     setPermissionState('requesting');
 
     // iOS 13+ requires explicit permission request
@@ -240,14 +241,10 @@ interface VRPreviewModeProps {
  * Main VR Preview Mode Component (inside Canvas)
  */
 export function VRPreviewMode({ enabled, onExit }: VRPreviewModeProps) {
-  const { orientation, permissionState, requestPermission } = useVRContext();
+  const { orientation, permissionState } = useVRContext();
 
-  // Request permission when enabled
-  useEffect(() => {
-    if (enabled && permissionState === 'unknown') {
-      requestPermission();
-    }
-  }, [enabled, permissionState, requestPermission]);
+  // Don't auto-request permission here - let VRModeOverlay handle it
+  // so the user sees the permission button UI first
 
   if (!enabled) return null;
 
@@ -348,10 +345,28 @@ export function VRModeOverlay({
         <div className="absolute inset-0 bg-black/90 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
           <div className="text-center text-white p-8 max-w-md">
             <h2 className="text-2xl font-bold mb-4">Motion Access Denied</h2>
-            <p className="text-lg mb-6">Enable motion sensors in browser settings and try again.</p>
-            <button className="px-6 py-3 bg-white/20 rounded-lg" onClick={onExit}>
-              Exit VR Mode
-            </button>
+            <p className="text-lg mb-4">Motion sensor access was denied.</p>
+            <div className="text-left text-white/80 text-sm mb-6 bg-white/10 rounded-lg p-4">
+              <p className="font-semibold mb-2">To enable on iOS Safari:</p>
+              <ol className="list-decimal list-inside space-y-1">
+                <li>Open Settings app</li>
+                <li>Scroll to Safari</li>
+                <li>Enable "Motion & Orientation Access"</li>
+                <li>Return here and try again</li>
+              </ol>
+            </div>
+            <div className="flex gap-3 justify-center">
+              <button
+                className="px-6 py-3 bg-blue-500 rounded-lg font-semibold"
+                onClick={handleRequestPermission}
+                disabled={isRequesting}
+              >
+                Try Again
+              </button>
+              <button className="px-6 py-3 bg-white/20 rounded-lg" onClick={onExit}>
+                Exit
+              </button>
+            </div>
           </div>
         </div>
       )}
