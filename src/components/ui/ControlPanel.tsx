@@ -40,7 +40,7 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
   const skyboxRotationSpeed = useVisualStore((state) => state.skyboxRotationSpeed);
   const setSkyboxRotationSpeed = useVisualStore((state) => state.setSkyboxRotationSpeed);
   const audioFile = useAudioStore((state) => state.audioFile);
-  const currentMode = useVisualStore((state) => state.mode);
+  const currentMode = useVisualStore((state) => state.currentMode);
   // Water state
   const waterEnabled = useVisualStore((state) => state.waterEnabled);
   const setWaterEnabled = useVisualStore((state) => state.setWaterEnabled);
