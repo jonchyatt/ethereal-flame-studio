@@ -15,6 +15,9 @@ import { useRef, useEffect, useState } from 'react';
 import { audioAnalyzer } from '@/lib/audio/AudioAnalyzer';
 import { useAudioStore } from '@/lib/stores/audioStore';
 
+// Demo track URL (bundled in public folder)
+const DEMO_AUDIO_URL = '/audio/demo.wav';
+
 export function AudioControls() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -22,6 +25,9 @@ export function AudioControls() {
   const lastTimeRef = useRef<number>(0);
 
   const [isConnected, setIsConnected] = useState(false);
+  const [showUrlInput, setShowUrlInput] = useState(false);
+  const [urlInput, setUrlInput] = useState('');
+  const [isLoadingUrl, setIsLoadingUrl] = useState(false);
 
   const {
     isPlaying,
@@ -37,6 +43,87 @@ export function AudioControls() {
     setLevels,
     setBeat,
   } = useAudioStore();
+
+  // Load audio from a URL (handles both direct URLs and Google Drive links)
+  const loadAudioFromUrl = async (url: string, displayName?: string) => {
+    const audioElement = audioRef.current;
+    if (!audioElement) return;
+
+    setIsLoadingUrl(true);
+
+    try {
+      // Convert Google Drive share links to direct download URLs
+      let directUrl = url;
+      let fileName = displayName || 'URL Audio';
+
+      // Handle Google Drive share links
+      // Format: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+      const driveMatch = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+      if (driveMatch) {
+        const fileId = driveMatch[1];
+        directUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+        fileName = displayName || `Google Drive Audio`;
+      }
+
+      // Handle Google Drive open links
+      // Format: https://drive.google.com/open?id=FILE_ID
+      const driveOpenMatch = url.match(/drive\.google\.com\/open\?id=([^&]+)/);
+      if (driveOpenMatch) {
+        const fileId = driveOpenMatch[1];
+        directUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+        fileName = displayName || `Google Drive Audio`;
+      }
+
+      // Set audio source
+      audioElement.src = directUrl;
+      audioElement.crossOrigin = 'anonymous';
+
+      // Wait for audio to be loadable
+      await new Promise<void>((resolve, reject) => {
+        const onCanPlay = () => {
+          audioElement.removeEventListener('canplay', onCanPlay);
+          audioElement.removeEventListener('error', onError);
+          resolve();
+        };
+        const onError = () => {
+          audioElement.removeEventListener('canplay', onCanPlay);
+          audioElement.removeEventListener('error', onError);
+          reject(new Error('Failed to load audio from URL'));
+        };
+        audioElement.addEventListener('canplay', onCanPlay);
+        audioElement.addEventListener('error', onError);
+        audioElement.load();
+      });
+
+      // Connect analyzer to audio element
+      await audioAnalyzer.connect(audioElement);
+      setIsConnected(true);
+
+      // Create a mock File for the store
+      const mockFile = new File([], fileName, { type: 'audio/mpeg' });
+      setAudioFile(mockFile, fileName);
+
+      console.log('Audio loaded from URL:', fileName);
+      setShowUrlInput(false);
+      setUrlInput('');
+    } catch (error) {
+      console.error('Failed to load audio from URL:', error);
+      alert('Failed to load audio from URL. For Google Drive, make sure the file is publicly shared.');
+    } finally {
+      setIsLoadingUrl(false);
+    }
+  };
+
+  // Load demo track
+  const handleLoadDemo = async () => {
+    await loadAudioFromUrl(DEMO_AUDIO_URL, 'Demo Track (1 second test)');
+  };
+
+  // Handle URL input submit
+  const handleUrlSubmit = async () => {
+    if (!urlInput.trim()) return;
+    await loadAudioFromUrl(urlInput.trim());
+  };
 
   // Handle file selection
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -137,7 +224,7 @@ export function AudioControls() {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center gap-4 flex-wrap">
           {/* File Upload */}
-          <div>
+          <div className="flex gap-2">
             <input
               ref={fileInputRef}
               type="file"
@@ -148,11 +235,49 @@ export function AudioControls() {
             />
             <label
               htmlFor="audio-upload"
-              className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg cursor-pointer transition-colors min-w-[120px] text-center"
+              className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg cursor-pointer transition-colors text-center text-sm"
             >
-              Upload Audio
+              Upload
             </label>
+
+            {/* Load Demo Button */}
+            <button
+              onClick={handleLoadDemo}
+              disabled={isLoadingUrl}
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white rounded-lg transition-colors text-sm"
+            >
+              Demo
+            </button>
+
+            {/* Load from URL Button */}
+            <button
+              onClick={() => setShowUrlInput(!showUrlInput)}
+              className={`px-4 py-2 ${showUrlInput ? 'bg-orange-700' : 'bg-orange-600 hover:bg-orange-700'} text-white rounded-lg transition-colors text-sm`}
+            >
+              URL
+            </button>
           </div>
+
+          {/* URL Input (expandable) */}
+          {showUrlInput && (
+            <div className="flex gap-2 items-center">
+              <input
+                type="text"
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleUrlSubmit()}
+                placeholder="Paste audio URL or Google Drive link..."
+                className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 text-sm w-64 focus:outline-none focus:border-blue-500"
+              />
+              <button
+                onClick={handleUrlSubmit}
+                disabled={!urlInput.trim() || isLoadingUrl}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg transition-colors text-sm"
+              >
+                {isLoadingUrl ? 'Loading...' : 'Load'}
+              </button>
+            </div>
+          )}
 
           {/* Play/Pause Button */}
           <button
