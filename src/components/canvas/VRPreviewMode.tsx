@@ -153,16 +153,17 @@ function getQuaternionFromOrientation(
   euler.set(betaRad, alphaRad, -gammaRad, 'YXZ');
   quaternion.setFromEuler(euler);
 
+  // Rotate -90 degrees around X to look out back of device (camera points away from screen)
+  // This must be applied BEFORE screen orientation (standard Three.js DeviceOrientationControls order)
+  const xQuat = new THREE.Quaternion();
+  xQuat.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+  quaternion.multiply(xQuat);
+
   // Apply screen orientation correction
   // This rotates the view to match the physical screen rotation
   const screenQuat = new THREE.Quaternion();
   screenQuat.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -orientRad);
   quaternion.multiply(screenQuat);
-
-  // Rotate -90 degrees around X to look out back of device (camera points away from screen)
-  const xQuat = new THREE.Quaternion();
-  xQuat.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-  quaternion.multiply(xQuat);
 
   return quaternion;
 }
