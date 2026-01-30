@@ -10,6 +10,16 @@
  * - 64mm IPD (interpupillary distance) for proper 3D depth
  * - Tap to exit VR mode
  * - Audio preservation across orientation changes
+ * - Portrait AND landscape orientation support
+ *
+ * Landscape Mode Fix (2026-01-30):
+ * The DeviceOrientation API constrains gamma to [-90°, 90°]. Earlier code
+ * remapped gamma to pitch for landscape, causing gimbal lock when looking
+ * up/down past 90° (manifested as sudden 1°→178° jumps). The fix uses the
+ * same euler conversion for both orientations (beta for pitch, which has
+ * full [-180°, 180°] range) and relies on the screen orientation quaternion
+ * to handle the view rotation. Quaternion multiplication order matters:
+ * xQuat (look out back) must be applied BEFORE screenQuat (screen rotation).
  */
 
 import { useRef, useEffect, useState, useCallback, createContext, useContext } from 'react';
