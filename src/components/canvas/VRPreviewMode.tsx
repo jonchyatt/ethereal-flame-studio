@@ -185,29 +185,45 @@ function VRCameraController({ orientation }: { orientation: { alpha: number; bet
  * Stereoscopic Renderer - renders left/right eye views
  */
 function StereoRenderer({ enabled }: { enabled: boolean }) {
-  const { gl, scene, camera } = useThree();
+  const { gl, scene, camera, size } = useThree();
   const stereoCamera = useRef<THREE.StereoCamera | null>(null);
+  const wasEnabled = useRef(false);
 
   useEffect(() => {
     if (enabled) {
       stereoCamera.current = new THREE.StereoCamera();
       stereoCamera.current.eyeSep = IPD;
-    }
-    return () => {
+      wasEnabled.current = true;
+    } else if (wasEnabled.current) {
+      // Reset viewport when transitioning from enabled to disabled
       stereoCamera.current = null;
-      // Reset viewport when unmounting
-      if (!enabled) {
-        gl.setViewport(0, 0, gl.domElement.width, gl.domElement.height);
-        gl.setScissorTest(false);
-      }
+      gl.setViewport(0, 0, size.width, size.height);
+      gl.setScissor(0, 0, size.width, size.height);
+      gl.setScissorTest(false);
+      gl.autoClear = true;
+      wasEnabled.current = false;
+    }
+  }, [enabled, gl, size.width, size.height]);
+
+  // Also reset on unmount
+  useEffect(() => {
+    return () => {
+      gl.setViewport(0, 0, size.width, size.height);
+      gl.setScissor(0, 0, size.width, size.height);
+      gl.setScissorTest(false);
+      gl.autoClear = true;
     };
-  }, [enabled, gl]);
+  }, [gl, size.width, size.height]);
 
   useFrame(() => {
-    if (!enabled || !stereoCamera.current) return;
+    if (!enabled || !stereoCamera.current) {
+      // Ensure viewport is reset every frame when not enabled
+      // This catches cases where something else might have changed it
+      return;
+    }
 
-    const size = gl.getSize(new THREE.Vector2());
-    const halfWidth = size.x / 2;
+    const glSize = gl.getSize(new THREE.Vector2());
+    const halfWidth = glSize.x / 2;
 
     stereoCamera.current.update(camera as THREE.PerspectiveCamera);
 
@@ -216,13 +232,13 @@ function StereoRenderer({ enabled }: { enabled: boolean }) {
     gl.clear();
 
     // Left eye
-    gl.setViewport(0, 0, halfWidth, size.y);
-    gl.setScissor(0, 0, halfWidth, size.y);
+    gl.setViewport(0, 0, halfWidth, glSize.y);
+    gl.setScissor(0, 0, halfWidth, glSize.y);
     gl.render(scene, stereoCamera.current.cameraL);
 
     // Right eye
-    gl.setViewport(halfWidth, 0, halfWidth, size.y);
-    gl.setScissor(halfWidth, 0, halfWidth, size.y);
+    gl.setViewport(halfWidth, 0, halfWidth, glSize.y);
+    gl.setScissor(halfWidth, 0, halfWidth, glSize.y);
     gl.render(scene, stereoCamera.current.cameraR);
 
     gl.setScissorTest(false);
