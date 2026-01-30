@@ -145,33 +145,30 @@ function getQuaternionFromOrientation(
                       Math.abs(screenOrientation - 270) < 10;
 
   if (isLandscape) {
-    // Landscape mode - phone rotated 90° or 270°
+    // Landscape mode - use portrait logic then rotate to account for phone orientation
     // screenOrientation: 90 = CCW (home button right), 270 = CW (home button left)
     const isLandscapeLeft = screenOrientation < 180; // 90 = landscape left
 
-    // Build quaternion by composing individual rotations
-    // This gives us more control than Euler angles
-    const yawQuat = new THREE.Quaternion();
-    const pitchQuat = new THREE.Quaternion();
-    const rollQuat = new THREE.Quaternion();
+    // First: apply portrait orientation (which works perfectly)
+    const euler = new THREE.Euler();
+    euler.set(betaRad, alphaRad, -gammaRad, 'YXZ');
+    quaternion.setFromEuler(euler);
 
+    // Second: rotate to account for screen being sideways
+    const screenRotation = new THREE.Quaternion();
     if (isLandscapeLeft) {
-      // Landscape left (90°): phone rotated CCW
-      // After testing: need to find correct axis mapping
-      yawQuat.setFromAxisAngle(new THREE.Vector3(0, 1, 0), alphaRad);   // Y-axis rotation
-      pitchQuat.setFromAxisAngle(new THREE.Vector3(1, 0, 0), gammaRad); // X-axis rotation
-      rollQuat.setFromAxisAngle(new THREE.Vector3(0, 0, 1), betaRad);   // Z-axis rotation
+      // Phone rotated 90° CCW - rotate view 90° CW around Z to compensate
+      screenRotation.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI / 2);
     } else {
-      // Landscape right (270°): phone rotated CW
-      yawQuat.setFromAxisAngle(new THREE.Vector3(0, 1, 0), alphaRad);
-      pitchQuat.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -gammaRad);
-      rollQuat.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -betaRad);
+      // Phone rotated 90° CW - rotate view 90° CCW around Z to compensate
+      screenRotation.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
     }
+    quaternion.multiply(screenRotation);
 
-    // Compose: yaw first, then pitch, then roll
-    quaternion.copy(yawQuat);
-    quaternion.multiply(pitchQuat);
-    quaternion.multiply(rollQuat);
+    // Third: apply the standard -90° X rotation (camera looks out back of device)
+    const xRotation = new THREE.Quaternion();
+    xRotation.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+    quaternion.multiply(xRotation);
   } else {
     // Portrait mode - use standard device orientation
     const euler = new THREE.Euler();
