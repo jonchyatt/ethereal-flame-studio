@@ -256,10 +256,10 @@ Plans:
 **Plans:** 8 plans in 4 waves
 
 Plans:
-- [ ] 05-01-PLAN.md — Cloudflare Tunnel setup (secure remote access per machine)
-- [ ] 05-02-PLAN.md — n8n self-hosted deployment (YouTube OAuth)
+- [x] 05-01-PLAN.md — Cloudflare Tunnel setup (secure remote access per machine)
+- [x] 05-02-PLAN.md — n8n self-hosted deployment (YouTube OAuth)
 - [x] 05-03-PLAN.md — Render complete webhook (server to n8n integration)
-- [ ] 05-04-PLAN.md — YouTube upload workflow (auto-publish with Whisper descriptions)
+- [x] 05-04-PLAN.md — YouTube upload workflow (auto-publish with Whisper descriptions)
 - [ ] 05-05-PLAN.md — n8n MCP + Skills setup for Claude Code workflow generation
 - [ ] 05-06-PLAN.md — Web app "Render" button with n8n job submission
 - [ ] 05-07-PLAN.md — Render job status polling and progress display
@@ -343,7 +343,7 @@ Plans:
 | 2 | Template System | Complete | 6 | 6 |
 | 3 | Rendering Pipeline | **Nearly Complete** | 13 | 9/11 done |
 | 4 | Automation + Multi-Machine | **Mostly Complete** | 14 | 9/14 done |
-| 5 | n8n + Claude Code Integration | **Started** | 10 | 1/8 done |
+| 5 | n8n + Claude Code Integration | **Half Complete** | 10 | 4/8 done |
 | 6 | YouTube + Multi-Platform | Planned | 10 | 6 |
 
 **Total:** 57 requirements across 6 phases (70 total requirements including Phase 1-2)
@@ -365,7 +365,7 @@ Phase 3 (Rendering) ✅ (9/11 plans - UI remaining)
 Phase 4 (Automation) ✅ (9/14 plans - multi-machine remaining)
     |
     v
-Phase 5 (n8n + Remote) 🔄 (1/8 plans - webhook done)
+Phase 5 (n8n + Remote) 🔄 (4/8 plans - tunnel, n8n, webhook, YouTube done)
     |
     v
 Phase 6 (YouTube + Multi-Platform)
