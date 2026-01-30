@@ -363,6 +363,42 @@ export function VRPreviewMode({ enabled, onExit }: VRPreviewModeProps) {
 }
 
 /**
+ * Debug overlay showing orientation values on screen
+ */
+function VRDebugOverlay() {
+  const { orientation } = useVRContext();
+  const [screenAngle, setScreenAngle] = useState(getScreenOrientation());
+
+  useEffect(() => {
+    const update = () => setScreenAngle(getScreenOrientation());
+    window.addEventListener('orientationchange', update);
+    window.addEventListener('resize', update);
+    const interval = setInterval(update, 500);
+    return () => {
+      window.removeEventListener('orientationchange', update);
+      window.removeEventListener('resize', update);
+      clearInterval(interval);
+    };
+  }, []);
+
+  const isLandscape = Math.abs(Math.abs(screenAngle) - 90) < 10 || Math.abs(screenAngle - 270) < 10;
+
+  return (
+    <div className="absolute top-2 left-2 bg-black/70 text-white text-xs font-mono p-2 rounded pointer-events-none z-50">
+      <div>Screen: {screenAngle}° {isLandscape ? '(LANDSCAPE)' : '(portrait)'}</div>
+      <div>W×H: {typeof window !== 'undefined' ? `${window.innerWidth}×${window.innerHeight}` : '?'}</div>
+      {orientation && (
+        <>
+          <div>α(yaw): {orientation.alpha.toFixed(0)}°</div>
+          <div>β(pitch): {orientation.beta.toFixed(0)}°</div>
+          <div>γ(roll): {orientation.gamma.toFixed(0)}°</div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
  * VR Mode Overlay (outside Canvas)
  */
 export function VRModeOverlay({
@@ -500,6 +536,11 @@ export function VRModeOverlay({
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white/40 text-sm pointer-events-none">
           Tap to exit
         </div>
+      )}
+
+      {/* Debug overlay - shows orientation values on screen */}
+      {permissionState === 'granted' && (
+        <VRDebugOverlay />
       )}
     </div>
   );
