@@ -4,15 +4,17 @@
  *
  * Phase 4, Plan 04-03
  * Updated Phase 5, Plan 05-03: Added webhook notification
+ * Updated: Integrated actual Puppeteer render pipeline
  */
 
 import { Worker, Job } from 'bullmq';
-import { writeFile } from 'fs/promises';
 import { redisConnection } from './connection';
 import { RenderJobData } from './types';
 import { insertRender } from '../db';
 import { postProcessRender, markRenderFailed, markRenderProcessing } from './postProcessor';
 import { notifyRenderComplete, buildWebhookPayload } from '../services/webhookNotifier';
+import { renderVideo, RenderVideoProgress } from '../render/renderVideo';
+import { OutputFormat } from '../render/FFmpegEncoder';
 
 let worker: Worker<RenderJobData> | null = null;
 
@@ -43,17 +45,42 @@ async function processRenderJob(job: Job<RenderJobData>): Promise<void> {
   try {
     // Mark as processing
     await markRenderProcessing(renderDbId);
-    await job.updateProgress(10);
+    await job.updateProgress(5);
 
-    // TODO: Replace with actual render call from Phase 3
-    // For now, simulate rendering with delay
-    const tempOutputPath = await simulateRender(
-      audioFile.path,
+    // Generate temp output path
+    const tempOutputPath = `${process.env.RENDER_OUTPUT_DIR || '/tmp'}/render_${renderDbId}_${Date.now()}.mp4`;
+
+    // Run the actual render pipeline
+    console.log(`[Worker] Starting render: ${audioFile.originalName} -> ${template} -> ${outputFormat}`);
+    console.log(`[Worker] Audio path: ${audioFile.path}`);
+    console.log(`[Worker] Output path: ${tempOutputPath}`);
+
+    console.log(`[Worker] Calling renderVideo now...`);
+    const renderResult = await renderVideo({
+      audioPath: audioFile.path,
+      outputPath: tempOutputPath,
       template,
-      outputFormat,
-      (progress) => job.updateProgress(10 + progress * 0.8) // 10-90% for render
-    );
+      format: outputFormat as OutputFormat,
+      fps: 30,
+      quality: 'balanced',
+      onProgress: (progress: RenderVideoProgress) => {
+        // Map render progress (0-100) to job progress (5-90)
+        const jobProgress = 5 + (progress.overallProgress * 0.85);
+        console.log(`[Worker] Progress: ${progress.stage} ${progress.overallProgress.toFixed(0)}% -> job ${jobProgress.toFixed(0)}%`);
+        job.updateProgress(Math.round(jobProgress));
+      },
+    });
 
+    console.log(`[Worker] renderVideo returned: success=${renderResult.success}, duration=${renderResult.duration.toFixed(1)}s`);
+    if (renderResult.error) {
+      console.log(`[Worker] renderVideo error: ${renderResult.error}`);
+    }
+
+    if (!renderResult.success) {
+      throw new Error(`Render failed: ${renderResult.error}`);
+    }
+
+    console.log(`[Worker] Render complete in ${renderResult.duration.toFixed(1)}s`);
     await job.updateProgress(90);
 
     // Post-process: rename, update metadata
@@ -95,7 +122,7 @@ async function processRenderJob(job: Job<RenderJobData>): Promise<void> {
       outputFormat,
       driveUrl: result.gdriveUrl,
       template,
-      duration: 0, // TODO: Get actual audio duration
+      duration: renderResult.duration,
       batchId,
     });
     notifyRenderComplete(webhookPayload).catch((err) => {
@@ -131,28 +158,6 @@ async function processRenderJob(job: Job<RenderJobData>): Promise<void> {
   }
 }
 
-/**
- * Temporary simulation - replace with Phase 3 render pipeline.
- * Creates a dummy output file for testing the worker pipeline.
- */
-async function simulateRender(
-  audioPath: string,
-  template: string,
-  format: string,
-  onProgress: (progress: number) => void
-): Promise<string> {
-  const steps = 10;
-  for (let i = 0; i < steps; i++) {
-    await new Promise(r => setTimeout(r, 500)); // 5 seconds total
-    onProgress((i + 1) / steps);
-  }
-
-  // Create a dummy output file for testing
-  const tempPath = `${process.env.RENDER_OUTPUT_DIR || '/tmp'}/render_${Date.now()}.mp4`;
-  await writeFile(tempPath, `Simulated render: ${audioPath} -> ${template} -> ${format}`);
-
-  return tempPath;
-}
 
 /**
  * Start the render worker.

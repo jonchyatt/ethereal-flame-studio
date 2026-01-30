@@ -6,6 +6,7 @@ import * as THREE from "three";
 import type { StarNestPreset } from "@/types";
 import starNestShader from "@/lib/shaders/starnest.frag.glsl";
 import { useAudioStore } from "@/lib/stores/audioStore";
+import { useRenderMode } from "@/hooks/useRenderMode";
 
 // ==========================================
 // STAR NEST PRESETS
@@ -486,6 +487,9 @@ export function StarNestSkybox({
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
+  // Render mode support for headless rendering
+  const renderMode = useRenderMode();
+
   // Use refs to avoid stale closure issues
   const presetRef = useRef(preset);
   // Track accumulated time for smooth audio-modulated rotation
@@ -534,24 +538,29 @@ export function StarNestSkybox({
     if (!materialRef.current) return;
     const currentPreset = presetRef.current;
 
-    // Calculate delta time for smooth incremental updates
-    const currentClockTime = clock.elapsedTime;
-    const deltaTime = currentClockTime - lastClockTimeRef.current;
-    lastClockTimeRef.current = currentClockTime;
+    // In render mode, use fixed time directly
+    if (renderMode.isActive && renderMode.elapsedTime !== null) {
+      materialRef.current.uniforms.uTime.value = renderMode.elapsedTime;
+    } else {
+      // Calculate delta time for smooth incremental updates
+      const currentClockTime = clock.elapsedTime;
+      const deltaTime = currentClockTime - lastClockTimeRef.current;
+      lastClockTimeRef.current = currentClockTime;
 
-    // Get audio state for rotation modulation (VIS-07)
-    const audioState = useAudioStore.getState();
-    const amplitude = audioState.amplitude;
-    const bass = audioState.bass;
+      // Get audio state for rotation modulation (VIS-07)
+      const audioState = useAudioStore.getState();
+      const amplitude = audioState.amplitude;
+      const bass = audioState.bass;
 
-    // Modulate time increment with audio: faster rotation when louder
-    // Audio boosts speed by up to 50% (0.3 amplitude + 0.2 bass contribution)
-    // Using incremental accumulation prevents time from jumping backwards
-    const audioModulation = 1.0 + (amplitude * 0.3 + bass * 0.2);
-    accumulatedTimeRef.current += deltaTime * audioModulation;
+      // Modulate time increment with audio: faster rotation when louder
+      // Audio boosts speed by up to 50% (0.3 amplitude + 0.2 bass contribution)
+      // Using incremental accumulation prevents time from jumping backwards
+      const audioModulation = 1.0 + (amplitude * 0.3 + bass * 0.2);
+      accumulatedTimeRef.current += deltaTime * audioModulation;
 
-    // Update time with smoothly accumulated value (never jumps backward)
-    materialRef.current.uniforms.uTime.value = accumulatedTimeRef.current;
+      // Update time with smoothly accumulated value (never jumps backward)
+      materialRef.current.uniforms.uTime.value = accumulatedTimeRef.current;
+    }
 
     // Update ALL preset uniforms every frame (ensures preset switching works)
     materialRef.current.uniforms.uIterations.value = currentPreset.iterations;

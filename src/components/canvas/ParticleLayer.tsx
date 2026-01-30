@@ -4,6 +4,7 @@ import { useRef, useMemo } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
 import * as THREE from 'three';
 import { ParticleLayerConfig } from '@/types';
+import { useRenderMode } from '@/hooks/useRenderMode';
 
 interface ParticleLayerProps {
   config: ParticleLayerConfig;
@@ -33,6 +34,9 @@ export function ParticleLayer({
 }: ParticleLayerProps) {
   const pointsRef = useRef<THREE.Points>(null);
   const geometryRef = useRef<THREE.BufferGeometry>(null);
+
+  // Render mode support for headless rendering
+  const renderMode = useRenderMode();
 
   // Load soft particle texture from Unity
   const particleTexture = useLoader(THREE.TextureLoader, '/textures/circle_particle.png');
@@ -232,15 +236,28 @@ export function ParticleLayer({
   useFrame(({ clock }) => {
     if (!geometryRef.current) return;
 
-    const time = clock.getElapsedTime();
+    // Use render mode time if active, otherwise use real clock
+    const time = renderMode.isActive && renderMode.elapsedTime !== null
+      ? renderMode.elapsedTime
+      : clock.getElapsedTime();
+
     const birthTimes = birthTimesRef.current;
     const lifetimes = lifetimesRef.current;
     const velocities = velocitiesRef.current;
     const birthPositions = birthPositionsRef.current;
     const baseSizes = baseSizesRef.current;
 
-    // Get audio levels from ref
-    const audioLevels = audioLevelsRef.current;
+    // Get audio levels - use render mode audio if active, otherwise use real-time ref
+    const audioLevels = renderMode.isActive && renderMode.audioData
+      ? {
+          bass: renderMode.audioData.bass,
+          mids: renderMode.audioData.mid,
+          treble: renderMode.audioData.high,
+          amplitude: renderMode.audioData.amplitude,
+          isBeat: renderMode.audioData.isBeat,
+          currentScale: 1.0,
+        }
+      : audioLevelsRef.current;
 
     // Determine which frequency band affects this layer (VIS-08, VIS-09)
     let bandAmplitude = audioLevels.amplitude; // Default: all frequencies

@@ -200,23 +200,36 @@ const AUDIO_SETTINGS = {
 };
 
 /**
- * Check if NVIDIA NVENC is available
+ * Check if NVIDIA NVENC is available by actually testing the encoder
+ * This is more reliable than just checking if ffmpeg was compiled with nvenc
  */
 export async function checkNvencAvailable(): Promise<boolean> {
   return new Promise((resolve) => {
-    const process = spawn('ffmpeg', ['-encoders'], {
+    // Try to actually initialize the encoder - this will fail if no NVIDIA GPU
+    const testProcess = spawn('ffmpeg', [
+      '-f', 'lavfi',
+      '-i', 'testsrc=duration=0.1:size=64x64:rate=1',
+      '-c:v', 'h264_nvenc',
+      '-f', 'null',
+      '-'
+    ], {
       stdio: ['pipe', 'pipe', 'pipe'],
-      shell: true,
     });
 
-    let output = '';
-    process.stdout?.on('data', (data) => {
-      output += data.toString();
+    let stderr = '';
+    testProcess.stderr?.on('data', (data) => {
+      stderr += data.toString();
     });
 
-    process.on('error', () => resolve(false));
-    process.on('close', () => {
-      resolve(output.includes('h264_nvenc') || output.includes('hevc_nvenc'));
+    testProcess.on('error', () => resolve(false));
+    testProcess.on('close', (code) => {
+      // Code 0 means encoding succeeded, NVENC is available
+      // Any error code means NVENC initialization failed
+      const hasNvencError = stderr.includes('Cannot load') ||
+                           stderr.includes('No NVENC capable devices') ||
+                           stderr.includes('No capable devices') ||
+                           code !== 0;
+      resolve(!hasNvencError && code === 0);
     });
   });
 }
@@ -228,7 +241,6 @@ export async function checkFFmpegAvailable(): Promise<{ available: boolean; vers
   return new Promise((resolve) => {
     const process = spawn('ffmpeg', ['-version'], {
       stdio: ['pipe', 'pipe', 'pipe'],
-      shell: true,
     });
 
     let output = '';
@@ -495,9 +507,10 @@ export class FFmpegEncoder extends EventEmitter {
       console.log('[FFmpegEncoder] Command:', 'ffmpeg', args.join(' '));
 
       // Spawn FFmpeg process
+      // Note: shell: false is more reliable on Windows with paths
       this.process = spawn('ffmpeg', args, {
         stdio: ['pipe', 'pipe', 'pipe'],
-        shell: true,
+        shell: false,
       });
 
       let stderrBuffer = '';

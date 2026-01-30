@@ -7,7 +7,7 @@
 import { addBatchJob, getJobStatus, getBatchStatus, closeQueue } from '../src/lib/queue/bullmqQueue';
 import { startWorker, stopWorker } from '../src/lib/queue/renderWorker';
 
-const TEST_AUDIO_PATH = 'C:/Users/jonch/Projects/ethereal-flame-studio/audio/Short and clean (1).mp3';
+const TEST_AUDIO_PATH = 'C:/Users/jonch/Projects/ethereal-flame-studio/audio/test_1sec.wav';
 
 async function testPipeline() {
   console.log('=== Ethereal Flame Studio - Pipeline Test ===\n');
@@ -20,8 +20,6 @@ async function testPipeline() {
         id: 'test-audio-1',
         originalName: 'Short and clean (1).mp3',
         path: TEST_AUDIO_PATH,
-        mimeType: 'audio/mpeg',
-        size: 2229245,
       },
     ],
     'flame', // template
@@ -42,7 +40,7 @@ async function testPipeline() {
   let lastState = '';
   let lastProgress = -1;
   const startTime = Date.now();
-  const timeout = 5 * 60 * 1000; // 5 minute timeout
+  const timeout = 15 * 60 * 1000; // 15 minute timeout (software rendering is slow)
 
   while (true) {
     const status = await getJobStatus(jobId);
