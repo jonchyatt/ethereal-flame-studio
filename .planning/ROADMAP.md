@@ -119,17 +119,17 @@ Plans:
 **Plans:** 11 plans in 7 waves
 
 Plans:
-- [ ] 03-01-PLAN.md — Pre-analysis for offline rendering (amplitude-per-frame)
-- [ ] 03-02-PLAN.md — Frame capture system (WebGLRenderTarget + async readPixels)
-- [ ] 03-03-PLAN.md — Flat export pipeline (1080p/4K, 16:9/9:16)
-- [ ] 03-04-PLAN.md — 360 monoscopic pipeline (CubeCamera + equirectangular)
-- [ ] 03-05-PLAN.md — 360 stereoscopic pipeline (dual CubeCamera + stack)
-- [ ] 03-06-PLAN.md — FFmpeg integration + VR metadata injection
-- [ ] 03-07-PLAN.md — Headless rendering mode (Puppeteer + real GPU)
-- [ ] 03-08-PLAN.md — Render queue with persistence (IndexedDB/SQLite)
-- [ ] 03-09-PLAN.md — YouTube-optimized encoding presets (codec, bitrate, HDR)
-- [ ] 03-10-PLAN.md — Platform-specific output formats (Shorts, Reels, TikTok)
-- [ ] 03-11-PLAN.md — Render settings UI (format selector, quality options)
+- [x] 03-01-PLAN.md — Pre-analysis for offline rendering (amplitude-per-frame)
+- [x] 03-02-PLAN.md — Frame capture system (WebGLRenderTarget + async readPixels)
+- [x] 03-03-PLAN.md — Flat export pipeline (1080p/4K, 16:9/9:16)
+- [x] 03-04-PLAN.md — 360 monoscopic pipeline (CubeCamera + equirectangular)
+- [x] 03-05-PLAN.md — 360 stereoscopic pipeline (dual CubeCamera + stack)
+- [x] 03-06-PLAN.md — FFmpeg integration + VR metadata injection
+- [x] 03-07-PLAN.md — Headless rendering mode (Puppeteer + real GPU)
+- [x] 03-08-PLAN.md — Render queue with persistence (BullMQ + Redis)
+- [x] 03-09-PLAN.md — YouTube-optimized encoding presets (codec, bitrate, HDR)
+- [ ] 03-10-PLAN.md — Platform-specific output formats (Shorts, Reels, TikTok) — UI integration pending
+- [ ] 03-11-PLAN.md — Render settings UI (format selector, quality options) — needs verification
 
 **Wave Structure:**
 - Wave 1: 03-01 (pre-analysis)
@@ -164,6 +164,16 @@ Plans:
 6. YouTube accepts rendered video without re-encoding warnings
 7. User can select "YouTube Shorts" and get properly formatted vertical video
 
+**Status:** NEARLY COMPLETE (9/11 plans done, UI integration remaining)
+
+**Implementation Notes (verified 2026-01-30):**
+- `src/lib/render/` contains full pipeline: FrameCapture, FFmpegEncoder, PuppeteerRenderer
+- 360 pipeline: CubemapCapture → EquirectangularConverter → StereoStacker
+- VR metadata: SpatialMetadataInjector (Python spatial-media wrapper)
+- Queue: BullMQ + Redis in renderWorker.ts
+- API: /api/render routes for job submission
+- Deterministic rendering: SceneStepper with seeded RNG and checkpoints
+
 ---
 
 ### Phase 4: Automation + Multi-Machine Render Farm
@@ -175,15 +185,15 @@ Plans:
 **Plans:** 14 plans in 6 waves
 
 Plans:
-- [ ] 04-01-PLAN.md — SQLite metadata database and file naming conventions
-- [ ] 04-02-PLAN.md — BullMQ batch queue infrastructure
-- [ ] 04-03-PLAN.md — Render worker with post-processing
-- [ ] 04-04-PLAN.md — Whisper transcription microservice (faster-whisper)
-- [ ] 04-05-PLAN.md — Transcription queue integration
-- [ ] 04-06-PLAN.md — Google Drive sync via rclone
-- [ ] 04-07-PLAN.md — Push notifications via ntfy/email
-- [ ] 04-08-PLAN.md — Google Sheets metadata export
-- [ ] 04-09-PLAN.md — Batch upload web UI
+- [x] 04-01-PLAN.md — SQLite metadata database and file naming conventions
+- [x] 04-02-PLAN.md — BullMQ batch queue infrastructure
+- [x] 04-03-PLAN.md — Render worker with post-processing
+- [x] 04-04-PLAN.md — Whisper transcription microservice (faster-whisper)
+- [x] 04-05-PLAN.md — Transcription queue integration
+- [x] 04-06-PLAN.md — Google Drive sync via rclone
+- [x] 04-07-PLAN.md — Push notifications via ntfy/email
+- [x] 04-08-PLAN.md — Google Sheets metadata export
+- [x] 04-09-PLAN.md — Batch upload web UI
 - [ ] 04-10-PLAN.md — Multi-machine render farm configuration
 - [ ] 04-11-PLAN.md — Machine registry and health monitoring
 - [ ] 04-12-PLAN.md — Video metadata templates (titles, descriptions, tags)
@@ -223,6 +233,18 @@ Plans:
 6. Render job goes to correct machine based on selection
 7. If selected machine is offline, user sees error before submitting
 
+**Status:** MOSTLY COMPLETE (9/14 plans done, multi-machine remaining)
+
+**Implementation Notes (verified 2026-01-30):**
+- `src/lib/db/schema.ts` - SQLite schema with renders table
+- `src/lib/queue/` - BullMQ queue, renderWorker, transcriptionWorker
+- `src/lib/services/whisperClient.ts` - Whisper transcription client
+- `src/lib/services/googleDrive.ts` - rclone-based Google Drive sync
+- `src/lib/services/googleSheets.ts` - Google Sheets export
+- `src/lib/services/notifications.ts` - Push notifications
+- `src/app/batch/page.tsx` - Batch upload UI
+- Multi-machine render farm (04-10 through 04-14) still needs implementation
+
 ---
 
 ### Phase 5: n8n Integration + Claude Code Workflow Generation
@@ -236,7 +258,7 @@ Plans:
 Plans:
 - [ ] 05-01-PLAN.md — Cloudflare Tunnel setup (secure remote access per machine)
 - [ ] 05-02-PLAN.md — n8n self-hosted deployment (YouTube OAuth)
-- [ ] 05-03-PLAN.md — Render complete webhook (server to n8n integration)
+- [x] 05-03-PLAN.md — Render complete webhook (server to n8n integration)
 - [ ] 05-04-PLAN.md — YouTube upload workflow (auto-publish with Whisper descriptions)
 - [ ] 05-05-PLAN.md — n8n MCP + Skills setup for Claude Code workflow generation
 - [ ] 05-06-PLAN.md — Web app "Render" button with n8n job submission
@@ -319,9 +341,9 @@ Plans:
 |-------|------|--------|--------------|-------|
 | 1 | Foundation - Web UI + Visual Engine | Complete | 17 | 8 |
 | 2 | Template System | Complete | 6 | 6 |
-| 3 | Rendering Pipeline | Planned | 13 | 11 |
-| 4 | Automation + Multi-Machine | Planned | 14 | 14 |
-| 5 | n8n + Claude Code Integration | Planned | 10 | 8 |
+| 3 | Rendering Pipeline | **Nearly Complete** | 13 | 9/11 done |
+| 4 | Automation + Multi-Machine | **Mostly Complete** | 14 | 9/14 done |
+| 5 | n8n + Claude Code Integration | **Started** | 10 | 1/8 done |
 | 6 | YouTube + Multi-Platform | Planned | 10 | 6 |
 
 **Total:** 57 requirements across 6 phases (70 total requirements including Phase 1-2)
@@ -337,16 +359,16 @@ Phase 1 (Foundation) ✅
 Phase 2 (Templates) ✅
     |
     v
-Phase 3 (Rendering) ← YouTube optimization + platform formats
+Phase 3 (Rendering) ✅ (9/11 plans - UI remaining)
     |
     v
-Phase 4 (Automation) ← Multi-machine render farm
+Phase 4 (Automation) ✅ (9/14 plans - multi-machine remaining)
     |
     v
-Phase 5 (n8n + Remote) ← Claude Code workflow generation
+Phase 5 (n8n + Remote) 🔄 (1/8 plans - webhook done)
     |
     v
-Phase 6 (YouTube + Multi-Platform) ← NEW PHASE
+Phase 6 (YouTube + Multi-Platform)
 ```
 
 ---
@@ -355,7 +377,7 @@ Phase 6 (YouTube + Multi-Platform) ← NEW PHASE
 
 | Phase | Flag | Notes |
 |-------|------|-------|
-| Phase 3 | NEEDS UPDATE | Add YouTube encoding specs, platform formats |
+| Phase 3 | UI INTEGRATION | Platform format UI and render settings UI remaining |
 | Phase 4 | NEEDS RESEARCH | Multi-machine render farm architecture |
 | Phase 5 | NEEDS RESEARCH | n8n MCP + Skills integration for Claude Code |
 | Phase 6 | NEEDS RESEARCH | Thumbnail generation, SEO, multi-platform APIs |
@@ -385,4 +407,4 @@ Phase 6 (YouTube + Multi-Platform) ← NEW PHASE
 
 ---
 
-*Last updated: 2026-01-28*
+*Last updated: 2026-01-30 (Phase 3 verified as nearly complete)*
