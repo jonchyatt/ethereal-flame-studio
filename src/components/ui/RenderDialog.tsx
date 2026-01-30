@@ -158,7 +158,7 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
 
     try {
       // Build audio input - convert file to base64 if needed
-      let audioInput: { type: string; path?: string; data?: string; filename?: string };
+      let audioInput: { type: string; path?: string; data?: string; filename?: string; mimeType?: string };
 
       if (audioPath) {
         audioInput = { type: 'path', path: audioPath };
