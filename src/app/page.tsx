@@ -7,6 +7,7 @@ import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { ParticleSystem } from '@/components/canvas/ParticleSystem';
 import { StarNestSkybox } from '@/components/canvas/StarNestSkybox';
 import { WaterPlane } from '@/components/canvas/WaterPlane';
+import { VRPreviewMode, VRModeOverlay, useVRMode } from '@/components/canvas/VRPreviewMode';
 import { ScreenshotCapture, ScreenshotCaptureRef } from '@/components/ui/ScreenshotCapture';
 import { ControlPanel } from '@/components/ui/ControlPanel';
 import { useVisualStore } from '@/lib/stores/visualStore';
@@ -18,6 +19,9 @@ export default function Home() {
   const waterEnabled = useVisualStore((state) => state.waterEnabled);
   const waterColor = useVisualStore((state) => state.waterColor);
   const waterReflectivity = useVisualStore((state) => state.waterReflectivity);
+
+  // VR Preview Mode
+  const { isVRMode, showInstructions, enterVRMode, exitVRMode, dismissInstructions } = useVRMode();
 
   return (
     <main style={{ width: '100vw', height: '100vh', margin: 0, padding: 0, position: 'relative' }}>
@@ -44,7 +48,11 @@ export default function Home() {
           </Suspense>
         )}
 
-        <OrbitControls />
+        {/* VR Preview Mode - handles stereoscopic rendering and gyro camera */}
+        <VRPreviewMode enabled={isVRMode} onExit={exitVRMode} />
+
+        {/* OrbitControls disabled in VR mode */}
+        {!isVRMode && <OrbitControls />}
         <Suspense fallback={null}>
           <ParticleSystem />
 {/* Bloom disabled - was washing out skybox
@@ -61,7 +69,16 @@ export default function Home() {
       </Canvas>
 
       {/* Control panel fixed at bottom - includes mode selector, preset selector, and audio controls */}
-      <ControlPanel screenshotRef={screenshotRef} />
+      {/* Hidden in VR mode */}
+      {!isVRMode && <ControlPanel screenshotRef={screenshotRef} onEnterVRMode={enterVRMode} />}
+
+      {/* VR Mode Overlay - handles permission requests and instructions */}
+      <VRModeOverlay
+        enabled={isVRMode}
+        onExit={exitVRMode}
+        showInstructions={showInstructions}
+        onDismissInstructions={dismissInstructions}
+      />
     </main>
   );
 }

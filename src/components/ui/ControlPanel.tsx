@@ -10,6 +10,7 @@
  * - Composes ModeSelector, PresetSelector, AudioControls
  * - Debug overlay toggle for development
  * - Responsive layout (stacks on narrow screens)
+ * - VR Preview mode toggle for mobile stereoscopic view
  */
 
 import { useState } from 'react';
@@ -24,9 +25,10 @@ import { useVisualStore } from '@/lib/stores/visualStore';
 
 interface ControlPanelProps {
   screenshotRef?: React.RefObject<ScreenshotCaptureRef | null>;
+  onEnterVRMode?: () => void;
 }
 
-export function ControlPanel({ screenshotRef }: ControlPanelProps) {
+export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [showDebug, setShowDebug] = useState(true);
   const [showTemplates, setShowTemplates] = useState(false);
@@ -207,6 +209,50 @@ export function ControlPanel({ screenshotRef }: ControlPanelProps) {
                     </div>
                   )}
                 </div>
+
+                {/* VR Preview Mode Button */}
+                {onEnterVRMode && (
+                  <div className="border-t border-white/10 pt-4">
+                    <button
+                      onClick={onEnterVRMode}
+                      className="
+                        w-full px-4 py-3
+                        bg-gradient-to-r from-purple-600/50 to-blue-600/50
+                        hover:from-purple-500/60 hover:to-blue-500/60
+                        border border-purple-400/30
+                        rounded-lg
+                        text-white font-medium
+                        transition-all
+                        flex items-center justify-center gap-2
+                        min-h-[48px]
+                      "
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                      VR Preview Mode
+                    </button>
+                    <p className="text-white/40 text-xs mt-2 text-center">
+                      Use with phone + VR headset (gyroscope required)
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
