@@ -15,8 +15,13 @@ import { useRef, useEffect, useState } from 'react';
 import { audioAnalyzer } from '@/lib/audio/AudioAnalyzer';
 import { useAudioStore } from '@/lib/stores/audioStore';
 
-// Demo track URL (bundled in public folder)
-const DEMO_AUDIO_URL = '/audio/demo.wav';
+// Demo tracks bundled in public folder
+const DEMO_TRACKS = [
+  { name: 'Test (1 sec)', url: '/audio/demo.wav' },
+  { name: 'Sir Anthony', url: '/audio/SirAnthony.mp3' },
+  { name: 'Phonk Shia', url: '/audio/PhonkShia.mp3' },
+  { name: 'Short & Clean', url: '/audio/ShortClean.mp3' },
+];
 
 export function AudioControls() {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -28,6 +33,7 @@ export function AudioControls() {
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [urlInput, setUrlInput] = useState('');
   const [isLoadingUrl, setIsLoadingUrl] = useState(false);
+  const [showDemoDropdown, setShowDemoDropdown] = useState(false);
 
   const {
     isPlaying,
@@ -115,8 +121,9 @@ export function AudioControls() {
   };
 
   // Load demo track
-  const handleLoadDemo = async () => {
-    await loadAudioFromUrl(DEMO_AUDIO_URL, 'Demo Track (1 second test)');
+  const handleLoadDemo = async (track: typeof DEMO_TRACKS[0]) => {
+    setShowDemoDropdown(false);
+    await loadAudioFromUrl(track.url, track.name);
   };
 
   // Handle URL input submit
@@ -240,14 +247,32 @@ export function AudioControls() {
               Upload
             </label>
 
-            {/* Load Demo Button */}
-            <button
-              onClick={handleLoadDemo}
-              disabled={isLoadingUrl}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white rounded-lg transition-colors text-sm"
-            >
-              Demo
-            </button>
+            {/* Demo Tracks Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowDemoDropdown(!showDemoDropdown)}
+                disabled={isLoadingUrl}
+                className={`px-4 py-2 ${showDemoDropdown ? 'bg-purple-700' : 'bg-purple-600 hover:bg-purple-700'} disabled:bg-gray-600 text-white rounded-lg transition-colors text-sm flex items-center gap-1`}
+              >
+                Demo
+                <svg className={`w-3 h-3 transition-transform ${showDemoDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {showDemoDropdown && (
+                <div className="absolute bottom-full left-0 mb-1 bg-gray-800 border border-white/20 rounded-lg shadow-lg overflow-hidden min-w-[150px]">
+                  {DEMO_TRACKS.map((track) => (
+                    <button
+                      key={track.url}
+                      onClick={() => handleLoadDemo(track)}
+                      className="w-full px-3 py-2 text-left text-sm text-white hover:bg-purple-600 transition-colors"
+                    >
+                      {track.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Load from URL Button */}
             <button
