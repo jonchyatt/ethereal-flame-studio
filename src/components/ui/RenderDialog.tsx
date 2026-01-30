@@ -45,21 +45,21 @@ interface JobStatus {
 // CONSTANTS
 // =============================================================================
 
+// Format values must match schema in src/lib/render/schema/types.ts
 const OUTPUT_FORMATS: OutputFormatOption[] = [
   // Flat formats
-  { value: 'flat-1080p', label: '1080p Landscape', resolution: '1920x1080', category: 'flat' },
-  { value: 'flat-1080p-vertical', label: '1080p Portrait', resolution: '1080x1920', category: 'flat', description: 'YouTube Shorts, TikTok, Reels' },
-  { value: 'flat-4k', label: '4K Landscape', resolution: '3840x2160', category: 'flat' },
-  { value: 'flat-4k-vertical', label: '4K Portrait', resolution: '2160x3840', category: 'flat' },
+  { value: 'flat-1080p-landscape', label: '1080p Landscape', resolution: '1920x1080', category: 'flat' },
+  { value: 'flat-1080p-portrait', label: '1080p Portrait', resolution: '1080x1920', category: 'flat', description: 'YouTube Shorts, TikTok, Reels' },
+  { value: 'flat-4k-landscape', label: '4K Landscape', resolution: '3840x2160', category: 'flat' },
+  { value: 'flat-4k-portrait', label: '4K Portrait', resolution: '2160x3840', category: 'flat' },
 
   // 360 Mono formats
-  { value: '360-mono-4k', label: '360 Mono 4K', resolution: '3840x2160', category: '360-mono', description: 'YouTube VR' },
+  { value: '360-mono-4k', label: '360 Mono 4K', resolution: '4096x2048', category: '360-mono', description: 'YouTube VR' },
   { value: '360-mono-6k', label: '360 Mono 6K', resolution: '6144x3072', category: '360-mono' },
-  { value: '360-mono-8k', label: '360 Mono 8K', resolution: '7680x3840', category: '360-mono', description: 'Best quality VR' },
+  { value: '360-mono-8k', label: '360 Mono 8K', resolution: '8192x4096', category: '360-mono', description: 'Best quality VR' },
 
-  // 360 Stereo formats
-  { value: '360-stereo-4k', label: '360 Stereo 4K', resolution: '3840x3840', category: '360-stereo', description: 'YouTube VR 3D' },
-  { value: '360-stereo-8k', label: '360 Stereo 8K', resolution: '7680x7680', category: '360-stereo', description: 'Best VR 3D quality' },
+  // 360 Stereo formats (only 8K available)
+  { value: '360-stereo-8k', label: '360 Stereo 8K', resolution: '8192x8192', category: '360-stereo', description: 'YouTube VR 3D' },
 ];
 
 const CATEGORY_LABELS: Record<OutputCategory, string> = {
@@ -82,7 +82,7 @@ interface RenderDialogProps {
 
 export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template = 'flame' }: RenderDialogProps) {
   // State
-  const [selectedFormat, setSelectedFormat] = useState<string>('flat-1080p');
+  const [selectedFormat, setSelectedFormat] = useState<string>('flat-1080p-landscape');
   const [selectedFps, setSelectedFps] = useState<30 | 60>(30);
   const [enableTranscription, setEnableTranscription] = useState(true);
   const [enableGoogleDrive, setEnableGoogleDrive] = useState(true);
@@ -164,7 +164,9 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
         audioInput = { type: 'path', path: audioPath };
       } else if (audioFile) {
         const base64Data = await fileToBase64(audioFile);
-        audioInput = { type: 'base64', data: base64Data, filename: audioFile.name };
+        // mimeType is required by the API schema
+        const mimeType = audioFile.type || 'audio/mpeg';
+        audioInput = { type: 'base64', data: base64Data, filename: audioFile.name, mimeType };
       } else {
         throw new Error('No audio source');
       }
