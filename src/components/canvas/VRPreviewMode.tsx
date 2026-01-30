@@ -9,39 +9,43 @@
  * - iOS 13+ permission request handling
  * - 64mm IPD (interpupillary distance) for proper 3D depth
  * - Tap to exit VR mode
- * - First-use instruction overlay
+ * - Audio preservation across orientation changes
  */
 
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, createContext, useContext } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-
-interface VRPreviewModeProps {
-  enabled: boolean;
-  onExit: () => void;
-}
 
 // IPD (Interpupillary Distance) in meters - standard is 64mm
 const IPD = 0.064;
 
-/**
- * Hook to handle device orientation (gyroscope) for camera rotation
- * Handles iOS 13+ permission request flow
- */
-function useDeviceOrientation() {
-  const [orientation, setOrientation] = useState<{
-    alpha: number;
-    beta: number;
-    gamma: number;
-  } | null>(null);
-  const [permissionState, setPermissionState] = useState<'unknown' | 'granted' | 'denied' | 'not-supported'>('unknown');
+// Shared permission state context
+type PermissionState = 'unknown' | 'requesting' | 'granted' | 'denied' | 'not-supported';
 
-  const requestPermission = useCallback(async () => {
+interface VRContextValue {
+  permissionState: PermissionState;
+  orientation: { alpha: number; beta: number; gamma: number } | null;
+  requestPermission: () => Promise<boolean>;
+}
+
+const VRContext = createContext<VRContextValue | null>(null);
+
+/**
+ * VR Context Provider - manages shared gyroscope state
+ */
+export function VRContextProvider({ children }: { children: React.ReactNode }) {
+  const [permissionState, setPermissionState] = useState<PermissionState>('unknown');
+  const [orientation, setOrientation] = useState<{ alpha: number; beta: number; gamma: number } | null>(null);
+  const orientationListenerRef = useRef<((e: DeviceOrientationEvent) => void) | null>(null);
+
+  const requestPermission = useCallback(async (): Promise<boolean> => {
     // Check if DeviceOrientationEvent is available
     if (typeof DeviceOrientationEvent === 'undefined') {
       setPermissionState('not-supported');
       return false;
     }
+
+    setPermissionState('requesting');
 
     // iOS 13+ requires explicit permission request
     if (typeof (DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }).requestPermission === 'function') {
@@ -60,35 +64,58 @@ function useDeviceOrientation() {
         return false;
       }
     } else {
-      // Non-iOS or older iOS - permission not required
+      // Non-iOS or older iOS - permission not required, test if it works
       setPermissionState('granted');
       return true;
     }
   }, []);
 
+  // Set up orientation listener when permission is granted
   useEffect(() => {
     if (permissionState !== 'granted') return;
 
     const handleOrientation = (event: DeviceOrientationEvent) => {
       if (event.alpha !== null && event.beta !== null && event.gamma !== null) {
         setOrientation({
-          alpha: event.alpha, // Z-axis rotation (compass direction)
-          beta: event.beta,   // X-axis rotation (front-back tilt)
-          gamma: event.gamma, // Y-axis rotation (left-right tilt)
+          alpha: event.alpha,
+          beta: event.beta,
+          gamma: event.gamma,
         });
       }
     };
 
+    orientationListenerRef.current = handleOrientation;
     window.addEventListener('deviceorientation', handleOrientation);
-    return () => window.removeEventListener('deviceorientation', handleOrientation);
+
+    return () => {
+      if (orientationListenerRef.current) {
+        window.removeEventListener('deviceorientation', orientationListenerRef.current);
+      }
+    };
   }, [permissionState]);
 
-  return { orientation, permissionState, requestPermission };
+  return (
+    <VRContext.Provider value={{ permissionState, orientation, requestPermission }}>
+      {children}
+    </VRContext.Provider>
+  );
+}
+
+function useVRContext() {
+  const context = useContext(VRContext);
+  if (!context) {
+    // Return default values if not in provider (standalone usage)
+    return {
+      permissionState: 'unknown' as PermissionState,
+      orientation: null,
+      requestPermission: async () => false,
+    };
+  }
+  return context;
 }
 
 /**
  * Converts device orientation angles to a Three.js quaternion
- * Based on the screen orientation and device tilt
  */
 function getQuaternionFromOrientation(
   alpha: number,
@@ -96,19 +123,12 @@ function getQuaternionFromOrientation(
   gamma: number,
   screenOrientation: number
 ): THREE.Quaternion {
-  // Convert degrees to radians
   const alphaRad = THREE.MathUtils.degToRad(alpha);
   const betaRad = THREE.MathUtils.degToRad(beta);
   const gammaRad = THREE.MathUtils.degToRad(gamma);
   const screenOrientationRad = THREE.MathUtils.degToRad(screenOrientation);
 
-  // Create Euler angles
   const euler = new THREE.Euler();
-
-  // ZXY order for device orientation
-  // Alpha: around Z (yaw/compass)
-  // Beta: around X (pitch/tilt forward-back)
-  // Gamma: around Y (roll/tilt left-right)
   euler.set(betaRad, alphaRad, -gammaRad, 'YXZ');
 
   const quaternion = new THREE.Quaternion();
@@ -119,8 +139,7 @@ function getQuaternionFromOrientation(
   screenQuaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -screenOrientationRad);
   quaternion.multiply(screenQuaternion);
 
-  // Initial rotation to align with Three.js coordinate system
-  // Device "forward" should look into the scene
+  // Align with Three.js coordinate system
   const worldQuaternion = new THREE.Quaternion();
   worldQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
   quaternion.multiply(worldQuaternion);
@@ -129,14 +148,9 @@ function getQuaternionFromOrientation(
 }
 
 /**
- * VR Camera Controller Component
- * Handles gyroscope-based camera rotation inside the Canvas
+ * VR Camera Controller - uses gyroscope for camera rotation
  */
-function VRCameraController({
-  orientation,
-}: {
-  orientation: { alpha: number; beta: number; gamma: number } | null;
-}) {
+function VRCameraController({ orientation }: { orientation: { alpha: number; beta: number; gamma: number } | null }) {
   const { camera } = useThree();
   const screenOrientationRef = useRef(0);
 
@@ -167,8 +181,7 @@ function VRCameraController({
 }
 
 /**
- * Stereoscopic Render Manager
- * Renders the scene twice with offset cameras for left/right eye views
+ * Stereoscopic Renderer - renders left/right eye views
  */
 function StereoRenderer({ enabled }: { enabled: boolean }) {
   const { gl, scene, camera } = useThree();
@@ -181,15 +194,12 @@ function StereoRenderer({ enabled }: { enabled: boolean }) {
     }
     return () => {
       stereoCamera.current = null;
+      // Reset viewport when unmounting
+      if (!enabled) {
+        gl.setViewport(0, 0, gl.domElement.width, gl.domElement.height);
+        gl.setScissorTest(false);
+      }
     };
-  }, [enabled]);
-
-  useEffect(() => {
-    if (!enabled) {
-      // Reset viewport when VR mode is disabled
-      gl.setViewport(0, 0, gl.domElement.width, gl.domElement.height);
-      gl.setScissorTest(false);
-    }
   }, [enabled, gl]);
 
   useFrame(() => {
@@ -198,40 +208,41 @@ function StereoRenderer({ enabled }: { enabled: boolean }) {
     const size = gl.getSize(new THREE.Vector2());
     const halfWidth = size.x / 2;
 
-    // Update stereo camera from main camera
     stereoCamera.current.update(camera as THREE.PerspectiveCamera);
 
-    // Enable scissor test for split rendering
     gl.setScissorTest(true);
     gl.autoClear = false;
     gl.clear();
 
-    // Left eye (left half of screen)
+    // Left eye
     gl.setViewport(0, 0, halfWidth, size.y);
     gl.setScissor(0, 0, halfWidth, size.y);
     gl.render(scene, stereoCamera.current.cameraL);
 
-    // Right eye (right half of screen)
+    // Right eye
     gl.setViewport(halfWidth, 0, halfWidth, size.y);
     gl.setScissor(halfWidth, 0, halfWidth, size.y);
     gl.render(scene, stereoCamera.current.cameraR);
 
-    // Reset for next frame
     gl.setScissorTest(false);
     gl.autoClear = true;
-  }, 1); // Priority 1 to run after other useFrame hooks
+  }, 1);
 
   return null;
 }
 
+interface VRPreviewModeProps {
+  enabled: boolean;
+  onExit: () => void;
+}
+
 /**
- * Main VR Preview Mode Component
- * Renders inside the Canvas
+ * Main VR Preview Mode Component (inside Canvas)
  */
 export function VRPreviewMode({ enabled, onExit }: VRPreviewModeProps) {
-  const { orientation, permissionState, requestPermission } = useDeviceOrientation();
+  const { orientation, permissionState, requestPermission } = useVRContext();
 
-  // Request permission when VR mode is enabled
+  // Request permission when enabled
   useEffect(() => {
     if (enabled && permissionState === 'unknown') {
       requestPermission();
@@ -242,15 +253,14 @@ export function VRPreviewMode({ enabled, onExit }: VRPreviewModeProps) {
 
   return (
     <>
-      <VRCameraController orientation={orientation} />
-      <StereoRenderer enabled={enabled} />
+      {permissionState === 'granted' && <VRCameraController orientation={orientation} />}
+      <StereoRenderer enabled={enabled && permissionState === 'granted'} />
     </>
   );
 }
 
 /**
- * VR Mode Overlay Component
- * Renders outside the Canvas for UI elements
+ * VR Mode Overlay (outside Canvas)
  */
 export function VRModeOverlay({
   enabled,
@@ -263,80 +273,49 @@ export function VRModeOverlay({
   showInstructions: boolean;
   onDismissInstructions: () => void;
 }) {
-  const [permissionState, setPermissionState] = useState<'unknown' | 'granted' | 'denied' | 'not-supported'>('unknown');
-  const [isRequestingPermission, setIsRequestingPermission] = useState(false);
+  const { permissionState, requestPermission } = useVRContext();
+  const [isRequesting, setIsRequesting] = useState(false);
 
-  const requestGyroPermission = useCallback(async () => {
-    setIsRequestingPermission(true);
+  const handleRequestPermission = useCallback(async () => {
+    setIsRequesting(true);
+    await requestPermission();
+    setIsRequesting(false);
+  }, [requestPermission]);
 
-    // Check if DeviceOrientationEvent is available
-    if (typeof DeviceOrientationEvent === 'undefined') {
-      setPermissionState('not-supported');
-      setIsRequestingPermission(false);
-      return;
-    }
-
-    // iOS 13+ requires explicit permission request
-    if (typeof (DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }).requestPermission === 'function') {
-      try {
-        const permission = await (DeviceOrientationEvent as unknown as { requestPermission: () => Promise<string> }).requestPermission();
-        setPermissionState(permission === 'granted' ? 'granted' : 'denied');
-      } catch {
-        setPermissionState('denied');
-      }
-    } else {
-      // Non-iOS or older iOS - assume granted
-      setPermissionState('granted');
-    }
-
-    setIsRequestingPermission(false);
-  }, []);
-
-  // Auto-request on non-iOS devices when enabled
+  // Auto-request on non-iOS devices
   useEffect(() => {
     if (enabled && permissionState === 'unknown') {
-      // Check if we need to show permission button (iOS) or can auto-request
+      // Check if explicit permission is needed (iOS)
       if (typeof DeviceOrientationEvent !== 'undefined') {
-        const needsExplicitPermission = typeof (DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }).requestPermission === 'function';
-        if (!needsExplicitPermission) {
-          setPermissionState('granted');
+        const needsExplicit = typeof (DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }).requestPermission === 'function';
+        if (!needsExplicit) {
+          requestPermission();
         }
-      } else {
-        setPermissionState('not-supported');
       }
     }
-  }, [enabled, permissionState]);
+  }, [enabled, permissionState, requestPermission]);
 
   if (!enabled) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[100] touch-none"
-      onClick={onExit}
-    >
-      {/* Instruction Overlay (first use) */}
+    <div className="fixed inset-0 z-[100] touch-none" onClick={onExit}>
+      {/* Instructions overlay */}
       {showInstructions && permissionState === 'granted' && (
         <div
           className="absolute inset-0 bg-black/80 flex items-center justify-center"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDismissInstructions();
-          }}
+          onClick={(e) => { e.stopPropagation(); onDismissInstructions(); }}
         >
           <div className="text-center text-white p-8 max-w-md">
             <h2 className="text-2xl font-bold mb-4">VR Preview Mode</h2>
             <div className="space-y-3 text-lg">
-              <p>Hold your phone in landscape orientation</p>
-              <p>Place in a VR headset or cardboard viewer</p>
-              <p>Move your phone to look around</p>
-              <p className="text-white/60 text-base mt-6">Tap anywhere to exit VR mode</p>
+              <p>Hold phone in landscape orientation</p>
+              <p>Place in a VR headset</p>
+              <p>Move phone to look around</p>
+              <p className="text-white/60 text-base mt-6">Tap anywhere to exit</p>
             </div>
             <button
               className="mt-8 px-6 py-3 bg-white/20 rounded-lg text-lg"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDismissInstructions();
-              }}
+              onClick={(e) => { e.stopPropagation(); onDismissInstructions(); }}
             >
               Got it
             </button>
@@ -346,80 +325,56 @@ export function VRModeOverlay({
 
       {/* iOS Permission Request */}
       {permissionState === 'unknown' && (
-        <div
-          className="absolute inset-0 bg-black/90 flex items-center justify-center"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="absolute inset-0 bg-black/90 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
           <div className="text-center text-white p-8 max-w-md">
             <h2 className="text-2xl font-bold mb-4">Enable Motion Sensors</h2>
-            <p className="text-lg mb-6">
-              VR mode needs access to your device's motion sensors to track head movement.
-            </p>
+            <p className="text-lg mb-6">VR mode needs motion sensor access to track head movement.</p>
             <button
               className="px-8 py-4 bg-blue-500 rounded-lg text-xl font-semibold disabled:opacity-50"
-              onClick={requestGyroPermission}
-              disabled={isRequestingPermission}
+              onClick={handleRequestPermission}
+              disabled={isRequesting}
             >
-              {isRequestingPermission ? 'Requesting...' : 'Allow Motion Access'}
+              {isRequesting ? 'Requesting...' : 'Allow Motion Access'}
             </button>
-            <button
-              className="block mx-auto mt-4 text-white/60 underline"
-              onClick={onExit}
-            >
+            <button className="block mx-auto mt-4 text-white/60 underline" onClick={onExit}>
               Cancel
             </button>
           </div>
         </div>
       )}
 
-      {/* Permission Denied Message */}
+      {/* Permission Denied */}
       {permissionState === 'denied' && (
-        <div
-          className="absolute inset-0 bg-black/90 flex items-center justify-center"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="absolute inset-0 bg-black/90 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
           <div className="text-center text-white p-8 max-w-md">
             <h2 className="text-2xl font-bold mb-4">Motion Access Denied</h2>
-            <p className="text-lg mb-6">
-              VR mode requires motion sensor access. Please enable it in your browser settings and try again.
-            </p>
-            <button
-              className="px-6 py-3 bg-white/20 rounded-lg"
-              onClick={onExit}
-            >
+            <p className="text-lg mb-6">Enable motion sensors in browser settings and try again.</p>
+            <button className="px-6 py-3 bg-white/20 rounded-lg" onClick={onExit}>
               Exit VR Mode
             </button>
           </div>
         </div>
       )}
 
-      {/* Not Supported Message */}
+      {/* Not Supported */}
       {permissionState === 'not-supported' && (
-        <div
-          className="absolute inset-0 bg-black/90 flex items-center justify-center"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="absolute inset-0 bg-black/90 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
           <div className="text-center text-white p-8 max-w-md">
             <h2 className="text-2xl font-bold mb-4">VR Not Supported</h2>
-            <p className="text-lg mb-6">
-              Your device doesn't support motion sensors. VR mode requires a mobile device with gyroscope.
-            </p>
-            <button
-              className="px-6 py-3 bg-white/20 rounded-lg"
-              onClick={onExit}
-            >
+            <p className="text-lg mb-6">Your device doesn't have motion sensors. VR mode requires a mobile device with gyroscope.</p>
+            <button className="px-6 py-3 bg-white/20 rounded-lg" onClick={onExit}>
               Exit VR Mode
             </button>
           </div>
         </div>
       )}
 
-      {/* Center divider line for stereoscopic view */}
+      {/* Center divider */}
       {permissionState === 'granted' && !showInstructions && (
-        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-black/50 transform -translate-x-1/2" />
+        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-black/50 transform -translate-x-1/2 pointer-events-none" />
       )}
 
-      {/* Exit hint (always visible in corner) */}
+      {/* Exit hint */}
       {permissionState === 'granted' && !showInstructions && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white/40 text-sm pointer-events-none">
           Tap to exit
@@ -430,58 +385,42 @@ export function VRModeOverlay({
 }
 
 /**
- * Hook to manage VR mode state including fullscreen and screen lock
+ * Hook to manage VR mode state
  */
 export function useVRMode() {
   const [isVRMode, setIsVRMode] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
 
   const enterVRMode = useCallback(async () => {
-    // Request fullscreen
-    try {
-      const elem = document.documentElement;
-      if (elem.requestFullscreen) {
-        await elem.requestFullscreen();
-      } else if ((elem as unknown as { webkitRequestFullscreen?: () => Promise<void> }).webkitRequestFullscreen) {
-        await (elem as unknown as { webkitRequestFullscreen: () => Promise<void> }).webkitRequestFullscreen();
-      }
-    } catch (error) {
-      console.warn('Could not enter fullscreen:', error);
-    }
+    // Don't use fullscreen - it causes issues with audio and orientation
+    // Just set VR mode and let the overlay handle the UI
+    setIsVRMode(true);
 
-    // Try to lock screen orientation to landscape
+    // Try to lock orientation to landscape (won't block if it fails)
     try {
       if (screen.orientation && 'lock' in screen.orientation) {
-        await (screen.orientation as unknown as { lock: (orientation: string) => Promise<void> }).lock('landscape');
+        await (screen.orientation as unknown as { lock: (o: string) => Promise<void> }).lock('landscape');
       }
-    } catch (error) {
-      console.warn('Could not lock screen orientation:', error);
+    } catch {
+      // Orientation lock not supported - that's okay
     }
-
-    setIsVRMode(true);
   }, []);
 
   const exitVRMode = useCallback(() => {
-    // Exit fullscreen
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
-    }
+    setIsVRMode(false);
 
-    // Unlock screen orientation
+    // Unlock orientation
     try {
       if (screen.orientation && 'unlock' in screen.orientation) {
         (screen.orientation as unknown as { unlock: () => void }).unlock();
       }
     } catch {
-      // Ignore errors
+      // Ignore
     }
-
-    setIsVRMode(false);
   }, []);
 
   const dismissInstructions = useCallback(() => {
     setShowInstructions(false);
-    // Store preference in localStorage
     try {
       localStorage.setItem('vr-instructions-seen', 'true');
     } catch {
@@ -489,29 +428,16 @@ export function useVRMode() {
     }
   }, []);
 
-  // Check if instructions have been seen before
+  // Check if instructions have been seen
   useEffect(() => {
     try {
-      const seen = localStorage.getItem('vr-instructions-seen');
-      if (seen === 'true') {
+      if (localStorage.getItem('vr-instructions-seen') === 'true') {
         setShowInstructions(false);
       }
     } catch {
-      // Ignore storage errors
+      // Ignore
     }
   }, []);
-
-  // Handle escape key and fullscreen exit
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      if (!document.fullscreenElement && isVRMode) {
-        exitVRMode();
-      }
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, [isVRMode, exitVRMode]);
 
   return {
     isVRMode,
