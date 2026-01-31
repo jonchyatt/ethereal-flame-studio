@@ -261,4 +261,11 @@ export class MicrophoneCapture {
   hasPermission(): boolean {
     return useJarvisStore.getState().isAudioPermissionGranted;
   }
+
+  /**
+   * Get the current MediaStream (for use with STT)
+   */
+  getMediaStream(): MediaStream | null {
+    return this.mediaStream;
+  }
 }
