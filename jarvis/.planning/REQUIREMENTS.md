@@ -112,13 +112,48 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (To be populated during roadmap creation) | | |
+| VOI-01 | Phase 1: Audio Foundation | Pending |
+| VOI-02 | Phase 2: Voice Pipeline | Pending |
+| VOI-03 | Phase 2: Voice Pipeline | Pending |
+| VOI-04 | Phase 3: Intelligence Layer | Pending |
+| VOI-05 | Phase 2: Voice Pipeline | Pending |
+| EXE-01 | Phase 5: Executive Function Core | Pending |
+| EXE-02 | Phase 5: Executive Function Core | Pending |
+| EXE-03 | Phase 5: Executive Function Core | Pending |
+| EXE-04 | Phase 5: Executive Function Core | Pending |
+| EXE-05 | Phase 6: Advanced Executive Function | Pending |
+| EXE-06 | Phase 5: Executive Function Core | Pending |
+| EXE-07 | Phase 5: Executive Function Core | Pending |
+| EXE-08 | Phase 6: Advanced Executive Function | Pending |
+| EXE-09 | Phase 6: Advanced Executive Function | Pending |
+| NOT-01 | Phase 4: Data Integration | Pending |
+| NOT-02 | Phase 4: Data Integration | Pending |
+| NOT-03 | Phase 4: Data Integration | Pending |
+| NOT-04 | Phase 4: Data Integration | Pending |
+| NOT-05 | Phase 4: Data Integration | Pending |
+| NOT-06 | Phase 4: Data Integration | Pending |
+| NOT-07 | Phase 4: Data Integration | Pending |
+| NOT-08 | Phase 4: Data Integration | Pending |
+| NOT-09 | Phase 4: Data Integration | Pending |
+| VIS-01 | Phase 1: Audio Foundation | Pending |
+| VIS-02 | Phase 1: Audio Foundation | Pending |
+| VIS-03 | Phase 1: Audio Foundation | Pending |
+| VIS-04 | Phase 5: Executive Function Core | Pending |
+| VIS-05 | Phase 5: Executive Function Core | Pending |
+| INT-01 | Phase 3: Intelligence Layer | Pending |
+| INT-02 | Phase 3: Intelligence Layer | Pending |
+| INT-03 | Phase 3: Intelligence Layer | Pending |
+| INT-04 | Phase 3: Intelligence Layer | Pending |
+| INF-01 | Phase 1: Audio Foundation | Pending |
+| INF-02 | Phase 1: Audio Foundation | Pending |
+| INF-03 | Phase 4: Data Integration | Pending |
+| INF-04 | Phase 4: Data Integration | Pending |
 
 **Coverage:**
-- v1 requirements: 28 total
-- Mapped to phases: TBD
-- Unmapped: TBD
+- v1 requirements: 36 total
+- Mapped to phases: 36/36
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-31*
-*Last updated: 2026-01-31 after initial definition*
+*Last updated: 2026-01-31 after roadmap creation*
