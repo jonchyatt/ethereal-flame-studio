@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** One system that knows everything, surfaces what matters, and keeps you on track
-**Current focus:** Phase 1 - Audio Foundation
+**Current focus:** Phase 2 - Voice Pipeline
 
 ## Current Position
 
-Phase: 1 of 6 (Audio Foundation)
-Plan: 3 of 3 in current phase (01-03 complete)
-Status: Phase 1 complete
-Last activity: 2026-01-31 - Completed 01-03-PLAN.md (Audio Capture & Push-to-Talk)
+Phase: 2 of 6 (Voice Pipeline)
+Plan: 0 of 3 in current phase
+Status: Ready to plan Phase 2
+Last activity: 2026-01-31 - Phase 1 verified and complete
 
-Progress: [######....] 50%
+Progress: [######....] 17% (1/6 phases)
 
 ## Performance Metrics
 

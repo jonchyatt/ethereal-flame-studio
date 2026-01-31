@@ -12,7 +12,7 @@ Jarvis transforms from concept to voice-enabled executive function partner throu
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Audio Foundation** - Browser audio capture/playback, orb integration, permission UX
+- [x] **Phase 1: Audio Foundation** - Browser audio capture/playback, orb integration, permission UX
 - [ ] **Phase 2: Voice Pipeline** - STT + TTS integration with streaming, turn-taking state machine
 - [ ] **Phase 3: Intelligence Layer** - Claude API integration, conversation context, guide personality
 - [ ] **Phase 4: Data Integration** - Notion MCP connection, read/write operations, OAuth flow
@@ -38,9 +38,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - Wave 2: 01-02, 01-03 (can be parallel after infrastructure)
 
 Plans:
-- [ ] 01-01-PLAN.md - Infrastructure setup (types, store, routing, mobile layout)
-- [ ] 01-02-PLAN.md - Orb avatar integration with state-driven animations
-- [ ] 01-03-PLAN.md - Audio capture with push-to-talk and permission UX
+- [x] 01-01-PLAN.md - Infrastructure setup (types, store, routing, mobile layout)
+- [x] 01-02-PLAN.md - Orb avatar integration with state-driven animations
+- [x] 01-03-PLAN.md - Audio capture with push-to-talk and permission UX
 
 ### Phase 2: Voice Pipeline
 **Goal**: User can speak and hear synthesized speech response (echo test)
@@ -141,7 +141,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Audio Foundation | 0/3 | **PLANNED** | - |
+| 1. Audio Foundation | 3/3 | **COMPLETE** | 2026-01-31 |
 | 2. Voice Pipeline | 0/3 | Not started | - |
 | 3. Intelligence Layer | 0/3 | Not started | - |
 | 4. Data Integration | 0/3 | Not started | - |
@@ -150,5 +150,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 ---
 *Roadmap created: 2026-01-31*
-*Updated: 2026-01-31 (Phase 1 plans created)*
+*Updated: 2026-01-31 (Phase 1 complete)*
 *Requirements coverage: 39/39 mapped*

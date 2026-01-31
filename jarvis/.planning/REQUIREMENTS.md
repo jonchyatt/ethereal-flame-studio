@@ -9,9 +9,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Voice I/O
 
-- [ ] **VOI-01**: Push-to-talk voice activation (hold button to speak)
+- [x] **VOI-01**: Push-to-talk voice activation (hold button to speak)
 - [ ] **VOI-02**: Sub-300ms response latency target (speak to first TTS word)
-- [ ] **VOI-03**: Professional butler voice persona via TTS
+- [ ] **VOI-03**: Omnipresent guide voice persona via TTS
 - [ ] **VOI-04**: Context retention across conversation turns
 - [ ] **VOI-05**: Streaming TTS response (start speaking before full response generated)
 
@@ -41,9 +41,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Visual Presence
 
-- [ ] **VIS-01**: Ethereal Flame orb as Jarvis's visual avatar
-- [ ] **VIS-02**: Audio-reactive animation synced to TTS output
-- [ ] **VIS-03**: State indicators (listening, thinking, speaking, idle)
+- [x] **VIS-01**: Ethereal Flame orb as Jarvis's visual avatar
+- [x] **VIS-02**: Audio-reactive animation synced to TTS output
+- [x] **VIS-03**: State indicators (listening, thinking, speaking, idle)
 - [ ] **VIS-04**: Text display of current tasks/daily agenda
 - [ ] **VIS-05**: Priority items "needs attention" indicator
 
@@ -52,12 +52,18 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **INT-01**: Claude API for reasoning and conversation
 - [ ] **INT-02**: Tool calling for Notion operations
 - [ ] **INT-03**: Conversation memory within session
-- [ ] **INT-04**: Butler personality prompt engineering
+- [ ] **INT-04**: Omnipresent guide personality prompt engineering
+
+### Financial Awareness
+
+- [ ] **FIN-01**: Read bills database (due date, amount, payee, pay link, payment method)
+- [ ] **FIN-02**: Mark bill as paid via voice
+- [ ] **FIN-03**: Include upcoming bills in daily briefing
 
 ### Infrastructure
 
-- [ ] **INF-01**: Web app hosted on whatareyouappreciatingnow.com
-- [ ] **INF-02**: Works on mobile browser (responsive design)
+- [x] **INF-01**: Web app hosted on whatareyouappreciatingnow.com
+- [x] **INF-02**: Works on mobile browser (responsive design)
 - [ ] **INF-03**: Secure Notion OAuth flow
 - [ ] **INF-04**: API routes for backend operations
 
@@ -104,7 +110,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | Real-time streaming transcription | Push-to-talk sufficient for v1 |
 | Offline mode | Requires LLM, always needs internet |
 | Client & Content OS | Personal first, add Client OS in v2 |
-| Financial tracking | Focus on tasks/goals first, add budget awareness later |
+| Full budget tracking | Bill reminders in v1, spending categorization/analysis in v2 |
 
 ## Traceability
 
@@ -112,7 +118,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| VOI-01 | Phase 1: Audio Foundation | Pending |
+| VOI-01 | Phase 1: Audio Foundation | Complete |
 | VOI-02 | Phase 2: Voice Pipeline | Pending |
 | VOI-03 | Phase 2: Voice Pipeline | Pending |
 | VOI-04 | Phase 3: Intelligence Layer | Pending |
@@ -135,25 +141,28 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NOT-07 | Phase 4: Data Integration | Pending |
 | NOT-08 | Phase 4: Data Integration | Pending |
 | NOT-09 | Phase 4: Data Integration | Pending |
-| VIS-01 | Phase 1: Audio Foundation | Pending |
-| VIS-02 | Phase 1: Audio Foundation | Pending |
-| VIS-03 | Phase 1: Audio Foundation | Pending |
+| VIS-01 | Phase 1: Audio Foundation | Complete |
+| VIS-02 | Phase 1: Audio Foundation | Complete |
+| VIS-03 | Phase 1: Audio Foundation | Complete |
 | VIS-04 | Phase 5: Executive Function Core | Pending |
 | VIS-05 | Phase 5: Executive Function Core | Pending |
 | INT-01 | Phase 3: Intelligence Layer | Pending |
 | INT-02 | Phase 3: Intelligence Layer | Pending |
 | INT-03 | Phase 3: Intelligence Layer | Pending |
 | INT-04 | Phase 3: Intelligence Layer | Pending |
-| INF-01 | Phase 1: Audio Foundation | Pending |
-| INF-02 | Phase 1: Audio Foundation | Pending |
+| INF-01 | Phase 1: Audio Foundation | Complete |
+| INF-02 | Phase 1: Audio Foundation | Complete |
 | INF-03 | Phase 4: Data Integration | Pending |
 | INF-04 | Phase 4: Data Integration | Pending |
+| FIN-01 | Phase 4: Data Integration | Pending |
+| FIN-02 | Phase 4: Data Integration | Pending |
+| FIN-03 | Phase 5: Executive Function Core | Pending |
 
 **Coverage:**
-- v1 requirements: 36 total
-- Mapped to phases: 36/36
+- v1 requirements: 39 total
+- Mapped to phases: 39/39
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-31*
-*Last updated: 2026-01-31 after roadmap creation*
+*Last updated: 2026-01-31 (Phase 1 complete - 6 requirements)*
