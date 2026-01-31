@@ -1,0 +1,124 @@
+# Requirements: Jarvis
+
+**Defined:** 2026-01-31
+**Core Value:** One system that knows everything, surfaces what matters, and keeps you on track
+
+## v1 Requirements
+
+Requirements for initial release. Each maps to roadmap phases.
+
+### Voice I/O
+
+- [ ] **VOI-01**: Push-to-talk voice activation (hold button to speak)
+- [ ] **VOI-02**: Sub-300ms response latency target (speak to first TTS word)
+- [ ] **VOI-03**: Professional butler voice persona via TTS
+- [ ] **VOI-04**: Context retention across conversation turns
+- [ ] **VOI-05**: Streaming TTS response (start speaking before full response generated)
+
+### Executive Function
+
+- [ ] **EXE-01**: Daily morning briefing (spoken summary from Notion data)
+- [ ] **EXE-02**: Time awareness nudges ("time to wrap up and shift")
+- [ ] **EXE-03**: End-of-work-period check-in (what got done, update task status)
+- [ ] **EXE-04**: Midday pulse check (quick status, any pivots needed)
+- [ ] **EXE-05**: Evening wrap (capture loose ends, plan tomorrow)
+- [ ] **EXE-06**: Habit progress in briefings ("You're 4/7 on meditation this week")
+- [ ] **EXE-07**: Goal progress awareness (surface % complete, relate tasks to goals)
+- [ ] **EXE-08**: Life area priority weighting (triage toward low-rated priority areas)
+- [ ] **EXE-09**: Voice-guided weekly review session (reflection prompts)
+
+### Notion Integration
+
+- [ ] **NOT-01**: Connect to Notion workspaces via MCP
+- [ ] **NOT-02**: Read tasks and projects (view current system state)
+- [ ] **NOT-03**: Read life areas, goals, and habits
+- [ ] **NOT-04**: Create tasks via voice → lands in "sort & prioritize" inbox by default
+- [ ] **NOT-05**: Create task with specific timing/context if user provides it
+- [ ] **NOT-06**: Update task status (complete, in progress, blocked)
+- [ ] **NOT-07**: Pause/table a task (defer with context)
+- [ ] **NOT-08**: Add items to project needs (sub-tasks or requirements discovered during work)
+- [ ] **NOT-09**: Mark complete early and move on (close out ahead of schedule)
+
+### Visual Presence
+
+- [ ] **VIS-01**: Ethereal Flame orb as Jarvis's visual avatar
+- [ ] **VIS-02**: Audio-reactive animation synced to TTS output
+- [ ] **VIS-03**: State indicators (listening, thinking, speaking, idle)
+- [ ] **VIS-04**: Text display of current tasks/daily agenda
+- [ ] **VIS-05**: Priority items "needs attention" indicator
+
+### Intelligence
+
+- [ ] **INT-01**: Claude API for reasoning and conversation
+- [ ] **INT-02**: Tool calling for Notion operations
+- [ ] **INT-03**: Conversation memory within session
+- [ ] **INT-04**: Butler personality prompt engineering
+
+### Infrastructure
+
+- [ ] **INF-01**: Web app hosted on whatareyouappreciatingnow.com
+- [ ] **INF-02**: Works on mobile browser (responsive design)
+- [ ] **INF-03**: Secure Notion OAuth flow
+- [ ] **INF-04**: API routes for backend operations
+
+## v2 Requirements
+
+Deferred to future release. Tracked but not in current roadmap.
+
+### Body Doubling
+
+- **BDY-01**: Body doubling mode activation
+- **BDY-02**: Periodic check-ins during focus session
+- **BDY-03**: Session duration tracking
+- **BDY-04**: Gentle redirection if distracted
+
+### Voice Enhancements
+
+- **VOI-ADV-01**: Wake word detection ("Jarvis")
+- **VOI-ADV-02**: Barge-in support (interrupt while speaking)
+- **VOI-ADV-03**: Multiple voice persona options
+
+### Advanced Executive Function
+
+- **EXE-ADV-01**: Voice-guided triage session
+- **EXE-ADV-02**: Adaptive pushiness (learns patterns)
+- **EXE-ADV-03**: Absorption detection ("you've been on this for 2 hours")
+- **EXE-ADV-04**: Multi-workspace intelligence (Life OS + Client OS)
+
+### Landscape Mapping
+
+- **MAP-01**: Full brain dump session workflow
+- **MAP-02**: Project/idea categorization assistant
+- **MAP-03**: Priority matrix visualization
+
+## Out of Scope
+
+Explicitly excluded. Documented to prevent scope creep.
+
+| Feature | Reason |
+|---------|--------|
+| Mobile native app | Web-first approach, browser works fine on mobile |
+| Calendar write access | Read calendar is enough for briefings, writing adds risk |
+| Multi-user accounts | Single creator workflow |
+| Automated task execution | Jarvis advises, user executes |
+| Real-time streaming transcription | Push-to-talk sufficient for v1 |
+| Offline mode | Requires LLM, always needs internet |
+| Client & Content OS | Personal first, add Client OS in v2 |
+| Financial tracking | Focus on tasks/goals first, add budget awareness later |
+
+## Traceability
+
+Which phases cover which requirements. Updated during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| (To be populated during roadmap creation) | | |
+
+**Coverage:**
+- v1 requirements: 28 total
+- Mapped to phases: TBD
+- Unmapped: TBD
+
+---
+*Requirements defined: 2026-01-31*
+*Last updated: 2026-01-31 after initial definition*
