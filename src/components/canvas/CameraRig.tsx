@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useVisualStore } from "@/lib/stores/visualStore";
+import { useRenderMode } from "@/hooks/useRenderMode";
 
 const forward = new THREE.Vector3();
 const right = new THREE.Vector3();
@@ -21,10 +22,12 @@ export function CameraRig({ enabled }: { enabled: boolean }) {
   const orbWorldZ = useVisualStore((state) => state.orbWorldZ);
   const cameraLookAtOrb = useVisualStore((state) => state.cameraLookAtOrb);
   const cameraOrbitEnabled = useVisualStore((state) => state.cameraOrbitEnabled);
+  const cameraOrbitRenderOnly = useVisualStore((state) => state.cameraOrbitRenderOnly);
   const cameraOrbitSpeed = useVisualStore((state) => state.cameraOrbitSpeed);
   const cameraOrbitRadius = useVisualStore((state) => state.cameraOrbitRadius);
   const cameraOrbitHeight = useVisualStore((state) => state.cameraOrbitHeight);
   const orbitAngleRef = useRef(0);
+  const renderMode = useRenderMode();
 
   useFrame((_, delta) => {
     if (!enabled) return;
@@ -44,7 +47,12 @@ export function CameraRig({ enabled }: { enabled: boolean }) {
       orbPos.set(orbWorldX, orbWorldY, orbWorldZ);
     }
 
-    if (cameraOrbitEnabled && orbAnchorMode === "world") {
+    const orbitActive =
+      cameraOrbitEnabled &&
+      (!cameraOrbitRenderOnly || renderMode.isActive) &&
+      orbAnchorMode === "world";
+
+    if (orbitActive) {
       orbitAngleRef.current += cameraOrbitSpeed * delta;
       const angle = orbitAngleRef.current;
       camera.position.set(

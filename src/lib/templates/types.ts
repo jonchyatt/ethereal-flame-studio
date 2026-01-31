@@ -29,6 +29,7 @@ export interface TemplateSettings {
   orbWorldZ: number;
   cameraLookAtOrb: boolean;
   cameraOrbitEnabled: boolean;
+  cameraOrbitRenderOnly: boolean;
   cameraOrbitSpeed: number;
   cameraOrbitRadius: number;
   cameraOrbitHeight: number;

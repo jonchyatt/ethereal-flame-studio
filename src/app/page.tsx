@@ -13,6 +13,7 @@ import { VRPreviewMode, VRModeOverlay, useVRMode, VRContextProvider } from '@/co
 import { ScreenshotCapture, ScreenshotCaptureRef } from '@/components/ui/ScreenshotCapture';
 import { ControlPanel } from '@/components/ui/ControlPanel';
 import { useVisualStore } from '@/lib/stores/visualStore';
+import { useRenderMode } from '@/hooks/useRenderMode';
 
 export default function Home() {
   const screenshotRef = useRef<ScreenshotCaptureRef>(null);
@@ -34,15 +35,19 @@ export default function Home() {
   const vrComfortMode = useVisualStore((state) => state.vrComfortMode);
   const cameraLookAtOrb = useVisualStore((state) => state.cameraLookAtOrb);
   const cameraOrbitEnabled = useVisualStore((state) => state.cameraOrbitEnabled);
+  const cameraOrbitRenderOnly = useVisualStore((state) => state.cameraOrbitRenderOnly);
   const waterEnabled = useVisualStore((state) => state.waterEnabled);
   const waterColor = useVisualStore((state) => state.waterColor);
   const waterReflectivity = useVisualStore((state) => state.waterReflectivity);
 
   // VR Preview Mode
   const { isVRMode, showInstructions, enterVRMode, exitVRMode, dismissInstructions } = useVRMode();
+  const renderMode = useRenderMode();
 
   const effectiveSkyboxRotation = isVRMode && vrComfortMode ? 0 : skyboxRotationSpeed;
   const effectiveSkyboxDrift = isVRMode && vrComfortMode ? 0 : skyboxDriftSpeed;
+  const orbitActive = !isVRMode && cameraOrbitEnabled && (!cameraOrbitRenderOnly || renderMode.isActive);
+  const lookAtActive = !isVRMode && cameraLookAtOrb;
 
   return (
     <VRContextProvider>
@@ -101,7 +106,7 @@ export default function Home() {
 
         {/* OrbitControls disabled in VR or when camera rig is active */}
         {!isVRMode && (
-          <OrbitControls enabled={!cameraOrbitEnabled && !cameraLookAtOrb} />
+          <OrbitControls enabled={!orbitActive && !lookAtActive} />
         )}
         <Suspense fallback={null}>
           <OrbAnchor />

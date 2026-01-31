@@ -31,6 +31,7 @@ const BASE_TEMPLATE_SETTINGS: Omit<TemplateSettings, 'intensity' | 'layers' | 's
   orbWorldZ: 0,
   cameraLookAtOrb: false,
   cameraOrbitEnabled: false,
+  cameraOrbitRenderOnly: false,
   cameraOrbitSpeed: 0.4,
   cameraOrbitRadius: 8,
   cameraOrbitHeight: 0,

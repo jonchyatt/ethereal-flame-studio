@@ -35,6 +35,7 @@ interface VisualState {
   // Camera options (non-VR)
   cameraLookAtOrb: boolean;
   cameraOrbitEnabled: boolean;
+  cameraOrbitRenderOnly: boolean;
   cameraOrbitSpeed: number;
   cameraOrbitRadius: number;
   cameraOrbitHeight: number;
@@ -75,6 +76,7 @@ interface VisualState {
   setOrbWorldZ: (value: number) => void;
   setCameraLookAtOrb: (enabled: boolean) => void;
   setCameraOrbitEnabled: (enabled: boolean) => void;
+  setCameraOrbitRenderOnly: (enabled: boolean) => void;
   setCameraOrbitSpeed: (value: number) => void;
   setCameraOrbitRadius: (value: number) => void;
   setCameraOrbitHeight: (value: number) => void;
@@ -268,6 +270,7 @@ export const useVisualStore = create<VisualState>((set) => ({
   orbWorldZ: 0,
   cameraLookAtOrb: false,
   cameraOrbitEnabled: false,
+  cameraOrbitRenderOnly: false,
   cameraOrbitSpeed: 0.4,
   cameraOrbitRadius: 8,
   cameraOrbitHeight: 0,
@@ -323,6 +326,7 @@ export const useVisualStore = create<VisualState>((set) => ({
   setOrbWorldZ: (value) => set({ orbWorldZ: value }),
   setCameraLookAtOrb: (enabled) => set({ cameraLookAtOrb: enabled }),
   setCameraOrbitEnabled: (enabled) => set({ cameraOrbitEnabled: enabled }),
+  setCameraOrbitRenderOnly: (enabled) => set({ cameraOrbitRenderOnly: enabled }),
   setCameraOrbitSpeed: (value) => set({ cameraOrbitSpeed: value }),
   setCameraOrbitRadius: (value) => set({ cameraOrbitRadius: value }),
   setCameraOrbitHeight: (value) => set({ cameraOrbitHeight: value }),
@@ -370,6 +374,7 @@ export const useVisualStore = create<VisualState>((set) => ({
     orbWorldZ: settings.orbWorldZ ?? state.orbWorldZ,
     cameraLookAtOrb: settings.cameraLookAtOrb ?? state.cameraLookAtOrb,
     cameraOrbitEnabled: settings.cameraOrbitEnabled ?? state.cameraOrbitEnabled,
+    cameraOrbitRenderOnly: settings.cameraOrbitRenderOnly ?? state.cameraOrbitRenderOnly,
     cameraOrbitSpeed: settings.cameraOrbitSpeed ?? state.cameraOrbitSpeed,
     cameraOrbitRadius: settings.cameraOrbitRadius ?? state.cameraOrbitRadius,
     cameraOrbitHeight: settings.cameraOrbitHeight ?? state.cameraOrbitHeight,
@@ -415,6 +420,7 @@ export const selectSerializableState = (state: VisualState): TemplateSettings =>
     orbWorldZ: state.orbWorldZ,
     cameraLookAtOrb: state.cameraLookAtOrb,
     cameraOrbitEnabled: state.cameraOrbitEnabled,
+    cameraOrbitRenderOnly: state.cameraOrbitRenderOnly,
     cameraOrbitSpeed: state.cameraOrbitSpeed,
     cameraOrbitRadius: state.cameraOrbitRadius,
     cameraOrbitHeight: state.cameraOrbitHeight,

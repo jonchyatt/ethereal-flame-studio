@@ -61,6 +61,8 @@ export function AdvancedEditor() {
   const setCameraLookAtOrb = useVisualStore((state) => state.setCameraLookAtOrb);
   const cameraOrbitEnabled = useVisualStore((state) => state.cameraOrbitEnabled);
   const setCameraOrbitEnabled = useVisualStore((state) => state.setCameraOrbitEnabled);
+  const cameraOrbitRenderOnly = useVisualStore((state) => state.cameraOrbitRenderOnly);
+  const setCameraOrbitRenderOnly = useVisualStore((state) => state.setCameraOrbitRenderOnly);
   const cameraOrbitSpeed = useVisualStore((state) => state.cameraOrbitSpeed);
   const setCameraOrbitSpeed = useVisualStore((state) => state.setCameraOrbitSpeed);
   const cameraOrbitRadius = useVisualStore((state) => state.cameraOrbitRadius);
@@ -100,6 +102,16 @@ export function AdvancedEditor() {
     }
     setSkyboxVideo(null, null);
     setSkyboxMode('shader');
+  };
+
+  const resetMaskSettings = () => {
+    setSkyboxMaskThreshold(0.65);
+    setSkyboxMaskSoftness(0.08);
+    setSkyboxMaskColor('#87ceeb');
+    setSkyboxMaskInvert(false);
+    setSkyboxMaskPreview(false);
+    setSkyboxMaskPreviewSplit(false);
+    setSkyboxMaskPreviewColor('#ff00ff');
   };
 
   return (
@@ -301,6 +313,21 @@ export function AdvancedEditor() {
           </div>
           {cameraOrbitEnabled && (
             <>
+              <div className="flex items-center justify-between">
+                <span className="text-white/60 text-xs">Render-Only Orbit</span>
+                <button
+                  onClick={() => setCameraOrbitRenderOnly(!cameraOrbitRenderOnly)}
+                  className={`
+                    px-3 py-1 rounded text-xs
+                    ${cameraOrbitRenderOnly
+                      ? 'bg-blue-500/50 text-white border border-blue-400/50'
+                      : 'bg-white/10 text-white/60 border border-white/20'
+                    }
+                  `}
+                >
+                  {cameraOrbitRenderOnly ? 'ON' : 'OFF'}
+                </button>
+              </div>
               {orbAnchorMode !== 'world' && (
                 <p className="text-white/40 text-xs">
                   Orbit works best with <span className="text-white/70">World Anchored</span> orb.
@@ -578,6 +605,12 @@ export function AdvancedEditor() {
                         className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
                       />
                     </div>
+                    <button
+                      onClick={resetMaskSettings}
+                      className="w-full px-3 py-1.5 rounded text-xs bg-white/10 text-white/70 border border-white/20"
+                    >
+                      Reset Mask Defaults
+                    </button>
                   </>
                 )}
               </div>

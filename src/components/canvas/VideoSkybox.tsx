@@ -186,6 +186,14 @@ export function VideoSkybox({
             } else {
               gl_FragColor = vec4(color.rgb, color.a * alpha);
             }
+
+            if (uPreviewSplit > 0.5) {
+              float edge = abs(vUv.x - 0.5);
+              float line = smoothstep(0.004, 0.0, edge);
+              if (line > 0.0) {
+                gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+              }
+            }
           }
         `}
       />

@@ -41,3 +41,14 @@ All changes in the ethereal-flame-studio copy for skybox/orb controls are tracke
 - Added invert mask, preview color, and split-view support to the video skybox shader.
 - Made template application resilient to older templates missing new fields.
 - Guarded invert mask to only apply when masking is active.
+- Added render-only orbit setting to camera options in the visual store.
+- Added render-only orbit to template settings schema.
+- Added render-only orbit default to built-in presets.
+- Added render-only orbit to template save/load state.
+- Added render-only orbit state hook in Advanced Editor.
+- Added mask reset helper for restoring default key settings.
+- Added a Reset Mask Defaults button to the masking UI.
+- Added render-only orbit toggle to camera controls.
+- CameraRig now respects render-only orbit mode via render state.
+- OrbitControls now stay enabled when orbit is set to render-only outside render mode.
+- Added a split-view divider line in the mask preview shader.
