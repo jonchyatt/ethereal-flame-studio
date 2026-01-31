@@ -10,28 +10,29 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 ## Current Position
 
 Phase: 2 of 6 (Voice Pipeline)
-Plan: 0 of 3 in current phase
-Status: Ready to plan Phase 2
-Last activity: 2026-01-31 - Phase 1 verified and complete
+Plan: 2 of 3 in current phase
+Status: In progress
+Last activity: 2026-01-31 - Completed 02-02-PLAN.md (Browser TTS Client)
 
-Progress: [######....] 17% (1/6 phases)
+Progress: [######....] 22% (1.67/6 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 9 min
-- Total execution time: 27 min
+- Total plans completed: 4
+- Average duration: 8 min
+- Total execution time: 32 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-audio-foundation | 3/3 | 27 min | 9 min |
+| 02-voice-pipeline | 1/3 | 5 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (6 min), 01-02 (9 min), 01-03 (12 min)
-- Trend: Slightly increasing (more complex tasks)
+- Last 5 plans: 01-01 (6 min), 01-02 (9 min), 01-03 (12 min), 02-02 (5 min)
+- Trend: Fast execution (browser-native features)
 
 *Updated after each plan completion*
 
@@ -63,6 +64,8 @@ Recent decisions affecting current work:
 - [01-03]: Singleton pattern for MicrophoneCapture
 - [01-03]: Permission explanation BEFORE browser prompt
 - [01-03]: Spacebar support for desktop push-to-talk
+- [02-02]: Prioritized fallback list for voice selection (browser/OS dependent)
+- [02-02]: Accept no audio-reactive orb during TTS (Web Speech API limitation)
 
 ### Pending Todos
 
@@ -74,8 +77,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-31 18:51 UTC
-Stopped at: Completed 01-03-PLAN.md (Audio Capture & Push-to-Talk)
+Last session: 2026-01-31 20:31 UTC
+Stopped at: Completed 02-02-PLAN.md (Browser TTS Client)
 Resume file: None
 
 ## Phase 1 Summary
