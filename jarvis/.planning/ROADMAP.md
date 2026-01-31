@@ -52,12 +52,16 @@ Plans:
   3. TTS voice has calm, knowing guide quality (not robotic)
   4. User can interrupt TTS playback by pressing push-to-talk (barge-in)
   5. Orb animates in sync with TTS audio output
-**Plans**: TBD
+**Plans:** 3 plans in 2 waves
+
+**Wave Structure:**
+- Wave 1: 02-01, 02-02 (STT and TTS are independent, can be parallel)
+- Wave 2: 02-03 (turn-taking needs both STT and TTS)
 
 Plans:
-- [ ] 02-01: Deepgram STT WebSocket integration
-- [ ] 02-02: ElevenLabs streaming TTS integration
-- [ ] 02-03: Turn-taking state machine and barge-in detection
+- [ ] 02-01-PLAN.md - Deepgram STT WebSocket integration with backend proxy
+- [ ] 02-02-PLAN.md - ElevenLabs streaming TTS with orb audio sync
+- [ ] 02-03-PLAN.md - Turn-taking state machine, barge-in, and echo test
 
 ### Phase 3: Intelligence Layer
 **Goal**: User can have natural multi-turn conversations with Jarvis
@@ -142,7 +146,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Audio Foundation | 3/3 | **COMPLETE** | 2026-01-31 |
-| 2. Voice Pipeline | 0/3 | Not started | - |
+| 2. Voice Pipeline | 0/3 | **PLANNED** | - |
 | 3. Intelligence Layer | 0/3 | Not started | - |
 | 4. Data Integration | 0/3 | Not started | - |
 | 5. Executive Function Core | 0/3 | Not started | - |
@@ -150,5 +154,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 ---
 *Roadmap created: 2026-01-31*
-*Updated: 2026-01-31 (Phase 1 complete)*
+*Updated: 2026-01-31 (Phase 2 planned)*
 *Requirements coverage: 39/39 mapped*
