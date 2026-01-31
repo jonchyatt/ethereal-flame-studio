@@ -1,6 +1,9 @@
 // Orb visual states - determines animation and color
 export type OrbState = 'idle' | 'listening' | 'thinking' | 'speaking';
 
+// Re-export from voice types for convenience
+export type { VoicePipelineState } from './voice/types';
+
 // Default state colors (cool -> warm progression)
 // User can customize these in future settings phase
 export const DEFAULT_STATE_COLORS: Record<OrbState, [number, number, number]> = {
@@ -39,6 +42,14 @@ export interface JarvisState {
 
   // State colors (user-customizable later)
   stateColors: Record<OrbState, [number, number, number]>;
+
+  // Voice pipeline state (extended in 02-03)
+  pipelineState: import('./voice/types').VoicePipelineState;
+  currentTranscript: string; // Live interim transcript
+  finalTranscript: string; // Complete utterance after PTT release
+  lastResponse: string; // Last TTS response text
+  error: string | null; // Current error message
+  showTranscript: boolean; // Whether to display transcript UI
 }
 
 // Store actions
@@ -49,4 +60,13 @@ export interface JarvisActions {
   setAudioLevel: (level: number) => void;
   setImportance: (importance: number) => void;
   setStateColor: (state: OrbState, color: [number, number, number]) => void;
+
+  // Voice pipeline actions (extended in 02-03)
+  setPipelineState: (state: import('./voice/types').VoicePipelineState) => void;
+  setCurrentTranscript: (transcript: string) => void;
+  setFinalTranscript: (transcript: string) => void;
+  setLastResponse: (response: string) => void;
+  setError: (error: string | null) => void;
+  setShowTranscript: (show: boolean) => void;
+  resetPipeline: () => void;
 }

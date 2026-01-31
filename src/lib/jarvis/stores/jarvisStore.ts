@@ -5,8 +5,19 @@ import {
   OrbState,
   DEFAULT_STATE_COLORS,
 } from '../types';
+import type { VoicePipelineState } from '../voice/types';
 
 type JarvisStore = JarvisState & JarvisActions;
+
+// Initial voice pipeline state for reset
+const INITIAL_PIPELINE_STATE = {
+  pipelineState: 'idle' as VoicePipelineState,
+  currentTranscript: '',
+  finalTranscript: '',
+  lastResponse: '',
+  error: null as string | null,
+  showTranscript: false,
+};
 
 export const useJarvisStore = create<JarvisStore>((set) => ({
   // Initial state
@@ -16,6 +27,9 @@ export const useJarvisStore = create<JarvisStore>((set) => ({
   audioLevel: 0,
   importance: 0,
   stateColors: DEFAULT_STATE_COLORS,
+
+  // Voice pipeline state
+  ...INITIAL_PIPELINE_STATE,
 
   // Actions
   setOrbState: (orbState: OrbState) => set({ orbState }),
@@ -30,4 +44,15 @@ export const useJarvisStore = create<JarvisStore>((set) => ({
     set((s) => ({
       stateColors: { ...s.stateColors, [state]: color },
     })),
+
+  // Voice pipeline actions
+  setPipelineState: (pipelineState: VoicePipelineState) =>
+    set({ pipelineState }),
+  setCurrentTranscript: (currentTranscript: string) =>
+    set({ currentTranscript }),
+  setFinalTranscript: (finalTranscript: string) => set({ finalTranscript }),
+  setLastResponse: (lastResponse: string) => set({ lastResponse }),
+  setError: (error: string | null) => set({ error }),
+  setShowTranscript: (showTranscript: boolean) => set({ showTranscript }),
+  resetPipeline: () => set(INITIAL_PIPELINE_STATE),
 }));
