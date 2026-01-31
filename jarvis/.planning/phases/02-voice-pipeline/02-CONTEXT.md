@@ -16,7 +16,7 @@ User can speak and hear synthesized speech response. This phase establishes STT 
 ### Turn-Taking
 - Push-to-talk defines turn boundary (user releases button = utterance complete)
 - No silence detection in v1 — explicit control only
-- Barge-in deferred to v2 (VOI-ADV-02)
+- Barge-in supported: pressing PTT during TTS interrupts playback and starts listening
 
 ### Latency Target
 - Sub-300ms from speech completion to first TTS word (VOI-02)
@@ -58,7 +58,6 @@ User can speak and hear synthesized speech response. This phase establishes STT 
 <deferred>
 ## Deferred Ideas
 
-- Barge-in support (interrupt TTS) — v2 (VOI-ADV-02)
 - Wake word detection ("Jarvis") — v2 (VOI-ADV-01)
 - Multiple voice persona options — v2 (VOI-ADV-03)
 - Silence-based turn detection — not in current scope
