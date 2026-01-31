@@ -23,6 +23,9 @@ interface VisualState {
   skyboxMaskPreviewSplit: boolean;
   skyboxMaskPreviewColor: string;
   skyboxMaskInvert: boolean;
+  skyboxHoleFixEnabled: boolean;
+  skyboxHoleFixThreshold: number;
+  skyboxHoleFixSoftness: number;
   vrComfortMode: boolean;
   // Orb placement
   orbAnchorMode: 'viewer' | 'world';
@@ -65,6 +68,9 @@ interface VisualState {
   setSkyboxMaskPreviewSplit: (enabled: boolean) => void;
   setSkyboxMaskPreviewColor: (value: string) => void;
   setSkyboxMaskInvert: (enabled: boolean) => void;
+  setSkyboxHoleFixEnabled: (enabled: boolean) => void;
+  setSkyboxHoleFixThreshold: (value: number) => void;
+  setSkyboxHoleFixSoftness: (value: number) => void;
   setVrComfortMode: (enabled: boolean) => void;
   // Orb placement actions
   setOrbAnchorMode: (mode: 'viewer' | 'world') => void;
@@ -260,6 +266,9 @@ export const useVisualStore = create<VisualState>((set) => ({
   skyboxMaskPreviewSplit: false,
   skyboxMaskPreviewColor: '#ff00ff',
   skyboxMaskInvert: false,
+  skyboxHoleFixEnabled: true,
+  skyboxHoleFixThreshold: 0.02,
+  skyboxHoleFixSoftness: 0.05,
   vrComfortMode: false,
   orbAnchorMode: 'viewer',
   orbDistance: 6,
@@ -316,6 +325,9 @@ export const useVisualStore = create<VisualState>((set) => ({
   setSkyboxMaskPreviewSplit: (enabled) => set({ skyboxMaskPreviewSplit: enabled }),
   setSkyboxMaskPreviewColor: (value) => set({ skyboxMaskPreviewColor: value }),
   setSkyboxMaskInvert: (enabled) => set({ skyboxMaskInvert: enabled }),
+  setSkyboxHoleFixEnabled: (enabled) => set({ skyboxHoleFixEnabled: enabled }),
+  setSkyboxHoleFixThreshold: (value) => set({ skyboxHoleFixThreshold: value }),
+  setSkyboxHoleFixSoftness: (value) => set({ skyboxHoleFixSoftness: value }),
   setVrComfortMode: (enabled) => set({ vrComfortMode: enabled }),
   setOrbAnchorMode: (mode) => set({ orbAnchorMode: mode }),
   setOrbDistance: (value) => set({ orbDistance: value }),
@@ -364,6 +376,9 @@ export const useVisualStore = create<VisualState>((set) => ({
     skyboxMaskSoftness: settings.skyboxMaskSoftness ?? state.skyboxMaskSoftness,
     skyboxMaskColor: settings.skyboxMaskColor ?? state.skyboxMaskColor,
     skyboxMaskInvert: settings.skyboxMaskInvert ?? state.skyboxMaskInvert,
+    skyboxHoleFixEnabled: settings.skyboxHoleFixEnabled ?? state.skyboxHoleFixEnabled,
+    skyboxHoleFixThreshold: settings.skyboxHoleFixThreshold ?? state.skyboxHoleFixThreshold,
+    skyboxHoleFixSoftness: settings.skyboxHoleFixSoftness ?? state.skyboxHoleFixSoftness,
     vrComfortMode: settings.vrComfortMode ?? state.vrComfortMode,
     orbAnchorMode: settings.orbAnchorMode ?? state.orbAnchorMode,
     orbDistance: settings.orbDistance ?? state.orbDistance,
@@ -410,6 +425,9 @@ export const selectSerializableState = (state: VisualState): TemplateSettings =>
     skyboxMaskSoftness: state.skyboxMaskSoftness,
     skyboxMaskColor: state.skyboxMaskColor,
     skyboxMaskInvert: state.skyboxMaskInvert,
+    skyboxHoleFixEnabled: state.skyboxHoleFixEnabled,
+    skyboxHoleFixThreshold: state.skyboxHoleFixThreshold,
+    skyboxHoleFixSoftness: state.skyboxHoleFixSoftness,
     vrComfortMode: state.vrComfortMode,
     orbAnchorMode: state.orbAnchorMode,
     orbDistance: state.orbDistance,

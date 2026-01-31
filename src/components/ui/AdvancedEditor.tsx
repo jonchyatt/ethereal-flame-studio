@@ -41,6 +41,12 @@ export function AdvancedEditor() {
   const setSkyboxMaskPreviewColor = useVisualStore((state) => state.setSkyboxMaskPreviewColor);
   const skyboxMaskInvert = useVisualStore((state) => state.skyboxMaskInvert);
   const setSkyboxMaskInvert = useVisualStore((state) => state.setSkyboxMaskInvert);
+  const skyboxHoleFixEnabled = useVisualStore((state) => state.skyboxHoleFixEnabled);
+  const setSkyboxHoleFixEnabled = useVisualStore((state) => state.setSkyboxHoleFixEnabled);
+  const skyboxHoleFixThreshold = useVisualStore((state) => state.skyboxHoleFixThreshold);
+  const setSkyboxHoleFixThreshold = useVisualStore((state) => state.setSkyboxHoleFixThreshold);
+  const skyboxHoleFixSoftness = useVisualStore((state) => state.skyboxHoleFixSoftness);
+  const setSkyboxHoleFixSoftness = useVisualStore((state) => state.setSkyboxHoleFixSoftness);
   const vrComfortMode = useVisualStore((state) => state.vrComfortMode);
   const setVrComfortMode = useVisualStore((state) => state.setVrComfortMode);
   const orbAnchorMode = useVisualStore((state) => state.orbAnchorMode);
@@ -76,7 +82,7 @@ export function AdvancedEditor() {
   const setWaterColor = useVisualStore((state) => state.setWaterColor);
   const waterReflectivity = useVisualStore((state) => state.waterReflectivity);
   const setWaterReflectivity = useVisualStore((state) => state.setWaterReflectivity);
-  const hasStarNestOverlay = skyboxMode !== 'video' || !skyboxVideoUrl || skyboxMaskMode !== 'none';
+  const hasStarNestOverlay = skyboxMode !== 'video' || !skyboxVideoUrl || skyboxMaskMode !== 'none' || skyboxHoleFixEnabled;
 
   const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -112,6 +118,11 @@ export function AdvancedEditor() {
     setSkyboxMaskPreview(false);
     setSkyboxMaskPreviewSplit(false);
     setSkyboxMaskPreviewColor('#ff00ff');
+  };
+
+  const disableMaskDebug = () => {
+    setSkyboxMaskPreview(false);
+    setSkyboxMaskPreviewSplit(false);
   };
 
   return (
@@ -606,6 +617,12 @@ export function AdvancedEditor() {
                       />
                     </div>
                     <button
+                      onClick={disableMaskDebug}
+                      className="w-full px-3 py-1.5 rounded text-xs bg-white/5 text-white/60 border border-white/20"
+                    >
+                      Disable Mask Debug
+                    </button>
+                    <button
                       onClick={resetMaskSettings}
                       className="w-full px-3 py-1.5 rounded text-xs bg-white/10 text-white/70 border border-white/20"
                     >
@@ -621,6 +638,58 @@ export function AdvancedEditor() {
                 <p>Try Threshold <span className="text-white/80">0.55–0.75</span>, Softness <span className="text-white/80">0.05–0.15</span>.</p>
                 <p>For blue/green skies, use <span className="text-white/80">Chroma Key</span> and pick the sky color.</p>
                 <p>Try Threshold <span className="text-white/80">0.12–0.30</span>, Softness <span className="text-white/80">0.02–0.08</span>.</p>
+              </div>
+
+              <div className="space-y-2 border-t border-white/10 pt-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-white/60 text-xs">Hole Fix (near-black)</span>
+                  <button
+                    onClick={() => setSkyboxHoleFixEnabled(!skyboxHoleFixEnabled)}
+                    className={`
+                      px-3 py-1 rounded text-xs
+                      ${skyboxHoleFixEnabled
+                        ? 'bg-blue-500/50 text-white border border-blue-400/50'
+                        : 'bg-white/10 text-white/60 border border-white/20'
+                      }
+                    `}
+                  >
+                    {skyboxHoleFixEnabled ? 'ON' : 'OFF'}
+                  </button>
+                </div>
+                {skyboxHoleFixEnabled && (
+                  <>
+                    <div>
+                      <label className="flex justify-between text-white/60 text-xs mb-1">
+                        <span>Hole Threshold</span>
+                        <span className="text-white/40">{skyboxHoleFixThreshold.toFixed(2)}</span>
+                      </label>
+                      <input
+                        type="range"
+                        min={0}
+                        max={0.2}
+                        step={0.005}
+                        value={skyboxHoleFixThreshold}
+                        onChange={(e) => setSkyboxHoleFixThreshold(parseFloat(e.target.value))}
+                        className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                      />
+                    </div>
+                    <div>
+                      <label className="flex justify-between text-white/60 text-xs mb-1">
+                        <span>Hole Softness</span>
+                        <span className="text-white/40">{skyboxHoleFixSoftness.toFixed(2)}</span>
+                      </label>
+                      <input
+                        type="range"
+                        min={0}
+                        max={0.2}
+                        step={0.005}
+                        value={skyboxHoleFixSoftness}
+                        onChange={(e) => setSkyboxHoleFixSoftness(parseFloat(e.target.value))}
+                        className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                      />
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}

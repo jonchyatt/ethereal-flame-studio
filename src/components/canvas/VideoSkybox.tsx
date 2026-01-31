@@ -16,6 +16,9 @@ type VideoSkyboxProps = {
   maskPreviewSplit?: boolean;
   maskPreviewColor?: string;
   maskInvert?: boolean;
+  holeFixEnabled?: boolean;
+  holeFixThreshold?: number;
+  holeFixSoftness?: number;
   rotationSpeed?: number;
 };
 
@@ -30,6 +33,9 @@ export function VideoSkybox({
   maskPreviewSplit = false,
   maskPreviewColor = "#ff00ff",
   maskInvert = false,
+  holeFixEnabled = true,
+  holeFixThreshold = 0.02,
+  holeFixSoftness = 0.05,
   rotationSpeed = 0,
 }: VideoSkyboxProps) {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -91,8 +97,22 @@ export function VideoSkybox({
       uPreviewSplit: { value: maskPreviewSplit ? 1.0 : 0.0 },
       uPreviewColor: { value: previewColorVec },
       uInvert: { value: maskInvert ? 1.0 : 0.0 },
+      uHoleFixEnabled: { value: holeFixEnabled ? 1.0 : 0.0 },
+      uHoleFixThreshold: { value: holeFixThreshold },
+      uHoleFixSoftness: { value: holeFixSoftness },
     }),
-    [maskThreshold, maskSoftness, maskColorVec, maskPreview, maskPreviewSplit, previewColorVec, maskInvert]
+    [
+      maskThreshold,
+      maskSoftness,
+      maskColorVec,
+      maskPreview,
+      maskPreviewSplit,
+      previewColorVec,
+      maskInvert,
+      holeFixEnabled,
+      holeFixThreshold,
+      holeFixSoftness,
+    ]
   );
 
   useEffect(() => {
@@ -111,7 +131,22 @@ export function VideoSkybox({
     materialRef.current.uniforms.uPreviewSplit.value = maskPreviewSplit ? 1.0 : 0.0;
     materialRef.current.uniforms.uPreviewColor.value = previewColorVec;
     materialRef.current.uniforms.uInvert.value = maskInvert ? 1.0 : 0.0;
-  }, [maskMode, maskThreshold, maskSoftness, maskColorVec, maskPreview, maskPreviewSplit, previewColorVec, maskInvert]);
+    materialRef.current.uniforms.uHoleFixEnabled.value = holeFixEnabled ? 1.0 : 0.0;
+    materialRef.current.uniforms.uHoleFixThreshold.value = holeFixThreshold;
+    materialRef.current.uniforms.uHoleFixSoftness.value = holeFixSoftness;
+  }, [
+    maskMode,
+    maskThreshold,
+    maskSoftness,
+    maskColorVec,
+    maskPreview,
+    maskPreviewSplit,
+    previewColorVec,
+    maskInvert,
+    holeFixEnabled,
+    holeFixThreshold,
+    holeFixSoftness,
+  ]);
 
   useFrame((_, delta) => {
     if (rotationSpeed && meshRef.current) {
@@ -127,7 +162,7 @@ export function VideoSkybox({
       <shaderMaterial
         ref={materialRef}
         side={THREE.BackSide}
-        transparent={maskMode !== "none"}
+        transparent={maskMode !== "none" || holeFixEnabled}
         depthWrite={false}
         uniforms={uniforms}
         vertexShader={`
@@ -147,6 +182,9 @@ export function VideoSkybox({
           uniform float uPreviewSplit;
           uniform vec3 uPreviewColor;
           uniform float uInvert;
+          uniform float uHoleFixEnabled;
+          uniform float uHoleFixThreshold;
+          uniform float uHoleFixSoftness;
           varying vec2 vUv;
 
           float luma(vec3 c) {
@@ -173,6 +211,12 @@ export function VideoSkybox({
 
             if (uInvert > 0.5 && uMaskMode > 0.5) {
               alpha = 1.0 - alpha;
+            }
+
+            if (uHoleFixEnabled > 0.5) {
+              float lum = luma(color.rgb);
+              float hole = smoothstep(uHoleFixThreshold, uHoleFixThreshold + uHoleFixSoftness, lum);
+              alpha *= hole;
             }
 
             bool showPreview = uPreview > 0.5;

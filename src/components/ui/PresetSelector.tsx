@@ -19,7 +19,12 @@ export function PresetSelector() {
   const skyboxMaskMode = useVisualStore((state) => state.skyboxMaskMode);
   const skyboxVideoUrl = useVisualStore((state) => state.skyboxVideoUrl);
 
-  const showPreset = skyboxMode !== 'video' || !skyboxVideoUrl || skyboxMaskMode !== 'none';
+  const skyboxHoleFixEnabled = useVisualStore((state) => state.skyboxHoleFixEnabled);
+  const showPreset =
+    skyboxMode !== 'video' ||
+    !skyboxVideoUrl ||
+    skyboxMaskMode !== 'none' ||
+    skyboxHoleFixEnabled;
 
   if (!showPreset) {
     return null;

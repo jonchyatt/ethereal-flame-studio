@@ -52,3 +52,15 @@ All changes in the ethereal-flame-studio copy for skybox/orb controls are tracke
 - CameraRig now respects render-only orbit mode via render state.
 - OrbitControls now stay enabled when orbit is set to render-only outside render mode.
 - Added a split-view divider line in the mask preview shader.
+- Added video skybox hole-fix settings to the visual store and template state.
+- Added hole-fix fields to template settings schema.
+- Added hole-fix defaults to built-in presets.
+- Added hole-fix uniforms and logic to the video skybox shader.
+- Wired hole-fix settings into the main canvas video skybox.
+- Made video skybox transparent when hole-fix is enabled to reveal the star nest.
+- Ensured StarNest renders behind video when hole-fix is active.
+- Updated Advanced Editor overlay logic to keep StarNest controls visible for hole-fix.
+- Updated Skybox Preset visibility logic to include hole-fix overlays.
+- Added hole-fix state hooks, mask debug helper, and hole-fix controls in the Advanced Editor.
+- Added a split-view Preview/Live label overlay for mask debugging.
+- Reworked the control UI into left/right docked panels with independent hide buttons.

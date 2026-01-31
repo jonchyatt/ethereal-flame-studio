@@ -19,6 +19,9 @@ export interface TemplateSettings {
   skyboxMaskSoftness: number;
   skyboxMaskColor: string;
   skyboxMaskInvert: boolean;
+  skyboxHoleFixEnabled: boolean;
+  skyboxHoleFixThreshold: number;
+  skyboxHoleFixSoftness: number;
   vrComfortMode: boolean;
   orbAnchorMode: 'viewer' | 'world';
   orbDistance: number;

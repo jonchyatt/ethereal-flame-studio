@@ -32,6 +32,9 @@ export default function Home() {
   const skyboxMaskPreviewSplit = useVisualStore((state) => state.skyboxMaskPreviewSplit);
   const skyboxMaskPreviewColor = useVisualStore((state) => state.skyboxMaskPreviewColor);
   const skyboxMaskInvert = useVisualStore((state) => state.skyboxMaskInvert);
+  const skyboxHoleFixEnabled = useVisualStore((state) => state.skyboxHoleFixEnabled);
+  const skyboxHoleFixThreshold = useVisualStore((state) => state.skyboxHoleFixThreshold);
+  const skyboxHoleFixSoftness = useVisualStore((state) => state.skyboxHoleFixSoftness);
   const vrComfortMode = useVisualStore((state) => state.vrComfortMode);
   const cameraLookAtOrb = useVisualStore((state) => state.cameraLookAtOrb);
   const cameraOrbitEnabled = useVisualStore((state) => state.cameraOrbitEnabled);
@@ -74,11 +77,14 @@ export default function Home() {
             maskPreviewSplit={skyboxMaskPreviewSplit}
             maskPreviewColor={skyboxMaskPreviewColor}
             maskInvert={skyboxMaskInvert}
+            holeFixEnabled={skyboxHoleFixEnabled}
+            holeFixThreshold={skyboxHoleFixThreshold}
+            holeFixSoftness={skyboxHoleFixSoftness}
             rotationSpeed={effectiveSkyboxRotation}
           />
         )}
 
-        {(skyboxMode !== 'video' || !skyboxVideoUrl || skyboxMaskMode !== 'none') && (
+        {(skyboxMode !== 'video' || !skyboxVideoUrl || skyboxMaskMode !== 'none' || skyboxHoleFixEnabled) && (
           <StarNestSkybox
             preset={skyboxPreset}
             rotationSpeed={effectiveSkyboxRotation}
@@ -154,6 +160,17 @@ export default function Home() {
       <div className={isVRMode ? "invisible pointer-events-none absolute -z-50" : ""}>
         <ControlPanel screenshotRef={screenshotRef} />
       </div>
+
+      {/* Mask preview split label */}
+      {!isVRMode && skyboxMode === 'video' && skyboxMaskPreview && skyboxMaskPreviewSplit && (
+        <div className="fixed top-4 left-1/2 z-[70] -translate-x-1/2 pointer-events-none">
+          <div className="flex items-center gap-2 rounded-full bg-black/60 px-4 py-1 text-xs uppercase tracking-wide text-white/80 border border-white/10">
+            <span>Preview</span>
+            <span className="text-white/30">|</span>
+            <span>Live</span>
+          </div>
+        </div>
+      )}
 
       {/* VR Mode Overlay - handles permission requests and instructions */}
       <VRModeOverlay
