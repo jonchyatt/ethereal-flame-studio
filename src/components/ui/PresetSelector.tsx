@@ -15,6 +15,15 @@ import { STAR_NEST_PRESETS } from '@/components/canvas/StarNestSkybox';
 export function PresetSelector() {
   const skyboxPreset = useVisualStore((state) => state.skyboxPreset);
   const setSkyboxPreset = useVisualStore((state) => state.setSkyboxPreset);
+  const skyboxMode = useVisualStore((state) => state.skyboxMode);
+  const skyboxMaskMode = useVisualStore((state) => state.skyboxMaskMode);
+  const skyboxVideoUrl = useVisualStore((state) => state.skyboxVideoUrl);
+
+  const showPreset = skyboxMode !== 'video' || !skyboxVideoUrl || skyboxMaskMode !== 'none';
+
+  if (!showPreset) {
+    return null;
+  }
 
   const handlePresetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const presetKey = e.target.value;

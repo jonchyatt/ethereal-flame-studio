@@ -12,6 +12,13 @@ interface VisualState {
   skyboxAudioReactiveEnabled: boolean;
   skyboxAudioReactivity: number;
   skyboxDriftSpeed: number;
+  skyboxMode: 'shader' | 'video';
+  skyboxVideoUrl: string | null;
+  skyboxVideoFileName: string | null;
+  skyboxMaskMode: 'none' | 'luma' | 'chroma';
+  skyboxMaskThreshold: number;
+  skyboxMaskSoftness: number;
+  skyboxMaskColor: string;
   // Visual mode state (plan 01-05)
   currentMode: VisualMode;
   modeConfigs: Record<VisualMode, VisualModeConfig>;
@@ -28,6 +35,12 @@ interface VisualState {
   setSkyboxAudioReactiveEnabled: (enabled: boolean) => void;
   setSkyboxAudioReactivity: (value: number) => void;
   setSkyboxDriftSpeed: (value: number) => void;
+  setSkyboxMode: (mode: 'shader' | 'video') => void;
+  setSkyboxVideo: (url: string | null, fileName?: string | null) => void;
+  setSkyboxMaskMode: (mode: 'none' | 'luma' | 'chroma') => void;
+  setSkyboxMaskThreshold: (value: number) => void;
+  setSkyboxMaskSoftness: (value: number) => void;
+  setSkyboxMaskColor: (value: string) => void;
   // Visual mode actions
   setMode: (mode: VisualMode) => void;
   // Water actions
@@ -197,6 +210,13 @@ export const useVisualStore = create<VisualState>((set) => ({
   skyboxAudioReactiveEnabled: true,
   skyboxAudioReactivity: 1.0,
   skyboxDriftSpeed: 1.0,
+  skyboxMode: 'shader',
+  skyboxVideoUrl: null,
+  skyboxVideoFileName: null,
+  skyboxMaskMode: 'none',
+  skyboxMaskThreshold: 0.65,
+  skyboxMaskSoftness: 0.08,
+  skyboxMaskColor: '#87ceeb',
   // Visual mode state
   currentMode: 'etherealFlame',
   modeConfigs: {
@@ -229,6 +249,12 @@ export const useVisualStore = create<VisualState>((set) => ({
   setSkyboxAudioReactiveEnabled: (enabled) => set({ skyboxAudioReactiveEnabled: enabled }),
   setSkyboxAudioReactivity: (value) => set({ skyboxAudioReactivity: value }),
   setSkyboxDriftSpeed: (value) => set({ skyboxDriftSpeed: value }),
+  setSkyboxMode: (mode) => set({ skyboxMode: mode }),
+  setSkyboxVideo: (url, fileName = null) => set({ skyboxVideoUrl: url, skyboxVideoFileName: fileName }),
+  setSkyboxMaskMode: (mode) => set({ skyboxMaskMode: mode }),
+  setSkyboxMaskThreshold: (value) => set({ skyboxMaskThreshold: value }),
+  setSkyboxMaskSoftness: (value) => set({ skyboxMaskSoftness: value }),
+  setSkyboxMaskColor: (value) => set({ skyboxMaskColor: value }),
 
   setMode: (mode) =>
     set((state) => {

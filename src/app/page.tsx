@@ -6,6 +6,7 @@ import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { ParticleSystem } from '@/components/canvas/ParticleSystem';
 import { StarNestSkybox } from '@/components/canvas/StarNestSkybox';
+import { VideoSkybox } from '@/components/canvas/VideoSkybox';
 import { WaterPlane } from '@/components/canvas/WaterPlane';
 import { VRPreviewMode, VRModeOverlay, useVRMode, VRContextProvider } from '@/components/canvas/VRPreviewMode';
 import { ScreenshotCapture, ScreenshotCaptureRef } from '@/components/ui/ScreenshotCapture';
@@ -19,6 +20,12 @@ export default function Home() {
   const skyboxAudioReactiveEnabled = useVisualStore((state) => state.skyboxAudioReactiveEnabled);
   const skyboxAudioReactivity = useVisualStore((state) => state.skyboxAudioReactivity);
   const skyboxDriftSpeed = useVisualStore((state) => state.skyboxDriftSpeed);
+  const skyboxMode = useVisualStore((state) => state.skyboxMode);
+  const skyboxVideoUrl = useVisualStore((state) => state.skyboxVideoUrl);
+  const skyboxMaskMode = useVisualStore((state) => state.skyboxMaskMode);
+  const skyboxMaskThreshold = useVisualStore((state) => state.skyboxMaskThreshold);
+  const skyboxMaskSoftness = useVisualStore((state) => state.skyboxMaskSoftness);
+  const skyboxMaskColor = useVisualStore((state) => state.skyboxMaskColor);
   const waterEnabled = useVisualStore((state) => state.waterEnabled);
   const waterColor = useVisualStore((state) => state.waterColor);
   const waterReflectivity = useVisualStore((state) => state.waterReflectivity);
@@ -39,14 +46,27 @@ export default function Home() {
         }}
         style={{ background: '#000000', position: 'absolute', zIndex: 1 }}
       >
-        {/* Star Nest skybox renders behind everything */}
-        <StarNestSkybox
-          preset={skyboxPreset}
-          rotationSpeed={skyboxRotationSpeed}
-          audioReactiveEnabled={skyboxAudioReactiveEnabled}
-          audioReactivity={skyboxAudioReactivity}
-          driftSpeed={skyboxDriftSpeed}
-        />
+        {/* Skybox rendering (shader or video) */}
+        {skyboxMode === 'video' && skyboxVideoUrl && (
+          <VideoSkybox
+            videoUrl={skyboxVideoUrl}
+            maskMode={skyboxMaskMode}
+            maskThreshold={skyboxMaskThreshold}
+            maskSoftness={skyboxMaskSoftness}
+            maskColor={skyboxMaskColor}
+            rotationSpeed={skyboxRotationSpeed}
+          />
+        )}
+
+        {(skyboxMode !== 'video' || !skyboxVideoUrl || skyboxMaskMode !== 'none') && (
+          <StarNestSkybox
+            preset={skyboxPreset}
+            rotationSpeed={skyboxRotationSpeed}
+            audioReactiveEnabled={skyboxAudioReactiveEnabled}
+            audioReactivity={skyboxAudioReactivity}
+            driftSpeed={skyboxDriftSpeed}
+          />
+        )}
 
         {/* Screenshot capture component for template thumbnails */}
         <ScreenshotCapture ref={screenshotRef} />
