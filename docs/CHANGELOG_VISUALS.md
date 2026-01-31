@@ -22,3 +22,7 @@ All changes in the ethereal-flame-studio copy for skybox/orb controls are tracke
 - Wired mask preview state into the main canvas video skybox.
 - Added mask preview state hooks to the Advanced Editor.
 - Added a mask preview toggle and a Video Skybox Quickstart helper block in the Advanced Editor.
+- Added orb placement state (anchor mode + offsets) to the visual store.
+- Added OrbAnchor component to position the particle orb in viewer or world space.
+- Routed the particle system through OrbAnchor in the main canvas.
+- Added orb placement controls (viewer/world anchor + offsets) to the Advanced Editor.

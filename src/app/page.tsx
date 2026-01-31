@@ -4,7 +4,7 @@ import { Suspense, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import { ParticleSystem } from '@/components/canvas/ParticleSystem';
+import { OrbAnchor } from '@/components/canvas/OrbAnchor';
 import { StarNestSkybox } from '@/components/canvas/StarNestSkybox';
 import { VideoSkybox } from '@/components/canvas/VideoSkybox';
 import { WaterPlane } from '@/components/canvas/WaterPlane';
@@ -86,7 +86,7 @@ export default function Home() {
         {/* OrbitControls disabled in VR mode */}
         {!isVRMode && <OrbitControls />}
         <Suspense fallback={null}>
-          <ParticleSystem />
+          <OrbAnchor />
 {/* Bloom disabled - was washing out skybox
           <EffectComposer multisampling={4}>
             <Bloom

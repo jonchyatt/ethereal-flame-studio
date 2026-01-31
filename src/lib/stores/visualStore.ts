@@ -20,6 +20,14 @@ interface VisualState {
   skyboxMaskSoftness: number;
   skyboxMaskColor: string;
   skyboxMaskPreview: boolean;
+  // Orb placement
+  orbAnchorMode: 'viewer' | 'world';
+  orbDistance: number;
+  orbHeight: number;
+  orbSideOffset: number;
+  orbWorldX: number;
+  orbWorldY: number;
+  orbWorldZ: number;
   // Visual mode state (plan 01-05)
   currentMode: VisualMode;
   modeConfigs: Record<VisualMode, VisualModeConfig>;
@@ -43,6 +51,14 @@ interface VisualState {
   setSkyboxMaskSoftness: (value: number) => void;
   setSkyboxMaskColor: (value: string) => void;
   setSkyboxMaskPreview: (enabled: boolean) => void;
+  // Orb placement actions
+  setOrbAnchorMode: (mode: 'viewer' | 'world') => void;
+  setOrbDistance: (value: number) => void;
+  setOrbHeight: (value: number) => void;
+  setOrbSideOffset: (value: number) => void;
+  setOrbWorldX: (value: number) => void;
+  setOrbWorldY: (value: number) => void;
+  setOrbWorldZ: (value: number) => void;
   // Visual mode actions
   setMode: (mode: VisualMode) => void;
   // Water actions
@@ -220,6 +236,13 @@ export const useVisualStore = create<VisualState>((set) => ({
   skyboxMaskSoftness: 0.08,
   skyboxMaskColor: '#87ceeb',
   skyboxMaskPreview: false,
+  orbAnchorMode: 'viewer',
+  orbDistance: 6,
+  orbHeight: 0,
+  orbSideOffset: 0,
+  orbWorldX: 0,
+  orbWorldY: 0,
+  orbWorldZ: 0,
   // Visual mode state
   currentMode: 'etherealFlame',
   modeConfigs: {
@@ -259,6 +282,13 @@ export const useVisualStore = create<VisualState>((set) => ({
   setSkyboxMaskSoftness: (value) => set({ skyboxMaskSoftness: value }),
   setSkyboxMaskColor: (value) => set({ skyboxMaskColor: value }),
   setSkyboxMaskPreview: (enabled) => set({ skyboxMaskPreview: enabled }),
+  setOrbAnchorMode: (mode) => set({ orbAnchorMode: mode }),
+  setOrbDistance: (value) => set({ orbDistance: value }),
+  setOrbHeight: (value) => set({ orbHeight: value }),
+  setOrbSideOffset: (value) => set({ orbSideOffset: value }),
+  setOrbWorldX: (value) => set({ orbWorldX: value }),
+  setOrbWorldY: (value) => set({ orbWorldY: value }),
+  setOrbWorldZ: (value) => set({ orbWorldZ: value }),
 
   setMode: (mode) =>
     set((state) => {

@@ -35,6 +35,20 @@ export function AdvancedEditor() {
   const setSkyboxMaskColor = useVisualStore((state) => state.setSkyboxMaskColor);
   const skyboxMaskPreview = useVisualStore((state) => state.skyboxMaskPreview);
   const setSkyboxMaskPreview = useVisualStore((state) => state.setSkyboxMaskPreview);
+  const orbAnchorMode = useVisualStore((state) => state.orbAnchorMode);
+  const setOrbAnchorMode = useVisualStore((state) => state.setOrbAnchorMode);
+  const orbDistance = useVisualStore((state) => state.orbDistance);
+  const setOrbDistance = useVisualStore((state) => state.setOrbDistance);
+  const orbHeight = useVisualStore((state) => state.orbHeight);
+  const setOrbHeight = useVisualStore((state) => state.setOrbHeight);
+  const orbSideOffset = useVisualStore((state) => state.orbSideOffset);
+  const setOrbSideOffset = useVisualStore((state) => state.setOrbSideOffset);
+  const orbWorldX = useVisualStore((state) => state.orbWorldX);
+  const setOrbWorldX = useVisualStore((state) => state.setOrbWorldX);
+  const orbWorldY = useVisualStore((state) => state.orbWorldY);
+  const setOrbWorldY = useVisualStore((state) => state.setOrbWorldY);
+  const orbWorldZ = useVisualStore((state) => state.orbWorldZ);
+  const setOrbWorldZ = useVisualStore((state) => state.setOrbWorldZ);
   const [videoUrlInput, setVideoUrlInput] = useState('');
   const waterEnabled = useVisualStore((state) => state.waterEnabled);
   const setWaterEnabled = useVisualStore((state) => state.setWaterEnabled);
@@ -97,6 +111,139 @@ export function AdvancedEditor() {
           {layers.map((layer) => (
             <LayerEditor key={layer.id} layer={layer} />
           ))}
+        </div>
+      </ParameterGroup>
+
+      {/* Orb Placement */}
+      <ParameterGroup title="Orb Placement">
+        <div className="space-y-3">
+          <div>
+            <label className="text-white/60 text-xs mb-2 block">Anchor Mode</label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setOrbAnchorMode('viewer')}
+                className={`
+                  px-3 py-2 rounded text-sm flex-1
+                  ${orbAnchorMode === 'viewer'
+                    ? 'bg-blue-500/50 text-white border border-blue-400/50'
+                    : 'bg-white/10 text-white/60 border border-white/20'
+                  }
+                `}
+              >
+                Viewer Anchored
+              </button>
+              <button
+                onClick={() => setOrbAnchorMode('world')}
+                className={`
+                  px-3 py-2 rounded text-sm flex-1
+                  ${orbAnchorMode === 'world'
+                    ? 'bg-blue-500/50 text-white border border-blue-400/50'
+                    : 'bg-white/10 text-white/60 border border-white/20'
+                  }
+                `}
+              >
+                World Anchored
+              </button>
+            </div>
+          </div>
+
+          {orbAnchorMode === 'viewer' ? (
+            <>
+              <div>
+                <label className="flex justify-between text-white/60 text-xs mb-1">
+                  <span>Distance</span>
+                  <span className="text-white/40">{orbDistance.toFixed(1)}</span>
+                </label>
+                <input
+                  type="range"
+                  min={1}
+                  max={20}
+                  step={0.1}
+                  value={orbDistance}
+                  onChange={(e) => setOrbDistance(parseFloat(e.target.value))}
+                  className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+              <div>
+                <label className="flex justify-between text-white/60 text-xs mb-1">
+                  <span>Height</span>
+                  <span className="text-white/40">{orbHeight.toFixed(2)}</span>
+                </label>
+                <input
+                  type="range"
+                  min={-5}
+                  max={5}
+                  step={0.05}
+                  value={orbHeight}
+                  onChange={(e) => setOrbHeight(parseFloat(e.target.value))}
+                  className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+              <div>
+                <label className="flex justify-between text-white/60 text-xs mb-1">
+                  <span>Side Offset</span>
+                  <span className="text-white/40">{orbSideOffset.toFixed(2)}</span>
+                </label>
+                <input
+                  type="range"
+                  min={-5}
+                  max={5}
+                  step={0.05}
+                  value={orbSideOffset}
+                  onChange={(e) => setOrbSideOffset(parseFloat(e.target.value))}
+                  className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <label className="flex justify-between text-white/60 text-xs mb-1">
+                  <span>World X</span>
+                  <span className="text-white/40">{orbWorldX.toFixed(2)}</span>
+                </label>
+                <input
+                  type="range"
+                  min={-20}
+                  max={20}
+                  step={0.1}
+                  value={orbWorldX}
+                  onChange={(e) => setOrbWorldX(parseFloat(e.target.value))}
+                  className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+              <div>
+                <label className="flex justify-between text-white/60 text-xs mb-1">
+                  <span>World Y</span>
+                  <span className="text-white/40">{orbWorldY.toFixed(2)}</span>
+                </label>
+                <input
+                  type="range"
+                  min={-20}
+                  max={20}
+                  step={0.1}
+                  value={orbWorldY}
+                  onChange={(e) => setOrbWorldY(parseFloat(e.target.value))}
+                  className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+              <div>
+                <label className="flex justify-between text-white/60 text-xs mb-1">
+                  <span>World Z</span>
+                  <span className="text-white/40">{orbWorldZ.toFixed(2)}</span>
+                </label>
+                <input
+                  type="range"
+                  min={-20}
+                  max={20}
+                  step={0.1}
+                  value={orbWorldZ}
+                  onChange={(e) => setOrbWorldZ(parseFloat(e.target.value))}
+                  className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+            </>
+          )}
         </div>
       </ParameterGroup>
 
