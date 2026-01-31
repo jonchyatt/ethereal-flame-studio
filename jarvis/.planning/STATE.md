@@ -54,6 +54,10 @@ Recent decisions affecting current work:
 - [Scope]: Bill tracking in v1 (same workspace, FIN-01/02/03 added)
 - [01-01]: Use h-dvh for mobile viewport height handling
 - [01-01]: Clamp audioLevel and importance to 0-1 in store actions
+- [01-02]: 200 particles for mobile performance (vs 1000+ in main Ethereal Flame)
+- [01-02]: OrbStateManager as pure logic component (returns null)
+- [01-02]: Importance boosts both intensity (1.3x) and reactivity (1.5x)
+- [01-02]: Animation state passed via callback to avoid re-renders
 - [01-03]: RMS amplitude calculation for accurate voice level
 - [01-03]: 256 FFT size for fast response time
 - [01-03]: Singleton pattern for MicrophoneCapture
