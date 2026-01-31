@@ -16,6 +16,9 @@ export default function Home() {
   const screenshotRef = useRef<ScreenshotCaptureRef>(null);
   const skyboxPreset = useVisualStore((state) => state.skyboxPreset);
   const skyboxRotationSpeed = useVisualStore((state) => state.skyboxRotationSpeed);
+  const skyboxAudioReactiveEnabled = useVisualStore((state) => state.skyboxAudioReactiveEnabled);
+  const skyboxAudioReactivity = useVisualStore((state) => state.skyboxAudioReactivity);
+  const skyboxDriftSpeed = useVisualStore((state) => state.skyboxDriftSpeed);
   const waterEnabled = useVisualStore((state) => state.waterEnabled);
   const waterColor = useVisualStore((state) => state.waterColor);
   const waterReflectivity = useVisualStore((state) => state.waterReflectivity);
@@ -37,7 +40,13 @@ export default function Home() {
         style={{ background: '#000000', position: 'absolute', zIndex: 1 }}
       >
         {/* Star Nest skybox renders behind everything */}
-        <StarNestSkybox preset={skyboxPreset} rotationSpeed={skyboxRotationSpeed} />
+        <StarNestSkybox
+          preset={skyboxPreset}
+          rotationSpeed={skyboxRotationSpeed}
+          audioReactiveEnabled={skyboxAudioReactiveEnabled}
+          audioReactivity={skyboxAudioReactivity}
+          driftSpeed={skyboxDriftSpeed}
+        />
 
         {/* Screenshot capture component for template thumbnails */}
         <ScreenshotCapture ref={screenshotRef} />

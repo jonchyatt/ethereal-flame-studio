@@ -13,6 +13,12 @@ export function AdvancedEditor() {
   const setSkyboxPreset = useVisualStore((state) => state.setSkyboxPreset);
   const skyboxRotationSpeed = useVisualStore((state) => state.skyboxRotationSpeed);
   const setSkyboxRotationSpeed = useVisualStore((state) => state.setSkyboxRotationSpeed);
+  const skyboxAudioReactiveEnabled = useVisualStore((state) => state.skyboxAudioReactiveEnabled);
+  const setSkyboxAudioReactiveEnabled = useVisualStore((state) => state.setSkyboxAudioReactiveEnabled);
+  const skyboxAudioReactivity = useVisualStore((state) => state.skyboxAudioReactivity);
+  const setSkyboxAudioReactivity = useVisualStore((state) => state.setSkyboxAudioReactivity);
+  const skyboxDriftSpeed = useVisualStore((state) => state.skyboxDriftSpeed);
+  const setSkyboxDriftSpeed = useVisualStore((state) => state.setSkyboxDriftSpeed);
   const waterEnabled = useVisualStore((state) => state.waterEnabled);
   const setWaterEnabled = useVisualStore((state) => state.setWaterEnabled);
   const waterColor = useVisualStore((state) => state.waterColor);
@@ -90,6 +96,57 @@ export function AdvancedEditor() {
               step={0.1}
               value={skyboxRotationSpeed}
               onChange={(e) => setSkyboxRotationSpeed(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+            />
+          </div>
+
+          {/* Audio Reactivity Toggle */}
+          <div className="flex items-center justify-between">
+            <span className="text-white/60 text-sm">Audio Reactive</span>
+            <button
+              onClick={() => setSkyboxAudioReactiveEnabled(!skyboxAudioReactiveEnabled)}
+              className={`
+                px-3 py-1 rounded text-sm
+                ${skyboxAudioReactiveEnabled
+                  ? 'bg-blue-500/50 text-white border border-blue-400/50'
+                  : 'bg-white/10 text-white/60 border border-white/20'
+                }
+              `}
+            >
+              {skyboxAudioReactiveEnabled ? 'ON' : 'OFF'}
+            </button>
+          </div>
+
+          {/* Audio Reactivity Strength */}
+          <div>
+            <label className="flex justify-between text-white/60 text-xs mb-1">
+              <span>Audio Reactivity</span>
+              <span className="text-white/40">{skyboxAudioReactivity.toFixed(2)}x</span>
+            </label>
+            <input
+              type="range"
+              min={0}
+              max={2}
+              step={0.05}
+              value={skyboxAudioReactivity}
+              onChange={(e) => setSkyboxAudioReactivity(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+            />
+          </div>
+
+          {/* Drift / Scroll Speed */}
+          <div>
+            <label className="flex justify-between text-white/60 text-xs mb-1">
+              <span>Drift Speed</span>
+              <span className="text-white/40">{skyboxDriftSpeed.toFixed(2)}x</span>
+            </label>
+            <input
+              type="range"
+              min={0}
+              max={3}
+              step={0.05}
+              value={skyboxDriftSpeed}
+              onChange={(e) => setSkyboxDriftSpeed(parseFloat(e.target.value))}
               className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
             />
           </div>

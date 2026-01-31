@@ -9,6 +9,9 @@ interface VisualState {
   // Skybox state (plan 01-04)
   skyboxPreset: StarNestPreset;
   skyboxRotationSpeed: number;
+  skyboxAudioReactiveEnabled: boolean;
+  skyboxAudioReactivity: number;
+  skyboxDriftSpeed: number;
   // Visual mode state (plan 01-05)
   currentMode: VisualMode;
   modeConfigs: Record<VisualMode, VisualModeConfig>;
@@ -22,6 +25,9 @@ interface VisualState {
   // Skybox actions
   setSkyboxPreset: (preset: StarNestPreset) => void;
   setSkyboxRotationSpeed: (speed: number) => void;
+  setSkyboxAudioReactiveEnabled: (enabled: boolean) => void;
+  setSkyboxAudioReactivity: (value: number) => void;
+  setSkyboxDriftSpeed: (value: number) => void;
   // Visual mode actions
   setMode: (mode: VisualMode) => void;
   // Water actions
@@ -188,6 +194,9 @@ export const useVisualStore = create<VisualState>((set) => ({
   // Initialize skybox with DarkWorld1 (THE ONE)
   skyboxPreset: STAR_NEST_PRESETS[0],
   skyboxRotationSpeed: 0.5, // Default rotation speed from DarkWorld1
+  skyboxAudioReactiveEnabled: true,
+  skyboxAudioReactivity: 1.0,
+  skyboxDriftSpeed: 1.0,
   // Visual mode state
   currentMode: 'etherealFlame',
   modeConfigs: {
@@ -217,6 +226,9 @@ export const useVisualStore = create<VisualState>((set) => ({
 
   setSkyboxPreset: (preset) => set({ skyboxPreset: preset }),
   setSkyboxRotationSpeed: (speed) => set({ skyboxRotationSpeed: speed }),
+  setSkyboxAudioReactiveEnabled: (enabled) => set({ skyboxAudioReactiveEnabled: enabled }),
+  setSkyboxAudioReactivity: (value) => set({ skyboxAudioReactivity: value }),
+  setSkyboxDriftSpeed: (value) => set({ skyboxDriftSpeed: value }),
 
   setMode: (mode) =>
     set((state) => {
