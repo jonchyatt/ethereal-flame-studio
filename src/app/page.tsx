@@ -27,12 +27,15 @@ export default function Home() {
   const skyboxMaskSoftness = useVisualStore((state) => state.skyboxMaskSoftness);
   const skyboxMaskColor = useVisualStore((state) => state.skyboxMaskColor);
   const skyboxMaskPreview = useVisualStore((state) => state.skyboxMaskPreview);
+  const vrComfortMode = useVisualStore((state) => state.vrComfortMode);
   const waterEnabled = useVisualStore((state) => state.waterEnabled);
   const waterColor = useVisualStore((state) => state.waterColor);
   const waterReflectivity = useVisualStore((state) => state.waterReflectivity);
 
   // VR Preview Mode
   const { isVRMode, showInstructions, enterVRMode, exitVRMode, dismissInstructions } = useVRMode();
+
+  const effectiveSkyboxRotation = isVRMode && vrComfortMode ? 0 : skyboxRotationSpeed;
 
   return (
     <VRContextProvider>
@@ -56,14 +59,14 @@ export default function Home() {
             maskSoftness={skyboxMaskSoftness}
             maskColor={skyboxMaskColor}
             maskPreview={skyboxMaskPreview}
-            rotationSpeed={skyboxRotationSpeed}
+            rotationSpeed={effectiveSkyboxRotation}
           />
         )}
 
         {(skyboxMode !== 'video' || !skyboxVideoUrl || skyboxMaskMode !== 'none') && (
           <StarNestSkybox
             preset={skyboxPreset}
-            rotationSpeed={skyboxRotationSpeed}
+            rotationSpeed={effectiveSkyboxRotation}
             audioReactiveEnabled={skyboxAudioReactiveEnabled}
             audioReactivity={skyboxAudioReactivity}
             driftSpeed={skyboxDriftSpeed}

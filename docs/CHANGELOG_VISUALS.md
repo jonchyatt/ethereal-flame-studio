@@ -26,3 +26,6 @@ All changes in the ethereal-flame-studio copy for skybox/orb controls are tracke
 - Added OrbAnchor component to position the particle orb in viewer or world space.
 - Routed the particle system through OrbAnchor in the main canvas.
 - Added orb placement controls (viewer/world anchor + offsets) to the Advanced Editor.
+- Added VR comfort mode flag to the visual store (to disable skybox rotation in VR).
+- Added VR comfort toggle in the Advanced Editor skybox controls.
+- Applied VR comfort mode to freeze skybox rotation while in VR.

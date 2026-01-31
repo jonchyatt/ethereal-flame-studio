@@ -20,6 +20,7 @@ interface VisualState {
   skyboxMaskSoftness: number;
   skyboxMaskColor: string;
   skyboxMaskPreview: boolean;
+  vrComfortMode: boolean;
   // Orb placement
   orbAnchorMode: 'viewer' | 'world';
   orbDistance: number;
@@ -51,6 +52,7 @@ interface VisualState {
   setSkyboxMaskSoftness: (value: number) => void;
   setSkyboxMaskColor: (value: string) => void;
   setSkyboxMaskPreview: (enabled: boolean) => void;
+  setVrComfortMode: (enabled: boolean) => void;
   // Orb placement actions
   setOrbAnchorMode: (mode: 'viewer' | 'world') => void;
   setOrbDistance: (value: number) => void;
@@ -236,6 +238,7 @@ export const useVisualStore = create<VisualState>((set) => ({
   skyboxMaskSoftness: 0.08,
   skyboxMaskColor: '#87ceeb',
   skyboxMaskPreview: false,
+  vrComfortMode: false,
   orbAnchorMode: 'viewer',
   orbDistance: 6,
   orbHeight: 0,
@@ -282,6 +285,7 @@ export const useVisualStore = create<VisualState>((set) => ({
   setSkyboxMaskSoftness: (value) => set({ skyboxMaskSoftness: value }),
   setSkyboxMaskColor: (value) => set({ skyboxMaskColor: value }),
   setSkyboxMaskPreview: (enabled) => set({ skyboxMaskPreview: enabled }),
+  setVrComfortMode: (enabled) => set({ vrComfortMode: enabled }),
   setOrbAnchorMode: (mode) => set({ orbAnchorMode: mode }),
   setOrbDistance: (value) => set({ orbDistance: value }),
   setOrbHeight: (value) => set({ orbHeight: value }),

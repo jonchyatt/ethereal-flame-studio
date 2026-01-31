@@ -35,6 +35,8 @@ export function AdvancedEditor() {
   const setSkyboxMaskColor = useVisualStore((state) => state.setSkyboxMaskColor);
   const skyboxMaskPreview = useVisualStore((state) => state.skyboxMaskPreview);
   const setSkyboxMaskPreview = useVisualStore((state) => state.setSkyboxMaskPreview);
+  const vrComfortMode = useVisualStore((state) => state.vrComfortMode);
+  const setVrComfortMode = useVisualStore((state) => state.setVrComfortMode);
   const orbAnchorMode = useVisualStore((state) => state.orbAnchorMode);
   const setOrbAnchorMode = useVisualStore((state) => state.setOrbAnchorMode);
   const orbDistance = useVisualStore((state) => state.orbDistance);
@@ -452,6 +454,26 @@ export function AdvancedEditor() {
               className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
             />
           </div>
+
+          {/* VR Comfort */}
+          <div className="flex items-center justify-between">
+            <span className="text-white/60 text-sm">VR Comfort Mode</span>
+            <button
+              onClick={() => setVrComfortMode(!vrComfortMode)}
+              className={`
+                px-3 py-1 rounded text-sm
+                ${vrComfortMode
+                  ? 'bg-blue-500/50 text-white border border-blue-400/50'
+                  : 'bg-white/10 text-white/60 border border-white/20'
+                }
+              `}
+            >
+              {vrComfortMode ? 'ON' : 'OFF'}
+            </button>
+          </div>
+          <p className="text-white/40 text-xs">
+            Disables skybox rotation while in VR to reduce motion discomfort.
+          </p>
 
           {hasStarNestOverlay && (
             <>
