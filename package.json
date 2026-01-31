@@ -13,9 +13,11 @@
     "test:deploy": "npm run kill && vercel --yes",
     "worker": "tsx scripts/start-worker.ts",
     "worker:render": "tsx scripts/start-worker.ts --render",
-    "worker:transcribe": "tsx scripts/start-worker.ts --transcribe"
+    "worker:transcribe": "tsx scripts/start-worker.ts --transcribe",
+    "render:local": "tsx scripts/render-cli.ts"
   },
   "dependencies": {
+    "@deepgram/sdk": "^4.11.3",
     "@react-three/drei": "^10.0.0",
     "@react-three/fiber": "^9.0.0",
     "@react-three/postprocessing": "^3.0.4",
