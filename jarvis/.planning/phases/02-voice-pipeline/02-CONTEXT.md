@@ -28,8 +28,9 @@ User can speak and hear synthesized speech response. This phase establishes STT 
 - Claude decides placement and styling if enabled
 
 ### TTS Voice
-- Provider is swappable (ElevenLabs mentioned in plans, not locked)
-- Specific voice selection is a config concern, not architecture
+- Phase 2 uses browser SpeechSynthesis (free, no API key)
+- Premium TTS (ElevenLabs, OpenAI) is easy swap later when voice quality matters
+- Interface is identical: speak(), stop(), callbacks
 - Actual personality/character is Phase 3 (prompt engineering)
 
 ### Error Handling
