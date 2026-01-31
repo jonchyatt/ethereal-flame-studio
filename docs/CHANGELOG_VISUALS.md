@@ -61,6 +61,7 @@ All changes in the ethereal-flame-studio copy for skybox/orb controls are tracke
 - Ensured StarNest renders behind video when hole-fix is active.
 - Updated Advanced Editor overlay logic to keep StarNest controls visible for hole-fix.
 - Updated Skybox Preset visibility logic to include hole-fix overlays.
+- Restored audio URL tracking in the audio store for render dialog compatibility.
 - Added hole-fix state hooks, mask debug helper, and hole-fix controls in the Advanced Editor.
 - Added a split-view Preview/Live label overlay for mask debugging.
 - Reworked the control UI into left/right docked panels with independent hide buttons.
