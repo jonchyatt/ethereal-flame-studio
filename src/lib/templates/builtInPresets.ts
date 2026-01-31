@@ -10,8 +10,35 @@ import { ParticleLayerConfig } from '@/types';
 const getSkyboxPreset = (key: string) =>
   STAR_NEST_PRESETS.find(p => p.key === key) || STAR_NEST_PRESETS[0];
 
+const BASE_TEMPLATE_SETTINGS: Omit<TemplateSettings, 'intensity' | 'layers' | 'skyboxPreset' | 'skyboxRotationSpeed' | 'currentMode' | 'waterEnabled' | 'waterColor' | 'waterReflectivity'> = {
+  skyboxAudioReactiveEnabled: true,
+  skyboxAudioReactivity: 1.0,
+  skyboxDriftSpeed: 1.0,
+  skyboxMode: 'shader',
+  skyboxVideoUrl: null,
+  skyboxMaskMode: 'none',
+  skyboxMaskThreshold: 0.65,
+  skyboxMaskSoftness: 0.08,
+  skyboxMaskColor: '#87ceeb',
+  skyboxMaskInvert: false,
+  vrComfortMode: false,
+  orbAnchorMode: 'viewer',
+  orbDistance: 6,
+  orbHeight: 0,
+  orbSideOffset: 0,
+  orbWorldX: 0,
+  orbWorldY: 0,
+  orbWorldZ: 0,
+  cameraLookAtOrb: false,
+  cameraOrbitEnabled: false,
+  cameraOrbitSpeed: 0.4,
+  cameraOrbitRadius: 8,
+  cameraOrbitHeight: 0,
+};
+
 // 1. Ethereal Flame - Warm fire orb (existing config)
 const ETHEREAL_FLAME_SETTINGS: TemplateSettings = {
+  ...BASE_TEMPLATE_SETTINGS,
   intensity: 1.0,
   layers: ETHEREAL_FLAME_CONFIG.layers,
   skyboxPreset: getSkyboxPreset('darkWorld1'),
@@ -24,6 +51,7 @@ const ETHEREAL_FLAME_SETTINGS: TemplateSettings = {
 
 // 2. Ethereal Mist - Soft cloud-like (existing config)
 const ETHEREAL_MIST_SETTINGS: TemplateSettings = {
+  ...BASE_TEMPLATE_SETTINGS,
   intensity: 1.0,
   layers: ETHEREAL_MIST_CONFIG.layers,
   skyboxPreset: getSkyboxPreset('darkWorld1'),
@@ -75,6 +103,7 @@ const COSMIC_VOID_LAYERS: ParticleLayerConfig[] = [
 ];
 
 const COSMIC_VOID_SETTINGS: TemplateSettings = {
+  ...BASE_TEMPLATE_SETTINGS,
   intensity: 0.8,
   layers: COSMIC_VOID_LAYERS,
   skyboxPreset: getSkyboxPreset('darkWorld2'),
@@ -144,6 +173,7 @@ const SOLAR_FLARE_LAYERS: ParticleLayerConfig[] = [
 ];
 
 const SOLAR_FLARE_SETTINGS: TemplateSettings = {
+  ...BASE_TEMPLATE_SETTINGS,
   intensity: 1.2,
   layers: SOLAR_FLARE_LAYERS,
   skyboxPreset: getSkyboxPreset('darkWorld1'),
@@ -195,6 +225,7 @@ const AURORA_LAYERS: ParticleLayerConfig[] = [
 ];
 
 const AURORA_SETTINGS: TemplateSettings = {
+  ...BASE_TEMPLATE_SETTINGS,
   intensity: 1.0,
   layers: AURORA_LAYERS,
   skyboxPreset: getSkyboxPreset('darkWorld2'),
@@ -264,6 +295,7 @@ const NEON_PULSE_LAYERS: ParticleLayerConfig[] = [
 ];
 
 const NEON_PULSE_SETTINGS: TemplateSettings = {
+  ...BASE_TEMPLATE_SETTINGS,
   intensity: 1.1,
   layers: NEON_PULSE_LAYERS,
   skyboxPreset: getSkyboxPreset('darkWorld1'),

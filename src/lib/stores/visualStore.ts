@@ -20,6 +20,9 @@ interface VisualState {
   skyboxMaskSoftness: number;
   skyboxMaskColor: string;
   skyboxMaskPreview: boolean;
+  skyboxMaskPreviewSplit: boolean;
+  skyboxMaskPreviewColor: string;
+  skyboxMaskInvert: boolean;
   vrComfortMode: boolean;
   // Orb placement
   orbAnchorMode: 'viewer' | 'world';
@@ -29,6 +32,12 @@ interface VisualState {
   orbWorldX: number;
   orbWorldY: number;
   orbWorldZ: number;
+  // Camera options (non-VR)
+  cameraLookAtOrb: boolean;
+  cameraOrbitEnabled: boolean;
+  cameraOrbitSpeed: number;
+  cameraOrbitRadius: number;
+  cameraOrbitHeight: number;
   // Visual mode state (plan 01-05)
   currentMode: VisualMode;
   modeConfigs: Record<VisualMode, VisualModeConfig>;
@@ -52,6 +61,9 @@ interface VisualState {
   setSkyboxMaskSoftness: (value: number) => void;
   setSkyboxMaskColor: (value: string) => void;
   setSkyboxMaskPreview: (enabled: boolean) => void;
+  setSkyboxMaskPreviewSplit: (enabled: boolean) => void;
+  setSkyboxMaskPreviewColor: (value: string) => void;
+  setSkyboxMaskInvert: (enabled: boolean) => void;
   setVrComfortMode: (enabled: boolean) => void;
   // Orb placement actions
   setOrbAnchorMode: (mode: 'viewer' | 'world') => void;
@@ -61,6 +73,11 @@ interface VisualState {
   setOrbWorldX: (value: number) => void;
   setOrbWorldY: (value: number) => void;
   setOrbWorldZ: (value: number) => void;
+  setCameraLookAtOrb: (enabled: boolean) => void;
+  setCameraOrbitEnabled: (enabled: boolean) => void;
+  setCameraOrbitSpeed: (value: number) => void;
+  setCameraOrbitRadius: (value: number) => void;
+  setCameraOrbitHeight: (value: number) => void;
   // Visual mode actions
   setMode: (mode: VisualMode) => void;
   // Water actions
@@ -238,6 +255,9 @@ export const useVisualStore = create<VisualState>((set) => ({
   skyboxMaskSoftness: 0.08,
   skyboxMaskColor: '#87ceeb',
   skyboxMaskPreview: false,
+  skyboxMaskPreviewSplit: false,
+  skyboxMaskPreviewColor: '#ff00ff',
+  skyboxMaskInvert: false,
   vrComfortMode: false,
   orbAnchorMode: 'viewer',
   orbDistance: 6,
@@ -246,6 +266,11 @@ export const useVisualStore = create<VisualState>((set) => ({
   orbWorldX: 0,
   orbWorldY: 0,
   orbWorldZ: 0,
+  cameraLookAtOrb: false,
+  cameraOrbitEnabled: false,
+  cameraOrbitSpeed: 0.4,
+  cameraOrbitRadius: 8,
+  cameraOrbitHeight: 0,
   // Visual mode state
   currentMode: 'etherealFlame',
   modeConfigs: {
@@ -285,6 +310,9 @@ export const useVisualStore = create<VisualState>((set) => ({
   setSkyboxMaskSoftness: (value) => set({ skyboxMaskSoftness: value }),
   setSkyboxMaskColor: (value) => set({ skyboxMaskColor: value }),
   setSkyboxMaskPreview: (enabled) => set({ skyboxMaskPreview: enabled }),
+  setSkyboxMaskPreviewSplit: (enabled) => set({ skyboxMaskPreviewSplit: enabled }),
+  setSkyboxMaskPreviewColor: (value) => set({ skyboxMaskPreviewColor: value }),
+  setSkyboxMaskInvert: (enabled) => set({ skyboxMaskInvert: enabled }),
   setVrComfortMode: (enabled) => set({ vrComfortMode: enabled }),
   setOrbAnchorMode: (mode) => set({ orbAnchorMode: mode }),
   setOrbDistance: (value) => set({ orbDistance: value }),
@@ -293,6 +321,11 @@ export const useVisualStore = create<VisualState>((set) => ({
   setOrbWorldX: (value) => set({ orbWorldX: value }),
   setOrbWorldY: (value) => set({ orbWorldY: value }),
   setOrbWorldZ: (value) => set({ orbWorldZ: value }),
+  setCameraLookAtOrb: (enabled) => set({ cameraLookAtOrb: enabled }),
+  setCameraOrbitEnabled: (enabled) => set({ cameraOrbitEnabled: enabled }),
+  setCameraOrbitSpeed: (value) => set({ cameraOrbitSpeed: value }),
+  setCameraOrbitRadius: (value) => set({ cameraOrbitRadius: value }),
+  setCameraOrbitHeight: (value) => set({ cameraOrbitHeight: value }),
 
   setMode: (mode) =>
     set((state) => {
@@ -312,29 +345,82 @@ export const useVisualStore = create<VisualState>((set) => ({
   setWaterReflectivity: (reflectivity) => set({ waterReflectivity: reflectivity }),
 
   // Template integration (plan 02-01)
-  applyTemplateSettings: (settings) => set({
-    intensity: settings.intensity,
-    layers: settings.layers,
-    skyboxPreset: settings.skyboxPreset,
-    skyboxRotationSpeed: settings.skyboxRotationSpeed,
-    currentMode: settings.currentMode,
-    waterEnabled: settings.waterEnabled,
-    waterColor: settings.waterColor,
-    waterReflectivity: settings.waterReflectivity,
-  }),
+  applyTemplateSettings: (settings) => set((state) => ({
+    intensity: settings.intensity ?? state.intensity,
+    layers: settings.layers ?? state.layers,
+    skyboxPreset: settings.skyboxPreset ?? state.skyboxPreset,
+    skyboxRotationSpeed: settings.skyboxRotationSpeed ?? state.skyboxRotationSpeed,
+    skyboxAudioReactiveEnabled: settings.skyboxAudioReactiveEnabled ?? state.skyboxAudioReactiveEnabled,
+    skyboxAudioReactivity: settings.skyboxAudioReactivity ?? state.skyboxAudioReactivity,
+    skyboxDriftSpeed: settings.skyboxDriftSpeed ?? state.skyboxDriftSpeed,
+    skyboxMode: settings.skyboxMode ?? state.skyboxMode,
+    skyboxVideoUrl: settings.skyboxVideoUrl ?? state.skyboxVideoUrl,
+    skyboxMaskMode: settings.skyboxMaskMode ?? state.skyboxMaskMode,
+    skyboxMaskThreshold: settings.skyboxMaskThreshold ?? state.skyboxMaskThreshold,
+    skyboxMaskSoftness: settings.skyboxMaskSoftness ?? state.skyboxMaskSoftness,
+    skyboxMaskColor: settings.skyboxMaskColor ?? state.skyboxMaskColor,
+    skyboxMaskInvert: settings.skyboxMaskInvert ?? state.skyboxMaskInvert,
+    vrComfortMode: settings.vrComfortMode ?? state.vrComfortMode,
+    orbAnchorMode: settings.orbAnchorMode ?? state.orbAnchorMode,
+    orbDistance: settings.orbDistance ?? state.orbDistance,
+    orbHeight: settings.orbHeight ?? state.orbHeight,
+    orbSideOffset: settings.orbSideOffset ?? state.orbSideOffset,
+    orbWorldX: settings.orbWorldX ?? state.orbWorldX,
+    orbWorldY: settings.orbWorldY ?? state.orbWorldY,
+    orbWorldZ: settings.orbWorldZ ?? state.orbWorldZ,
+    cameraLookAtOrb: settings.cameraLookAtOrb ?? state.cameraLookAtOrb,
+    cameraOrbitEnabled: settings.cameraOrbitEnabled ?? state.cameraOrbitEnabled,
+    cameraOrbitSpeed: settings.cameraOrbitSpeed ?? state.cameraOrbitSpeed,
+    cameraOrbitRadius: settings.cameraOrbitRadius ?? state.cameraOrbitRadius,
+    cameraOrbitHeight: settings.cameraOrbitHeight ?? state.cameraOrbitHeight,
+    currentMode: settings.currentMode ?? state.currentMode,
+    waterEnabled: settings.waterEnabled ?? state.waterEnabled,
+    waterColor: settings.waterColor ?? state.waterColor,
+    waterReflectivity: settings.waterReflectivity ?? state.waterReflectivity,
+  })),
 }));
 
 /**
  * Selector to extract serializable visual state for template saving
  * Excludes functions and non-serializable data
  */
-export const selectSerializableState = (state: VisualState): TemplateSettings => ({
-  intensity: state.intensity,
-  layers: state.layers,
-  skyboxPreset: state.skyboxPreset,
-  skyboxRotationSpeed: state.skyboxRotationSpeed,
-  currentMode: state.currentMode,
-  waterEnabled: state.waterEnabled,
-  waterColor: state.waterColor,
-  waterReflectivity: state.waterReflectivity,
-});
+export const selectSerializableState = (state: VisualState): TemplateSettings => {
+  const safeVideoUrl =
+    state.skyboxVideoUrl && state.skyboxVideoUrl.startsWith('blob:')
+      ? null
+      : state.skyboxVideoUrl;
+
+  return {
+    intensity: state.intensity,
+    layers: state.layers,
+    skyboxPreset: state.skyboxPreset,
+    skyboxRotationSpeed: state.skyboxRotationSpeed,
+    skyboxAudioReactiveEnabled: state.skyboxAudioReactiveEnabled,
+    skyboxAudioReactivity: state.skyboxAudioReactivity,
+    skyboxDriftSpeed: state.skyboxDriftSpeed,
+    skyboxMode: state.skyboxMode,
+    skyboxVideoUrl: safeVideoUrl,
+    skyboxMaskMode: state.skyboxMaskMode,
+    skyboxMaskThreshold: state.skyboxMaskThreshold,
+    skyboxMaskSoftness: state.skyboxMaskSoftness,
+    skyboxMaskColor: state.skyboxMaskColor,
+    skyboxMaskInvert: state.skyboxMaskInvert,
+    vrComfortMode: state.vrComfortMode,
+    orbAnchorMode: state.orbAnchorMode,
+    orbDistance: state.orbDistance,
+    orbHeight: state.orbHeight,
+    orbSideOffset: state.orbSideOffset,
+    orbWorldX: state.orbWorldX,
+    orbWorldY: state.orbWorldY,
+    orbWorldZ: state.orbWorldZ,
+    cameraLookAtOrb: state.cameraLookAtOrb,
+    cameraOrbitEnabled: state.cameraOrbitEnabled,
+    cameraOrbitSpeed: state.cameraOrbitSpeed,
+    cameraOrbitRadius: state.cameraOrbitRadius,
+    cameraOrbitHeight: state.cameraOrbitHeight,
+    currentMode: state.currentMode,
+    waterEnabled: state.waterEnabled,
+    waterColor: state.waterColor,
+    waterReflectivity: state.waterReflectivity,
+  };
+};

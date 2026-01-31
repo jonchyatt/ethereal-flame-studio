@@ -35,6 +35,12 @@ export function AdvancedEditor() {
   const setSkyboxMaskColor = useVisualStore((state) => state.setSkyboxMaskColor);
   const skyboxMaskPreview = useVisualStore((state) => state.skyboxMaskPreview);
   const setSkyboxMaskPreview = useVisualStore((state) => state.setSkyboxMaskPreview);
+  const skyboxMaskPreviewSplit = useVisualStore((state) => state.skyboxMaskPreviewSplit);
+  const setSkyboxMaskPreviewSplit = useVisualStore((state) => state.setSkyboxMaskPreviewSplit);
+  const skyboxMaskPreviewColor = useVisualStore((state) => state.skyboxMaskPreviewColor);
+  const setSkyboxMaskPreviewColor = useVisualStore((state) => state.setSkyboxMaskPreviewColor);
+  const skyboxMaskInvert = useVisualStore((state) => state.skyboxMaskInvert);
+  const setSkyboxMaskInvert = useVisualStore((state) => state.setSkyboxMaskInvert);
   const vrComfortMode = useVisualStore((state) => state.vrComfortMode);
   const setVrComfortMode = useVisualStore((state) => state.setVrComfortMode);
   const orbAnchorMode = useVisualStore((state) => state.orbAnchorMode);
@@ -51,6 +57,16 @@ export function AdvancedEditor() {
   const setOrbWorldY = useVisualStore((state) => state.setOrbWorldY);
   const orbWorldZ = useVisualStore((state) => state.orbWorldZ);
   const setOrbWorldZ = useVisualStore((state) => state.setOrbWorldZ);
+  const cameraLookAtOrb = useVisualStore((state) => state.cameraLookAtOrb);
+  const setCameraLookAtOrb = useVisualStore((state) => state.setCameraLookAtOrb);
+  const cameraOrbitEnabled = useVisualStore((state) => state.cameraOrbitEnabled);
+  const setCameraOrbitEnabled = useVisualStore((state) => state.setCameraOrbitEnabled);
+  const cameraOrbitSpeed = useVisualStore((state) => state.cameraOrbitSpeed);
+  const setCameraOrbitSpeed = useVisualStore((state) => state.setCameraOrbitSpeed);
+  const cameraOrbitRadius = useVisualStore((state) => state.cameraOrbitRadius);
+  const setCameraOrbitRadius = useVisualStore((state) => state.setCameraOrbitRadius);
+  const cameraOrbitHeight = useVisualStore((state) => state.cameraOrbitHeight);
+  const setCameraOrbitHeight = useVisualStore((state) => state.setCameraOrbitHeight);
   const [videoUrlInput, setVideoUrlInput] = useState('');
   const waterEnabled = useVisualStore((state) => state.waterEnabled);
   const setWaterEnabled = useVisualStore((state) => state.setWaterEnabled);
@@ -249,6 +265,100 @@ export function AdvancedEditor() {
         </div>
       </ParameterGroup>
 
+      {/* Camera Options */}
+      <ParameterGroup title="Camera (Non-VR)">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-white/60 text-sm">Look At Orb</span>
+            <button
+              onClick={() => setCameraLookAtOrb(!cameraLookAtOrb)}
+              className={`
+                px-3 py-1 rounded text-sm
+                ${cameraLookAtOrb
+                  ? 'bg-blue-500/50 text-white border border-blue-400/50'
+                  : 'bg-white/10 text-white/60 border border-white/20'
+                }
+              `}
+            >
+              {cameraLookAtOrb ? 'ON' : 'OFF'}
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-white/60 text-sm">Orbit Camera</span>
+            <button
+              onClick={() => setCameraOrbitEnabled(!cameraOrbitEnabled)}
+              className={`
+                px-3 py-1 rounded text-sm
+                ${cameraOrbitEnabled
+                  ? 'bg-blue-500/50 text-white border border-blue-400/50'
+                  : 'bg-white/10 text-white/60 border border-white/20'
+                }
+              `}
+            >
+              {cameraOrbitEnabled ? 'ON' : 'OFF'}
+            </button>
+          </div>
+          {cameraOrbitEnabled && (
+            <>
+              {orbAnchorMode !== 'world' && (
+                <p className="text-white/40 text-xs">
+                  Orbit works best with <span className="text-white/70">World Anchored</span> orb.
+                </p>
+              )}
+              <div>
+                <label className="flex justify-between text-white/60 text-xs mb-1">
+                  <span>Orbit Radius</span>
+                  <span className="text-white/40">{cameraOrbitRadius.toFixed(1)}</span>
+                </label>
+                <input
+                  type="range"
+                  min={1}
+                  max={20}
+                  step={0.1}
+                  value={cameraOrbitRadius}
+                  onChange={(e) => setCameraOrbitRadius(parseFloat(e.target.value))}
+                  className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+              <div>
+                <label className="flex justify-between text-white/60 text-xs mb-1">
+                  <span>Orbit Speed</span>
+                  <span className="text-white/40">{cameraOrbitSpeed.toFixed(2)}</span>
+                </label>
+                <input
+                  type="range"
+                  min={0}
+                  max={2}
+                  step={0.01}
+                  value={cameraOrbitSpeed}
+                  onChange={(e) => setCameraOrbitSpeed(parseFloat(e.target.value))}
+                  className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+              <div>
+                <label className="flex justify-between text-white/60 text-xs mb-1">
+                  <span>Orbit Height</span>
+                  <span className="text-white/40">{cameraOrbitHeight.toFixed(1)}</span>
+                </label>
+                <input
+                  type="range"
+                  min={-10}
+                  max={10}
+                  step={0.1}
+                  value={cameraOrbitHeight}
+                  onChange={(e) => setCameraOrbitHeight(parseFloat(e.target.value))}
+                  className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+            </>
+          )}
+          <p className="text-white/40 text-xs">
+            Camera options are disabled automatically in VR mode.
+          </p>
+        </div>
+      </ParameterGroup>
+
       {/* Skybox Settings */}
       <ParameterGroup title="Skybox">
         <div className="space-y-3">
@@ -382,6 +492,50 @@ export function AdvancedEditor() {
                         {skyboxMaskPreview ? 'ON' : 'OFF'}
                       </button>
                     </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/60 text-xs">Invert Mask</span>
+                      <button
+                        onClick={() => setSkyboxMaskInvert(!skyboxMaskInvert)}
+                        className={`
+                          px-3 py-1 rounded text-xs
+                          ${skyboxMaskInvert
+                            ? 'bg-blue-500/50 text-white border border-blue-400/50'
+                            : 'bg-white/10 text-white/60 border border-white/20'
+                          }
+                        `}
+                      >
+                        {skyboxMaskInvert ? 'ON' : 'OFF'}
+                      </button>
+                    </div>
+                    {skyboxMaskPreview && (
+                      <>
+                        <div className="flex items-center gap-3">
+                          <span className="text-white/60 text-xs">Preview Color:</span>
+                          <input
+                            type="color"
+                            value={skyboxMaskPreviewColor}
+                            onChange={(e) => setSkyboxMaskPreviewColor(e.target.value)}
+                            className="w-8 h-8 rounded cursor-pointer border border-white/20"
+                          />
+                          <span className="text-white/40 text-xs font-mono">{skyboxMaskPreviewColor}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-white/60 text-xs">Split View</span>
+                          <button
+                            onClick={() => setSkyboxMaskPreviewSplit(!skyboxMaskPreviewSplit)}
+                            className={`
+                              px-3 py-1 rounded text-xs
+                              ${skyboxMaskPreviewSplit
+                                ? 'bg-blue-500/50 text-white border border-blue-400/50'
+                                : 'bg-white/10 text-white/60 border border-white/20'
+                              }
+                            `}
+                          >
+                            {skyboxMaskPreviewSplit ? 'ON' : 'OFF'}
+                          </button>
+                        </div>
+                      </>
+                    )}
                     {skyboxMaskMode === 'chroma' && (
                       <div className="flex items-center gap-3">
                         <span className="text-white/60 text-xs">Key Color:</span>

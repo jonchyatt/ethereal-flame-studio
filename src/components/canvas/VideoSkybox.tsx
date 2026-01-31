@@ -13,6 +13,9 @@ type VideoSkyboxProps = {
   maskSoftness?: number;
   maskColor?: string;
   maskPreview?: boolean;
+  maskPreviewSplit?: boolean;
+  maskPreviewColor?: string;
+  maskInvert?: boolean;
   rotationSpeed?: number;
 };
 
@@ -24,6 +27,9 @@ export function VideoSkybox({
   maskSoftness = 0.08,
   maskColor = "#87ceeb",
   maskPreview = false,
+  maskPreviewSplit = false,
+  maskPreviewColor = "#ff00ff",
+  maskInvert = false,
   rotationSpeed = 0,
 }: VideoSkyboxProps) {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -69,6 +75,11 @@ export function VideoSkybox({
     return new THREE.Vector3(color.r, color.g, color.b);
   }, [maskColor]);
 
+  const previewColorVec = useMemo(() => {
+    const color = new THREE.Color(maskPreviewColor);
+    return new THREE.Vector3(color.r, color.g, color.b);
+  }, [maskPreviewColor]);
+
   const uniforms = useMemo(
     () => ({
       uMap: { value: null as THREE.VideoTexture | null },
@@ -77,8 +88,11 @@ export function VideoSkybox({
       uSoftness: { value: maskSoftness },
       uKeyColor: { value: maskColorVec },
       uPreview: { value: maskPreview ? 1.0 : 0.0 },
+      uPreviewSplit: { value: maskPreviewSplit ? 1.0 : 0.0 },
+      uPreviewColor: { value: previewColorVec },
+      uInvert: { value: maskInvert ? 1.0 : 0.0 },
     }),
-    [maskThreshold, maskSoftness, maskColorVec, maskPreview]
+    [maskThreshold, maskSoftness, maskColorVec, maskPreview, maskPreviewSplit, previewColorVec, maskInvert]
   );
 
   useEffect(() => {
@@ -94,7 +108,10 @@ export function VideoSkybox({
     materialRef.current.uniforms.uSoftness.value = maskSoftness;
     materialRef.current.uniforms.uKeyColor.value = maskColorVec;
     materialRef.current.uniforms.uPreview.value = maskPreview ? 1.0 : 0.0;
-  }, [maskMode, maskThreshold, maskSoftness, maskColorVec, maskPreview]);
+    materialRef.current.uniforms.uPreviewSplit.value = maskPreviewSplit ? 1.0 : 0.0;
+    materialRef.current.uniforms.uPreviewColor.value = previewColorVec;
+    materialRef.current.uniforms.uInvert.value = maskInvert ? 1.0 : 0.0;
+  }, [maskMode, maskThreshold, maskSoftness, maskColorVec, maskPreview, maskPreviewSplit, previewColorVec, maskInvert]);
 
   useFrame((_, delta) => {
     if (rotationSpeed && meshRef.current) {
@@ -127,6 +144,9 @@ export function VideoSkybox({
           uniform float uSoftness;
           uniform vec3 uKeyColor;
           uniform float uPreview;
+          uniform float uPreviewSplit;
+          uniform vec3 uPreviewColor;
+          uniform float uInvert;
           varying vec2 vUv;
 
           float luma(vec3 c) {
@@ -151,8 +171,17 @@ export function VideoSkybox({
               alpha = edge;
             }
 
-            if (uPreview > 0.5) {
-              vec3 keyedTint = mix(vec3(1.0, 0.0, 1.0), color.rgb, alpha);
+            if (uInvert > 0.5 && uMaskMode > 0.5) {
+              alpha = 1.0 - alpha;
+            }
+
+            bool showPreview = uPreview > 0.5;
+            if (uPreviewSplit > 0.5) {
+              showPreview = showPreview && (vUv.x < 0.5);
+            }
+
+            if (showPreview) {
+              vec3 keyedTint = mix(uPreviewColor, color.rgb, alpha);
               gl_FragColor = vec4(keyedTint, 1.0);
             } else {
               gl_FragColor = vec4(color.rgb, color.a * alpha);

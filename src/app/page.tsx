@@ -8,6 +8,7 @@ import { OrbAnchor } from '@/components/canvas/OrbAnchor';
 import { StarNestSkybox } from '@/components/canvas/StarNestSkybox';
 import { VideoSkybox } from '@/components/canvas/VideoSkybox';
 import { WaterPlane } from '@/components/canvas/WaterPlane';
+import { CameraRig } from '@/components/canvas/CameraRig';
 import { VRPreviewMode, VRModeOverlay, useVRMode, VRContextProvider } from '@/components/canvas/VRPreviewMode';
 import { ScreenshotCapture, ScreenshotCaptureRef } from '@/components/ui/ScreenshotCapture';
 import { ControlPanel } from '@/components/ui/ControlPanel';
@@ -27,7 +28,12 @@ export default function Home() {
   const skyboxMaskSoftness = useVisualStore((state) => state.skyboxMaskSoftness);
   const skyboxMaskColor = useVisualStore((state) => state.skyboxMaskColor);
   const skyboxMaskPreview = useVisualStore((state) => state.skyboxMaskPreview);
+  const skyboxMaskPreviewSplit = useVisualStore((state) => state.skyboxMaskPreviewSplit);
+  const skyboxMaskPreviewColor = useVisualStore((state) => state.skyboxMaskPreviewColor);
+  const skyboxMaskInvert = useVisualStore((state) => state.skyboxMaskInvert);
   const vrComfortMode = useVisualStore((state) => state.vrComfortMode);
+  const cameraLookAtOrb = useVisualStore((state) => state.cameraLookAtOrb);
+  const cameraOrbitEnabled = useVisualStore((state) => state.cameraOrbitEnabled);
   const waterEnabled = useVisualStore((state) => state.waterEnabled);
   const waterColor = useVisualStore((state) => state.waterColor);
   const waterReflectivity = useVisualStore((state) => state.waterReflectivity);
@@ -36,6 +42,7 @@ export default function Home() {
   const { isVRMode, showInstructions, enterVRMode, exitVRMode, dismissInstructions } = useVRMode();
 
   const effectiveSkyboxRotation = isVRMode && vrComfortMode ? 0 : skyboxRotationSpeed;
+  const effectiveSkyboxDrift = isVRMode && vrComfortMode ? 0 : skyboxDriftSpeed;
 
   return (
     <VRContextProvider>
@@ -59,6 +66,9 @@ export default function Home() {
             maskSoftness={skyboxMaskSoftness}
             maskColor={skyboxMaskColor}
             maskPreview={skyboxMaskPreview}
+            maskPreviewSplit={skyboxMaskPreviewSplit}
+            maskPreviewColor={skyboxMaskPreviewColor}
+            maskInvert={skyboxMaskInvert}
             rotationSpeed={effectiveSkyboxRotation}
           />
         )}
@@ -69,7 +79,7 @@ export default function Home() {
             rotationSpeed={effectiveSkyboxRotation}
             audioReactiveEnabled={skyboxAudioReactiveEnabled}
             audioReactivity={skyboxAudioReactivity}
-            driftSpeed={skyboxDriftSpeed}
+            driftSpeed={effectiveSkyboxDrift}
           />
         )}
 
@@ -86,8 +96,13 @@ export default function Home() {
         {/* VR Preview Mode - handles stereoscopic rendering and gyro camera */}
         <VRPreviewMode enabled={isVRMode} onExit={exitVRMode} />
 
-        {/* OrbitControls disabled in VR mode */}
-        {!isVRMode && <OrbitControls />}
+        {/* CameraRig applies look-at/orbit in non-VR mode */}
+        <CameraRig enabled={!isVRMode} />
+
+        {/* OrbitControls disabled in VR or when camera rig is active */}
+        {!isVRMode && (
+          <OrbitControls enabled={!cameraOrbitEnabled && !cameraLookAtOrb} />
+        )}
         <Suspense fallback={null}>
           <OrbAnchor />
 {/* Bloom disabled - was washing out skybox
