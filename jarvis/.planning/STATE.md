@@ -10,29 +10,29 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 ## Current Position
 
 Phase: 2 of 6 (Voice Pipeline)
-Plan: 2 of 3 in current phase
+Plan: 1 of 3 in current phase
 Status: In progress
-Last activity: 2026-01-31 - Completed 02-02-PLAN.md (Browser TTS Client)
+Last activity: 2026-01-31 - Completed 02-01-PLAN.md (Deepgram STT Integration)
 
-Progress: [######....] 22% (1.67/6 phases)
+Progress: [######....] 22% (1.33/6 phases)
 
 ## Performance Metrics
 
 **Velocity:**
 - Total plans completed: 4
-- Average duration: 8 min
-- Total execution time: 32 min
+- Average duration: 9 min
+- Total execution time: 44 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-audio-foundation | 3/3 | 27 min | 9 min |
-| 02-voice-pipeline | 1/3 | 5 min | 5 min |
+| 02-voice-pipeline | 1/3 | 17 min | 17 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (6 min), 01-02 (9 min), 01-03 (12 min), 02-02 (5 min)
-- Trend: Fast execution (browser-native features)
+- Last 5 plans: 01-01 (6 min), 01-02 (9 min), 01-03 (12 min), 02-01 (17 min)
+- Trend: Increasing (more complex integrations)
 
 *Updated after each plan completion*
 
@@ -64,8 +64,9 @@ Recent decisions affecting current work:
 - [01-03]: Singleton pattern for MicrophoneCapture
 - [01-03]: Permission explanation BEFORE browser prompt
 - [01-03]: Spacebar support for desktop push-to-talk
-- [02-02]: Prioritized fallback list for voice selection (browser/OS dependent)
-- [02-02]: Accept no audio-reactive orb during TTS (Web Speech API limitation)
+- [02-01]: SSE + POST pattern for STT proxy (Next.js App Router WebSocket limitation)
+- [02-01]: In-memory session Map for single-instance deployment
+- [02-01]: webm/opus encoding via MediaRecorder
 
 ### Pending Todos
 
@@ -77,8 +78,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-31 20:31 UTC
-Stopped at: Completed 02-02-PLAN.md (Browser TTS Client)
+Last session: 2026-01-31 20:42 UTC
+Stopped at: Completed 02-01-PLAN.md (Deepgram STT Integration)
 Resume file: None
 
 ## Phase 1 Summary
@@ -100,3 +101,17 @@ Resume file: None
 - MicrophoneCapture provides MediaStream for Deepgram SDK
 - VoiceActivityDetector can gate when to send audio to STT
 - Store has `isCapturing` flag for pipeline state management
+
+## Phase 2 Progress
+
+**Voice Pipeline in progress.** 1/3 plans executed:
+
+1. **02-01**: Deepgram STT Integration (complete)
+   - Voice pipeline types defined
+   - Server-side Deepgram proxy (SSE + POST pattern)
+   - DeepgramClient browser class
+   - API key kept secure server-side
+
+**Next:**
+- 02-02: Browser TTS Client (SpeechSynthesis)
+- 02-03: Voice Pipeline Orchestration
