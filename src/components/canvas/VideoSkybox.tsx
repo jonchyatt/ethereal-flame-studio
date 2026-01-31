@@ -12,6 +12,7 @@ type VideoSkyboxProps = {
   maskThreshold?: number;
   maskSoftness?: number;
   maskColor?: string;
+  maskPreview?: boolean;
   rotationSpeed?: number;
 };
 
@@ -22,6 +23,7 @@ export function VideoSkybox({
   maskThreshold = 0.65,
   maskSoftness = 0.08,
   maskColor = "#87ceeb",
+  maskPreview = false,
   rotationSpeed = 0,
 }: VideoSkyboxProps) {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -74,8 +76,9 @@ export function VideoSkybox({
       uThreshold: { value: maskThreshold },
       uSoftness: { value: maskSoftness },
       uKeyColor: { value: maskColorVec },
+      uPreview: { value: maskPreview ? 1.0 : 0.0 },
     }),
-    [maskThreshold, maskSoftness, maskColorVec]
+    [maskThreshold, maskSoftness, maskColorVec, maskPreview]
   );
 
   useEffect(() => {
@@ -90,7 +93,8 @@ export function VideoSkybox({
     materialRef.current.uniforms.uThreshold.value = maskThreshold;
     materialRef.current.uniforms.uSoftness.value = maskSoftness;
     materialRef.current.uniforms.uKeyColor.value = maskColorVec;
-  }, [maskMode, maskThreshold, maskSoftness, maskColorVec]);
+    materialRef.current.uniforms.uPreview.value = maskPreview ? 1.0 : 0.0;
+  }, [maskMode, maskThreshold, maskSoftness, maskColorVec, maskPreview]);
 
   useFrame((_, delta) => {
     if (rotationSpeed && meshRef.current) {
@@ -122,6 +126,7 @@ export function VideoSkybox({
           uniform float uThreshold;
           uniform float uSoftness;
           uniform vec3 uKeyColor;
+          uniform float uPreview;
           varying vec2 vUv;
 
           float luma(vec3 c) {
@@ -146,7 +151,12 @@ export function VideoSkybox({
               alpha = edge;
             }
 
-            gl_FragColor = vec4(color.rgb, color.a * alpha);
+            if (uPreview > 0.5) {
+              vec3 keyedTint = mix(vec3(1.0, 0.0, 1.0), color.rgb, alpha);
+              gl_FragColor = vec4(keyedTint, 1.0);
+            } else {
+              gl_FragColor = vec4(color.rgb, color.a * alpha);
+            }
           }
         `}
       />

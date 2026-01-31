@@ -33,6 +33,8 @@ export function AdvancedEditor() {
   const setSkyboxMaskSoftness = useVisualStore((state) => state.setSkyboxMaskSoftness);
   const skyboxMaskColor = useVisualStore((state) => state.skyboxMaskColor);
   const setSkyboxMaskColor = useVisualStore((state) => state.setSkyboxMaskColor);
+  const skyboxMaskPreview = useVisualStore((state) => state.skyboxMaskPreview);
+  const setSkyboxMaskPreview = useVisualStore((state) => state.setSkyboxMaskPreview);
   const [videoUrlInput, setVideoUrlInput] = useState('');
   const waterEnabled = useVisualStore((state) => state.waterEnabled);
   const setWaterEnabled = useVisualStore((state) => state.setWaterEnabled);
@@ -216,6 +218,21 @@ export function AdvancedEditor() {
 
                 {skyboxMaskMode !== 'none' && (
                   <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/60 text-xs">Mask Preview</span>
+                      <button
+                        onClick={() => setSkyboxMaskPreview(!skyboxMaskPreview)}
+                        className={`
+                          px-3 py-1 rounded text-xs
+                          ${skyboxMaskPreview
+                            ? 'bg-blue-500/50 text-white border border-blue-400/50'
+                            : 'bg-white/10 text-white/60 border border-white/20'
+                          }
+                        `}
+                      >
+                        {skyboxMaskPreview ? 'ON' : 'OFF'}
+                      </button>
+                    </div>
                     {skyboxMaskMode === 'chroma' && (
                       <div className="flex items-center gap-3">
                         <span className="text-white/60 text-xs">Key Color:</span>
@@ -260,6 +277,14 @@ export function AdvancedEditor() {
                     </div>
                   </>
                 )}
+              </div>
+
+              <div className="text-white/50 text-xs leading-relaxed border-t border-white/10 pt-2">
+                <div className="text-white/70 font-medium mb-1">Video Skybox Quickstart</div>
+                <p>Start with <span className="text-white/80">Luma Key</span> for bright skies.</p>
+                <p>Try Threshold <span className="text-white/80">0.55–0.75</span>, Softness <span className="text-white/80">0.05–0.15</span>.</p>
+                <p>For blue/green skies, use <span className="text-white/80">Chroma Key</span> and pick the sky color.</p>
+                <p>Try Threshold <span className="text-white/80">0.12–0.30</span>, Softness <span className="text-white/80">0.02–0.08</span>.</p>
               </div>
             </div>
           )}

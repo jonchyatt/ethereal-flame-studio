@@ -17,3 +17,8 @@ All changes in the ethereal-flame-studio copy for skybox/orb controls are tracke
 - Adjusted AdvancedEditor skybox fallback logic and reset skybox mode when clearing videos.
 - Updated main canvas skybox fallback to show StarNest when no video is loaded.
 - Hid the Skybox Preset selector when the video skybox is active without a StarNest overlay.
+- Added skybox mask preview state to the visual store.
+- Added a mask preview shader mode to the video skybox (keyed areas tint magenta).
+- Wired mask preview state into the main canvas video skybox.
+- Added mask preview state hooks to the Advanced Editor.
+- Added a mask preview toggle and a Video Skybox Quickstart helper block in the Advanced Editor.

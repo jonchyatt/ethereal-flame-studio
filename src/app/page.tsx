@@ -26,6 +26,7 @@ export default function Home() {
   const skyboxMaskThreshold = useVisualStore((state) => state.skyboxMaskThreshold);
   const skyboxMaskSoftness = useVisualStore((state) => state.skyboxMaskSoftness);
   const skyboxMaskColor = useVisualStore((state) => state.skyboxMaskColor);
+  const skyboxMaskPreview = useVisualStore((state) => state.skyboxMaskPreview);
   const waterEnabled = useVisualStore((state) => state.waterEnabled);
   const waterColor = useVisualStore((state) => state.waterColor);
   const waterReflectivity = useVisualStore((state) => state.waterReflectivity);
@@ -54,6 +55,7 @@ export default function Home() {
             maskThreshold={skyboxMaskThreshold}
             maskSoftness={skyboxMaskSoftness}
             maskColor={skyboxMaskColor}
+            maskPreview={skyboxMaskPreview}
             rotationSpeed={skyboxRotationSpeed}
           />
         )}

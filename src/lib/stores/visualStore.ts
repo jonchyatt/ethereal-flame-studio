@@ -19,6 +19,7 @@ interface VisualState {
   skyboxMaskThreshold: number;
   skyboxMaskSoftness: number;
   skyboxMaskColor: string;
+  skyboxMaskPreview: boolean;
   // Visual mode state (plan 01-05)
   currentMode: VisualMode;
   modeConfigs: Record<VisualMode, VisualModeConfig>;
@@ -41,6 +42,7 @@ interface VisualState {
   setSkyboxMaskThreshold: (value: number) => void;
   setSkyboxMaskSoftness: (value: number) => void;
   setSkyboxMaskColor: (value: string) => void;
+  setSkyboxMaskPreview: (enabled: boolean) => void;
   // Visual mode actions
   setMode: (mode: VisualMode) => void;
   // Water actions
@@ -217,6 +219,7 @@ export const useVisualStore = create<VisualState>((set) => ({
   skyboxMaskThreshold: 0.65,
   skyboxMaskSoftness: 0.08,
   skyboxMaskColor: '#87ceeb',
+  skyboxMaskPreview: false,
   // Visual mode state
   currentMode: 'etherealFlame',
   modeConfigs: {
@@ -255,6 +258,7 @@ export const useVisualStore = create<VisualState>((set) => ({
   setSkyboxMaskThreshold: (value) => set({ skyboxMaskThreshold: value }),
   setSkyboxMaskSoftness: (value) => set({ skyboxMaskSoftness: value }),
   setSkyboxMaskColor: (value) => set({ skyboxMaskColor: value }),
+  setSkyboxMaskPreview: (enabled) => set({ skyboxMaskPreview: enabled }),
 
   setMode: (mode) =>
     set((state) => {
