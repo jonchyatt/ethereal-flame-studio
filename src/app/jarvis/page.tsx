@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useJarvisStore } from '@/lib/jarvis/stores/jarvisStore';
 import { MicrophoneCapture } from '@/lib/jarvis/audio/MicrophoneCapture';
+import { VoicePipeline } from '@/lib/jarvis/voice/VoicePipeline';
 import { PermissionPrompt } from '@/components/jarvis/PermissionPrompt';
 import { PushToTalk } from '@/components/jarvis/PushToTalk';
 import dynamic from 'next/dynamic';
@@ -20,11 +21,17 @@ export default function JarvisPage() {
   const audioLevel = useJarvisStore((s) => s.audioLevel);
   const orbState = useJarvisStore((s) => s.orbState);
   const isCapturing = useJarvisStore((s) => s.isCapturing);
+  const pipelineState = useJarvisStore((s) => s.pipelineState);
+  const currentTranscript = useJarvisStore((s) => s.currentTranscript);
+  const error = useJarvisStore((s) => s.error);
 
   const [permissionUIState, setPermissionUIState] = useState<PermissionUIState>('loading');
   const [showDebug, setShowDebug] = useState(false);
 
-  // Check permission on mount
+  // Voice pipeline ref
+  const pipelineRef = useRef<VoicePipeline | null>(null);
+
+  // Check permission on mount and initialize pipeline
   useEffect(() => {
     const checkPermission = async () => {
       // Skip permission check on server side
@@ -46,6 +53,10 @@ export default function JarvisPage() {
         const mic = MicrophoneCapture.getInstance();
         const granted = await mic.requestPermission();
         if (granted) {
+          // Initialize voice pipeline
+          pipelineRef.current = new VoicePipeline();
+          await pipelineRef.current.initialize();
+          console.log('[JarvisPage] Voice pipeline initialized');
           setPermissionUIState('ready');
         } else {
           setPermissionUIState('prompt');
@@ -61,14 +72,33 @@ export default function JarvisPage() {
 
     // Cleanup on unmount
     return () => {
+      if (pipelineRef.current) {
+        pipelineRef.current.cleanup();
+        pipelineRef.current = null;
+      }
       const mic = MicrophoneCapture.getInstance();
       mic.cleanup();
     };
   }, []);
 
   // Handle permission granted from PermissionPrompt
-  const handlePermissionGranted = useCallback(() => {
+  const handlePermissionGranted = useCallback(async () => {
+    // Initialize voice pipeline after permission granted
+    pipelineRef.current = new VoicePipeline();
+    await pipelineRef.current.initialize();
+    console.log('[JarvisPage] Voice pipeline initialized after permission granted');
     setPermissionUIState('ready');
+  }, []);
+
+  // PTT handlers for voice pipeline
+  const handlePTTStart = useCallback(() => {
+    console.log('[JarvisPage] PTT start');
+    pipelineRef.current?.startListening();
+  }, []);
+
+  const handlePTTEnd = useCallback(() => {
+    console.log('[JarvisPage] PTT end');
+    pipelineRef.current?.stopListening();
   }, []);
 
   // Toggle debug overlay
@@ -122,7 +152,11 @@ export default function JarvisPage() {
       {/* Push-to-talk controls - only shown when permission granted */}
       {permissionUIState === 'ready' && (
         <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col items-center">
-          <PushToTalk />
+          <PushToTalk
+            onPTTStart={handlePTTStart}
+            onPTTEnd={handlePTTEnd}
+            usePipeline={true}
+          />
 
           {/* Debug toggle button */}
           <button
@@ -134,11 +168,32 @@ export default function JarvisPage() {
         </div>
       )}
 
+      {/* Transcript overlay */}
+      {permissionUIState === 'ready' && currentTranscript && (
+        <div className="absolute top-1/4 left-4 right-4 flex justify-center z-30 pointer-events-none">
+          <div className="bg-black/60 backdrop-blur-sm rounded-lg px-4 py-2 max-w-lg">
+            <p className="text-white/90 text-center text-lg">
+              {currentTranscript}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Error overlay */}
+      {permissionUIState === 'ready' && error && (
+        <div className="absolute top-4 right-4 bg-red-900/70 backdrop-blur-sm rounded-lg px-4 py-2 max-w-sm z-40">
+          <p className="text-red-200 text-sm">{error}</p>
+        </div>
+      )}
+
       {/* Debug overlay */}
       {showDebug && permissionUIState === 'ready' && (
         <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm rounded-lg p-3 text-xs text-white/70 space-y-1 z-40">
           <p>
-            State: <span className="text-white">{orbState}</span>
+            Orb State: <span className="text-white">{orbState}</span>
+          </p>
+          <p>
+            Pipeline: <span className="text-white">{pipelineState}</span>
           </p>
           <p>
             Capturing: <span className="text-white">{isCapturing ? 'Yes' : 'No'}</span>

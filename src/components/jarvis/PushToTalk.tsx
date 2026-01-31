@@ -13,8 +13,19 @@ import { useJarvisStore } from '@/lib/jarvis/stores/jarvisStore';
  * - Spacebar support for desktop users
  * - Touch-action: none to prevent scroll on mobile
  * - Clean release handling (mouse leave, touch end)
+ * - Optional external callbacks for voice pipeline integration
  */
-export function PushToTalk() {
+
+export interface PushToTalkProps {
+  /** Called when PTT starts (press/hold) */
+  onPTTStart?: () => void;
+  /** Called when PTT ends (release) */
+  onPTTEnd?: () => void;
+  /** Use external pipeline control (skips direct MicrophoneCapture calls) */
+  usePipeline?: boolean;
+}
+
+export function PushToTalk({ onPTTStart, onPTTEnd, usePipeline = false }: PushToTalkProps = {}) {
   const isCapturing = useJarvisStore((s) => s.isCapturing);
   const audioLevel = useJarvisStore((s) => s.audioLevel);
   const orbState = useJarvisStore((s) => s.orbState);
@@ -32,20 +43,36 @@ export function PushToTalk() {
     if (isHoldingRef.current) return;
     isHoldingRef.current = true;
 
+    // Call external callback if provided
+    if (onPTTStart) {
+      onPTTStart();
+    }
+
+    // If using external pipeline control, don't call MicrophoneCapture directly
+    if (usePipeline) return;
+
     const mic = MicrophoneCapture.getInstance();
     if (mic.hasPermission()) {
       mic.start();
     }
-  }, []);
+  }, [onPTTStart, usePipeline]);
 
   // Stop capturing audio
   const stopCapture = useCallback(() => {
     if (!isHoldingRef.current) return;
     isHoldingRef.current = false;
 
+    // Call external callback if provided
+    if (onPTTEnd) {
+      onPTTEnd();
+    }
+
+    // If using external pipeline control, don't call MicrophoneCapture directly
+    if (usePipeline) return;
+
     const mic = MicrophoneCapture.getInstance();
     mic.stop();
-  }, []);
+  }, [onPTTEnd, usePipeline]);
 
   // Mouse handlers
   const handleMouseDown = useCallback(
@@ -120,11 +147,16 @@ export function PushToTalk() {
   useEffect(() => {
     return () => {
       if (isHoldingRef.current) {
-        const mic = MicrophoneCapture.getInstance();
-        mic.stop();
+        // If using pipeline, let external handler cleanup
+        if (usePipeline) {
+          onPTTEnd?.();
+        } else {
+          const mic = MicrophoneCapture.getInstance();
+          mic.stop();
+        }
       }
     };
-  }, []);
+  }, [usePipeline, onPTTEnd]);
 
   // Calculate visual feedback based on audio level
   const scale = isCapturing ? 1 + audioLevel * 0.15 : 1;
