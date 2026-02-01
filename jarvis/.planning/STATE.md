@@ -5,35 +5,35 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** One system that knows everything, surfaces what matters, and keeps you on track
-**Current focus:** Phase 3 - Intelligence Layer
+**Current focus:** Phase 3 - Intelligence Layer (COMPLETE)
 
 ## Current Position
 
 Phase: 3 of 6 (Intelligence Layer)
-Plan: 1 of 3 in current phase
-Status: In progress
-Last activity: 2026-02-01 - Completed 03-01-PLAN.md (Claude API Integration)
+Plan: 3 of 3 in current phase (COMPLETE)
+Status: Phase 3 complete
+Last activity: 2026-02-01 - Completed 03-03-PLAN.md (Claude Integration)
 
-Progress: [########..] 33% (2/6 phases complete, 03-01 done)
+Progress: [##########] 50% (3/6 phases complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 8
 - Average duration: 9 min
-- Total execution time: 51 min
+- Total execution time: 69 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-audio-foundation | 3/3 | 27 min | 9 min |
-| 02-voice-pipeline | 1/3 | 17 min | 17 min |
-| 03-intelligence-layer | 1/3 | 7 min | 7 min |
+| 02-voice-pipeline | 3/3 | 25 min | 8 min |
+| 03-intelligence-layer | 3/3 | 18 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (9 min), 01-03 (12 min), 02-01 (17 min), 03-01 (7 min)
-- Trend: Fast plan (SDK integration)
+- Last 5 plans: 02-03 (5 min), 03-01 (7 min), 03-02 (3 min), 03-03 (8 min)
+- Trend: Fast plans (integration work, established patterns)
 
 *Updated after each plan completion*
 
@@ -72,10 +72,16 @@ Recent decisions affecting current work:
 - [03-01]: claude-haiku-4-5 for fast TTFT (~360ms) within latency budget
 - [03-01]: SSE streaming matches existing STT pattern
 - [03-01]: Error events via SSE (type: error) for graceful handling
+- [03-02]: 10 message sliding window for context
+- [03-02]: 20 max key facts for cross-session memory
+- [03-02]: Summary injected as synthetic user/assistant exchange
+- [03-03]: Omnipresent guide personality (calm, knowing, NOT butler)
+- [03-03]: Time format as "Friday, 3:45 PM" for natural speech
+- [03-03]: Tool graceful degradation with "coming soon" message
 
 ### Pending Todos
 
-- [ ] Configure ANTHROPIC_API_KEY in .env.local (required for Claude integration)
+- [ ] Configure ANTHROPIC_API_KEY in .env.local with real key (required for Claude)
 
 ### Blockers/Concerns
 
@@ -83,8 +89,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-01 01:37 UTC
-Stopped at: Completed 03-01-PLAN.md (Claude API Integration)
+Last session: 2026-02-01 01:48 UTC
+Stopped at: Completed 03-03-PLAN.md (Claude Integration)
 Resume file: None
 
 ## Phase 1 Summary
@@ -101,11 +107,6 @@ Resume file: None
 - Permission explanation UI before browser prompt
 - Orb responds to voice amplitude in real-time
 - State colors: idle (blue) -> listening (cyan) -> thinking (amber) -> speaking (orange)
-
-**Ready for Phase 2 (Speech-to-Text):**
-- MicrophoneCapture provides MediaStream for Deepgram SDK
-- VoiceActivityDetector can gate when to send audio to STT
-- Store has `isCapturing` flag for pipeline state management
 
 ## Phase 2 Summary
 
@@ -124,20 +125,37 @@ Resume file: None
    - Full echo test verified
    - Fixed STT audio format (webm -> linear16 PCM)
 
-**Ready for Phase 3 (Intelligence Layer):**
-- Voice pipeline proven end-to-end
-- Replace echo with Claude API calls
-- Add conversation context management
+## Phase 3 Summary
 
-## Phase 3 Progress
+**Intelligence Layer complete.** All 3 plans executed:
 
-**Intelligence Layer in progress.** 1 of 3 plans executed:
-
-1. **03-01**: Claude API Integration (COMPLETE)
+1. **03-01**: Claude API Integration
    - @anthropic-ai/sdk installed
    - POST /api/jarvis/chat with SSE streaming
    - ClaudeClient browser class for stream parsing
 
-**Next:**
-- 03-02: Conversation Memory (context management, cross-session persistence)
-- 03-03: Tool Framework (placeholder tool definitions)
+2. **03-02**: Conversation Memory
+   - ConversationManager with sliding window (10 messages)
+   - MemoryStore for localStorage persistence (summary, key facts)
+   - getContextMessages() for Claude API format
+
+3. **03-03**: Claude Integration
+   - System prompt with omnipresent guide personality
+   - Time awareness via buildSystemPrompt()
+   - 5 Notion tool definitions for Phase 4
+   - VoicePipeline wired to Claude (replaces echo)
+   - Multi-turn conversation context
+
+**Key deliverables:**
+- User speaks -> Jarvis responds intelligently (not echo)
+- Personality: calm, knowing, warm but not formal
+- Time awareness: "It's Friday, 3:45 PM"
+- Multi-turn memory: "My name is Jonathan" -> "What's my name?" works
+- Tool readiness: "Add a task" -> graceful "coming soon" message
+
+## Ready for Phase 4
+
+Phase 4 (Notion Integration) will:
+- Implement actual tool handlers
+- Connect to Notion API
+- Enable real task/bill/project operations
