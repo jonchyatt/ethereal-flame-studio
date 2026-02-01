@@ -22,12 +22,18 @@
  * v1: Life OS Bundle database IDs
  * These are populated from environment variables after running discovery script.
  */
+// Data source IDs for queries (API-query-data-source)
 export const LIFE_OS_DATABASES = {
   tasks: process.env.NOTION_TASKS_DATA_SOURCE_ID || '',
   bills: process.env.NOTION_BILLS_DATA_SOURCE_ID || '',
   projects: process.env.NOTION_PROJECTS_DATA_SOURCE_ID || '',
   goals: process.env.NOTION_GOALS_DATA_SOURCE_ID || '',
   habits: process.env.NOTION_HABITS_DATA_SOURCE_ID || '',
+} as const;
+
+// Database IDs for creates (API-post-page) - different from data_source_id!
+export const LIFE_OS_DATABASE_IDS = {
+  tasks: process.env.NOTION_TASKS_DATABASE_ID || '',
 } as const;
 
 /**
@@ -49,11 +55,11 @@ export const LIFE_OS_DATABASES = {
  * Update these to match your Life OS setup (case-sensitive!)
  */
 export const TASK_PROPS = {
-  title: 'Task', // or 'Name', 'To-Do'
-  status: 'Status', // Select: To Do, In Progress, Done
-  dueDate: 'Due Date', // Date property
+  title: 'Name', // Title property (was 'Task' but this database uses 'Name')
+  status: 'Status', // Status property (Not started, In progress, etc.)
+  dueDate: 'Do Dates', // Date property (this database uses 'Do Dates' not 'Due Date')
   project: 'Project', // Relation to Projects database
-  priority: 'Priority', // Select: Low, Medium, High
+  priority: 'Daily Priority', // Select property (this database uses 'Daily Priority')
 } as const;
 
 /**
@@ -128,7 +134,7 @@ export interface NotionFilter {
 export interface TaskProperties {
   id: string;
   title: string;
-  status: 'To Do' | 'In Progress' | 'Done' | string;
+  status: 'Not started' | 'In progress' | 'Completed' | string;
   dueDate: string | null;
   project: string | null;
   priority: 'Low' | 'Medium' | 'High' | null;
@@ -201,12 +207,12 @@ export function buildTaskFilter(options: {
     if (options.status === 'pending') {
       filters.push({
         property: TASK_PROPS.status,
-        status: { does_not_equal: 'Done' },
+        status: { does_not_equal: 'Completed' },
       });
     } else if (options.status === 'completed') {
       filters.push({
         property: TASK_PROPS.status,
-        status: { equals: 'Done' },
+        status: { equals: 'Completed' },
       });
     }
   }
@@ -232,7 +238,7 @@ export function buildTaskFilter(options: {
     // Only incomplete tasks for overdue
     filters.push({
       property: TASK_PROPS.status,
-      status: { does_not_equal: 'Done' },
+      status: { does_not_equal: 'Completed' },
     });
   }
 
@@ -583,17 +589,17 @@ export function mapTaskStatus(
   status: 'pending' | 'in_progress' | 'completed' | string
 ): string {
   const statusMap: Record<string, string> = {
-    pending: 'To Do',
-    in_progress: 'In Progress',
-    completed: 'Done',
+    pending: 'Not started',
+    in_progress: 'In progress',
+    completed: 'Completed',
     paused: 'On Hold',
     // Also accept the Notion values directly
-    'To Do': 'To Do',
-    'In Progress': 'In Progress',
-    Done: 'Done',
+    'Not started': 'Not started',
+    'In progress': 'In progress',
+    Completed: 'Completed',
     'On Hold': 'On Hold',
   };
-  return statusMap[status] || 'To Do';
+  return statusMap[status] || 'Not started';
 }
 
 /**
@@ -627,6 +633,10 @@ export function buildTaskProperties(input: {
   const properties: Record<string, unknown> = {
     [TASK_PROPS.title]: {
       title: [{ text: { content: input.title } }],
+    },
+    // Set default status to "Not started" so queries can find the task
+    [TASK_PROPS.status]: {
+      status: { name: 'Not started' },
     },
   };
 

@@ -232,14 +232,53 @@ export async function sendMCPRequest(
  *
  * @param name - The tool name
  * @param args - The tool arguments
- * @returns Promise resolving to the tool result
+ * @returns Promise resolving to the unwrapped tool result (parsed JSON from content)
  */
 export async function callMCPTool(
   name: string,
   args: Record<string, unknown>
 ): Promise<unknown> {
   await ensureMCPRunning();
-  return sendMCPRequestInternal('tools/call', { name, arguments: args });
+  const result = await sendMCPRequestInternal('tools/call', {
+    name,
+    arguments: args,
+  });
+
+  // MCP tools/call response format: { content: [{ type: "text", text: "...JSON..." }] }
+  // We need to unwrap and parse the actual data
+  return unwrapMCPContent(result);
+}
+
+/**
+ * Unwrap MCP content response
+ *
+ * MCP tools return responses in format: { content: [{ type: "text", text: "...JSON..." }] }
+ * This function extracts and parses the actual data.
+ */
+function unwrapMCPContent(result: unknown): unknown {
+  // If result has content array, extract the text
+  const mcpResult = result as {
+    content?: Array<{ type: string; text?: string }>;
+  };
+
+  if (mcpResult?.content && Array.isArray(mcpResult.content)) {
+    // Find text content (could be multiple, we take the first text type)
+    const textContent = mcpResult.content.find((c) => c.type === 'text');
+    if (textContent?.text) {
+      try {
+        // Parse the JSON string to get actual Notion data
+        return JSON.parse(textContent.text);
+      } catch {
+        // If not valid JSON, return raw text
+        console.warn('[MCP] Content is not valid JSON, returning raw text');
+        return textContent.text;
+      }
+    }
+  }
+
+  // If no content wrapper, return as-is (shouldn't happen for tools/call)
+  console.warn('[MCP] Unexpected response format, returning raw result');
+  return result;
 }
 
 /**

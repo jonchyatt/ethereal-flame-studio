@@ -10,6 +10,7 @@
 import { callMCPTool } from './NotionClient';
 import {
   LIFE_OS_DATABASES,
+  LIFE_OS_DATABASE_IDS,
   buildTaskFilter,
   buildBillFilter,
   buildProjectFilter,
@@ -165,9 +166,10 @@ export async function executeNotionTool(
       // =========================================================================
 
       case 'create_task': {
-        const databaseId = LIFE_OS_DATABASES.tasks;
+        // Use database_id (not data_source_id) for creating pages
+        const databaseId = LIFE_OS_DATABASE_IDS.tasks;
         if (!databaseId) {
-          return 'Task database is not configured. Please set NOTION_TASKS_DATA_SOURCE_ID.';
+          return 'Task database is not configured. Please set NOTION_TASKS_DATABASE_ID.';
         }
 
         const title = input.title as string;
@@ -177,8 +179,8 @@ export async function executeNotionTool(
           priority: input.priority as string | undefined,
         });
 
-        await callMCPTool('API-create-a-page', {
-          parent: { type: 'data_source_id', data_source_id: databaseId },
+        await callMCPTool('API-post-page', {
+          parent: { database_id: databaseId },
           properties,
         });
 
@@ -271,9 +273,10 @@ export async function executeNotionTool(
       }
 
       case 'add_project_item': {
-        const databaseId = LIFE_OS_DATABASES.tasks;
+        // Use database_id (not data_source_id) for creating pages
+        const databaseId = LIFE_OS_DATABASE_IDS.tasks;
         if (!databaseId) {
-          return 'Task database is not configured. Please set NOTION_TASKS_DATA_SOURCE_ID.';
+          return 'Task database is not configured. Please set NOTION_TASKS_DATABASE_ID.';
         }
 
         // Find project by title if needed
@@ -294,8 +297,8 @@ export async function executeNotionTool(
           project_id: projectId,
         });
 
-        await callMCPTool('API-create-a-page', {
-          parent: { type: 'data_source_id', data_source_id: databaseId },
+        await callMCPTool('API-post-page', {
+          parent: { database_id: databaseId },
           properties,
         });
 

@@ -95,10 +95,28 @@ export async function POST(request: Request): Promise<Response> {
             const toolResults = await Promise.all(
               toolUseBlocks.map(async (toolUse) => {
                 console.log(`[Chat] Executing tool: ${toolUse.name}`, toolUse.input);
+
+                // Stream tool_use event so tests can see which tools were called
+                const toolUseData = JSON.stringify({
+                  type: 'tool_use',
+                  tool_name: toolUse.name,
+                  tool_input: toolUse.input,
+                });
+                controller.enqueue(new TextEncoder().encode(`data: ${toolUseData}\n\n`));
+
                 const result = await executeNotionTool(
                   toolUse.name,
                   toolUse.input as Record<string, unknown>
                 );
+
+                // Stream tool_result event
+                const toolResultData = JSON.stringify({
+                  type: 'tool_result',
+                  tool_name: toolUse.name,
+                  result: result.slice(0, 500), // Truncate for streaming
+                });
+                controller.enqueue(new TextEncoder().encode(`data: ${toolResultData}\n\n`));
+
                 return {
                   type: 'tool_result' as const,
                   tool_use_id: toolUse.id,
