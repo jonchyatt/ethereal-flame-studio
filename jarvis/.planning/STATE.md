@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** One system that knows everything, surfaces what matters, and keeps you on track
-**Current focus:** Phase 2 - Voice Pipeline
+**Current focus:** Phase 3 - Intelligence Layer
 
 ## Current Position
 
-Phase: 2 of 6 (Voice Pipeline)
-Plan: 1 of 3 in current phase
+Phase: 3 of 6 (Intelligence Layer)
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-01-31 - Completed 02-01-PLAN.md (Deepgram STT Integration)
+Last activity: 2026-02-01 - Completed 03-02-PLAN.md (Conversation Context)
 
-Progress: [######....] 22% (1.33/6 phases)
+Progress: [########..] 33% (2/6 phases complete, 03-02 done)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 9 min
-- Total execution time: 44 min
+- Total plans completed: 5
+- Average duration: 8 min
+- Total execution time: 47 min
 
 **By Phase:**
 
@@ -29,10 +29,11 @@ Progress: [######....] 22% (1.33/6 phases)
 |-------|-------|-------|----------|
 | 01-audio-foundation | 3/3 | 27 min | 9 min |
 | 02-voice-pipeline | 1/3 | 17 min | 17 min |
+| 03-intelligence-layer | 1/3 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (6 min), 01-02 (9 min), 01-03 (12 min), 02-01 (17 min)
-- Trend: Increasing (more complex integrations)
+- Last 5 plans: 01-02 (9 min), 01-03 (12 min), 02-01 (17 min), 03-02 (3 min)
+- Trend: Fast plan (simple implementation)
 
 *Updated after each plan completion*
 
@@ -48,6 +49,7 @@ Recent decisions affecting current work:
 - [Roadmap]: Follow chained pipeline architecture (STT -> LLM -> TTS) for modularity
 - [Roadmap]: 300ms total latency budget for conversational feel
 - [Context]: Omnipresent guide personality (NOT butler)
+- [Context]: NO butler voice - avoid formal British male voices, prefer neutral/warm US voices
 - [Context]: Orb state colors: blue->cyan->amber->orange (cool->warm)
 - [Context]: Intensity/reactivity increases with Jarvis's perceived importance
 - [Context]: Dynamic transition speeds based on emotional intensity
@@ -66,7 +68,10 @@ Recent decisions affecting current work:
 - [01-03]: Spacebar support for desktop push-to-talk
 - [02-01]: SSE + POST pattern for STT proxy (Next.js App Router WebSocket limitation)
 - [02-01]: In-memory session Map for single-instance deployment
-- [02-01]: webm/opus encoding via MediaRecorder
+- [02-03]: Raw PCM (linear16) via Web Audio API (webm/opus from MediaRecorder failed)
+- [03-02]: 10 message sliding window (matches research recommendation)
+- [03-02]: 20 max key facts for cross-session persistence
+- [03-02]: Summary injected as synthetic user/assistant exchange
 
 ### Pending Todos
 
@@ -78,8 +83,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-31 20:42 UTC
-Stopped at: Completed 02-01-PLAN.md (Deepgram STT Integration)
+Last session: 2026-02-01 01:34 UTC
+Stopped at: Completed 03-02-PLAN.md (Conversation Context)
 Resume file: None
 
 ## Phase 1 Summary
@@ -102,16 +107,24 @@ Resume file: None
 - VoiceActivityDetector can gate when to send audio to STT
 - Store has `isCapturing` flag for pipeline state management
 
-## Phase 2 Progress
+## Phase 2 Summary
 
-**Voice Pipeline in progress.** 1/3 plans executed:
+**Voice Pipeline complete.** All 3 plans executed:
 
-1. **02-01**: Deepgram STT Integration (complete)
-   - Voice pipeline types defined
+1. **02-01**: Deepgram STT Integration
    - Server-side Deepgram proxy (SSE + POST pattern)
-   - DeepgramClient browser class
-   - API key kept secure server-side
+   - DeepgramClient browser class with raw PCM audio
 
-**Next:**
-- 02-02: Browser TTS Client (SpeechSynthesis)
-- 02-03: Voice Pipeline Orchestration
+2. **02-02**: Browser TTS Client
+   - SpeechClient using Web Speech API
+   - AudioPlayer for orb sync
+
+3. **02-03**: Voice Pipeline Orchestration
+   - VoicePipeline state machine (idle → listening → processing → speaking)
+   - Full echo test verified
+   - Fixed STT audio format (webm → linear16 PCM)
+
+**Ready for Phase 3 (Intelligence Layer):**
+- Voice pipeline proven end-to-end
+- Replace echo with Claude API calls
+- Add conversation context management
