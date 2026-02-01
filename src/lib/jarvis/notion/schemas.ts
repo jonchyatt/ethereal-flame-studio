@@ -561,3 +561,141 @@ function formatDateForSpeech(dateStr: string): string {
     return dateStr;
   }
 }
+
+// =============================================================================
+// Write Operation Helpers (Phase 04-03)
+// =============================================================================
+
+/**
+ * Check if a string is a valid UUID (Notion page ID format)
+ */
+export function isValidUUID(str: string): boolean {
+  // Notion uses UUIDs with or without dashes
+  const uuidRegex =
+    /^[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
+/**
+ * Map user-friendly status values to Notion status names
+ */
+export function mapTaskStatus(
+  status: 'pending' | 'in_progress' | 'completed' | string
+): string {
+  const statusMap: Record<string, string> = {
+    pending: 'To Do',
+    in_progress: 'In Progress',
+    completed: 'Done',
+    paused: 'On Hold',
+    // Also accept the Notion values directly
+    'To Do': 'To Do',
+    'In Progress': 'In Progress',
+    Done: 'Done',
+    'On Hold': 'On Hold',
+  };
+  return statusMap[status] || 'To Do';
+}
+
+/**
+ * Map priority values to Notion select names
+ */
+export function mapPriority(
+  priority: 'low' | 'medium' | 'high' | string | undefined
+): string | undefined {
+  if (!priority) return undefined;
+  const priorityMap: Record<string, string> = {
+    low: 'Low',
+    medium: 'Medium',
+    high: 'High',
+    // Accept Notion values directly
+    Low: 'Low',
+    Medium: 'Medium',
+    High: 'High',
+  };
+  return priorityMap[priority];
+}
+
+/**
+ * Build Notion properties object for task creation
+ */
+export function buildTaskProperties(input: {
+  title: string;
+  due_date?: string;
+  priority?: string;
+  project_id?: string;
+}): Record<string, unknown> {
+  const properties: Record<string, unknown> = {
+    [TASK_PROPS.title]: {
+      title: [{ text: { content: input.title } }],
+    },
+  };
+
+  // Add due date if provided
+  if (input.due_date) {
+    properties[TASK_PROPS.dueDate] = {
+      date: { start: input.due_date },
+    };
+  }
+
+  // Add priority if provided
+  const mappedPriority = mapPriority(input.priority);
+  if (mappedPriority) {
+    properties[TASK_PROPS.priority] = {
+      select: { name: mappedPriority },
+    };
+  }
+
+  // Add project relation if provided
+  if (input.project_id) {
+    properties[TASK_PROPS.project] = {
+      relation: [{ id: input.project_id }],
+    };
+  }
+
+  return properties;
+}
+
+/**
+ * Build Notion properties for task status update
+ */
+export function buildTaskStatusUpdate(status: string): Record<string, unknown> {
+  return {
+    [TASK_PROPS.status]: {
+      status: { name: mapTaskStatus(status) },
+    },
+  };
+}
+
+/**
+ * Build Notion properties for marking bill as paid
+ */
+export function buildBillPaidUpdate(): Record<string, unknown> {
+  return {
+    [BILL_PROPS.paid]: {
+      checkbox: true,
+    },
+  };
+}
+
+/**
+ * Build Notion properties for pausing a task
+ */
+export function buildTaskPauseUpdate(
+  until?: string
+): Record<string, unknown> {
+  const properties: Record<string, unknown> = {
+    [TASK_PROPS.status]: {
+      status: { name: 'On Hold' },
+    },
+  };
+
+  // If a "resume" date is provided, set it as the new due date
+  // This is a common pattern for "table until next week"
+  if (until) {
+    properties[TASK_PROPS.dueDate] = {
+      date: { start: until },
+    };
+  }
+
+  return properties;
+}
