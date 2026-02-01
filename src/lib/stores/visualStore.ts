@@ -401,7 +401,7 @@ export const useVisualStore = create<VisualState>((set) => ({
   skyboxPoleLogoUrl: null,
   skyboxPoleLogoSize: 22,
   skyboxPoleLogoOpacity: 0.95,
-  skyboxPoleLogoAutoScale: true,
+  skyboxPoleLogoAutoScale: false,
   vrComfortMode: false,
   vrDebugOverlayEnabled: false,
   orbAnchorMode: 'viewer',

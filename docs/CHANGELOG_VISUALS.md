@@ -149,3 +149,4 @@ All changes in the ethereal-flame-studio copy for skybox/orb controls are tracke
 - Expanded hole/pole slider ranges and strengthened the shader fade curve.
 - Added drag-to-look camera controls for world-anchored mode (no orbit translation).
 - Kept video and star skyboxes centered on the camera to prevent background dragging.
+- Set pole logo auto-scale default to OFF.

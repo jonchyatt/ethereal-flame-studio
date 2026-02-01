@@ -63,7 +63,7 @@ const BASE_TEMPLATE_SETTINGS: Omit<TemplateSettings, 'intensity' | 'layers' | 's
   skyboxPoleLogoUrl: null,
   skyboxPoleLogoSize: 22,
   skyboxPoleLogoOpacity: 0.95,
-  skyboxPoleLogoAutoScale: true,
+  skyboxPoleLogoAutoScale: false,
   vrComfortMode: false,
   vrDebugOverlayEnabled: false,
   orbAnchorMode: 'viewer',
