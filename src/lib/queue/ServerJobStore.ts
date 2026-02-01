@@ -62,7 +62,7 @@ const DEFAULT_RENDER_SETTINGS: RenderSettings = {
   visualMode: 'flame',
   intensity: 1.0,
   skyboxPreset: 'nebula',
-  skyboxRotationSpeed: 0.1,
+  skyboxRotationSpeed: 0.0,
   waterEnabled: false,
   waterColor: '#1a3a5c',
   waterReflectivity: 0.5,

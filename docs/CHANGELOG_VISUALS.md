@@ -61,7 +61,85 @@ All changes in the ethereal-flame-studio copy for skybox/orb controls are tracke
 - Ensured StarNest renders behind video when hole-fix is active.
 - Updated Advanced Editor overlay logic to keep StarNest controls visible for hole-fix.
 - Updated Skybox Preset visibility logic to include hole-fix overlays.
+- Updated Skybox Preset visibility logic to include pole fade and patch masks.
+- Reduced skybox rotation slider increments in the right-side controls panel.
 - Restored audio URL tracking in the audio store for render dialog compatibility.
 - Added hole-fix state hooks, mask debug helper, and hole-fix controls in the Advanced Editor.
 - Added a split-view Preview/Live label overlay for mask debugging.
 - Reworked the control UI into left/right docked panels with independent hide buttons.
+- Added pole-fade and patch-mask settings to the visual store and templates.
+- Added pole-fade and patch-mask fields to template settings schema.
+- Added pole-fade and patch-mask defaults to built-in presets.
+- Added pole-fade and patch-mask uniforms to the video skybox shader.
+- Wired pole-fade and patch-mask settings into the main canvas video skybox.
+- Added pole-fade and patch-mask state hooks in the Advanced Editor.
+- Updated StarNest overlay logic to include pole fade and patch masks.
+- Reduced skybox rotation slider increments and precision in the Advanced Editor.
+- Added pole-fade and patch-mask controls in the Advanced Editor UI.
+- Video skybox now enables transparency for pole fade/patch masks and renders earlier.
+- StarNest overlay now activates when pole fade or patch masks are enabled.
+
+## 2026-02-01
+- Set built-in template skybox rotation speeds to 0.0 (off by default).
+- Reduced skybox rotation slider step in the right-side Controls panel to 0.01.
+- Reduced skybox rotation slider step in the Advanced Editor to 0.01.
+- Set server-side render default skybox rotation speed to 0.0.
+- Render the orb particle layers after skyboxes to avoid video skybox occlusion.
+- Added a second patch-mask slot to the visual store for multi-mask support.
+- Added template schema fields for a second patch-mask slot.
+- Added built-in template defaults for the second patch-mask slot.
+- Extended video skybox shader/uniforms for a second patch mask and transparency trigger.
+- Wired second patch-mask settings into the main canvas video skybox and StarNest overlay logic.
+- Added a UI tip that World Anchored places the orb inside the scene/video skybox.
+- Added Patch Mask B controls to the Advanced Editor for multi-mask tuning.
+- Updated skybox preset visibility logic to account for the second patch mask.
+- Added patch C/D fields and a pick-target flag to the visual store.
+- Added patch C/D fields to the template schema.
+- Added patch C/D defaults to built-in template settings.
+- Added Patch C/D uniforms and click-to-pick handling to the video skybox shader.
+- Added Patch Mask C/D controls and pick-center buttons in the Advanced Editor.
+- Wired patch C/D settings and pick-target overlay into the main page.
+- Updated skybox preset visibility logic for patch C/D.
+- Added multi-pick and cursor tracking state for patch picking.
+- Added multi-pick cursor handling for patch picking on the video skybox.
+- Added a Multi-pick toggle to keep patch picking active in the Advanced Editor.
+- Added a crosshair overlay that follows the pick cursor during patch selection.
+- Reset skybox rotation speed to 0 when switching to or loading a video skybox.
+- Added a PoleLogoOverlay component to cover skybox poles with a logo.
+- Added a pole-logo toggle in the visual store and template serialization.
+- Added pole-logo enabled flag to the template schema.
+- Added pole-logo default to built-in templates.
+- Wired the pole-logo overlay into the main canvas scene.
+- Added a pole-logo toggle in the Advanced Editor skybox controls.
+- Added WAIANCircle logo to public overlays for pole coverage.
+- Added pole-logo URL/size/opacity settings to the visual store and template serialization.
+- Added pole-logo URL/size/opacity fields to the template schema.
+- Added pole-logo URL/size/opacity defaults to built-in templates.
+- Wired pole-logo URL/size/opacity into the main canvas overlay.
+- Added pole logo size/opacity sliders and custom logo picker controls.
+- Updated patch crosshair to snap to the last clicked position (no live cursor tracking).
+- Added pole-logo auto-scale setting to the visual store and template serialization.
+- Added pole-logo auto-scale flag to the template schema.
+- Added pole-logo auto-scale default to built-in templates.
+- Added auto-scale handling in PoleLogoOverlay and wired it into the canvas.
+- Added an auto-scale toggle for pole logo sizing in the Advanced Editor.
+- Added a visuals TODO list for items 1–4 (research/plan/execute).
+- Added rect-mask and mask-preview-mode fields to the visual store and template serialization.
+- Added mask preview mode and rect mask controls in the Advanced Editor.
+- Added rect mask + preview mode uniforms and shader logic to the video skybox.
+- Wired rect mask and preview mode props into the main canvas video skybox.
+- Added rect mask fields to template schema and built-in defaults.
+- Updated skybox preset visibility logic to include the rect mask.
+- Updated visuals TODO to reflect masking improvements progress.
+- Marked masking improvements as completed in visuals TODO.
+- Added video yaw/pitch offsets and seam blend fields to the visual store and templates.
+- Added video yaw/pitch and seam blend fields to the template schema and defaults.
+- Added video yaw/pitch offsets and seam blending uniforms to the video skybox shader.
+- Wired video yaw/pitch and seam blend props into the main canvas skybox.
+- Added video alignment (yaw/pitch) and seam blend controls to the Advanced Editor.
+- Marked seam/pole handling as completed in visuals TODO.
+- Added a batch render quick link inside the Render dialog.
+- Added template import/export controls to the Templates gallery.
+- Updated visuals TODO to mark export workflow polish as completed.
+- Added a VR debug overlay toggle and persisted it in templates.
+- Updated visuals TODO to mark VR comfort + UX work as completed.

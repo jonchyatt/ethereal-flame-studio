@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { TemplateCard } from './TemplateCard';
 import { useTemplateStore } from '@/lib/stores/templateStore';
 import { useVisualStore } from '@/lib/stores/visualStore';
@@ -15,7 +15,9 @@ export function TemplateGallery({ onSaveNew }: TemplateGalleryProps) {
   const activeTemplateId = useTemplateStore((state) => state.activeTemplateId);
   const loadTemplate = useTemplateStore((state) => state.loadTemplate);
   const deleteTemplate = useTemplateStore((state) => state.deleteTemplate);
+  const saveTemplate = useTemplateStore((state) => state.saveTemplate);
   const applyTemplateSettings = useVisualStore((state) => state.applyTemplateSettings);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize built-in presets on mount
   useEffect(() => {
@@ -39,6 +41,54 @@ export function TemplateGallery({ onSaveNew }: TemplateGalleryProps) {
   const handleDelete = (templateId: string) => {
     if (confirm('Delete this template?')) {
       deleteTemplate(templateId);
+    }
+  };
+
+  const handleExportTemplates = () => {
+    const exportData = {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      templates: userTemplates,
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'ethereal-templates.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportTemplates = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const list = Array.isArray(parsed) ? parsed : parsed.templates;
+      if (!Array.isArray(list)) {
+        throw new Error('Invalid template file format');
+      }
+
+      list.forEach((item: any) => {
+        if (!item) return;
+        if (item.settings) {
+          const name = item.name || 'Imported Template';
+          saveTemplate(name, item.settings, {
+            description: item.description,
+            thumbnail: item.thumbnail,
+          });
+        } else if (item.layers) {
+          const name = item.name || 'Imported Template';
+          saveTemplate(name, item);
+        }
+      });
+    } catch {
+      alert('Failed to import templates. Please check the file format.');
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -70,6 +120,27 @@ export function TemplateGallery({ onSaveNew }: TemplateGalleryProps) {
         <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider mb-2">
           Your Templates
         </h3>
+        <div className="flex items-center gap-2 mb-3">
+          <button
+            onClick={handleExportTemplates}
+            className="px-3 py-1.5 rounded text-xs bg-white/10 text-white/70 border border-white/20 hover:bg-white/20"
+          >
+            Export
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="px-3 py-1.5 rounded text-xs bg-white/10 text-white/70 border border-white/20 hover:bg-white/20"
+          >
+            Import
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/json"
+            onChange={handleImportTemplates}
+            className="hidden"
+          />
+        </div>
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
           {/* Save New Button */}
           {onSaveNew && (

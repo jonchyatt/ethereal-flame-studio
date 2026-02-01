@@ -15,18 +15,63 @@ interface VisualState {
   skyboxMode: 'shader' | 'video';
   skyboxVideoUrl: string | null;
   skyboxVideoFileName: string | null;
+  skyboxVideoYaw: number;
+  skyboxVideoPitch: number;
   skyboxMaskMode: 'none' | 'luma' | 'chroma';
   skyboxMaskThreshold: number;
   skyboxMaskSoftness: number;
   skyboxMaskColor: string;
   skyboxMaskPreview: boolean;
   skyboxMaskPreviewSplit: boolean;
+  skyboxMaskPreviewMode: 'tint' | 'matte';
   skyboxMaskPreviewColor: string;
   skyboxMaskInvert: boolean;
+  skyboxRectMaskEnabled: boolean;
+  skyboxRectMaskU: number;
+  skyboxRectMaskV: number;
+  skyboxRectMaskWidth: number;
+  skyboxRectMaskHeight: number;
+  skyboxRectMaskSoftness: number;
+  skyboxRectMaskInvert: boolean;
+  skyboxSeamBlendEnabled: boolean;
+  skyboxSeamBlendWidth: number;
   skyboxHoleFixEnabled: boolean;
   skyboxHoleFixThreshold: number;
   skyboxHoleFixSoftness: number;
+  skyboxPoleFadeEnabled: boolean;
+  skyboxPoleFadeStart: number;
+  skyboxPoleFadeSoftness: number;
+  skyboxPatchEnabled: boolean;
+  skyboxPatchU: number;
+  skyboxPatchV: number;
+  skyboxPatchRadius: number;
+  skyboxPatchSoftness: number;
+  skyboxPatch2Enabled: boolean;
+  skyboxPatch2U: number;
+  skyboxPatch2V: number;
+  skyboxPatch2Radius: number;
+  skyboxPatch2Softness: number;
+  skyboxPatch3Enabled: boolean;
+  skyboxPatch3U: number;
+  skyboxPatch3V: number;
+  skyboxPatch3Radius: number;
+  skyboxPatch3Softness: number;
+  skyboxPatch4Enabled: boolean;
+  skyboxPatch4U: number;
+  skyboxPatch4V: number;
+  skyboxPatch4Radius: number;
+  skyboxPatch4Softness: number;
+  skyboxPatchPickTarget: 'none' | 'patchA' | 'patchB' | 'patchC' | 'patchD';
+  skyboxPatchPickMulti: boolean;
+  skyboxPatchPickCursorX: number;
+  skyboxPatchPickCursorY: number;
+  skyboxPoleLogoEnabled: boolean;
+  skyboxPoleLogoUrl: string | null;
+  skyboxPoleLogoSize: number;
+  skyboxPoleLogoOpacity: number;
+  skyboxPoleLogoAutoScale: boolean;
   vrComfortMode: boolean;
+  vrDebugOverlayEnabled: boolean;
   // Orb placement
   orbAnchorMode: 'viewer' | 'world';
   orbDistance: number;
@@ -60,18 +105,62 @@ interface VisualState {
   setSkyboxDriftSpeed: (value: number) => void;
   setSkyboxMode: (mode: 'shader' | 'video') => void;
   setSkyboxVideo: (url: string | null, fileName?: string | null) => void;
+  setSkyboxVideoYaw: (value: number) => void;
+  setSkyboxVideoPitch: (value: number) => void;
   setSkyboxMaskMode: (mode: 'none' | 'luma' | 'chroma') => void;
   setSkyboxMaskThreshold: (value: number) => void;
   setSkyboxMaskSoftness: (value: number) => void;
   setSkyboxMaskColor: (value: string) => void;
   setSkyboxMaskPreview: (enabled: boolean) => void;
   setSkyboxMaskPreviewSplit: (enabled: boolean) => void;
+  setSkyboxMaskPreviewMode: (value: 'tint' | 'matte') => void;
   setSkyboxMaskPreviewColor: (value: string) => void;
   setSkyboxMaskInvert: (enabled: boolean) => void;
+  setSkyboxRectMaskEnabled: (enabled: boolean) => void;
+  setSkyboxRectMaskU: (value: number) => void;
+  setSkyboxRectMaskV: (value: number) => void;
+  setSkyboxRectMaskWidth: (value: number) => void;
+  setSkyboxRectMaskHeight: (value: number) => void;
+  setSkyboxRectMaskSoftness: (value: number) => void;
+  setSkyboxRectMaskInvert: (enabled: boolean) => void;
+  setSkyboxSeamBlendEnabled: (enabled: boolean) => void;
+  setSkyboxSeamBlendWidth: (value: number) => void;
   setSkyboxHoleFixEnabled: (enabled: boolean) => void;
   setSkyboxHoleFixThreshold: (value: number) => void;
   setSkyboxHoleFixSoftness: (value: number) => void;
+  setSkyboxPoleFadeEnabled: (enabled: boolean) => void;
+  setSkyboxPoleFadeStart: (value: number) => void;
+  setSkyboxPoleFadeSoftness: (value: number) => void;
+  setSkyboxPatchEnabled: (enabled: boolean) => void;
+  setSkyboxPatchU: (value: number) => void;
+  setSkyboxPatchV: (value: number) => void;
+  setSkyboxPatchRadius: (value: number) => void;
+  setSkyboxPatchSoftness: (value: number) => void;
+  setSkyboxPatch2Enabled: (enabled: boolean) => void;
+  setSkyboxPatch2U: (value: number) => void;
+  setSkyboxPatch2V: (value: number) => void;
+  setSkyboxPatch2Radius: (value: number) => void;
+  setSkyboxPatch2Softness: (value: number) => void;
+  setSkyboxPatch3Enabled: (enabled: boolean) => void;
+  setSkyboxPatch3U: (value: number) => void;
+  setSkyboxPatch3V: (value: number) => void;
+  setSkyboxPatch3Radius: (value: number) => void;
+  setSkyboxPatch3Softness: (value: number) => void;
+  setSkyboxPatch4Enabled: (enabled: boolean) => void;
+  setSkyboxPatch4U: (value: number) => void;
+  setSkyboxPatch4V: (value: number) => void;
+  setSkyboxPatch4Radius: (value: number) => void;
+  setSkyboxPatch4Softness: (value: number) => void;
+  setSkyboxPatchPickTarget: (value: 'none' | 'patchA' | 'patchB' | 'patchC' | 'patchD') => void;
+  setSkyboxPatchPickMulti: (value: boolean) => void;
+  setSkyboxPatchPickCursor: (x: number, y: number) => void;
+  setSkyboxPoleLogoEnabled: (enabled: boolean) => void;
+  setSkyboxPoleLogoUrl: (value: string | null) => void;
+  setSkyboxPoleLogoSize: (value: number) => void;
+  setSkyboxPoleLogoOpacity: (value: number) => void;
+  setSkyboxPoleLogoAutoScale: (value: boolean) => void;
   setVrComfortMode: (enabled: boolean) => void;
+  setVrDebugOverlayEnabled: (enabled: boolean) => void;
   // Orb placement actions
   setOrbAnchorMode: (mode: 'viewer' | 'world') => void;
   setOrbDistance: (value: number) => void;
@@ -251,25 +340,70 @@ export const useVisualStore = create<VisualState>((set) => ({
   layers: DEFAULT_LAYERS,
   // Initialize skybox with DarkWorld1 (THE ONE)
   skyboxPreset: STAR_NEST_PRESETS[0],
-  skyboxRotationSpeed: 0.5, // Default rotation speed from DarkWorld1
+  skyboxRotationSpeed: 0.0, // Default rotation speed (off)
   skyboxAudioReactiveEnabled: true,
   skyboxAudioReactivity: 1.0,
   skyboxDriftSpeed: 1.0,
   skyboxMode: 'shader',
   skyboxVideoUrl: null,
   skyboxVideoFileName: null,
+  skyboxVideoYaw: 0,
+  skyboxVideoPitch: 0,
   skyboxMaskMode: 'none',
   skyboxMaskThreshold: 0.65,
   skyboxMaskSoftness: 0.08,
   skyboxMaskColor: '#87ceeb',
   skyboxMaskPreview: false,
   skyboxMaskPreviewSplit: false,
+  skyboxMaskPreviewMode: 'tint',
   skyboxMaskPreviewColor: '#ff00ff',
   skyboxMaskInvert: false,
+  skyboxRectMaskEnabled: false,
+  skyboxRectMaskU: 0.5,
+  skyboxRectMaskV: 0.5,
+  skyboxRectMaskWidth: 0.3,
+  skyboxRectMaskHeight: 0.3,
+  skyboxRectMaskSoftness: 0.03,
+  skyboxRectMaskInvert: false,
+  skyboxSeamBlendEnabled: false,
+  skyboxSeamBlendWidth: 0.04,
   skyboxHoleFixEnabled: true,
   skyboxHoleFixThreshold: 0.02,
   skyboxHoleFixSoftness: 0.05,
+  skyboxPoleFadeEnabled: true,
+  skyboxPoleFadeStart: 0.08,
+  skyboxPoleFadeSoftness: 0.06,
+  skyboxPatchEnabled: false,
+  skyboxPatchU: 0.5,
+  skyboxPatchV: 0.5,
+  skyboxPatchRadius: 0.08,
+  skyboxPatchSoftness: 0.04,
+  skyboxPatch2Enabled: false,
+  skyboxPatch2U: 0.5,
+  skyboxPatch2V: 0.5,
+  skyboxPatch2Radius: 0.08,
+  skyboxPatch2Softness: 0.04,
+  skyboxPatch3Enabled: false,
+  skyboxPatch3U: 0.5,
+  skyboxPatch3V: 0.5,
+  skyboxPatch3Radius: 0.08,
+  skyboxPatch3Softness: 0.04,
+  skyboxPatch4Enabled: false,
+  skyboxPatch4U: 0.5,
+  skyboxPatch4V: 0.5,
+  skyboxPatch4Radius: 0.08,
+  skyboxPatch4Softness: 0.04,
+  skyboxPatchPickTarget: 'none',
+  skyboxPatchPickMulti: false,
+  skyboxPatchPickCursorX: -1,
+  skyboxPatchPickCursorY: -1,
+  skyboxPoleLogoEnabled: false,
+  skyboxPoleLogoUrl: null,
+  skyboxPoleLogoSize: 22,
+  skyboxPoleLogoOpacity: 0.95,
+  skyboxPoleLogoAutoScale: true,
   vrComfortMode: false,
+  vrDebugOverlayEnabled: false,
   orbAnchorMode: 'viewer',
   orbDistance: 6,
   orbHeight: 0,
@@ -317,18 +451,62 @@ export const useVisualStore = create<VisualState>((set) => ({
   setSkyboxDriftSpeed: (value) => set({ skyboxDriftSpeed: value }),
   setSkyboxMode: (mode) => set({ skyboxMode: mode }),
   setSkyboxVideo: (url, fileName = null) => set({ skyboxVideoUrl: url, skyboxVideoFileName: fileName }),
+  setSkyboxVideoYaw: (value) => set({ skyboxVideoYaw: value }),
+  setSkyboxVideoPitch: (value) => set({ skyboxVideoPitch: value }),
   setSkyboxMaskMode: (mode) => set({ skyboxMaskMode: mode }),
   setSkyboxMaskThreshold: (value) => set({ skyboxMaskThreshold: value }),
   setSkyboxMaskSoftness: (value) => set({ skyboxMaskSoftness: value }),
   setSkyboxMaskColor: (value) => set({ skyboxMaskColor: value }),
   setSkyboxMaskPreview: (enabled) => set({ skyboxMaskPreview: enabled }),
   setSkyboxMaskPreviewSplit: (enabled) => set({ skyboxMaskPreviewSplit: enabled }),
+  setSkyboxMaskPreviewMode: (value) => set({ skyboxMaskPreviewMode: value }),
   setSkyboxMaskPreviewColor: (value) => set({ skyboxMaskPreviewColor: value }),
   setSkyboxMaskInvert: (enabled) => set({ skyboxMaskInvert: enabled }),
+  setSkyboxRectMaskEnabled: (enabled) => set({ skyboxRectMaskEnabled: enabled }),
+  setSkyboxRectMaskU: (value) => set({ skyboxRectMaskU: value }),
+  setSkyboxRectMaskV: (value) => set({ skyboxRectMaskV: value }),
+  setSkyboxRectMaskWidth: (value) => set({ skyboxRectMaskWidth: value }),
+  setSkyboxRectMaskHeight: (value) => set({ skyboxRectMaskHeight: value }),
+  setSkyboxRectMaskSoftness: (value) => set({ skyboxRectMaskSoftness: value }),
+  setSkyboxRectMaskInvert: (enabled) => set({ skyboxRectMaskInvert: enabled }),
+  setSkyboxSeamBlendEnabled: (enabled) => set({ skyboxSeamBlendEnabled: enabled }),
+  setSkyboxSeamBlendWidth: (value) => set({ skyboxSeamBlendWidth: value }),
   setSkyboxHoleFixEnabled: (enabled) => set({ skyboxHoleFixEnabled: enabled }),
   setSkyboxHoleFixThreshold: (value) => set({ skyboxHoleFixThreshold: value }),
   setSkyboxHoleFixSoftness: (value) => set({ skyboxHoleFixSoftness: value }),
+  setSkyboxPoleFadeEnabled: (enabled) => set({ skyboxPoleFadeEnabled: enabled }),
+  setSkyboxPoleFadeStart: (value) => set({ skyboxPoleFadeStart: value }),
+  setSkyboxPoleFadeSoftness: (value) => set({ skyboxPoleFadeSoftness: value }),
+  setSkyboxPatchEnabled: (enabled) => set({ skyboxPatchEnabled: enabled }),
+  setSkyboxPatchU: (value) => set({ skyboxPatchU: value }),
+  setSkyboxPatchV: (value) => set({ skyboxPatchV: value }),
+  setSkyboxPatchRadius: (value) => set({ skyboxPatchRadius: value }),
+  setSkyboxPatchSoftness: (value) => set({ skyboxPatchSoftness: value }),
+  setSkyboxPatch2Enabled: (enabled) => set({ skyboxPatch2Enabled: enabled }),
+  setSkyboxPatch2U: (value) => set({ skyboxPatch2U: value }),
+  setSkyboxPatch2V: (value) => set({ skyboxPatch2V: value }),
+  setSkyboxPatch2Radius: (value) => set({ skyboxPatch2Radius: value }),
+  setSkyboxPatch2Softness: (value) => set({ skyboxPatch2Softness: value }),
+  setSkyboxPatch3Enabled: (enabled) => set({ skyboxPatch3Enabled: enabled }),
+  setSkyboxPatch3U: (value) => set({ skyboxPatch3U: value }),
+  setSkyboxPatch3V: (value) => set({ skyboxPatch3V: value }),
+  setSkyboxPatch3Radius: (value) => set({ skyboxPatch3Radius: value }),
+  setSkyboxPatch3Softness: (value) => set({ skyboxPatch3Softness: value }),
+  setSkyboxPatch4Enabled: (enabled) => set({ skyboxPatch4Enabled: enabled }),
+  setSkyboxPatch4U: (value) => set({ skyboxPatch4U: value }),
+  setSkyboxPatch4V: (value) => set({ skyboxPatch4V: value }),
+  setSkyboxPatch4Radius: (value) => set({ skyboxPatch4Radius: value }),
+  setSkyboxPatch4Softness: (value) => set({ skyboxPatch4Softness: value }),
+  setSkyboxPatchPickTarget: (value) => set({ skyboxPatchPickTarget: value }),
+  setSkyboxPatchPickMulti: (value) => set({ skyboxPatchPickMulti: value }),
+  setSkyboxPatchPickCursor: (x, y) => set({ skyboxPatchPickCursorX: x, skyboxPatchPickCursorY: y }),
+  setSkyboxPoleLogoEnabled: (enabled) => set({ skyboxPoleLogoEnabled: enabled }),
+  setSkyboxPoleLogoUrl: (value) => set({ skyboxPoleLogoUrl: value }),
+  setSkyboxPoleLogoSize: (value) => set({ skyboxPoleLogoSize: value }),
+  setSkyboxPoleLogoOpacity: (value) => set({ skyboxPoleLogoOpacity: value }),
+  setSkyboxPoleLogoAutoScale: (value) => set({ skyboxPoleLogoAutoScale: value }),
   setVrComfortMode: (enabled) => set({ vrComfortMode: enabled }),
+  setVrDebugOverlayEnabled: (enabled) => set({ vrDebugOverlayEnabled: enabled }),
   setOrbAnchorMode: (mode) => set({ orbAnchorMode: mode }),
   setOrbDistance: (value) => set({ orbDistance: value }),
   setOrbHeight: (value) => set({ orbHeight: value }),
@@ -371,15 +549,56 @@ export const useVisualStore = create<VisualState>((set) => ({
     skyboxDriftSpeed: settings.skyboxDriftSpeed ?? state.skyboxDriftSpeed,
     skyboxMode: settings.skyboxMode ?? state.skyboxMode,
     skyboxVideoUrl: settings.skyboxVideoUrl ?? state.skyboxVideoUrl,
+    skyboxVideoYaw: settings.skyboxVideoYaw ?? state.skyboxVideoYaw,
+    skyboxVideoPitch: settings.skyboxVideoPitch ?? state.skyboxVideoPitch,
     skyboxMaskMode: settings.skyboxMaskMode ?? state.skyboxMaskMode,
     skyboxMaskThreshold: settings.skyboxMaskThreshold ?? state.skyboxMaskThreshold,
     skyboxMaskSoftness: settings.skyboxMaskSoftness ?? state.skyboxMaskSoftness,
     skyboxMaskColor: settings.skyboxMaskColor ?? state.skyboxMaskColor,
+    skyboxMaskPreviewMode: settings.skyboxMaskPreviewMode ?? state.skyboxMaskPreviewMode,
     skyboxMaskInvert: settings.skyboxMaskInvert ?? state.skyboxMaskInvert,
+    skyboxRectMaskEnabled: settings.skyboxRectMaskEnabled ?? state.skyboxRectMaskEnabled,
+    skyboxRectMaskU: settings.skyboxRectMaskU ?? state.skyboxRectMaskU,
+    skyboxRectMaskV: settings.skyboxRectMaskV ?? state.skyboxRectMaskV,
+    skyboxRectMaskWidth: settings.skyboxRectMaskWidth ?? state.skyboxRectMaskWidth,
+    skyboxRectMaskHeight: settings.skyboxRectMaskHeight ?? state.skyboxRectMaskHeight,
+    skyboxRectMaskSoftness: settings.skyboxRectMaskSoftness ?? state.skyboxRectMaskSoftness,
+    skyboxRectMaskInvert: settings.skyboxRectMaskInvert ?? state.skyboxRectMaskInvert,
+    skyboxSeamBlendEnabled: settings.skyboxSeamBlendEnabled ?? state.skyboxSeamBlendEnabled,
+    skyboxSeamBlendWidth: settings.skyboxSeamBlendWidth ?? state.skyboxSeamBlendWidth,
     skyboxHoleFixEnabled: settings.skyboxHoleFixEnabled ?? state.skyboxHoleFixEnabled,
     skyboxHoleFixThreshold: settings.skyboxHoleFixThreshold ?? state.skyboxHoleFixThreshold,
     skyboxHoleFixSoftness: settings.skyboxHoleFixSoftness ?? state.skyboxHoleFixSoftness,
+    skyboxPoleFadeEnabled: settings.skyboxPoleFadeEnabled ?? state.skyboxPoleFadeEnabled,
+    skyboxPoleFadeStart: settings.skyboxPoleFadeStart ?? state.skyboxPoleFadeStart,
+    skyboxPoleFadeSoftness: settings.skyboxPoleFadeSoftness ?? state.skyboxPoleFadeSoftness,
+    skyboxPatchEnabled: settings.skyboxPatchEnabled ?? state.skyboxPatchEnabled,
+    skyboxPatchU: settings.skyboxPatchU ?? state.skyboxPatchU,
+    skyboxPatchV: settings.skyboxPatchV ?? state.skyboxPatchV,
+    skyboxPatchRadius: settings.skyboxPatchRadius ?? state.skyboxPatchRadius,
+    skyboxPatchSoftness: settings.skyboxPatchSoftness ?? state.skyboxPatchSoftness,
+    skyboxPatch2Enabled: settings.skyboxPatch2Enabled ?? state.skyboxPatch2Enabled,
+    skyboxPatch2U: settings.skyboxPatch2U ?? state.skyboxPatch2U,
+    skyboxPatch2V: settings.skyboxPatch2V ?? state.skyboxPatch2V,
+    skyboxPatch2Radius: settings.skyboxPatch2Radius ?? state.skyboxPatch2Radius,
+    skyboxPatch2Softness: settings.skyboxPatch2Softness ?? state.skyboxPatch2Softness,
+    skyboxPatch3Enabled: settings.skyboxPatch3Enabled ?? state.skyboxPatch3Enabled,
+    skyboxPatch3U: settings.skyboxPatch3U ?? state.skyboxPatch3U,
+    skyboxPatch3V: settings.skyboxPatch3V ?? state.skyboxPatch3V,
+    skyboxPatch3Radius: settings.skyboxPatch3Radius ?? state.skyboxPatch3Radius,
+    skyboxPatch3Softness: settings.skyboxPatch3Softness ?? state.skyboxPatch3Softness,
+    skyboxPatch4Enabled: settings.skyboxPatch4Enabled ?? state.skyboxPatch4Enabled,
+    skyboxPatch4U: settings.skyboxPatch4U ?? state.skyboxPatch4U,
+    skyboxPatch4V: settings.skyboxPatch4V ?? state.skyboxPatch4V,
+    skyboxPatch4Radius: settings.skyboxPatch4Radius ?? state.skyboxPatch4Radius,
+    skyboxPatch4Softness: settings.skyboxPatch4Softness ?? state.skyboxPatch4Softness,
+    skyboxPoleLogoEnabled: settings.skyboxPoleLogoEnabled ?? state.skyboxPoleLogoEnabled,
+    skyboxPoleLogoUrl: settings.skyboxPoleLogoUrl ?? state.skyboxPoleLogoUrl,
+    skyboxPoleLogoSize: settings.skyboxPoleLogoSize ?? state.skyboxPoleLogoSize,
+    skyboxPoleLogoOpacity: settings.skyboxPoleLogoOpacity ?? state.skyboxPoleLogoOpacity,
+    skyboxPoleLogoAutoScale: settings.skyboxPoleLogoAutoScale ?? state.skyboxPoleLogoAutoScale,
     vrComfortMode: settings.vrComfortMode ?? state.vrComfortMode,
+    vrDebugOverlayEnabled: settings.vrDebugOverlayEnabled ?? state.vrDebugOverlayEnabled,
     orbAnchorMode: settings.orbAnchorMode ?? state.orbAnchorMode,
     orbDistance: settings.orbDistance ?? state.orbDistance,
     orbHeight: settings.orbHeight ?? state.orbHeight,
@@ -409,6 +628,10 @@ export const selectSerializableState = (state: VisualState): TemplateSettings =>
     state.skyboxVideoUrl && state.skyboxVideoUrl.startsWith('blob:')
       ? null
       : state.skyboxVideoUrl;
+  const safeLogoUrl =
+    state.skyboxPoleLogoUrl && state.skyboxPoleLogoUrl.startsWith('blob:')
+      ? null
+      : state.skyboxPoleLogoUrl;
 
   return {
     intensity: state.intensity,
@@ -420,15 +643,59 @@ export const selectSerializableState = (state: VisualState): TemplateSettings =>
     skyboxDriftSpeed: state.skyboxDriftSpeed,
     skyboxMode: state.skyboxMode,
     skyboxVideoUrl: safeVideoUrl,
+    skyboxVideoYaw: state.skyboxVideoYaw,
+    skyboxVideoPitch: state.skyboxVideoPitch,
     skyboxMaskMode: state.skyboxMaskMode,
     skyboxMaskThreshold: state.skyboxMaskThreshold,
     skyboxMaskSoftness: state.skyboxMaskSoftness,
     skyboxMaskColor: state.skyboxMaskColor,
+    skyboxMaskPreviewMode: state.skyboxMaskPreviewMode,
     skyboxMaskInvert: state.skyboxMaskInvert,
+    skyboxRectMaskEnabled: state.skyboxRectMaskEnabled,
+    skyboxRectMaskU: state.skyboxRectMaskU,
+    skyboxRectMaskV: state.skyboxRectMaskV,
+    skyboxRectMaskWidth: state.skyboxRectMaskWidth,
+    skyboxRectMaskHeight: state.skyboxRectMaskHeight,
+    skyboxRectMaskSoftness: state.skyboxRectMaskSoftness,
+    skyboxRectMaskInvert: state.skyboxRectMaskInvert,
+    skyboxSeamBlendEnabled: state.skyboxSeamBlendEnabled,
+    skyboxSeamBlendWidth: state.skyboxSeamBlendWidth,
     skyboxHoleFixEnabled: state.skyboxHoleFixEnabled,
     skyboxHoleFixThreshold: state.skyboxHoleFixThreshold,
     skyboxHoleFixSoftness: state.skyboxHoleFixSoftness,
+    skyboxPoleFadeEnabled: state.skyboxPoleFadeEnabled,
+    skyboxPoleFadeStart: state.skyboxPoleFadeStart,
+    skyboxPoleFadeSoftness: state.skyboxPoleFadeSoftness,
+    skyboxPatchEnabled: state.skyboxPatchEnabled,
+    skyboxPatchU: state.skyboxPatchU,
+    skyboxPatchV: state.skyboxPatchV,
+    skyboxPatchRadius: state.skyboxPatchRadius,
+    skyboxPatchSoftness: state.skyboxPatchSoftness,
+    skyboxPatch2Enabled: state.skyboxPatch2Enabled,
+    skyboxPatch2U: state.skyboxPatch2U,
+    skyboxPatch2V: state.skyboxPatch2V,
+    skyboxPatch2Radius: state.skyboxPatch2Radius,
+    skyboxPatch2Softness: state.skyboxPatch2Softness,
+    skyboxPatch3Enabled: state.skyboxPatch3Enabled,
+    skyboxPatch3U: state.skyboxPatch3U,
+    skyboxPatch3V: state.skyboxPatch3V,
+    skyboxPatch3Radius: state.skyboxPatch3Radius,
+    skyboxPatch3Softness: state.skyboxPatch3Softness,
+    skyboxPatch4Enabled: state.skyboxPatch4Enabled,
+    skyboxPatch4U: state.skyboxPatch4U,
+    skyboxPatch4V: state.skyboxPatch4V,
+    skyboxPatch4Radius: state.skyboxPatch4Radius,
+    skyboxPatch4Softness: state.skyboxPatch4Softness,
+    skyboxPoleLogoEnabled: state.skyboxPoleLogoEnabled,
+    skyboxPoleLogoUrl: safeLogoUrl,
+    skyboxPoleLogoSize: state.skyboxPoleLogoSize,
+    skyboxPoleLogoOpacity: state.skyboxPoleLogoOpacity,
+    skyboxPoleLogoUrl: state.skyboxPoleLogoUrl,
+    skyboxPoleLogoSize: state.skyboxPoleLogoSize,
+    skyboxPoleLogoOpacity: state.skyboxPoleLogoOpacity,
+    skyboxPoleLogoAutoScale: state.skyboxPoleLogoAutoScale,
     vrComfortMode: state.vrComfortMode,
+    vrDebugOverlayEnabled: state.vrDebugOverlayEnabled,
     orbAnchorMode: state.orbAnchorMode,
     orbDistance: state.orbDistance,
     orbHeight: state.orbHeight,

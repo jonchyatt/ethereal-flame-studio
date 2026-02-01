@@ -13,7 +13,8 @@
     "test:deploy": "npm run kill && vercel --yes",
     "worker": "tsx scripts/start-worker.ts",
     "worker:render": "tsx scripts/start-worker.ts --render",
-    "worker:transcribe": "tsx scripts/start-worker.ts --transcribe"
+    "worker:transcribe": "tsx scripts/start-worker.ts --transcribe",
+    "render:local": "tsx scripts/render-cli.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.0.0",

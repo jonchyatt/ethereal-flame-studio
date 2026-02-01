@@ -77,6 +77,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRen
 
     if (contentType.includes('application/json')) {
       body = await request.json();
+      // Debug logging for audio input
+      if (body && typeof body === 'object' && 'audio' in body) {
+        const audio = (body as { audio: { type?: string; data?: string } }).audio;
+        console.log('[API] Audio input type:', audio?.type);
+        console.log('[API] Audio data length:', audio?.data?.length ?? 'undefined');
+      }
     } else if (contentType.includes('multipart/form-data')) {
       // Handle multipart form data for file uploads
       const formData = await request.formData();
@@ -121,9 +127,36 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRen
     switch (input.audio.type) {
       case 'base64':
         audioName = input.audio.filename;
-        // In production, we would decode and save the base64 data
-        // For now, we create a placeholder path
-        audioPath = `/tmp/uploads/${Date.now()}_${audioName}`;
+        // Decode base64 and save to temp file
+        try {
+          const uploadDir = process.env.JOBS_DIR || './jobs';
+          const fs = await import('fs/promises');
+          const path = await import('path');
+
+          // Ensure upload directory exists
+          await fs.mkdir(path.join(uploadDir, 'uploads'), { recursive: true });
+
+          // Generate unique filename
+          audioPath = path.join(uploadDir, 'uploads', `${Date.now()}_${audioName}`);
+
+          // Decode base64 and write to file
+          const audioBuffer = Buffer.from(input.audio.data, 'base64');
+          await fs.writeFile(audioPath, audioBuffer);
+
+          console.log(`[API] Saved audio file: ${audioPath} (${audioBuffer.length} bytes)`);
+        } catch (fsError) {
+          console.error('[API] Failed to save audio file:', fsError);
+          return NextResponse.json(
+            {
+              success: false,
+              error: {
+                code: 'FILE_SAVE_ERROR',
+                message: 'Failed to save audio file',
+              },
+            },
+            { status: 500 }
+          );
+        }
         break;
 
       case 'url':

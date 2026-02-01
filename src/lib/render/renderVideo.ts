@@ -89,18 +89,29 @@ export interface RenderVideoResult {
  * Get resolution for output format
  */
 function getResolution(format: OutputFormat): { width: number; height: number } {
-  const resolutions: Record<OutputFormat, { width: number; height: number }> = {
+  const resolutions: Record<string, { width: number; height: number }> = {
+    // Legacy format names
     'flat-1080p': { width: 1920, height: 1080 },
     'flat-4k': { width: 3840, height: 2160 },
     'flat-1080p-vertical': { width: 1080, height: 1920 },
     'flat-4k-vertical': { width: 2160, height: 3840 },
-    '360-mono-4k': { width: 3840, height: 2160 },
+    // New format names (from renderConfig)
+    'flat-1080p-landscape': { width: 1920, height: 1080 },
+    'flat-1080p-portrait': { width: 1080, height: 1920 },
+    'flat-4k-landscape': { width: 3840, height: 2160 },
+    'flat-4k-portrait': { width: 2160, height: 3840 },
+    // 360 formats
+    '360-mono-4k': { width: 4096, height: 2048 },
     '360-mono-6k': { width: 6144, height: 3072 },
-    '360-mono-8k': { width: 7680, height: 3840 },
+    '360-mono-8k': { width: 8192, height: 4096 },
     '360-stereo-4k': { width: 3840, height: 3840 }, // Top/bottom stereo
-    '360-stereo-8k': { width: 7680, height: 7680 }, // Top/bottom stereo
+    '360-stereo-8k': { width: 8192, height: 8192 }, // Top/bottom stereo
   };
-  return resolutions[format];
+  const resolution = resolutions[format];
+  if (!resolution) {
+    throw new Error(`Unknown output format: ${format}`);
+  }
+  return resolution;
 }
 
 /**
@@ -174,7 +185,35 @@ export async function renderVideo(config: RenderVideoConfig): Promise<RenderVide
     });
 
     const analysisStart = Date.now();
-    const audioBuffer = await fs.readFile(audioPath);
+
+    // Convert MP3/other formats to WAV for Node.js analysis
+    let audioPathForAnalysis = audioPath;
+    const audioExt = path.extname(audioPath).toLowerCase();
+    if (audioExt !== '.wav') {
+      console.log(`[renderVideo] Converting ${audioExt} to WAV for analysis...`);
+      reportProgress(onProgress, {
+        stage: 'analyzing',
+        stageProgress: 0,
+        overallProgress: 0,
+        message: 'Converting audio to WAV...',
+      });
+
+      const wavPath = audioPath.replace(/\.[^.]+$/, '_converted.wav');
+      const { execSync } = await import('child_process');
+      try {
+        // Convert to 16-bit PCM WAV at 44.1kHz
+        execSync(`ffmpeg -y -i "${audioPath}" -ar 44100 -ac 1 -sample_fmt s16 "${wavPath}"`, {
+          stdio: 'pipe',
+        });
+        audioPathForAnalysis = wavPath;
+        console.log(`[renderVideo] Converted to WAV: ${wavPath}`);
+      } catch (ffmpegError) {
+        console.error('[renderVideo] FFmpeg conversion failed:', ffmpegError);
+        throw new Error(`Failed to convert audio to WAV: ${ffmpegError instanceof Error ? ffmpegError.message : 'FFmpeg error'}`);
+      }
+    }
+
+    const audioBuffer = await fs.readFile(audioPathForAnalysis);
     const preAnalyzer = new PreAnalyzer();
 
     let audioAnalysis: PreAnalysisResult;

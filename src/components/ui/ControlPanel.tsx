@@ -171,13 +171,13 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
 
             <div>
               <label className="block text-white/80 text-sm mb-2">
-                Skybox Rotation Speed: {skyboxRotationSpeed.toFixed(1)}x
+                Skybox Rotation Speed: {skyboxRotationSpeed.toFixed(2)}x
               </label>
               <input
                 type="range"
                 min="0"
-                max="2"
-                step="0.1"
+                max="1"
+                step="0.01"
                 value={skyboxRotationSpeed}
                 onChange={(e) => setSkyboxRotationSpeed(parseFloat(e.target.value))}
                 className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"

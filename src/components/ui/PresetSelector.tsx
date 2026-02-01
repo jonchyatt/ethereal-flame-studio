@@ -19,12 +19,24 @@ export function PresetSelector() {
   const skyboxMaskMode = useVisualStore((state) => state.skyboxMaskMode);
   const skyboxVideoUrl = useVisualStore((state) => state.skyboxVideoUrl);
 
+  const skyboxRectMaskEnabled = useVisualStore((state) => state.skyboxRectMaskEnabled);
   const skyboxHoleFixEnabled = useVisualStore((state) => state.skyboxHoleFixEnabled);
+  const skyboxPoleFadeEnabled = useVisualStore((state) => state.skyboxPoleFadeEnabled);
+  const skyboxPatchEnabled = useVisualStore((state) => state.skyboxPatchEnabled);
+  const skyboxPatch2Enabled = useVisualStore((state) => state.skyboxPatch2Enabled);
+  const skyboxPatch3Enabled = useVisualStore((state) => state.skyboxPatch3Enabled);
+  const skyboxPatch4Enabled = useVisualStore((state) => state.skyboxPatch4Enabled);
   const showPreset =
     skyboxMode !== 'video' ||
     !skyboxVideoUrl ||
     skyboxMaskMode !== 'none' ||
-    skyboxHoleFixEnabled;
+    skyboxRectMaskEnabled ||
+    skyboxHoleFixEnabled ||
+    skyboxPoleFadeEnabled ||
+    skyboxPatchEnabled ||
+    skyboxPatch2Enabled ||
+    skyboxPatch3Enabled ||
+    skyboxPatch4Enabled;
 
   if (!showPreset) {
     return null;
