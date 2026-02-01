@@ -213,4 +213,9 @@ Resume file: None
 - Add items to projects
 - Identify items by title (fuzzy matching)
 
+**Verification:**
+- 8 Playwright e2e tests covering all voice commands
+- All 8 tests passing (tests 6-8 handle data-dependent scenarios gracefully)
+- MCP response unwrapping fix verified query results work correctly
+
 **Next:** Phase 5 (Dashboard UI) or voice pipeline refinements
