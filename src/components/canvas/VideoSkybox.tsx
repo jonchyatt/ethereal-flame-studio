@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useFrame, type ThreeEvent } from "@react-three/fiber";
+import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { useVisualStore } from "@/lib/stores/visualStore";
 
@@ -111,6 +111,7 @@ export function VideoSkybox({
 }: VideoSkyboxProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const { camera } = useThree();
   const [videoTexture, setVideoTexture] = useState<THREE.VideoTexture | null>(null);
   const patchPickTarget = useVisualStore((state) => state.skyboxPatchPickTarget);
   const patchPickMulti = useVisualStore((state) => state.skyboxPatchPickMulti);
@@ -387,6 +388,9 @@ export function VideoSkybox({
   };
 
   useFrame((_, delta) => {
+    if (meshRef.current) {
+      meshRef.current.position.copy(camera.position);
+    }
     if (rotationSpeed && meshRef.current) {
       meshRef.current.rotation.y += rotationSpeed * delta;
     }

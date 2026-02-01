@@ -147,3 +147,5 @@ All changes in the ethereal-flame-studio copy for skybox/orb controls are tracke
 - Locked OrbitControls to world-anchored orb target and disabled pan/zoom for world anchoring.
 - Styled the video skybox file picker with a button-like control.
 - Expanded hole/pole slider ranges and strengthened the shader fade curve.
+- Added drag-to-look camera controls for world-anchored mode (no orbit translation).
+- Kept video and star skyboxes centered on the camera to prevent background dragging.

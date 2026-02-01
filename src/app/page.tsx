@@ -10,6 +10,7 @@ import { VideoSkybox } from '@/components/canvas/VideoSkybox';
 import { WaterPlane } from '@/components/canvas/WaterPlane';
 import { CameraRig } from '@/components/canvas/CameraRig';
 import { PoleLogoOverlay } from '@/components/canvas/PoleLogoOverlay';
+import { DragLookControls } from '@/components/canvas/DragLookControls';
 import { VRPreviewMode, VRModeOverlay, useVRMode, VRContextProvider } from '@/components/canvas/VRPreviewMode';
 import { ScreenshotCapture, ScreenshotCaptureRef } from '@/components/ui/ScreenshotCapture';
 import { ControlPanel } from '@/components/ui/ControlPanel';
@@ -82,9 +83,6 @@ export default function Home() {
   const vrComfortMode = useVisualStore((state) => state.vrComfortMode);
   const vrDebugOverlayEnabled = useVisualStore((state) => state.vrDebugOverlayEnabled);
   const orbAnchorMode = useVisualStore((state) => state.orbAnchorMode);
-  const orbWorldX = useVisualStore((state) => state.orbWorldX);
-  const orbWorldY = useVisualStore((state) => state.orbWorldY);
-  const orbWorldZ = useVisualStore((state) => state.orbWorldZ);
   const cameraLookAtOrb = useVisualStore((state) => state.cameraLookAtOrb);
   const cameraOrbitEnabled = useVisualStore((state) => state.cameraOrbitEnabled);
   const cameraOrbitRenderOnly = useVisualStore((state) => state.cameraOrbitRenderOnly);
@@ -228,11 +226,11 @@ export default function Home() {
         {/* OrbitControls disabled in VR or when camera rig is active */}
         {!isVRMode && (
           <OrbitControls
-            enabled={!orbitActive && !lookAtActive}
-            target={lockOrbitToOrb ? [orbWorldX, orbWorldY, orbWorldZ] : undefined}
-            enablePan={!lockOrbitToOrb}
-            enableZoom={!lockOrbitToOrb}
+            enabled={!orbitActive && !lookAtActive && !lockOrbitToOrb}
           />
+        )}
+        {!isVRMode && lockOrbitToOrb && (
+          <DragLookControls enabled />
         )}
         <Suspense fallback={null}>
           <OrbAnchor />

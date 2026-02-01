@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useMemo } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import type { StarNestPreset } from "@/types";
 import starNestShader from "@/lib/shaders/starnest.frag.glsl";
@@ -492,6 +492,7 @@ export function StarNestSkybox({
 }: StarNestSkyboxProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const { camera } = useThree();
 
   // Render mode support for headless rendering
   const renderMode = useRenderMode();
@@ -542,6 +543,9 @@ export function StarNestSkybox({
 
   useFrame(({ clock }) => {
     if (!materialRef.current) return;
+    if (meshRef.current) {
+      meshRef.current.position.copy(camera.position);
+    }
     const currentPreset = presetRef.current;
 
     // In render mode, use fixed time directly
