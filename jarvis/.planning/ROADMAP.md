@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Audio Foundation** - Browser audio capture/playback, orb integration, permission UX
 - [x] **Phase 2: Voice Pipeline** - STT + TTS integration with streaming, turn-taking state machine
 - [x] **Phase 3: Intelligence Layer** - Claude API integration, conversation context, guide personality
-- [ ] **Phase 4: Data Integration** - Notion MCP connection, read/write operations, tool execution
+- [x] **Phase 4: Data Integration** - Notion MCP connection, read/write operations, tool execution
 - [ ] **Phase 5: Executive Function Core** - Daily briefings, time nudges, check-ins, habit/goal awareness
 - [ ] **Phase 6: Advanced Executive Function** - Weekly review, life area weighting, evening wrap
 
@@ -105,9 +105,9 @@ Plans:
 - Wave 3: 04-03 (write operations + task identification)
 
 Plans:
-- [ ] 04-01-PLAN.md - MCP client setup, schema types, database discovery script
-- [ ] 04-02-PLAN.md - Tool execution loop, read operations (query_tasks, query_bills)
-- [ ] 04-03-PLAN.md - Write operations (create_task, update_status, mark_paid, pause_task)
+- [x] 04-01-PLAN.md - MCP client setup, schema types, database discovery script
+- [x] 04-02-PLAN.md - Tool execution loop, read operations (query_tasks, query_bills)
+- [x] 04-03-PLAN.md - Write operations (create_task, update_status, mark_paid, pause_task)
 
 ### Phase 5: Executive Function Core
 **Goal**: Jarvis provides proactive executive function support throughout the day
@@ -123,12 +123,16 @@ Plans:
   7. Current tasks and agenda display as text alongside the orb
   8. Priority items show visual "needs attention" indicator
   9. Morning briefing includes upcoming bills ("3 bills due this week, $847 total")
-**Plans**: TBD
+**Plans:** 3 plans in 2 waves
+
+**Wave Structure:**
+- Wave 1: 05-01 (briefing infrastructure and morning briefing)
+- Wave 2: 05-02, 05-03 (nudges/check-ins and dashboard are parallel)
 
 Plans:
-- [ ] 05-01: Morning briefing workflow (aggregate Notion data into spoken summary, including bills)
-- [ ] 05-02: Time awareness and scheduled check-ins
-- [ ] 05-03: Task/agenda display and priority indicators
+- [ ] 05-01-PLAN.md - Scheduler, BriefingBuilder, BriefingFlow, morning briefing workflow
+- [ ] 05-02-PLAN.md - NudgeManager, CheckInManager, time nudges, midday/evening check-ins
+- [ ] 05-03-PLAN.md - DashboardPanel, section components, priority indicators, responsive layout
 
 ### Phase 6: Advanced Executive Function
 **Goal**: Jarvis provides comprehensive executive function partnership
@@ -156,11 +160,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Audio Foundation | 3/3 | **COMPLETE** | 2026-01-31 |
 | 2. Voice Pipeline | 3/3 | **COMPLETE** | 2026-01-31 |
 | 3. Intelligence Layer | 3/3 | **COMPLETE** | 2026-02-01 |
-| 4. Data Integration | 0/3 | **PLANNED** | - |
-| 5. Executive Function Core | 0/3 | Not started | - |
+| 4. Data Integration | 3/3 | **COMPLETE** | 2026-02-01 |
+| 5. Executive Function Core | 0/3 | **PLANNED** | - |
 | 6. Advanced Executive Function | 0/3 | Not started | - |
 
 ---
 *Roadmap created: 2026-01-31*
-*Updated: 2026-02-01 (Phase 4 planned)*
+*Updated: 2026-02-01 (Phase 5 planned)*
 *Requirements coverage: 39/39 mapped*
