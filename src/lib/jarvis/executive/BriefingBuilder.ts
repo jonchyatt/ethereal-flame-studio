@@ -1,0 +1,403 @@
+/**
+ * BriefingBuilder - Aggregates Notion data for briefings
+ *
+ * Collects data from all Life OS databases in parallel
+ * and formats it for morning briefings and check-ins.
+ *
+ * Uses existing Phase 4 tools via the toolExecutor.
+ */
+
+import { format, isWithinInterval, addHours, parseISO, isToday, isBefore } from 'date-fns';
+import type {
+  BriefingData,
+  TaskSummary,
+  BillSummary,
+  HabitSummary,
+  GoalSummary,
+  CalendarEvent,
+  CheckInType,
+  CheckInProgress,
+} from './types';
+
+// Import the internal query function that returns raw results
+import { callMCPTool } from '../notion/NotionClient';
+import {
+  LIFE_OS_DATABASES,
+  buildTaskFilter,
+  buildBillFilter,
+  buildHabitFilter,
+  buildGoalFilter,
+  TASK_PROPS,
+  BILL_PROPS,
+  HABIT_PROPS,
+  GOAL_PROPS,
+} from '../notion/schemas';
+
+// =============================================================================
+// Raw Data Extraction Helpers
+// =============================================================================
+
+/**
+ * Extract title from Notion property
+ */
+function extractTitle(prop: unknown): string {
+  const p = prop as { title?: Array<{ plain_text?: string }> };
+  return p?.title?.[0]?.plain_text || 'Untitled';
+}
+
+/**
+ * Extract select/status value
+ */
+function extractSelect(prop: unknown): string {
+  const p = prop as { status?: { name?: string }; select?: { name?: string } };
+  return p?.status?.name || p?.select?.name || 'Unknown';
+}
+
+/**
+ * Extract date start value
+ */
+function extractDate(prop: unknown): string | null {
+  const p = prop as { date?: { start?: string } };
+  return p?.date?.start || null;
+}
+
+/**
+ * Extract number value
+ */
+function extractNumber(prop: unknown): number {
+  const p = prop as { number?: number };
+  return p?.number || 0;
+}
+
+/**
+ * Extract checkbox value
+ */
+function extractCheckbox(prop: unknown): boolean {
+  const p = prop as { checkbox?: boolean };
+  return p?.checkbox || false;
+}
+
+// =============================================================================
+// Briefing Data Builder
+// =============================================================================
+
+/**
+ * Build complete morning briefing data by querying all databases in parallel
+ */
+export async function buildMorningBriefing(): Promise<BriefingData> {
+  console.log('[BriefingBuilder] Building morning briefing data...');
+
+  try {
+    // Parallel queries for all data sources using Phase 4 MCP tools
+    const [todayTasksResult, overdueTasksResult, billsResult, habitsResult, goalsResult] =
+      await Promise.all([
+        queryNotionRaw('tasks', { filter: 'today', status: 'pending' }),
+        queryNotionRaw('tasks', { filter: 'overdue', status: 'pending' }),
+        queryNotionRaw('bills', { timeframe: 'this_week', unpaidOnly: true }),
+        queryNotionRaw('habits', { frequency: 'all' }),
+        queryNotionRaw('goals', { status: 'active' }),
+      ]);
+
+    // Parse task results
+    const todayTasks = parseTaskResults(todayTasksResult);
+    const overdueTasks = parseTaskResults(overdueTasksResult);
+
+    // Parse bill results
+    const bills = parseBillResults(billsResult);
+    const billTotal = bills.reduce((sum, b) => sum + b.amount, 0);
+
+    // Parse habit results
+    const habits = parseHabitResults(habitsResult);
+    const streakSummary = buildStreakSummary(habits);
+
+    // Parse goal results
+    const goals = parseGoalResults(goalsResult);
+
+    // Derive calendar events from tasks with specific times
+    const allTodayTasks = [...todayTasks, ...overdueTasks.filter((t) => t.dueDate && isToday(parseISO(t.dueDate)))];
+    const calendarEvents = deriveCalendarEvents(allTodayTasks);
+
+    const briefingData: BriefingData = {
+      tasks: {
+        today: todayTasks,
+        overdue: overdueTasks,
+      },
+      bills: {
+        thisWeek: bills,
+        total: billTotal,
+      },
+      habits: {
+        active: habits,
+        streakSummary,
+      },
+      goals: {
+        active: goals,
+      },
+      calendar: {
+        today: calendarEvents,
+      },
+    };
+
+    console.log('[BriefingBuilder] Briefing data built:', {
+      tasksToday: todayTasks.length,
+      tasksOverdue: overdueTasks.length,
+      bills: bills.length,
+      habits: habits.length,
+      goals: goals.length,
+      calendarEvents: calendarEvents.length,
+    });
+
+    return briefingData;
+  } catch (error) {
+    console.error('[BriefingBuilder] Error building briefing:', error);
+    // Return empty data structure on error
+    return {
+      tasks: { today: [], overdue: [] },
+      bills: { thisWeek: [], total: 0 },
+      habits: { active: [], streakSummary: 'Unable to load habit data.' },
+      goals: { active: [] },
+      calendar: { today: [] },
+    };
+  }
+}
+
+/**
+ * Build check-in data (for midday/evening check-ins)
+ */
+export async function buildCheckInData(type: CheckInType): Promise<{
+  briefing: BriefingData;
+  progress: CheckInProgress;
+}> {
+  console.log(`[BriefingBuilder] Building ${type} check-in data...`);
+
+  // Get full briefing data
+  const briefing = await buildMorningBriefing();
+
+  // Calculate progress
+  const [allTodayTasks, completedTodayTasks] = await Promise.all([
+    queryNotionRaw('tasks', { filter: 'today', status: 'all' }),
+    queryNotionRaw('tasks', { filter: 'today', status: 'completed' }),
+  ]);
+
+  const totalTasks = parseTaskResults(allTodayTasks);
+  const completedTasks = parseTaskResults(completedTodayTasks);
+
+  const progress: CheckInProgress = {
+    tasksCompletedToday: completedTasks.length,
+    totalTasksToday: totalTasks.length,
+    overdueCount: briefing.tasks.overdue.length,
+    newCaptures: [], // Filled in during check-in flow
+  };
+
+  return { briefing, progress };
+}
+
+// =============================================================================
+// Raw Query Function
+// =============================================================================
+
+/**
+ * Query Notion and return raw results (not formatted for speech)
+ */
+async function queryNotionRaw(
+  database: 'tasks' | 'bills' | 'habits' | 'goals',
+  options: Record<string, unknown>
+): Promise<unknown> {
+  const databaseId = LIFE_OS_DATABASES[database];
+  if (!databaseId) {
+    console.warn(`[BriefingBuilder] Database not configured: ${database}`);
+    return { results: [] };
+  }
+
+  let filter: Record<string, unknown> = {};
+
+  switch (database) {
+    case 'tasks':
+      filter = buildTaskFilter({
+        filter: options.filter as 'today' | 'this_week' | 'overdue' | 'all' | undefined,
+        status: options.status as 'pending' | 'completed' | 'all' | undefined,
+      });
+      break;
+    case 'bills':
+      filter = buildBillFilter({
+        timeframe: options.timeframe as 'this_week' | 'this_month' | 'overdue' | undefined,
+        unpaidOnly: options.unpaidOnly as boolean | undefined,
+      });
+      break;
+    case 'habits':
+      filter = buildHabitFilter({
+        frequency: options.frequency as 'daily' | 'weekly' | 'monthly' | 'all' | undefined,
+      });
+      break;
+    case 'goals':
+      filter = buildGoalFilter({
+        status: options.status as 'active' | 'achieved' | 'all' | undefined,
+      });
+      break;
+  }
+
+  return callMCPTool('API-query-data-source', {
+    data_source_id: databaseId,
+    ...filter,
+  });
+}
+
+// =============================================================================
+// Result Parsers
+// =============================================================================
+
+/**
+ * Parse raw Notion task results into TaskSummary[]
+ */
+function parseTaskResults(result: unknown): TaskSummary[] {
+  const pages = (result as { results?: unknown[] })?.results || [];
+  return pages.map((page: unknown) => {
+    const p = page as { properties: Record<string, unknown>; id: string };
+    const dueDate = extractDate(p.properties[TASK_PROPS.dueDate]);
+
+    // Extract time from due date if it includes time (ISO format with T)
+    let dueTime: string | null = null;
+    if (dueDate && dueDate.includes('T')) {
+      try {
+        const date = parseISO(dueDate);
+        dueTime = format(date, 'HH:mm');
+      } catch {
+        // No valid time
+      }
+    }
+
+    return {
+      id: p.id,
+      title: extractTitle(p.properties[TASK_PROPS.title]),
+      status: extractSelect(p.properties[TASK_PROPS.status]),
+      dueDate: dueDate?.split('T')[0] || dueDate,
+      dueTime,
+      priority: extractSelect(p.properties[TASK_PROPS.priority]) || null,
+    };
+  });
+}
+
+/**
+ * Parse raw Notion bill results into BillSummary[]
+ */
+function parseBillResults(result: unknown): BillSummary[] {
+  const pages = (result as { results?: unknown[] })?.results || [];
+  return pages.map((page: unknown) => {
+    const p = page as { properties: Record<string, unknown>; id: string };
+    return {
+      id: p.id,
+      title: extractTitle(p.properties[BILL_PROPS.title]),
+      amount: extractNumber(p.properties[BILL_PROPS.amount]),
+      dueDate: extractDate(p.properties[BILL_PROPS.dueDate]),
+    };
+  });
+}
+
+/**
+ * Parse raw Notion habit results into HabitSummary[]
+ */
+function parseHabitResults(result: unknown): HabitSummary[] {
+  const pages = (result as { results?: unknown[] })?.results || [];
+  return pages.map((page: unknown) => {
+    const p = page as { properties: Record<string, unknown>; id: string };
+    return {
+      id: p.id,
+      title: extractTitle(p.properties[HABIT_PROPS.title]),
+      frequency: extractSelect(p.properties[HABIT_PROPS.frequency]),
+      streak: extractNumber(p.properties[HABIT_PROPS.streak]),
+      lastCompleted: extractDate(p.properties[HABIT_PROPS.lastCompleted]),
+    };
+  });
+}
+
+/**
+ * Parse raw Notion goal results into GoalSummary[]
+ */
+function parseGoalResults(result: unknown): GoalSummary[] {
+  const pages = (result as { results?: unknown[] })?.results || [];
+  return pages.map((page: unknown) => {
+    const p = page as { properties: Record<string, unknown>; id: string };
+    return {
+      id: p.id,
+      title: extractTitle(p.properties[GOAL_PROPS.title]),
+      status: extractSelect(p.properties[GOAL_PROPS.status]),
+      progress: extractNumber(p.properties[GOAL_PROPS.progress]) || null,
+    };
+  });
+}
+
+// =============================================================================
+// Calendar Event Derivation
+// =============================================================================
+
+/**
+ * Derive calendar events from tasks with specific due times
+ */
+function deriveCalendarEvents(tasks: TaskSummary[]): CalendarEvent[] {
+  const now = new Date();
+  const oneHourFromNow = addHours(now, 1);
+
+  return tasks
+    .filter((t) => t.dueTime) // Only tasks with specific times
+    .map((t) => {
+      // Parse the time
+      const [hours, minutes] = t.dueTime!.split(':').map(Number);
+      const eventTime = new Date();
+      eventTime.setHours(hours, minutes, 0, 0);
+
+      // Check if within next hour
+      const isUpcoming = isWithinInterval(eventTime, { start: now, end: oneHourFromNow });
+
+      return {
+        id: `cal-${t.id}`,
+        title: t.title,
+        time: format(eventTime, 'h:mm a'), // "9:00 AM"
+        isUpcoming,
+        sourceTaskId: t.id,
+      };
+    })
+    .sort((a, b) => {
+      // Sort by time
+      const timeA = a.time.replace(/[^0-9:]/g, '');
+      const timeB = b.time.replace(/[^0-9:]/g, '');
+      return timeA.localeCompare(timeB);
+    });
+}
+
+// =============================================================================
+// Streak Summary Builder
+// =============================================================================
+
+/**
+ * Build a speech-friendly habit streak summary
+ */
+export function buildStreakSummary(habits: HabitSummary[]): string {
+  if (habits.length === 0) {
+    return 'No active habits tracked.';
+  }
+
+  // Count habits by streak status
+  const onTrack = habits.filter((h) => h.streak > 0).length;
+  const needsAttention = habits.filter((h) => h.streak === 0).length;
+
+  // Find longest streak
+  const maxStreak = Math.max(...habits.map((h) => h.streak));
+  const longestStreakHabit = habits.find((h) => h.streak === maxStreak);
+
+  // Build summary
+  const parts: string[] = [];
+
+  if (onTrack > 0) {
+    parts.push(`${onTrack} habit${onTrack > 1 ? 's' : ''} on track`);
+  }
+
+  if (needsAttention > 0) {
+    parts.push(`${needsAttention} need${needsAttention === 1 ? 's' : ''} attention`);
+  }
+
+  if (longestStreakHabit && maxStreak > 1) {
+    parts.push(`${longestStreakHabit.title} has a ${maxStreak}-day streak`);
+  }
+
+  return parts.join('. ') + '.';
+}

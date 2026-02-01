@@ -4,6 +4,9 @@ export type OrbState = 'idle' | 'listening' | 'thinking' | 'speaking';
 // Re-export from voice types for convenience
 export type { VoicePipelineState } from './voice/types';
 
+// Re-export executive types for convenience
+export type { BriefingSection, BriefingData } from './executive/types';
+
 // Default state colors (cool -> warm progression)
 // User can customize these in future settings phase
 export const DEFAULT_STATE_COLORS: Record<OrbState, [number, number, number]> = {
@@ -50,6 +53,11 @@ export interface JarvisState {
   lastResponse: string; // Last TTS response text
   error: string | null; // Current error message
   showTranscript: boolean; // Whether to display transcript UI
+
+  // Briefing state (extended in 05-01)
+  isBriefingActive: boolean;
+  currentBriefingSection: import('./executive/types').BriefingSection | null;
+  briefingData: import('./executive/types').BriefingData | null;
 }
 
 // Store actions
@@ -69,4 +77,9 @@ export interface JarvisActions {
   setError: (error: string | null) => void;
   setShowTranscript: (show: boolean) => void;
   resetPipeline: () => void;
+
+  // Briefing actions (extended in 05-01)
+  setIsBriefingActive: (active: boolean) => void;
+  setCurrentBriefingSection: (section: import('./executive/types').BriefingSection | null) => void;
+  setBriefingData: (data: import('./executive/types').BriefingData | null) => void;
 }

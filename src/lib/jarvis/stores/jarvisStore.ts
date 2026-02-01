@@ -6,6 +6,7 @@ import {
   DEFAULT_STATE_COLORS,
 } from '../types';
 import type { VoicePipelineState } from '../voice/types';
+import type { BriefingSection, BriefingData } from '../executive/types';
 
 type JarvisStore = JarvisState & JarvisActions;
 
@@ -31,6 +32,11 @@ export const useJarvisStore = create<JarvisStore>((set) => ({
   // Voice pipeline state
   ...INITIAL_PIPELINE_STATE,
 
+  // Briefing state
+  isBriefingActive: false,
+  currentBriefingSection: null as BriefingSection | null,
+  briefingData: null as BriefingData | null,
+
   // Actions
   setOrbState: (orbState: OrbState) => set({ orbState }),
   setAudioPermissionGranted: (granted: boolean) =>
@@ -55,4 +61,10 @@ export const useJarvisStore = create<JarvisStore>((set) => ({
   setError: (error: string | null) => set({ error }),
   setShowTranscript: (showTranscript: boolean) => set({ showTranscript }),
   resetPipeline: () => set(INITIAL_PIPELINE_STATE),
+
+  // Briefing actions
+  setIsBriefingActive: (isBriefingActive: boolean) => set({ isBriefingActive }),
+  setCurrentBriefingSection: (currentBriefingSection: BriefingSection | null) =>
+    set({ currentBriefingSection }),
+  setBriefingData: (briefingData: BriefingData | null) => set({ briefingData }),
 }));
