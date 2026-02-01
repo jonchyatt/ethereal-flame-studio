@@ -143,3 +143,4 @@ All changes in the ethereal-flame-studio copy for skybox/orb controls are tracke
 - Updated visuals TODO to mark export workflow polish as completed.
 - Added a VR debug overlay toggle and persisted it in templates.
 - Updated visuals TODO to mark VR comfort + UX work as completed.
+- Fixed duplicate pole logo fields in visual store serialization.
