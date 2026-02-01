@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Audio Foundation** - Browser audio capture/playback, orb integration, permission UX
 - [x] **Phase 2: Voice Pipeline** - STT + TTS integration with streaming, turn-taking state machine
-- [ ] **Phase 3: Intelligence Layer** - Claude API integration, conversation context, guide personality
+- [x] **Phase 3: Intelligence Layer** - Claude API integration, conversation context, guide personality
 - [ ] **Phase 4: Data Integration** - Notion MCP connection, read/write operations, OAuth flow
 - [ ] **Phase 5: Executive Function Core** - Daily briefings, time nudges, check-ins, habit/goal awareness
 - [ ] **Phase 6: Advanced Executive Function** - Weekly review, life area weighting, evening wrap
@@ -80,9 +80,9 @@ Plans:
 - Wave 2: 03-03 (integration needs both API client and context manager)
 
 Plans:
-- [ ] 03-01-PLAN.md - Claude API route with SSE streaming and browser client
-- [ ] 03-02-PLAN.md - Conversation context management (sliding window, cross-session memory)
-- [ ] 03-03-PLAN.md - Guide personality prompt, tool definitions, VoicePipeline integration
+- [x] 03-01-PLAN.md - Claude API route with SSE streaming and browser client
+- [x] 03-02-PLAN.md - Conversation context management (sliding window, cross-session memory)
+- [x] 03-03-PLAN.md - Guide personality prompt, tool definitions, VoicePipeline integration
 
 ### Phase 4: Data Integration
 **Goal**: Jarvis can read and write to Notion workspace (tasks, projects, bills)
@@ -151,7 +151,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|----------------|--------|-----------|
 | 1. Audio Foundation | 3/3 | **COMPLETE** | 2026-01-31 |
 | 2. Voice Pipeline | 3/3 | **COMPLETE** | 2026-01-31 |
-| 3. Intelligence Layer | 0/3 | **PLANNED** | - |
+| 3. Intelligence Layer | 3/3 | **COMPLETE** | 2026-02-01 |
 | 4. Data Integration | 0/3 | Not started | - |
 | 5. Executive Function Core | 0/3 | Not started | - |
 | 6. Advanced Executive Function | 0/3 | Not started | - |

@@ -41,7 +41,7 @@ export async function POST(request: Request): Promise<Response> {
           // Use streaming API for low TTFT
           // Include tools for future Notion integration (handled gracefully if called)
           const response = anthropic.messages.stream({
-            model: 'claude-haiku-4-5-20250514',
+            model: 'claude-3-5-haiku-20241022',
             max_tokens: 1024,
             system: systemPrompt || 'You are a helpful assistant.',
             messages: messages.map((m) => ({
