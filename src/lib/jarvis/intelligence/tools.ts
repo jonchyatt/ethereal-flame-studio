@@ -2,7 +2,9 @@
  * Tool Definitions for Jarvis
  *
  * Defines Claude tool schemas for Notion operations.
- * Phase 4 implements actual tool execution via MCP.
+ * All 10 tools are fully implemented via MCP in toolExecutor.ts:
+ * - 5 Read tools: query_tasks, query_bills, query_projects, query_goals, query_habits
+ * - 5 Write tools: create_task, update_task_status, mark_bill_paid, pause_task, add_project_item
  */
 
 /**
@@ -166,7 +168,7 @@ export const notionTools: ToolDefinition[] = [
     }
   },
   // =========================================================================
-  // Write tools - placeholders for Phase 04-03
+  // Write tools (Phase 04-03)
   // =========================================================================
   {
     name: 'pause_task',
@@ -210,42 +212,3 @@ export const notionTools: ToolDefinition[] = [
     }
   }
 ];
-
-/**
- * Map of tool names to human-readable actions
- */
-const toolActionDescriptions: Record<string, string> = {
-  // Read operations
-  query_tasks: 'check your tasks',
-  query_bills: 'look up your bills',
-  query_projects: 'check your projects',
-  query_goals: 'look at your goals',
-  query_habits: 'check your habits',
-  // Write operations
-  create_task: 'create a task',
-  update_task_status: 'update a task',
-  mark_bill_paid: 'mark a bill as paid',
-  pause_task: 'pause a task',
-  add_project_item: 'add to a project'
-};
-
-/**
- * Handle calls to tools that aren't yet implemented
- *
- * Returns a friendly message acknowledging what the user wanted
- * and noting the capability is coming soon.
- *
- * @param toolName - The tool that was called
- * @param input - The input parameters (logged for future roadmap)
- * @returns A friendly message for the user
- */
-export function handleToolNotImplemented(toolName: string, input: unknown): string {
-  // Log the request for roadmap visibility
-  console.log(`[Tools] Unimplemented tool called: ${toolName}`, input);
-
-  const action = toolActionDescriptions[toolName] || `do that (${toolName})`;
-
-  return `I understand you want me to ${action}. ` +
-    `Notion integration is coming soon - I'll be able to help with that in the next update. ` +
-    `For now, I can help you think through it or remind you to do it manually.`;
-}
