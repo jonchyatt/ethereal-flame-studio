@@ -1,11 +1,11 @@
 /**
- * VoicePipeline - Orchestrates STT, TTS, and state transitions
+ * VoicePipeline - Orchestrates STT, LLM, TTS, and state transitions
  *
  * Coordinates the complete voice flow:
  * 1. User presses PTT -> listening state
  * 2. STT transcribes speech in real-time
  * 3. User releases PTT -> processing state
- * 4. Generate response (echo for now)
+ * 4. Claude generates intelligent response
  * 5. TTS speaks response -> speaking state
  * 6. Audio ends -> idle state
  *
@@ -13,6 +13,8 @@
  * - Barge-in support (PTT during TTS interrupts playback)
  * - Error handling with spoken feedback
  * - State machine with clear transitions
+ * - Multi-turn conversation context
+ * - Time awareness via system prompt
  */
 
 import { MicrophoneCapture } from '../audio/MicrophoneCapture';
@@ -21,11 +23,14 @@ import { SpeechClient } from './SpeechClient';
 import { useJarvisStore } from '../stores/jarvisStore';
 import type { VoicePipelineState, TranscriptResult, STTCallbacks, TTSCallbacks } from './types';
 
-// Default response generator (echo mode for testing)
-type ResponseGenerator = (transcript: string) => string | Promise<string>;
+// Intelligence layer imports
+import { ClaudeClient } from '../intelligence/ClaudeClient';
+import { ConversationManager } from '../intelligence/ConversationManager';
+import { MemoryStore } from '../intelligence/MemoryStore';
+import { buildSystemPrompt } from '../intelligence/systemPrompt';
 
-const defaultResponseGenerator: ResponseGenerator = (transcript) =>
-  `You said: ${transcript}`;
+// Response generator type (for backwards compatibility)
+type ResponseGenerator = (transcript: string) => string | Promise<string>;
 
 export interface VoicePipelineConfig {
   /** Custom response generator (default: echo) */
@@ -42,6 +47,11 @@ export class VoicePipeline {
   private tts: SpeechClient;
   private config: Required<VoicePipelineConfig>;
 
+  // Intelligence layer
+  private claudeClient: ClaudeClient;
+  private conversationManager: ConversationManager;
+  private memoryStore: MemoryStore;
+
   private state: VoicePipelineState = 'idle';
   private accumulatedTranscript = '';
   private lastFinalTranscript = '';
@@ -49,10 +59,15 @@ export class VoicePipeline {
   constructor(config: VoicePipelineConfig = {}) {
     this.mic = MicrophoneCapture.getInstance();
     this.config = {
-      responseGenerator: config.responseGenerator ?? defaultResponseGenerator,
+      responseGenerator: config.responseGenerator ?? ((t) => this.generateIntelligentResponse(t)),
       minTranscriptLength: config.minTranscriptLength ?? 1,
       speakErrors: config.speakErrors ?? true,
     };
+
+    // Initialize intelligence layer
+    this.memoryStore = new MemoryStore();
+    this.conversationManager = new ConversationManager(this.memoryStore);
+    this.claudeClient = new ClaudeClient();
 
     // Initialize TTS with callbacks
     const ttsCallbacks: TTSCallbacks = {
@@ -206,6 +221,9 @@ export class VoicePipeline {
     // Stop TTS
     this.tts.stop();
 
+    // Abort any in-progress Claude request
+    this.claudeClient.abort();
+
     // Reset state
     this.accumulatedTranscript = '';
     this.lastFinalTranscript = '';
@@ -236,13 +254,62 @@ export class VoicePipeline {
   }
 
   /**
-   * Set response generator (for upgrading from echo to LLM)
+   * Set response generator (for custom response logic)
    */
   setResponseGenerator(generator: ResponseGenerator): void {
     this.config.responseGenerator = generator;
   }
 
+  /**
+   * Clear conversation history (useful for starting fresh)
+   */
+  clearConversation(clearPersisted: boolean = false): void {
+    this.conversationManager.clear(clearPersisted);
+    console.log('[VoicePipeline] Conversation cleared');
+  }
+
   // Private methods
+
+  /**
+   * Generate an intelligent response using Claude
+   */
+  private async generateIntelligentResponse(transcript: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      // Add user message to context
+      this.conversationManager.addMessage({ role: 'user', content: transcript });
+
+      // Build context for Claude
+      const messages = this.conversationManager.getContextMessages();
+      const systemPrompt = buildSystemPrompt({
+        currentTime: new Date(),
+        keyFacts: this.conversationManager.getKeyFacts()
+      });
+
+      let fullResponse = '';
+
+      this.claudeClient.chat(messages, systemPrompt, {
+        onToken: (text) => {
+          fullResponse += text;
+          // Future optimization: could stream to TTS here for lower latency
+        },
+        onComplete: (text) => {
+          // Add assistant response to conversation history
+          this.conversationManager.addMessage({ role: 'assistant', content: text });
+
+          // Check if we should summarize (for long conversations)
+          if (this.conversationManager.shouldSummarize()) {
+            console.log('[VoicePipeline] Conversation getting long, should summarize');
+            // Note: Actual summarization can be added later
+          }
+
+          resolve(text);
+        },
+        onError: (error) => {
+          reject(error);
+        }
+      });
+    });
+  }
 
   private setState(newState: VoicePipelineState): void {
     console.log(`[VoicePipeline] State: ${this.state} -> ${newState}`);
