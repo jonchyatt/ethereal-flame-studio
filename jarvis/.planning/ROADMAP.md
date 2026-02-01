@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Audio Foundation** - Browser audio capture/playback, orb integration, permission UX
 - [x] **Phase 2: Voice Pipeline** - STT + TTS integration with streaming, turn-taking state machine
 - [x] **Phase 3: Intelligence Layer** - Claude API integration, conversation context, guide personality
-- [ ] **Phase 4: Data Integration** - Notion MCP connection, read/write operations, OAuth flow
+- [ ] **Phase 4: Data Integration** - Notion MCP connection, read/write operations, tool execution
 - [ ] **Phase 5: Executive Function Core** - Daily briefings, time nudges, check-ins, habit/goal awareness
 - [ ] **Phase 6: Advanced Executive Function** - Weekly review, life area weighting, evening wrap
 
@@ -89,21 +89,25 @@ Plans:
 **Depends on**: Phase 3
 **Requirements**: NOT-01, NOT-02, NOT-03, NOT-04, NOT-05, NOT-06, NOT-07, NOT-08, NOT-09, INF-03, INF-04, FIN-01, FIN-02
 **Success Criteria** (what must be TRUE):
-  1. User completes OAuth flow to connect their Notion workspace
+  1. MCP client connects to Notion MCP server successfully
   2. User says "What tasks do I have?" and Jarvis reads from Notion tasks database
   3. User says "Remind me to call mom" and task appears in Notion inbox
   4. User can specify timing/context ("Call mom tomorrow morning") and task captures it
   5. User can update task status via voice ("Mark 'call mom' as complete")
   6. User can pause/defer tasks via voice ("Table the website project for next week")
-  7. User can add items to project needs via voice
-  8. User says "What bills are due?" and Jarvis reads from bills database
-  9. User says "Mark electric bill as paid" and bill status updates in Notion
-**Plans**: TBD
+  7. User says "What bills are due?" and Jarvis reads from bills database
+  8. User says "Mark electric bill as paid" and bill status updates in Notion
+**Plans:** 3 plans in 3 waves
+
+**Wave Structure:**
+- Wave 1: 04-01 (MCP client foundation)
+- Wave 2: 04-02 (read operations + tool loop)
+- Wave 3: 04-03 (write operations + task identification)
 
 Plans:
-- [ ] 04-01: Notion MCP client setup and OAuth flow
-- [ ] 04-02: Read operations (tasks, projects, goals, habits, bills)
-- [ ] 04-03: Write operations (create, update, pause, complete, mark paid)
+- [ ] 04-01-PLAN.md - MCP client setup, schema types, database discovery script
+- [ ] 04-02-PLAN.md - Tool execution loop, read operations (query_tasks, query_bills)
+- [ ] 04-03-PLAN.md - Write operations (create_task, update_status, mark_paid, pause_task)
 
 ### Phase 5: Executive Function Core
 **Goal**: Jarvis provides proactive executive function support throughout the day
@@ -152,11 +156,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Audio Foundation | 3/3 | **COMPLETE** | 2026-01-31 |
 | 2. Voice Pipeline | 3/3 | **COMPLETE** | 2026-01-31 |
 | 3. Intelligence Layer | 3/3 | **COMPLETE** | 2026-02-01 |
-| 4. Data Integration | 0/3 | Not started | - |
+| 4. Data Integration | 0/3 | **PLANNED** | - |
 | 5. Executive Function Core | 0/3 | Not started | - |
 | 6. Advanced Executive Function | 0/3 | Not started | - |
 
 ---
 *Roadmap created: 2026-01-31*
-*Updated: 2026-01-31 (Phase 3 planned)*
+*Updated: 2026-02-01 (Phase 4 planned)*
 *Requirements coverage: 39/39 mapped*
