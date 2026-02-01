@@ -2,7 +2,7 @@
  * Tool Definitions for Jarvis
  *
  * Defines Claude tool schemas for Notion operations.
- * Handlers acknowledge capability gap gracefully until Phase 4.
+ * Phase 4 implements actual tool execution via MCP.
  */
 
 /**
@@ -23,10 +23,10 @@ export interface ToolDefinition {
 }
 
 /**
- * Notion tool definitions for Phase 4 integration
+ * Notion tool definitions for Life OS integration
  *
- * These define the schemas for Claude to understand what actions are available.
- * Actual handlers are implemented in Phase 4.
+ * 5 Read tools: query_tasks, query_bills, query_projects, query_goals, query_habits
+ * 5 Write tools: create_task, update_task_status, mark_bill_paid, pause_task, add_project_item
  */
 export const notionTools: ToolDefinition[] = [
   {
@@ -119,6 +119,95 @@ export const notionTools: ToolDefinition[] = [
       },
       required: ['bill_id']
     }
+  },
+  // =========================================================================
+  // NEW: Projects, Goals, Habits read tools (Phase 04-02)
+  // =========================================================================
+  {
+    name: 'query_projects',
+    description: 'Get projects from Notion. Use when user asks about their projects, what they are working on, or project status.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'string',
+          description: 'Filter by project status',
+          enum: ['active', 'paused', 'completed', 'all']
+        }
+      }
+    }
+  },
+  {
+    name: 'query_goals',
+    description: 'Get goals from Notion. Use when user asks about their goals, objectives, or what they are working towards.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'string',
+          description: 'Filter by goal status',
+          enum: ['active', 'achieved', 'all']
+        }
+      }
+    }
+  },
+  {
+    name: 'query_habits',
+    description: 'Get habits and their progress from Notion. Use when user asks about habits, routines, streaks, or consistency.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        frequency: {
+          type: 'string',
+          description: 'Filter by habit frequency',
+          enum: ['daily', 'weekly', 'monthly', 'all']
+        }
+      }
+    }
+  },
+  // =========================================================================
+  // Write tools - placeholders for Phase 04-03
+  // =========================================================================
+  {
+    name: 'pause_task',
+    description: 'Pause or defer a task for later. Use when user wants to postpone a task.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        task_id: {
+          type: 'string',
+          description: 'The Notion task ID to pause'
+        },
+        until: {
+          type: 'string',
+          description: 'Optional date to resume (YYYY-MM-DD format)'
+        }
+      },
+      required: ['task_id']
+    }
+  },
+  {
+    name: 'add_project_item',
+    description: 'Add an item to a project\'s needs list. Use when user wants to add requirements, sub-tasks, or notes to a project.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        project_id: {
+          type: 'string',
+          description: 'The project ID or title'
+        },
+        item: {
+          type: 'string',
+          description: 'The item to add'
+        },
+        type: {
+          type: 'string',
+          description: 'Type of item',
+          enum: ['need', 'task', 'note']
+        }
+      },
+      required: ['project_id', 'item']
+    }
   }
 ];
 
@@ -126,11 +215,18 @@ export const notionTools: ToolDefinition[] = [
  * Map of tool names to human-readable actions
  */
 const toolActionDescriptions: Record<string, string> = {
-  create_task: 'create a task',
+  // Read operations
   query_tasks: 'check your tasks',
   query_bills: 'look up your bills',
+  query_projects: 'check your projects',
+  query_goals: 'look at your goals',
+  query_habits: 'check your habits',
+  // Write operations
+  create_task: 'create a task',
   update_task_status: 'update a task',
-  mark_bill_paid: 'mark a bill as paid'
+  mark_bill_paid: 'mark a bill as paid',
+  pause_task: 'pause a task',
+  add_project_item: 'add to a project'
 };
 
 /**
