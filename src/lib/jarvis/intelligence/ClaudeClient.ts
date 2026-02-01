@@ -1,0 +1,158 @@
+/**
+ * ClaudeClient - Browser-side client for Claude chat API
+ *
+ * Handles SSE streaming from /api/jarvis/chat and invokes callbacks
+ * as tokens arrive for low-latency conversational experience.
+ */
+
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface ChatCallbacks {
+  /** Called for each text token as it arrives */
+  onToken: (text: string) => void;
+  /** Called when response is complete with full accumulated text */
+  onComplete: (fullText: string) => void;
+  /** Called on error (not called for abort) */
+  onError: (error: Error) => void;
+}
+
+/**
+ * Client for streaming chat with Claude via the /api/jarvis/chat endpoint.
+ *
+ * @example
+ * ```ts
+ * const client = new ClaudeClient();
+ *
+ * await client.chat(
+ *   [{ role: 'user', content: 'Hello!' }],
+ *   'You are a helpful assistant.',
+ *   {
+ *     onToken: (text) => console.log('Token:', text),
+ *     onComplete: (fullText) => console.log('Complete:', fullText),
+ *     onError: (err) => console.error('Error:', err),
+ *   }
+ * );
+ *
+ * // To cancel:
+ * client.abort();
+ * ```
+ */
+export class ClaudeClient {
+  private abortController: AbortController | null = null;
+  private isStreaming = false;
+
+  /**
+   * Send messages to Claude and receive streaming response.
+   *
+   * @param messages - Conversation history
+   * @param systemPrompt - System prompt for Claude
+   * @param callbacks - Callbacks for streaming events
+   */
+  async chat(
+    messages: ChatMessage[],
+    systemPrompt: string,
+    callbacks: ChatCallbacks
+  ): Promise<void> {
+    // Abort any existing request
+    this.abort();
+
+    this.abortController = new AbortController();
+    this.isStreaming = true;
+    let fullText = '';
+
+    try {
+      const response = await fetch('/api/jarvis/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages, systemPrompt }),
+        signal: this.abortController.signal,
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`Chat API error ${response.status}: ${errorBody}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('Response body is not readable');
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // Decode chunk and add to buffer
+        buffer += decoder.decode(value, { stream: true });
+
+        // Process complete lines
+        const lines = buffer.split('\n');
+        // Keep incomplete line in buffer
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+
+              if (data.type === 'text') {
+                fullText += data.text;
+                callbacks.onToken(data.text);
+              } else if (data.type === 'done') {
+                callbacks.onComplete(fullText);
+              } else if (data.type === 'error') {
+                throw new Error(data.error || 'Unknown server error');
+              }
+            } catch (parseError) {
+              // Skip malformed JSON lines (shouldn't happen)
+              console.warn('Failed to parse SSE data:', line, parseError);
+            }
+          }
+        }
+      }
+
+      // If we exit loop without done event, complete anyway
+      if (fullText && this.isStreaming) {
+        callbacks.onComplete(fullText);
+      }
+    } catch (error) {
+      // Don't call onError for abort
+      if (error instanceof Error && error.name === 'AbortError') {
+        // Request was aborted, no error callback
+        return;
+      }
+
+      callbacks.onError(
+        error instanceof Error ? error : new Error(String(error))
+      );
+    } finally {
+      this.isStreaming = false;
+      this.abortController = null;
+    }
+  }
+
+  /**
+   * Abort the current streaming request.
+   * Safe to call even if no request is in progress.
+   */
+  abort(): void {
+    if (this.abortController) {
+      this.abortController.abort();
+      this.abortController = null;
+    }
+    this.isStreaming = false;
+  }
+
+  /**
+   * Check if a request is currently streaming.
+   */
+  get streaming(): boolean {
+    return this.isStreaming;
+  }
+}
