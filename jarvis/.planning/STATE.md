@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** One system that knows everything, surfaces what matters, and keeps you on track
-**Current focus:** Phase 4 - Data Integration (READY)
+**Current focus:** Phase 4 - Data Integration (IN PROGRESS)
 
 ## Current Position
 
 Phase: 4 of 6 (Data Integration)
-Plan: 0 of 3 in current phase (NOT STARTED)
-Status: Phase 3 verified, Phase 4 ready to plan
-Last activity: 2026-02-01 - Phase 3 human-verified (Claude API working)
+Plan: 1 of 3 in current phase (COMPLETE)
+Status: Plan 04-01 complete, ready for 04-02
+Last activity: 2026-02-01 - Completed 04-01-PLAN.md (MCP client infrastructure)
 
-Progress: [##########] 50% (3/6 phases complete)
+Progress: [###########-] 58% (9/15 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: 9 min
-- Total execution time: 69 min
+- Total execution time: 81 min
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [##########] 50% (3/6 phases complete)
 | 01-audio-foundation | 3/3 | 27 min | 9 min |
 | 02-voice-pipeline | 3/3 | 25 min | 8 min |
 | 03-intelligence-layer | 3/3 | 18 min | 6 min |
+| 04-data-integration | 1/3 | 12 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-03 (5 min), 03-01 (7 min), 03-02 (3 min), 03-03 (8 min)
-- Trend: Fast plans (integration work, established patterns)
+- Last 5 plans: 03-01 (7 min), 03-02 (3 min), 03-03 (8 min), 04-01 (12 min)
+- Trend: Integration work, MCP setup slightly longer due to API discovery
 
 *Updated after each plan completion*
 
@@ -78,19 +79,25 @@ Recent decisions affecting current work:
 - [03-03]: Omnipresent guide personality (calm, knowing, NOT butler)
 - [03-03]: Time format as "Friday, 3:45 PM" for natural speech
 - [03-03]: Tool graceful degradation with "coming soon" message
+- [04-01]: MCP client singleton with lazy initialization
+- [04-01]: 30-second timeout for MCP requests
+- [04-01]: Windows-compatible spawn with shell option
+- [04-01]: Use actual MCP tool names (API-post-search, API-retrieve-a-database)
+- [04-01]: data_source filter for Notion API v2025-09-03
 
 ### Pending Todos
 
-None.
+- User must share databases with Notion integration before Plan 04-02
+- Copy discovered database IDs to .env.local
 
 ### Blockers/Concerns
 
-None.
+- **Notion database sharing**: User needs to share Tasks, Bills, Projects, Goals, Habits databases with the Notion integration before queries will work.
 
 ## Session Continuity
 
 Last session: 2026-02-01
-Stopped at: Phase 3 verified, ready for Phase 4 planning
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
 
 ## Phase 1 Summary
@@ -153,9 +160,22 @@ Resume file: None
 - Multi-turn memory: "My name is Jonathan" -> "What's my name?" works
 - Tool readiness: "Add a task" -> graceful "coming soon" message
 
-## Ready for Phase 4
+## Phase 4 Progress
 
-Phase 4 (Notion Integration) will:
-- Implement actual tool handlers
-- Connect to Notion API
-- Enable real task/bill/project operations
+**Data Integration in progress.** Plan 04-01 complete:
+
+1. **04-01**: MCP Client Infrastructure (COMPLETE)
+   - @modelcontextprotocol/sdk installed
+   - NotionClient.ts with stdio transport singleton
+   - Schema types for Tasks, Bills, Projects, Goals, Habits
+   - Discovery script found all 5 database IDs
+   - Query builders and result formatters ready
+
+**Discovered database IDs:**
+- Tasks: `2f902093-f0b3-81e8-a5bd-000b0fcf5bcb`
+- Bills: `2f902093-f0b3-81d5-ab21-000b05f7f947`
+- Projects: `2f902093-f0b3-8146-99cc-000bf339a06d`
+- Goals: `2f902093-f0b3-8173-a34b-000ba2e03fc3`
+- Habits: `2f902093-f0b3-81a2-9a35-000bfe1ebf20`
+
+**Next:** Plan 04-02 will implement read operations (query_tasks, query_bills, etc.)
