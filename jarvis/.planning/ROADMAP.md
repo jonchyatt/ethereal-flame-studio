@@ -13,7 +13,7 @@ Jarvis transforms from concept to voice-enabled executive function partner throu
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Audio Foundation** - Browser audio capture/playback, orb integration, permission UX
-- [ ] **Phase 2: Voice Pipeline** - STT + TTS integration with streaming, turn-taking state machine
+- [x] **Phase 2: Voice Pipeline** - STT + TTS integration with streaming, turn-taking state machine
 - [ ] **Phase 3: Intelligence Layer** - Claude API integration, conversation context, guide personality
 - [ ] **Phase 4: Data Integration** - Notion MCP connection, read/write operations, OAuth flow
 - [ ] **Phase 5: Executive Function Core** - Daily briefings, time nudges, check-ins, habit/goal awareness
@@ -59,9 +59,9 @@ Plans:
 - Wave 2: 02-03 (turn-taking needs both STT and TTS)
 
 Plans:
-- [ ] 02-01-PLAN.md - Deepgram STT WebSocket integration with backend proxy
-- [ ] 02-02-PLAN.md - ElevenLabs streaming TTS with orb audio sync
-- [ ] 02-03-PLAN.md - Turn-taking state machine, barge-in, and echo test
+- [x] 02-01-PLAN.md - Deepgram STT WebSocket integration with backend proxy
+- [x] 02-02-PLAN.md - ElevenLabs streaming TTS with orb audio sync
+- [x] 02-03-PLAN.md - Turn-taking state machine, barge-in, and echo test
 
 ### Phase 3: Intelligence Layer
 **Goal**: User can have natural multi-turn conversations with Jarvis
@@ -73,12 +73,16 @@ Plans:
   3. Jarvis maintains omnipresent guide personality throughout conversation (calm, knowing, always present)
   4. Jarvis knows current time and can reference it naturally in responses
   5. Tool calling framework is ready for Notion operations (tools defined, not implemented)
-**Plans**: TBD
+**Plans:** 3 plans in 2 waves
+
+**Wave Structure:**
+- Wave 1: 03-01, 03-02 (Claude API route and context management are independent)
+- Wave 2: 03-03 (integration needs both API client and context manager)
 
 Plans:
-- [ ] 03-01: Claude API route with streaming responses
-- [ ] 03-02: Conversation context management (sliding window, system prompt)
-- [ ] 03-03: Guide personality prompt engineering and tool definitions
+- [ ] 03-01-PLAN.md - Claude API route with SSE streaming and browser client
+- [ ] 03-02-PLAN.md - Conversation context management (sliding window, cross-session memory)
+- [ ] 03-03-PLAN.md - Guide personality prompt, tool definitions, VoicePipeline integration
 
 ### Phase 4: Data Integration
 **Goal**: Jarvis can read and write to Notion workspace (tasks, projects, bills)
@@ -146,13 +150,13 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Audio Foundation | 3/3 | **COMPLETE** | 2026-01-31 |
-| 2. Voice Pipeline | 0/3 | **PLANNED** | - |
-| 3. Intelligence Layer | 0/3 | Not started | - |
+| 2. Voice Pipeline | 3/3 | **COMPLETE** | 2026-01-31 |
+| 3. Intelligence Layer | 0/3 | **PLANNED** | - |
 | 4. Data Integration | 0/3 | Not started | - |
 | 5. Executive Function Core | 0/3 | Not started | - |
 | 6. Advanced Executive Function | 0/3 | Not started | - |
 
 ---
 *Roadmap created: 2026-01-31*
-*Updated: 2026-01-31 (Phase 2 planned)*
+*Updated: 2026-01-31 (Phase 3 planned)*
 *Requirements coverage: 39/39 mapped*
