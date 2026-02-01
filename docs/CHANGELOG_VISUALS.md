@@ -144,3 +144,6 @@ All changes in the ethereal-flame-studio copy for skybox/orb controls are tracke
 - Added a VR debug overlay toggle and persisted it in templates.
 - Updated visuals TODO to mark VR comfort + UX work as completed.
 - Fixed duplicate pole logo fields in visual store serialization.
+- Locked OrbitControls to world-anchored orb target and disabled pan/zoom for world anchoring.
+- Styled the video skybox file picker with a button-like control.
+- Expanded hole/pole slider ranges and strengthened the shader fade curve.

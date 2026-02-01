@@ -520,12 +520,14 @@ export function VideoSkybox({
             if (uHoleFixEnabled > 0.5) {
               float lum = luma(color.rgb);
               float hole = smoothstep(uHoleFixThreshold, uHoleFixThreshold + uHoleFixSoftness, lum);
+              hole = pow(hole, 1.6);
               alpha *= hole;
             }
 
             if (uPoleFadeEnabled > 0.5) {
               float pole = min(vUv.y, 1.0 - vUv.y);
               float poleAlpha = smoothstep(uPoleFadeStart, uPoleFadeStart + uPoleFadeSoftness, pole);
+              poleAlpha = pow(poleAlpha, 1.6);
               alpha *= poleAlpha;
             }
 

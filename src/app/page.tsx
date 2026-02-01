@@ -81,6 +81,10 @@ export default function Home() {
   const skyboxPoleLogoAutoScale = useVisualStore((state) => state.skyboxPoleLogoAutoScale);
   const vrComfortMode = useVisualStore((state) => state.vrComfortMode);
   const vrDebugOverlayEnabled = useVisualStore((state) => state.vrDebugOverlayEnabled);
+  const orbAnchorMode = useVisualStore((state) => state.orbAnchorMode);
+  const orbWorldX = useVisualStore((state) => state.orbWorldX);
+  const orbWorldY = useVisualStore((state) => state.orbWorldY);
+  const orbWorldZ = useVisualStore((state) => state.orbWorldZ);
   const cameraLookAtOrb = useVisualStore((state) => state.cameraLookAtOrb);
   const cameraOrbitEnabled = useVisualStore((state) => state.cameraOrbitEnabled);
   const cameraOrbitRenderOnly = useVisualStore((state) => state.cameraOrbitRenderOnly);
@@ -96,6 +100,7 @@ export default function Home() {
   const effectiveSkyboxDrift = isVRMode && vrComfortMode ? 0 : skyboxDriftSpeed;
   const orbitActive = !isVRMode && cameraOrbitEnabled && (!cameraOrbitRenderOnly || renderMode.isActive);
   const lookAtActive = !isVRMode && cameraLookAtOrb;
+  const lockOrbitToOrb = orbAnchorMode === 'world';
   const pickCursorX =
     skyboxPatchPickCursorX >= 0
       ? skyboxPatchPickCursorX
@@ -222,7 +227,12 @@ export default function Home() {
 
         {/* OrbitControls disabled in VR or when camera rig is active */}
         {!isVRMode && (
-          <OrbitControls enabled={!orbitActive && !lookAtActive} />
+          <OrbitControls
+            enabled={!orbitActive && !lookAtActive}
+            target={lockOrbitToOrb ? [orbWorldX, orbWorldY, orbWorldZ] : undefined}
+            enablePan={!lockOrbitToOrb}
+            enableZoom={!lockOrbitToOrb}
+          />
         )}
         <Suspense fallback={null}>
           <OrbAnchor />
