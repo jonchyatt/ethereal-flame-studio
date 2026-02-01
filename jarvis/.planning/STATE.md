@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 ## Current Position
 
 Phase: 3 of 6 (Intelligence Layer)
-Plan: 2 of 3 in current phase
+Plan: 1 of 3 in current phase
 Status: In progress
-Last activity: 2026-02-01 - Completed 03-02-PLAN.md (Conversation Context)
+Last activity: 2026-02-01 - Completed 03-01-PLAN.md (Claude API Integration)
 
-Progress: [########..] 33% (2/6 phases complete, 03-02 done)
+Progress: [########..] 33% (2/6 phases complete, 03-01 done)
 
 ## Performance Metrics
 
 **Velocity:**
 - Total plans completed: 5
-- Average duration: 8 min
-- Total execution time: 47 min
+- Average duration: 9 min
+- Total execution time: 51 min
 
 **By Phase:**
 
@@ -29,11 +29,11 @@ Progress: [########..] 33% (2/6 phases complete, 03-02 done)
 |-------|-------|-------|----------|
 | 01-audio-foundation | 3/3 | 27 min | 9 min |
 | 02-voice-pipeline | 1/3 | 17 min | 17 min |
-| 03-intelligence-layer | 1/3 | 3 min | 3 min |
+| 03-intelligence-layer | 1/3 | 7 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (9 min), 01-03 (12 min), 02-01 (17 min), 03-02 (3 min)
-- Trend: Fast plan (simple implementation)
+- Last 5 plans: 01-02 (9 min), 01-03 (12 min), 02-01 (17 min), 03-01 (7 min)
+- Trend: Fast plan (SDK integration)
 
 *Updated after each plan completion*
 
@@ -69,13 +69,13 @@ Recent decisions affecting current work:
 - [02-01]: SSE + POST pattern for STT proxy (Next.js App Router WebSocket limitation)
 - [02-01]: In-memory session Map for single-instance deployment
 - [02-03]: Raw PCM (linear16) via Web Audio API (webm/opus from MediaRecorder failed)
-- [03-02]: 10 message sliding window (matches research recommendation)
-- [03-02]: 20 max key facts for cross-session persistence
-- [03-02]: Summary injected as synthetic user/assistant exchange
+- [03-01]: claude-haiku-4-5 for fast TTFT (~360ms) within latency budget
+- [03-01]: SSE streaming matches existing STT pattern
+- [03-01]: Error events via SSE (type: error) for graceful handling
 
 ### Pending Todos
 
-None.
+- [ ] Configure ANTHROPIC_API_KEY in .env.local (required for Claude integration)
 
 ### Blockers/Concerns
 
@@ -83,8 +83,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-01 01:34 UTC
-Stopped at: Completed 03-02-PLAN.md (Conversation Context)
+Last session: 2026-02-01 01:37 UTC
+Stopped at: Completed 03-01-PLAN.md (Claude API Integration)
 Resume file: None
 
 ## Phase 1 Summary
@@ -120,11 +120,24 @@ Resume file: None
    - AudioPlayer for orb sync
 
 3. **02-03**: Voice Pipeline Orchestration
-   - VoicePipeline state machine (idle → listening → processing → speaking)
+   - VoicePipeline state machine (idle -> listening -> processing -> speaking)
    - Full echo test verified
-   - Fixed STT audio format (webm → linear16 PCM)
+   - Fixed STT audio format (webm -> linear16 PCM)
 
 **Ready for Phase 3 (Intelligence Layer):**
 - Voice pipeline proven end-to-end
 - Replace echo with Claude API calls
 - Add conversation context management
+
+## Phase 3 Progress
+
+**Intelligence Layer in progress.** 1 of 3 plans executed:
+
+1. **03-01**: Claude API Integration (COMPLETE)
+   - @anthropic-ai/sdk installed
+   - POST /api/jarvis/chat with SSE streaming
+   - ClaudeClient browser class for stream parsing
+
+**Next:**
+- 03-02: Conversation Memory (context management, cross-session persistence)
+- 03-03: Tool Framework (placeholder tool definitions)
