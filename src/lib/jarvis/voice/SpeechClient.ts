@@ -1,38 +1,41 @@
 /**
- * SpeechClient - Browser-based TTS using Web Speech API
+ * SpeechClient - TTS using AWS Polly neural voices
  *
- * Uses the built-in SpeechSynthesis API for zero-cost, zero-latency TTS.
- * No API keys required. Works in all modern browsers.
+ * Uses AWS Polly for high-quality neural voice synthesis.
+ * Falls back to Web Speech API if Polly fails.
  *
- * Limitations:
- * - Voice quality varies by browser/OS
- * - No audio stream access (can't do audio-reactive orb animation)
- * - Orb shows "speaking" state but doesn't pulse to voice
- *
- * This is acceptable for Phase 2 to prove the pipeline works.
- * Can upgrade to ElevenLabs/OpenAI TTS later when voice quality matters.
+ * Features:
+ * - Neural voice quality (Matthew - warm US male)
+ * - Audio-reactive orb animation via analyser node
+ * - Automatic fallback to browser TTS
  */
 
 import { TTSConfig, TTSCallbacks } from './types';
 import { useJarvisStore } from '../stores/jarvisStore';
 
-// Preferred voices in order of preference (varies by browser/OS)
-const PREFERRED_VOICES = [
-  'Google UK English Male',
-  'Daniel', // macOS
-  'Microsoft David', // Windows
-  'Alex', // macOS fallback
-  'Samantha', // macOS female fallback
-  'Google US English', // Chrome fallback
+// Default Polly voice (warm US male, NOT butler-like)
+const DEFAULT_POLLY_VOICE = 'Matthew';
+
+// Fallback Web Speech API voices
+const FALLBACK_VOICES = [
+  'Google US English',
+  'Microsoft Mark',
+  'Samantha',
+  'Alex',
 ];
 
 export class SpeechClient {
-  private synth: SpeechSynthesis | null = null;
-  private currentUtterance: SpeechSynthesisUtterance | null = null;
   private config: TTSConfig;
   private callbacks: TTSCallbacks;
+  private audioContext: AudioContext | null = null;
+  private currentSource: AudioBufferSourceNode | null = null;
+  private analyser: AnalyserNode | null = null;
+  private animationFrame: number | null = null;
+  private isPlaying: boolean = false;
+
+  // Fallback Web Speech
+  private synth: SpeechSynthesis | null = null;
   private selectedVoice: SpeechSynthesisVoice | null = null;
-  private voicesLoaded: boolean = false;
 
   constructor(callbacks: TTSCallbacks = {}, config: TTSConfig = {}) {
     this.callbacks = callbacks;
@@ -40,55 +43,39 @@ export class SpeechClient {
       rate: 1,
       pitch: 1,
       volume: 1,
+      voice: DEFAULT_POLLY_VOICE,
       ...config,
     };
 
-    // Only initialize in browser environment
+    // Initialize Web Speech as fallback
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       this.synth = window.speechSynthesis;
-      this.loadVoices();
+      this.loadFallbackVoices();
     }
   }
 
   /**
-   * Load available voices (async in some browsers)
+   * Load fallback voices for Web Speech API
    */
-  private loadVoices(): void {
+  private loadFallbackVoices(): void {
     if (!this.synth) return;
 
     const setVoice = () => {
       const voices = this.synth!.getVoices();
-      if (voices.length === 0) return;
-
-      this.voicesLoaded = true;
-
-      // If user specified a voice, try to find it
-      if (this.config.voice) {
-        this.selectedVoice =
-          voices.find((v) => v.name === this.config.voice) || null;
-      }
-
-      // Otherwise, find best available voice from preferred list
-      if (!this.selectedVoice) {
-        for (const preferred of PREFERRED_VOICES) {
-          const found = voices.find(
-            (v) => v.name.includes(preferred) && v.lang.startsWith('en')
-          );
-          if (found) {
-            this.selectedVoice = found;
-            break;
-          }
+      for (const preferred of FALLBACK_VOICES) {
+        const found = voices.find(
+          (v) => v.name.includes(preferred) && v.lang.startsWith('en')
+        );
+        if (found) {
+          this.selectedVoice = found;
+          break;
         }
       }
-
-      // Fallback to first English voice
       if (!this.selectedVoice) {
-        this.selectedVoice =
-          voices.find((v) => v.lang.startsWith('en')) || voices[0] || null;
+        this.selectedVoice = voices.find((v) => v.lang.startsWith('en')) || null;
       }
     };
 
-    // Voices may be loaded async (Chrome does this)
     if (this.synth.getVoices().length > 0) {
       setVoice();
     } else {
@@ -97,23 +84,147 @@ export class SpeechClient {
   }
 
   /**
-   * Speak text through browser TTS
+   * Speak text using AWS Polly (with fallback to Web Speech)
    */
-  speak(text: string): void {
+  async speak(text: string): Promise<void> {
+    // Stop any current speech
+    this.stop();
+
+    try {
+      await this.speakWithPolly(text);
+    } catch (error) {
+      console.warn('[SpeechClient] Polly failed, falling back to Web Speech:', error);
+      this.speakWithWebSpeech(text);
+    }
+  }
+
+  /**
+   * Speak using AWS Polly
+   */
+  private async speakWithPolly(text: string): Promise<void> {
+    // Fetch audio from Polly API
+    const response = await fetch('/api/jarvis/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text,
+        voice: this.config.voice || DEFAULT_POLLY_VOICE,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'TTS request failed' }));
+      throw new Error(error.error || 'TTS request failed');
+    }
+
+    // Get audio buffer
+    const arrayBuffer = await response.arrayBuffer();
+
+    // Create audio context if needed
+    if (!this.audioContext) {
+      this.audioContext = new AudioContext();
+    }
+
+    // Resume context if suspended (browser autoplay policy)
+    if (this.audioContext.state === 'suspended') {
+      await this.audioContext.resume();
+    }
+
+    // Decode audio
+    const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+
+    // Create nodes
+    const source = this.audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+
+    // Create analyser for audio-reactive orb
+    this.analyser = this.audioContext.createAnalyser();
+    this.analyser.fftSize = 256;
+
+    // Create gain node for volume control
+    const gainNode = this.audioContext.createGain();
+    gainNode.gain.value = this.config.volume ?? 1;
+
+    // Connect: source -> analyser -> gain -> output
+    source.connect(this.analyser);
+    this.analyser.connect(gainNode);
+    gainNode.connect(this.audioContext.destination);
+
+    // Set up events
+    this.currentSource = source;
+    this.isPlaying = true;
+
+    source.onended = () => {
+      this.isPlaying = false;
+      this.currentSource = null;
+      this.stopAudioReactivity();
+      useJarvisStore.getState().setOrbState('idle');
+      this.callbacks.onEnd?.();
+    };
+
+    // Start playback
+    useJarvisStore.getState().setOrbState('speaking');
+    this.callbacks.onStart?.();
+    source.start(0);
+
+    // Start audio reactivity
+    this.startAudioReactivity();
+  }
+
+  /**
+   * Start audio-reactive orb animation
+   */
+  private startAudioReactivity(): void {
+    if (!this.analyser) return;
+
+    const dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+
+    const updateLevel = () => {
+      if (!this.analyser || !this.isPlaying) return;
+
+      this.analyser.getByteFrequencyData(dataArray);
+
+      // Calculate RMS amplitude
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) {
+        sum += dataArray[i] * dataArray[i];
+      }
+      const rms = Math.sqrt(sum / dataArray.length);
+
+      // Normalize to 0-1 range (255 max value)
+      const level = Math.min(1, rms / 128);
+
+      // Update orb audio level
+      useJarvisStore.getState().setAudioLevel(level);
+
+      this.animationFrame = requestAnimationFrame(updateLevel);
+    };
+
+    updateLevel();
+  }
+
+  /**
+   * Stop audio reactivity animation
+   */
+  private stopAudioReactivity(): void {
+    if (this.animationFrame) {
+      cancelAnimationFrame(this.animationFrame);
+      this.animationFrame = null;
+    }
+    useJarvisStore.getState().setAudioLevel(0);
+  }
+
+  /**
+   * Fallback to Web Speech API
+   */
+  private speakWithWebSpeech(text: string): void {
     if (!this.synth) {
-      this.callbacks.onError?.(
-        new Error('SpeechSynthesis not available in this browser')
-      );
+      this.callbacks.onError?.(new Error('No TTS available'));
       return;
     }
 
-    // Cancel any current speech
-    this.stop();
-
-    // Create utterance
     const utterance = new SpeechSynthesisUtterance(text);
 
-    // Apply configuration
     if (this.selectedVoice) {
       utterance.voice = this.selectedVoice;
     }
@@ -121,30 +232,25 @@ export class SpeechClient {
     utterance.pitch = this.config.pitch ?? 1;
     utterance.volume = this.config.volume ?? 1;
 
-    // Set up event handlers
     utterance.onstart = () => {
+      this.isPlaying = true;
       useJarvisStore.getState().setOrbState('speaking');
       this.callbacks.onStart?.();
     };
 
     utterance.onend = () => {
+      this.isPlaying = false;
       useJarvisStore.getState().setOrbState('idle');
-      this.currentUtterance = null;
       this.callbacks.onEnd?.();
     };
 
     utterance.onerror = (event) => {
-      // 'canceled' is not really an error - happens when stop() is called
-      if (event.error === 'canceled') {
-        return;
-      }
+      if (event.error === 'canceled') return;
+      this.isPlaying = false;
       useJarvisStore.getState().setOrbState('idle');
-      this.currentUtterance = null;
-      this.callbacks.onError?.(new Error(`Speech synthesis error: ${event.error}`));
+      this.callbacks.onError?.(new Error(`Speech error: ${event.error}`));
     };
 
-    // Store reference and start speaking
-    this.currentUtterance = utterance;
     this.synth.speak(utterance);
   }
 
@@ -152,32 +258,31 @@ export class SpeechClient {
    * Stop current speech
    */
   stop(): void {
-    if (this.synth && this.synth.speaking) {
-      this.synth.cancel();
-      useJarvisStore.getState().setOrbState('idle');
-      this.currentUtterance = null;
+    // Stop Polly audio
+    if (this.currentSource) {
+      try {
+        this.currentSource.stop();
+      } catch {
+        // Already stopped
+      }
+      this.currentSource = null;
     }
+
+    // Stop Web Speech
+    if (this.synth?.speaking) {
+      this.synth.cancel();
+    }
+
+    this.isPlaying = false;
+    this.stopAudioReactivity();
+    useJarvisStore.getState().setOrbState('idle');
   }
 
   /**
    * Check if currently speaking
    */
   isSpeaking(): boolean {
-    return this.synth?.speaking ?? false;
-  }
-
-  /**
-   * Set speech rate (0.1 - 10)
-   */
-  setRate(rate: number): void {
-    this.config.rate = Math.max(0.1, Math.min(10, rate));
-  }
-
-  /**
-   * Set speech pitch (0 - 2)
-   */
-  setPitch(pitch: number): void {
-    this.config.pitch = Math.max(0, Math.min(2, pitch));
+    return this.isPlaying;
   }
 
   /**
@@ -188,37 +293,23 @@ export class SpeechClient {
   }
 
   /**
-   * Get list of available voices
+   * Set Polly voice ID
    */
-  getVoices(): SpeechSynthesisVoice[] {
-    return this.synth?.getVoices() ?? [];
+  setVoice(voiceId: string): void {
+    this.config.voice = voiceId;
   }
 
   /**
-   * Set voice by name
+   * Get current voice
    */
-  setVoice(voiceName: string): boolean {
-    const voices = this.getVoices();
-    const voice = voices.find((v) => v.name === voiceName);
-    if (voice) {
-      this.selectedVoice = voice;
-      this.config.voice = voiceName;
-      return true;
-    }
-    return false;
+  getSelectedVoice(): string {
+    return this.config.voice || DEFAULT_POLLY_VOICE;
   }
 
   /**
-   * Get currently selected voice name
-   */
-  getSelectedVoice(): string | null {
-    return this.selectedVoice?.name ?? null;
-  }
-
-  /**
-   * Check if Web Speech API is available
+   * Check if Polly is available (has API route)
    */
   static isAvailable(): boolean {
-    return typeof window !== 'undefined' && 'speechSynthesis' in window;
+    return typeof window !== 'undefined';
   }
 }

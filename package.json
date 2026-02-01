@@ -15,10 +15,13 @@
     "worker:render": "tsx scripts/start-worker.ts --render",
     "worker:transcribe": "tsx scripts/start-worker.ts --transcribe",
     "render:local": "tsx scripts/render-cli.ts",
-    "discover-notion": "npx tsx scripts/discover-notion-databases.ts"
+    "discover-notion": "npx tsx scripts/discover-notion-databases.ts",
+    "test:e2e": "npx playwright test",
+    "test:e2e:ui": "npx playwright test --ui"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.72.1",
+    "@aws-sdk/client-polly": "^3.980.0",
     "@deepgram/sdk": "^4.11.3",
     "@modelcontextprotocol/sdk": "^1.25.3",
     "@react-three/drei": "^10.0.0",
@@ -41,6 +44,7 @@
     "zustand": "^5.0.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.1",
     "@types/better-sqlite3": "^7.6.13",
     "@types/form-data": "^2.2.1",
     "@types/node": "^20",
