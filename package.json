@@ -14,7 +14,8 @@
     "worker": "tsx scripts/start-worker.ts",
     "worker:render": "tsx scripts/start-worker.ts --render",
     "worker:transcribe": "tsx scripts/start-worker.ts --transcribe",
-    "render:local": "tsx scripts/render-cli.ts"
+    "render:local": "tsx scripts/render-cli.ts",
+    "discover-notion": "npx tsx scripts/discover-notion-databases.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.72.1",
