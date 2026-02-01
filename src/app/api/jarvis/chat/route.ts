@@ -1,16 +1,19 @@
 /**
  * Claude Chat API Route
  *
- * SSE streaming proxy to Claude API.
- * Proxies requests to keep ANTHROPIC_API_KEY server-side only.
- * Includes tool definitions for Phase 4 Notion integration.
+ * SSE streaming proxy to Claude API with tool execution loop.
+ * Executes Notion tools via MCP when Claude uses tool_use.
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-import { notionTools, handleToolNotImplemented } from '@/lib/jarvis/intelligence/tools';
+import { notionTools } from '@/lib/jarvis/intelligence/tools';
+import { executeNotionTool } from '@/lib/jarvis/notion/toolExecutor';
 
 // Instantiate client - reads ANTHROPIC_API_KEY from environment automatically
 const anthropic = new Anthropic();
+
+// Maximum tool execution iterations to prevent infinite loops
+const MAX_TOOL_ITERATIONS = 5;
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -21,6 +24,12 @@ interface ChatRequest {
   messages: ChatMessage[];
   systemPrompt: string;
 }
+
+// Type for Claude API messages (supports string or content blocks)
+type ClaudeMessage = {
+  role: 'user' | 'assistant';
+  content: string | Anthropic.ContentBlock[] | Anthropic.ToolResultBlockParam[];
+};
 
 export async function POST(request: Request): Promise<Response> {
   try {
@@ -38,84 +47,116 @@ export async function POST(request: Request): Promise<Response> {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          // Use streaming API for low TTFT
-          // Include tools for future Notion integration (handled gracefully if called)
-          const response = anthropic.messages.stream({
-            model: 'claude-3-5-haiku-20241022',
-            max_tokens: 1024,
-            system: systemPrompt || 'You are a helpful assistant.',
-            messages: messages.map((m) => ({
-              role: m.role,
-              content: m.content,
-            })),
-            tools: notionTools,
-          });
+          // Build initial messages for Claude
+          const claudeMessages: ClaudeMessage[] = messages.map((m) => ({
+            role: m.role,
+            content: m.content,
+          }));
 
-          // Track if a tool was called (for post-stream handling)
-          let pendingToolUse: { name: string; input: unknown } | null = null;
+          // Tool execution loop
+          let iteration = 0;
+          let finalResponse: Anthropic.Message | null = null;
 
-          // Stream events as SSE
-          for await (const event of response) {
-            if (
-              event.type === 'content_block_delta' &&
-              event.delta.type === 'text_delta'
-            ) {
-              const data = JSON.stringify({
-                type: 'text',
-                text: event.delta.text,
-              });
-              controller.enqueue(
-                new TextEncoder().encode(`data: ${data}\n\n`)
-              );
+          while (iteration < MAX_TOOL_ITERATIONS) {
+            iteration++;
+            console.log(`[Chat] Tool loop iteration ${iteration}`);
+
+            // Call Claude (non-streaming to detect tool_use)
+            const response = await anthropic.messages.create({
+              model: 'claude-3-5-haiku-20241022',
+              max_tokens: 1024,
+              system: systemPrompt || 'You are a helpful assistant.',
+              messages: claudeMessages as Anthropic.MessageParam[],
+              tools: notionTools,
+            });
+
+            console.log(`[Chat] Response stop_reason: ${response.stop_reason}`);
+
+            // If no tool use, we're done - this is the final response
+            if (response.stop_reason !== 'tool_use') {
+              finalResponse = response;
+              break;
             }
 
-            // Handle tool use - capture for graceful acknowledgment
-            if (event.type === 'content_block_start' && event.content_block.type === 'tool_use') {
-              pendingToolUse = {
-                name: event.content_block.name,
-                input: {}
-              };
+            // Extract tool use blocks from response
+            const toolUseBlocks = response.content.filter(
+              (block): block is Anthropic.ToolUseBlock => block.type === 'tool_use'
+            );
+
+            if (toolUseBlocks.length === 0) {
+              // No tools to execute, use this response
+              finalResponse = response;
+              break;
             }
 
-            // Capture tool input as it streams
-            if (
-              event.type === 'content_block_delta' &&
-              event.delta.type === 'input_json_delta' &&
-              pendingToolUse
-            ) {
-              // Accumulate input JSON (for logging)
-              // The SDK handles this internally, we just acknowledge
-            }
+            console.log(`[Chat] Executing ${toolUseBlocks.length} tool(s)`);
+
+            // Execute all tools in parallel
+            const toolResults = await Promise.all(
+              toolUseBlocks.map(async (toolUse) => {
+                console.log(`[Chat] Executing tool: ${toolUse.name}`, toolUse.input);
+                const result = await executeNotionTool(
+                  toolUse.name,
+                  toolUse.input as Record<string, unknown>
+                );
+                return {
+                  type: 'tool_result' as const,
+                  tool_use_id: toolUse.id,
+                  content: result,
+                };
+              })
+            );
+
+            // Add assistant response (with tool_use) to message history
+            claudeMessages.push({
+              role: 'assistant',
+              content: response.content,
+            });
+
+            // Add tool results as user message
+            // CRITICAL: tool_result blocks must come FIRST, no text before them
+            claudeMessages.push({
+              role: 'user',
+              content: toolResults,
+            });
           }
 
-          // If Claude tried to use a tool, send the "coming soon" message
-          if (pendingToolUse) {
-            const fallbackMessage = handleToolNotImplemented(pendingToolUse.name, pendingToolUse.input);
-            const toolData = JSON.stringify({
+          // If we hit max iterations without a final response, use the last one
+          if (!finalResponse) {
+            console.warn(`[Chat] Hit max tool iterations (${MAX_TOOL_ITERATIONS})`);
+            const textData = JSON.stringify({
               type: 'text',
-              text: ' ' + fallbackMessage,
+              text: 'I got a bit lost in my tools. Let me try a simpler approach.',
             });
-            controller.enqueue(
-              new TextEncoder().encode(`data: ${toolData}\n\n`)
-            );
+            controller.enqueue(new TextEncoder().encode(`data: ${textData}\n\n`));
+            controller.enqueue(new TextEncoder().encode('data: {"type":"done"}\n\n'));
+            controller.close();
+            return;
+          }
+
+          // Stream the final text response
+          for (const block of finalResponse.content) {
+            if (block.type === 'text') {
+              const data = JSON.stringify({
+                type: 'text',
+                text: block.text,
+              });
+              controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));
+            }
           }
 
           // Signal completion
-          controller.enqueue(
-            new TextEncoder().encode('data: {"type":"done"}\n\n')
-          );
+          controller.enqueue(new TextEncoder().encode('data: {"type":"done"}\n\n'));
           controller.close();
         } catch (error) {
           // Send error as SSE event
-          const errorMessage =
-            error instanceof Error ? error.message : 'Unknown error';
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          console.error('[Chat] Error:', error);
           const errorData = JSON.stringify({
             type: 'error',
             error: errorMessage,
           });
-          controller.enqueue(
-            new TextEncoder().encode(`data: ${errorData}\n\n`)
-          );
+          controller.enqueue(new TextEncoder().encode(`data: ${errorData}\n\n`));
           controller.close();
         }
       },
@@ -130,8 +171,7 @@ export async function POST(request: Request): Promise<Response> {
     });
   } catch (error) {
     // Handle request parsing errors
-    const errorMessage =
-      error instanceof Error ? error.message : 'Request parsing error';
+    const errorMessage = error instanceof Error ? error.message : 'Request parsing error';
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
