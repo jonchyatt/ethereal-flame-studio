@@ -17,6 +17,7 @@
     "render:local": "tsx scripts/render-cli.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.72.1",
     "@deepgram/sdk": "^4.11.3",
     "@react-three/drei": "^10.0.0",
     "@react-three/fiber": "^9.0.0",
