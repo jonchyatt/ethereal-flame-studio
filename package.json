@@ -19,6 +19,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.72.1",
     "@deepgram/sdk": "^4.11.3",
+    "@modelcontextprotocol/sdk": "^1.25.3",
     "@react-three/drei": "^10.0.0",
     "@react-three/fiber": "^9.0.0",
     "@react-three/postprocessing": "^3.0.4",
