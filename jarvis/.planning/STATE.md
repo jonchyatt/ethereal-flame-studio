@@ -99,6 +99,8 @@ Progress: [##################  ] 93% (14/15 plans complete)
 | Conservative 100K token limit | Safety margin vs 200K actual Claude 3.5 Haiku context | 2026-02-02 |
 | 80% context utilization warning | Log warning at high utilization for conversation summarization | 2026-02-02 |
 | Jest for unit testing | Added jest, ts-jest, @types/jest for memory module tests | 2026-02-02 |
+| Audit log query limit cap at 50 | Prevents excessive response sizes while allowing reasonable history | 2026-02-02 |
+| Voice-friendly timestamps | toLocaleTimeString with en-US locale for natural speech output | 2026-02-02 |
 
 ### Pending Todos
 
@@ -116,12 +118,12 @@ Progress: [##################  ] 93% (14/15 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 10-04-PLAN.md (decay exemption & context monitoring)
+Stopped at: Completed 10-02-PLAN.md (audit log query tool)
 Resume file: None
 
 Phase 10 (Guardrails & Safety) complete:
 - 10-01: Audit logging wire-up (complete - tool invocations logged to dailyLogs)
-- 10-02: Input validation & rate limiting (complete)
+- 10-02: Audit log query tool (complete - query_audit_log for "what did you do?" queries)
 - 10-03: Bug fixes FIX-01, FIX-02 (complete)
 - 10-04: Decay exemption & context monitoring (complete - GUARD-05)
 
