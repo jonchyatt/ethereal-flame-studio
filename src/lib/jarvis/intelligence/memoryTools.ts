@@ -128,4 +128,40 @@ export const memoryTools: ToolDefinition[] = [
       required: ['id'],
     },
   },
+  {
+    name: 'observe_pattern',
+    description:
+      'Record a behavioral observation when you notice consistent user behavior. Use when user shows a pattern (e.g., always asking for brief responses, preferring bullet points). After 3 observations of the same pattern within 7 days, this becomes an inferred preference.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        pattern: {
+          type: 'string',
+          description:
+            'Pattern identifier (e.g., "prefers_brief_responses", "prefers_bullet_points")',
+          enum: [
+            'prefers_brief_responses',
+            'prefers_detailed_responses',
+            'prefers_bullet_points',
+            'prefers_morning_tasks',
+            'prefers_end_of_day_planning',
+            'interested_in_productivity',
+            'interested_in_health',
+            'uses_informal_language',
+            'uses_formal_language',
+          ],
+        },
+        pattern_type: {
+          type: 'string',
+          description: 'Category of the pattern',
+          enum: ['communication_style', 'scheduling', 'topic_interest', 'workflow'],
+        },
+        evidence: {
+          type: 'string',
+          description: 'What the user said or did that triggered this observation',
+        },
+      },
+      required: ['pattern', 'pattern_type', 'evidence'],
+    },
+  },
 ];

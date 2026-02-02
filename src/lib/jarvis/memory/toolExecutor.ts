@@ -21,6 +21,8 @@ import {
   type MemoryCategory,
   type MemorySource,
 } from './queries/memoryEntries';
+import { observeAndInfer } from './preferenceInference';
+import { type PatternType } from './queries/observations';
 import { getDb, memoryEntries } from './db';
 
 export type MemoryToolName =
@@ -28,7 +30,8 @@ export type MemoryToolName =
   | 'forget_fact'
   | 'list_memories'
   | 'delete_all_memories'
-  | 'restore_memory';
+  | 'restore_memory'
+  | 'observe_pattern';
 
 /**
  * Execute a memory tool call.
@@ -55,6 +58,8 @@ export async function executeMemoryTool(
         return handleDeleteAll(input);
       case 'restore_memory':
         return handleRestore(input);
+      case 'observe_pattern':
+        return handleObservePattern(input);
       default:
         return JSON.stringify({ error: `Unknown memory tool: ${toolName}` });
     }
@@ -313,5 +318,43 @@ async function handleRestore(input: Record<string, unknown>): Promise<string> {
       content: restored.content,
       category: restored.category,
     },
+  });
+}
+
+/**
+ * Handle observe_pattern tool - record behavioral observation
+ */
+async function handleObservePattern(
+  input: Record<string, unknown>
+): Promise<string> {
+  const pattern = input.pattern as string;
+  const patternType = input.pattern_type as PatternType;
+  const evidence = input.evidence as string;
+
+  if (!pattern) {
+    return JSON.stringify({ error: 'pattern is required' });
+  }
+  if (!patternType) {
+    return JSON.stringify({ error: 'pattern_type is required' });
+  }
+  if (!evidence) {
+    return JSON.stringify({ error: 'evidence is required' });
+  }
+
+  const inferred = await observeAndInfer(pattern, patternType, evidence);
+
+  if (inferred) {
+    return JSON.stringify({
+      success: true,
+      inferred: true,
+      preference: inferred.content,
+      message: `Observation recorded. Threshold reached - stored inferred preference: "${inferred.content}"`,
+    });
+  }
+
+  return JSON.stringify({
+    success: true,
+    inferred: false,
+    message: `Observation recorded for pattern "${pattern}". Not yet at threshold.`,
   });
 }
