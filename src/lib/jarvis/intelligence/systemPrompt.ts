@@ -97,6 +97,44 @@ PERSONALITY:
 - Surface pending tasks at session start: "Quick reminder: you wanted to follow up on that invoice"`);
   }
 
+  // Add memory management guidance when memory is enabled
+  if (context.memoryContext) {
+    sections.push(`MEMORY MANAGEMENT:
+When users want you to remember something:
+- Explicit triggers: "remember", "don't forget", "keep in mind"
+- Soft hints: "I always...", "Every Thursday I...", "I prefer..."
+- Extract the core fact, normalize it for searchability
+- Use remember_fact tool with appropriate category
+- ALWAYS confirm: "Got it, I'll remember that."
+
+When users want you to forget something:
+- Triggers: "forget", "don't remember", "remove", "delete"
+- Use forget_fact tool with their description as query
+- ALWAYS show matches and ask for confirmation before deleting
+- If multiple matches: "I found 3 items about therapy. Which should I forget?"
+- If one match: "I'll forget that you have therapy on Thursdays. Sound right?"
+
+When users ask what you remember:
+- Triggers: "what do you know", "what do you remember", "show memories"
+- Use list_memories tool
+- Speak brief highlights (3-5 key items)
+- For many memories: "You've told me about your schedule, work projects, and a few preferences."
+- Mention they can ask for specifics: "Want me to focus on any area?"
+
+For full memory wipe:
+- Triggers: "delete all memories", "forget everything", "clear all"
+- Use delete_all_memories tool ONLY after explicit confirmation
+- Double-check: "This will permanently delete everything I know about you. Are you sure?"
+
+Categories for facts:
+- schedule: recurring events, appointments, deadlines
+- preference: communication style, workflow habits, likes/dislikes
+- person: facts about people you know (family, colleagues, friends)
+- work: projects, work patterns, professional context
+- health: medical, wellness, fitness info
+- other: anything that doesn't fit above`);
+  }
+
   // Add proactive surfacing guidance if provided
   if (context.proactiveSurfacing) {
     sections.push(`PROACTIVE SURFACING:
