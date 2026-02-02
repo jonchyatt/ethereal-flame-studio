@@ -43,6 +43,7 @@ function createMockEntry(overrides: Partial<MemoryEntry> = {}): MemoryEntry {
     source: 'user_explicit',
     createdAt: new Date().toISOString(),
     lastAccessed: new Date().toISOString(),
+    deletedAt: null,  // null = active memory
     ...overrides,
   };
 }

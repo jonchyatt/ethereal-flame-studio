@@ -25,6 +25,7 @@ export const memoryEntries = sqliteTable('memory_entries', {
   source: text('source').notNull(), // 'user_explicit' | 'jarvis_inferred'
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
   lastAccessed: text('last_accessed'),
+  deletedAt: text('deleted_at'),  // null = active, ISO string = soft deleted
 });
 
 /**
