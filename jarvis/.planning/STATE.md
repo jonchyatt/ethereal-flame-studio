@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 ## Current Position
 
-Phase: 9 - Memory Writing & Tools
-Plan: 04 of 04 complete (09-01, 09-02, 09-03, 09-04 done)
-Status: Phase complete
-Last activity: 2026-02-02 - Completed 09-04-PLAN.md (automatic preference learning)
+Phase: 10 - Guardrails & Safety
+Plan: 03 of 04 complete (10-01, 10-02, 10-03 done)
+Status: In progress
+Last activity: 2026-02-02 - Completed 10-03-PLAN.md (bug fixes FIX-01, FIX-02)
 
-Progress: [#############       ] 67% (10/15 plans complete)
+Progress: [################    ] 87% (13/15 plans complete)
 
 ## Milestone Summary
 
@@ -37,7 +37,7 @@ Progress: [#############       ] 67% (10/15 plans complete)
 | 7 | Database Foundation | MEM-01, MEM-08 | Complete (3/3 plans) |
 | 8 | Memory Loading & Integration | MEM-06, MEM-07, MEM-11 | Complete (3/3 plans) |
 | 9 | Memory Writing & Tools | MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10 | Complete (4/4 plans) |
-| 10 | Guardrails & Safety | GUARD-01-05, FIX-01-02 | Blocked |
+| 10 | Guardrails & Safety | GUARD-01-05, FIX-01-02 | In Progress (3/4) |
 | 11 | Production Deployment | PROD-01-04 | Blocked |
 
 ## Archives
@@ -104,17 +104,17 @@ Progress: [#############       ] 67% (10/15 plans complete)
 
 ### Known Bugs (from v1)
 
-- FIX-01: Captured items during check-ins not reaching Notion inbox
-- FIX-02: Tomorrow preview shows placeholder data
+- ~~FIX-01: Captured items during check-ins not reaching Notion inbox~~ (Fixed in 10-03)
+- ~~FIX-02: Tomorrow preview shows placeholder data~~ (Fixed in 10-03)
 
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 09-04-PLAN.md (automatic preference learning)
+Stopped at: Completed 10-03-PLAN.md (bug fixes FIX-01, FIX-02)
 Resume file: None
 
-Phase 9 (Memory Writing & Tools) is now complete:
-- 09-01: Database infrastructure (schema, migrations, session API)
-- 09-02: Memory CRUD tools (remember, forget, list, delete_all, restore)
-- 09-03: Memory loading & proactive surfacing
-- 09-04: Automatic preference learning (observations -> inference)
+Phase 10 (Guardrails & Safety) in progress:
+- 10-01: Input validation & content filtering (complete)
+- 10-02: Decay exempt for explicit memories (complete)
+- 10-03: Bug fixes FIX-01, FIX-02 (complete)
+- 10-04: Production guardrails (pending)
