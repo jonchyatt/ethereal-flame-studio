@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 ## Current Position
 
-Phase: 7 - Database Foundation
-Plan: 03 of 03 complete
-Status: Phase complete
-Last activity: 2026-02-02 - Completed 07-03-PLAN.md (query layer & session API)
+Phase: 8 - Memory Loading & Integration
+Plan: 01 of 03 complete
+Status: In progress
+Last activity: 2026-02-02 - Completed 08-01-PLAN.md (memory retrieval module)
 
-Progress: [####                ] 20% (3/15 plans complete)
+Progress: [#####               ] 27% (4/15 plans complete)
 
 ## Milestone Summary
 
@@ -35,7 +35,7 @@ Progress: [####                ] 20% (3/15 plans complete)
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
 | 7 | Database Foundation | MEM-01, MEM-08 | Complete (3/3 plans) |
-| 8 | Memory Loading & Integration | MEM-06, MEM-07, MEM-11 | Blocked |
+| 8 | Memory Loading & Integration | MEM-06, MEM-07, MEM-11 | In progress (1/3 plans) |
 | 9 | Memory Writing & Tools | MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10 | Blocked |
 | 10 | Guardrails & Safety | GUARD-01-05, FIX-01-02 | Blocked |
 | 11 | Production Deployment | PROD-01-04 | Blocked |
@@ -48,8 +48,8 @@ Progress: [####                ] 20% (3/15 plans complete)
 
 ## Next Steps
 
-1. Verify Phase 7 with success criteria
-2. Plan Phase 8 (Memory Loading & Integration)
+1. Execute 08-02-PLAN.md (inject memory into system prompt)
+2. Execute 08-03-PLAN.md (proactive surfacing)
 3. Install Turso CLI for local database testing (user action)
 
 ## Accumulated Context
@@ -70,6 +70,9 @@ Progress: [####                ] 20% (3/15 plans complete)
 | Content normalization | trim, lowercase, collapse spaces, strip trailing punctuation before hashing | 2026-02-02 |
 | MemoryService facade | Static methods for common operations (initSession, closeSession, remember) | 2026-02-02 |
 | Session API semantics | GET gets/creates, POST forces new (closing active), PATCH ends session | 2026-02-02 |
+| Scoring weights (50/30/20) | Recency most important, then category, then source | 2026-02-02 |
+| Token estimation 4 chars/token | Conservative to prevent context overflow | 2026-02-02 |
+| Age as relative strings | "2 weeks ago" more natural than ISO timestamps | 2026-02-02 |
 
 ### Pending Todos
 
@@ -86,6 +89,6 @@ Progress: [####                ] 20% (3/15 plans complete)
 
 ## Session Continuity
 
-Last session: 2026-02-02T14:26:10Z
-Stopped at: Completed 07-03-PLAN.md (Phase 7 complete)
-Resume file: None (ready for Phase 8 planning)
+Last session: 2026-02-02T19:39:27Z
+Stopped at: Completed 08-01-PLAN.md (memory retrieval module)
+Resume file: None
