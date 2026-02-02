@@ -164,4 +164,18 @@ export const memoryTools: ToolDefinition[] = [
       required: ['pattern', 'pattern_type', 'evidence'],
     },
   },
+  {
+    name: 'query_audit_log',
+    description:
+      'Retrieve recent actions Jarvis has taken. Use when user asks "what did you do?", "what have you been doing?", or similar. Returns a list of recent tool invocations with timestamps.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        limit: {
+          type: 'number',
+          description: 'Maximum number of actions to return (default: 10, max: 50)',
+        },
+      },
+    },
+  },
 ];
