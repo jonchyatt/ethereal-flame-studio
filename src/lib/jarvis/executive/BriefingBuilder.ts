@@ -21,7 +21,9 @@ import type {
   DayReviewData,
   TomorrowPreviewData,
   WeekSummaryData,
+  LifeAreaInsights,
 } from './types';
+import { getLifeAreaTracker } from './LifeAreaTracker';
 
 // Import the internal query function that returns raw results
 import { callMCPTool } from '../notion/NotionClient';
@@ -121,6 +123,10 @@ export async function buildMorningBriefing(): Promise<BriefingData> {
     const allTodayTasks = [...todayTasks, ...overdueTasks.filter((t) => t.dueDate && isToday(parseISO(t.dueDate)))];
     const calendarEvents = deriveCalendarEvents(allTodayTasks);
 
+    // Get life area insights for gentle awareness nudges
+    const lifeAreaTracker = getLifeAreaTracker();
+    const lifeAreaInsights = lifeAreaTracker.getLifeAreaInsights();
+
     const briefingData: BriefingData = {
       tasks: {
         today: todayTasks,
@@ -140,6 +146,9 @@ export async function buildMorningBriefing(): Promise<BriefingData> {
       calendar: {
         today: calendarEvents,
       },
+      lifeAreas: {
+        insights: lifeAreaInsights,
+      },
     };
 
     console.log('[BriefingBuilder] Briefing data built:', {
@@ -149,6 +158,7 @@ export async function buildMorningBriefing(): Promise<BriefingData> {
       habits: habits.length,
       goals: goals.length,
       calendarEvents: calendarEvents.length,
+      neglectedAreas: lifeAreaInsights.neglectedAreas.length,
     });
 
     return briefingData;

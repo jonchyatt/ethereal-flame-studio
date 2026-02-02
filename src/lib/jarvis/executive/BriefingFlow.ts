@@ -434,15 +434,30 @@ export class BriefingFlow {
 
   /**
    * Build habits section script
+   * Also mentions neglected life areas as a gentle awareness nudge
+   * Per CONTEXT.md: gentle nudge only - awareness, not aggressive prioritization
    */
   private buildHabitsScript(): string {
     const data = this.state.data!;
+    const parts: string[] = [];
 
     if (data.habits.active.length === 0) {
-      return 'No active habits to review. Moving on.';
+      parts.push('No active habits to review.');
+    } else {
+      parts.push(data.habits.streakSummary);
     }
 
-    return `${data.habits.streakSummary} Anything else before we wrap up?`;
+    // Add gentle life area nudge if there are neglected areas
+    // Per CONTEXT.md: "gentle nudge only - awareness, not aggressive prioritization"
+    if (data.lifeAreas?.insights?.neglectedAreas?.length) {
+      // Only mention the top neglected area to keep it subtle
+      const topNeglected = data.lifeAreas.insights.neglectedAreas[0];
+      parts.push(`By the way, ${topNeglected.suggestedMessage}.`);
+    }
+
+    parts.push('Anything else before we wrap up?');
+
+    return parts.join(' ');
   }
 }
 
