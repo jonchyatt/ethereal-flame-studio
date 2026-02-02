@@ -17,6 +17,7 @@ import {
   formatProactiveSurfacing,
   getEntriesByCategory,
 } from '@/lib/jarvis/memory';
+import { getOrCreateSession } from '@/lib/jarvis/memory/queries/sessions';
 import { buildSystemPrompt } from '@/lib/jarvis/intelligence/systemPrompt';
 
 // Instantiate client - reads ANTHROPIC_API_KEY from environment automatically
@@ -24,6 +25,12 @@ const anthropic = new Anthropic();
 
 // Maximum tool execution iterations to prevent infinite loops
 const MAX_TOOL_ITERATIONS = 5;
+
+// Context window monitoring (GUARD-05)
+// Claude 3.5 Haiku context: 200K tokens, but we're conservative
+const MAX_CONTEXT_TOKENS = 100_000;  // Conservative limit
+const WARN_THRESHOLD_PERCENT = 80;
+const CHARS_PER_TOKEN = 4;  // Per STATE.md decision
 
 // Combine all tools for Claude
 const allTools = [...notionTools, ...memoryTools];
@@ -65,6 +72,10 @@ export async function POST(request: Request): Promise<Response> {
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
+
+    // Get or create session for audit logging
+    const session = await getOrCreateSession();
+    const sessionId = session.id;
 
     // Load memory context if enabled
     let memoryContext: string | undefined;
@@ -120,6 +131,21 @@ export async function POST(request: Request): Promise<Response> {
             role: m.role,
             content: m.content,
           }));
+
+          // Monitor context window utilization (GUARD-05)
+          const systemPromptChars = serverSystemPrompt.length;
+          const messagesChars = JSON.stringify(claudeMessages).length;
+          const totalChars = systemPromptChars + messagesChars;
+          const estimatedTokens = Math.ceil(totalChars / CHARS_PER_TOKEN);
+          const utilizationPercent = (estimatedTokens / MAX_CONTEXT_TOKENS) * 100;
+
+          console.log(`[Chat] Context utilization: ${utilizationPercent.toFixed(1)}% (${estimatedTokens} tokens estimated)`);
+
+          if (utilizationPercent > WARN_THRESHOLD_PERCENT) {
+            console.warn(`[Chat] High context utilization: ${utilizationPercent.toFixed(1)}% - consider summarizing conversation`);
+            // Could add a hint to the system prompt, but per CONTEXT.md
+            // we just log for now - no automatic truncation
+          }
 
           // Tool execution loop
           let iteration = 0;
@@ -178,12 +204,14 @@ export async function POST(request: Request): Promise<Response> {
                 if (memoryToolNames.includes(toolUse.name)) {
                   result = await executeMemoryTool(
                     toolUse.name,
-                    toolUse.input as Record<string, unknown>
+                    toolUse.input as Record<string, unknown>,
+                    sessionId
                   );
                 } else {
                   result = await executeNotionTool(
                     toolUse.name,
-                    toolUse.input as Record<string, unknown>
+                    toolUse.input as Record<string, unknown>,
+                    sessionId
                   );
                 }
 
