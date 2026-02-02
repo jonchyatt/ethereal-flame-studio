@@ -5,28 +5,28 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** One system that knows everything, surfaces what matters, and keeps you on track
-**Current focus:** Phase 6 - Advanced Executive Function (IN PROGRESS)
+**Current focus:** Phase 6 - Advanced Executive Function (COMPLETE)
 
 ## Current Position
 
-Phase: 6 of 6 (Advanced Executive Function) - IN PROGRESS
-Plan: 2 of 3 in current phase (06-02 COMPLETE)
-Status: Phase 6 in progress, life area tracking complete
-Last activity: 2026-02-02 - Completed 06-02-PLAN.md (Life Area Priority Weighting)
+Phase: 6 of 6 (Advanced Executive Function) - COMPLETE
+Plan: 3 of 3 in current phase (06-03 COMPLETE)
+Status: Phase 6 complete - all executive function rituals implemented
+Last activity: 2026-02-01 - Completed 06-03-PLAN.md (Weekly Review Flow)
 
-Progress: [################] 94% (17/18 plans complete)
+Progress: [##################] 100% (18/18 plans complete)
 
 **Phase 6 Progress:**
 - [x] 06-01: Evening Wrap Flow
 - [x] 06-02: Life Area Tracking
-- [ ] 06-03: Weekly Review
+- [x] 06-03: Weekly Review Flow
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17
+- Total plans completed: 18
 - Average duration: ~10 min
-- Total execution time: ~170 min
+- Total execution time: ~180 min
 
 **By Phase:**
 
@@ -37,11 +37,11 @@ Progress: [################] 94% (17/18 plans complete)
 | 03-intelligence-layer | 3/3 | 18 min | 6 min |
 | 04-data-integration | 3/3 | 31 min | 10 min |
 | 05-executive-function-core | 3/3 | 32 min | 11 min |
-| 06-advanced-executive-function | 2/3 | ~30 min | ~15 min |
+| 06-advanced-executive-function | 3/3 | ~45 min | ~15 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-02 (10 min), 05-03 (10 min), 06-01 (~15 min), 06-02 (~15 min)
-- Trend: Phase 6 advanced features in progress
+- Last 5 plans: 05-03 (10 min), 06-01 (~15 min), 06-02 (~15 min), 06-03 (~15 min)
+- Trend: All phases complete
 
 *Updated after each plan completion*
 
@@ -116,6 +116,10 @@ Recent decisions affecting current work:
 - [06-02]: Max 3 neglected areas surfaced to avoid overwhelm
 - [06-02]: Gentle message tiers: quiet/attention/no activity
 - [06-02]: Single mention in briefing (top neglected area only)
+- [06-03]: Factual retrospective only (no scorecard, no judgment)
+- [06-03]: 15 second checkpoint timeout for auto-advance
+- [06-03]: Weekly review disabled by default, user opts in
+- [06-03]: Skip horizon scan if empty, skip life areas if no neglected areas
 
 ### Pending Todos
 
@@ -127,8 +131,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-02
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-02-01
+Stopped at: Completed 06-03-PLAN.md (Phase 6 Complete)
 Resume file: None
 
 ## Phase 1 Summary
@@ -268,9 +272,9 @@ Resume file: None
 **Phase verified:** All 9/9 must-haves confirmed in codebase
 **Verification report:** .planning/phases/05-executive-function-core/05-VERIFICATION.md
 
-## Phase 6 Progress (IN PROGRESS)
+## Phase 6 Summary (COMPLETE)
 
-**Advanced Executive Function in progress.** 2 of 3 plans executed:
+**Advanced Executive Function complete.** All 3 plans executed:
 
 1. **06-01**: Evening Wrap Flow (COMPLETE)
    - EveningWrapFlow state machine with 9 sections
@@ -290,14 +294,27 @@ Resume file: None
    - Default areas: health, work, relationships, finance, personal, home
    - Gentle awareness messaging: "Health has been quiet this week"
 
-**Key deliverables so far:**
+3. **06-03**: Weekly Review Flow (COMPLETE)
+   - WeeklyReviewFlow state machine with 10 sections including checkpoints
+   - Scheduler supports weekly_review_reminder with dayOfWeek
+   - Weekly review disabled by default (user opts in)
+   - buildWeeklyReviewData() with retrospective, upcoming week, horizon scan
+   - Retrospective is factual only (no scorecard, no judgment)
+   - Forward planning is primary focus (per CONTEXT.md)
+   - Checkpoint pauses with 15s auto-advance timeout
+   - Life area balance surfaced during dedicated section
+
+**Key deliverables:**
 - Evening wrap scheduled at 21:00 by default
-- 9-section walkthrough adapts duration based on content
+- 9-section evening wrap adapts duration based on content
 - User can skip sections or capture new items
 - Tomorrow preview with high priority callout
 - Week summary shows busy/light days
 - Life area tracking with 28-day rolling baseline
 - Neglect detection surfaces top 3 neglected areas
 - Single gentle mention in briefing (top neglected area only)
+- Weekly review with checkpoint pauses for user input
+- Horizon scan looks 2-4 weeks ahead
+- Weekly review day/time user-configurable
 
-**Next:** 06-03 (Weekly Review)
+**Phase 6 Complete - Jarvis Executive Function Ready**
