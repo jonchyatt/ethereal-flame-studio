@@ -8,6 +8,7 @@
 
 import { getMemoryEntries } from './queries/memoryEntries';
 import type { MemoryEntry } from './schema';
+import { calculateDecay, applyDecayToScore } from './decay';
 
 /**
  * Scored memory with human-readable age
@@ -184,19 +185,24 @@ export function calculateSourceScore(source: string): number {
  * - Recency (0-50 points)
  * - Category (0-30 points)
  * - Source (0-20 points)
+ * - Decay penalty (reduces score based on time since last access)
  *
- * Max possible score: 100 points
+ * Max possible score: 100 points (before decay)
  *
  * @param entry - Memory entry to score
  * @param now - Reference time
- * @returns Total score (0-100)
+ * @returns Total score with decay penalty applied
  */
 export function scoreMemory(entry: MemoryEntry, now: Date): number {
   const recency = calculateRecencyScore(entry, now);
   const category = calculateCategoryScore(entry.category);
   const source = calculateSourceScore(entry.source);
 
-  return recency + category + source;
+  const baseScore = recency + category + source;
+
+  // Apply decay penalty - old unaccessed memories get lower scores
+  const decay = calculateDecay(entry, now);
+  return applyDecayToScore(baseScore, decay);
 }
 
 /**

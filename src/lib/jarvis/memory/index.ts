@@ -20,6 +20,9 @@ export * from './queries/dailyLogs';
 // Re-export retrieval functions
 export * from './retrieval';
 
+// Re-export decay functions
+export * from './decay';
+
 // Import for MemoryService implementation
 import {
   storeMemoryEntry,
