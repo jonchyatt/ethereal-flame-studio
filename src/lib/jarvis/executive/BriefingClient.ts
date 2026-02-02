@@ -5,7 +5,7 @@
  * child_process which only works server-side.
  */
 
-import type { BriefingData, CheckInType, CheckInProgress, EveningWrapData } from './types';
+import type { BriefingData, CheckInType, CheckInProgress, EveningWrapData, WeeklyReviewData } from './types';
 
 /**
  * Fetch morning briefing data from server
@@ -49,7 +49,21 @@ export async function fetchEveningWrapData(): Promise<EveningWrapData> {
   return response.json();
 }
 
+/**
+ * Fetch weekly review data from server
+ */
+export async function fetchWeeklyReviewData(): Promise<WeeklyReviewData> {
+  const response = await fetch('/api/jarvis/briefing?type=weekly_review');
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch weekly review data');
+  }
+
+  return response.json();
+}
+
 // Re-export as buildMorningBriefing for compatibility with existing code
 export { fetchBriefingData as buildMorningBriefing };
 export { fetchCheckInData as buildCheckInData };
 export { fetchEveningWrapData as buildEveningWrapData };
+export { fetchWeeklyReviewData as buildWeeklyReviewData };

@@ -9,6 +9,7 @@
  * - midday: Midday check-in with progress
  * - evening: Evening check-in with progress
  * - evening_wrap: Comprehensive evening wrap with day review (Plan 06-01)
+ * - weekly_review: Weekly review data with retrospective and horizon scan (Plan 06-03)
  */
 
 import { NextResponse } from 'next/server';
@@ -16,6 +17,7 @@ import {
   buildMorningBriefing as buildBriefingFromNotion,
   buildCheckInData as buildCheckInFromNotion,
   buildEveningWrapData as buildEveningWrapFromNotion,
+  buildWeeklyReviewData as buildWeeklyReviewFromNotion,
 } from '@/lib/jarvis/executive/BriefingBuilder';
 
 export async function GET(request: Request) {
@@ -23,7 +25,10 @@ export async function GET(request: Request) {
   const type = searchParams.get('type') || 'morning';
 
   try {
-    if (type === 'evening_wrap') {
+    if (type === 'weekly_review') {
+      const data = await buildWeeklyReviewFromNotion();
+      return NextResponse.json(data);
+    } else if (type === 'evening_wrap') {
       const data = await buildEveningWrapFromNotion();
       return NextResponse.json(data);
     } else if (type === 'midday' || type === 'evening') {

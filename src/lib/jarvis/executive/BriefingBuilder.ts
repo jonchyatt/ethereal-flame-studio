@@ -22,6 +22,7 @@ import type {
   TomorrowPreviewData,
   WeekSummaryData,
   LifeAreaInsights,
+  WeeklyReviewData,
 } from './types';
 import { getLifeAreaTracker } from './LifeAreaTracker';
 
@@ -627,4 +628,179 @@ function analyzeWeekLoad(weekTasks: TaskSummary[]): WeekSummaryData {
     lightDays,
     upcomingDeadlines: deadlines.slice(0, 5), // Top 5 deadlines
   };
+}
+
+// =============================================================================
+// Weekly Review Data Builder (Plan 06-03)
+// =============================================================================
+
+/**
+ * Build weekly review data
+ * Per CONTEXT.md: very brief retrospective, then mostly forward planning
+ * Retrospective is factual only (tasks completed, bills paid, project progress)
+ */
+export async function buildWeeklyReviewData(): Promise<WeeklyReviewData> {
+  console.log('[BriefingBuilder] Building weekly review data...');
+
+  try {
+    // Calculate date ranges
+    const now = new Date();
+    const sevenDaysAgo = addDays(now, -7);
+    const sevenDaysFromNow = addDays(now, 7);
+    const fourteenDaysFromNow = addDays(now, 14);
+    const twentyEightDaysFromNow = addDays(now, 28);
+
+    // Parallel queries for all data sources
+    const [
+      completedTasksResult,
+      paidBillsResult,
+      upcomingWeekTasksResult,
+      horizonTasksResult,
+      horizonBillsResult,
+    ] = await Promise.all([
+      // Retrospective: completed tasks in last 7 days
+      queryNotionRaw('tasks', { filter: 'all', status: 'completed' }),
+      // Retrospective: bills paid in last 7 days
+      queryNotionRaw('bills', { timeframe: 'this_month', unpaidOnly: false }),
+      // Upcoming week: tasks due in next 7 days
+      queryNotionRaw('tasks', { filter: 'this_week', status: 'all' }),
+      // Horizon scan: tasks due in 14-28 days
+      queryNotionRaw('tasks', { filter: 'all', status: 'pending' }),
+      // Horizon scan: bills due in next month
+      queryNotionRaw('bills', { timeframe: 'this_month', unpaidOnly: true }),
+    ]);
+
+    // Parse and filter retrospective data (last 7 days)
+    const allCompletedTasks = parseTaskResults(completedTasksResult);
+    const recentCompletedTasks = allCompletedTasks.filter((t) => {
+      if (!t.dueDate) return false;
+      const dueDate = parseISO(t.dueDate);
+      return dueDate >= sevenDaysAgo && dueDate <= now;
+    });
+
+    const allBills = parseBillResults(paidBillsResult);
+    const paidBills = allBills.filter((b) => {
+      // Bills marked as paid typically have a paid date or status
+      // For now, count recent bills as potentially paid
+      if (!b.dueDate) return false;
+      const dueDate = parseISO(b.dueDate);
+      return dueDate >= sevenDaysAgo && dueDate <= now;
+    });
+
+    // Extract unique project names from completed tasks (would need project relation)
+    // For now, derive from task titles if they contain project indicators
+    const projectsProgressed = extractProjectsFromTasks(recentCompletedTasks);
+
+    // Parse upcoming week data
+    const upcomingWeekTasks = parseTaskResults(upcomingWeekTasksResult);
+    const weekAnalysis = analyzeWeekLoad(upcomingWeekTasks);
+    const calendarEvents = deriveCalendarEvents(upcomingWeekTasks);
+
+    // Parse horizon data (14-28 days out)
+    const allPendingTasks = parseTaskResults(horizonTasksResult);
+    const horizonTasks = allPendingTasks.filter((t) => {
+      if (!t.dueDate) return false;
+      const dueDate = parseISO(t.dueDate);
+      return dueDate >= fourteenDaysFromNow && dueDate <= twentyEightDaysFromNow;
+    });
+    const horizonDeadlines = horizonTasks.filter(
+      (t) => t.priority === 'High' || t.dueTime
+    );
+
+    const allUnpaidBills = parseBillResults(horizonBillsResult);
+    const horizonBills = allUnpaidBills.filter((b) => {
+      if (!b.dueDate) return false;
+      const dueDate = parseISO(b.dueDate);
+      return dueDate >= fourteenDaysFromNow && dueDate <= twentyEightDaysFromNow;
+    });
+
+    // Get life area insights
+    const lifeAreaTracker = getLifeAreaTracker();
+    const lifeAreaInsights = lifeAreaTracker.getLifeAreaInsights();
+
+    const weeklyReviewData: WeeklyReviewData = {
+      retrospective: {
+        tasksCompleted: recentCompletedTasks.length,
+        billsPaid: paidBills.length,
+        projectsProgressed,
+      },
+      upcomingWeek: {
+        taskCount: upcomingWeekTasks.length,
+        tasks: upcomingWeekTasks.slice(0, 10), // Top 10 for brevity
+        events: calendarEvents,
+        busyDays: weekAnalysis.busyDays,
+        lightDays: weekAnalysis.lightDays,
+      },
+      horizon: {
+        deadlines: horizonDeadlines.slice(0, 5), // Top 5
+        upcomingBills: horizonBills.slice(0, 5), // Top 5
+        projectMilestones: [], // Would need project milestone data from Notion
+      },
+      lifeAreas: lifeAreaInsights,
+    };
+
+    console.log('[BriefingBuilder] Weekly review data built:', {
+      tasksCompleted: recentCompletedTasks.length,
+      billsPaid: paidBills.length,
+      projectsProgressed: projectsProgressed.length,
+      upcomingTaskCount: upcomingWeekTasks.length,
+      horizonDeadlines: horizonDeadlines.length,
+      horizonBills: horizonBills.length,
+      neglectedAreas: lifeAreaInsights.neglectedAreas.length,
+    });
+
+    return weeklyReviewData;
+  } catch (error) {
+    console.error('[BriefingBuilder] Error building weekly review data:', error);
+    // Return empty data structure on error
+    return {
+      retrospective: {
+        tasksCompleted: 0,
+        billsPaid: 0,
+        projectsProgressed: [],
+      },
+      upcomingWeek: {
+        taskCount: 0,
+        tasks: [],
+        events: [],
+        busyDays: [],
+        lightDays: [],
+      },
+      horizon: {
+        deadlines: [],
+        upcomingBills: [],
+        projectMilestones: [],
+      },
+      lifeAreas: {
+        neglectedAreas: [],
+        activeAreas: [],
+        lastUpdated: Date.now(),
+      },
+    };
+  }
+}
+
+/**
+ * Extract project names from completed tasks
+ * Simple heuristic: look for common patterns like "Project Name: Task" or "[Project] Task"
+ */
+function extractProjectsFromTasks(tasks: TaskSummary[]): string[] {
+  const projects = new Set<string>();
+
+  for (const task of tasks) {
+    // Check for "Project: Task" pattern
+    const colonMatch = task.title.match(/^([^:]+):/);
+    if (colonMatch) {
+      projects.add(colonMatch[1].trim());
+      continue;
+    }
+
+    // Check for "[Project] Task" pattern
+    const bracketMatch = task.title.match(/^\[([^\]]+)\]/);
+    if (bracketMatch) {
+      projects.add(bracketMatch[1].trim());
+    }
+  }
+
+  return Array.from(projects);
 }
