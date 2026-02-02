@@ -7,7 +7,7 @@
  * Uses existing Phase 4 tools via the toolExecutor.
  */
 
-import { format, isWithinInterval, addHours, parseISO, isToday, isBefore } from 'date-fns';
+import { format, isWithinInterval, addHours, addDays, parseISO, isToday, isBefore, isTomorrow, startOfDay, endOfDay } from 'date-fns';
 import type {
   BriefingData,
   TaskSummary,
@@ -17,6 +17,10 @@ import type {
   CalendarEvent,
   CheckInType,
   CheckInProgress,
+  EveningWrapData,
+  DayReviewData,
+  TomorrowPreviewData,
+  WeekSummaryData,
 } from './types';
 
 // Import the internal query function that returns raw results
@@ -214,7 +218,7 @@ async function queryNotionRaw(
   switch (database) {
     case 'tasks':
       filter = buildTaskFilter({
-        filter: options.filter as 'today' | 'this_week' | 'overdue' | 'all' | undefined,
+        filter: options.filter as 'today' | 'tomorrow' | 'this_week' | 'overdue' | 'all' | undefined,
         status: options.status as 'pending' | 'completed' | 'all' | undefined,
       });
       break;
@@ -400,4 +404,217 @@ export function buildStreakSummary(habits: HabitSummary[]): string {
   }
 
   return parts.join('. ') + '.';
+}
+
+// =============================================================================
+// Evening Wrap Data Builder (Plan 06-01)
+// =============================================================================
+
+/**
+ * Build complete evening wrap data
+ * Includes day review, tomorrow preview, and week summary
+ */
+export async function buildEveningWrapData(): Promise<EveningWrapData> {
+  console.log('[BriefingBuilder] Building evening wrap data...');
+
+  try {
+    // Parallel queries for all data sources
+    const [
+      completedTasksResult,
+      pendingTasksResult,
+      tomorrowTasksResult,
+      weekTasksResult,
+      billsResult,
+      habitsResult,
+      goalsResult,
+    ] = await Promise.all([
+      queryNotionRaw('tasks', { filter: 'today', status: 'completed' }),
+      queryNotionRaw('tasks', { filter: 'today', status: 'pending' }),
+      queryNotionRaw('tasks', { filter: 'tomorrow', status: 'all' }),
+      queryNotionRaw('tasks', { filter: 'this_week', status: 'all' }),
+      queryNotionRaw('bills', { timeframe: 'this_week', unpaidOnly: true }),
+      queryNotionRaw('habits', { frequency: 'all' }),
+      queryNotionRaw('goals', { status: 'active' }),
+    ]);
+
+    // Parse task results
+    const completedTasks = parseTaskResults(completedTasksResult);
+    const pendingTasks = parseTaskResults(pendingTasksResult);
+    const tomorrowTasks = parseTaskResults(tomorrowTasksResult);
+    const weekTasks = parseTaskResults(weekTasksResult);
+
+    // Build day review
+    const dayReview = buildDayReview(completedTasks, pendingTasks);
+
+    // Build tomorrow preview
+    const tomorrow = buildTomorrowPreview(tomorrowTasks);
+
+    // Build week summary
+    const weekSummary = analyzeWeekLoad(weekTasks);
+
+    // Parse other results
+    const bills = parseBillResults(billsResult);
+    const billTotal = bills.reduce((sum, b) => sum + b.amount, 0);
+    const habits = parseHabitResults(habitsResult);
+    const streakSummary = buildStreakSummary(habits);
+    const goals = parseGoalResults(goalsResult);
+    const calendarEvents = deriveCalendarEvents(tomorrowTasks);
+
+    const eveningWrapData: EveningWrapData = {
+      // Base BriefingData
+      tasks: {
+        today: pendingTasks,
+        overdue: pendingTasks.filter(t => t.dueDate && isBefore(parseISO(t.dueDate), startOfDay(new Date()))),
+      },
+      bills: {
+        thisWeek: bills,
+        total: billTotal,
+      },
+      habits: {
+        active: habits,
+        streakSummary,
+      },
+      goals: {
+        active: goals,
+      },
+      calendar: {
+        today: calendarEvents,
+      },
+      // Evening wrap specific
+      dayReview,
+      tomorrow,
+      weekSummary,
+    };
+
+    console.log('[BriefingBuilder] Evening wrap data built:', {
+      completedToday: completedTasks.length,
+      pendingToday: pendingTasks.length,
+      tomorrowTasks: tomorrowTasks.length,
+      completionRate: dayReview.completionRate,
+    });
+
+    return eveningWrapData;
+  } catch (error) {
+    console.error('[BriefingBuilder] Error building evening wrap:', error);
+    // Return empty data structure on error
+    return {
+      tasks: { today: [], overdue: [] },
+      bills: { thisWeek: [], total: 0 },
+      habits: { active: [], streakSummary: 'Unable to load habit data.' },
+      goals: { active: [] },
+      calendar: { today: [] },
+      dayReview: { completedTasks: [], incompleteTasks: [], completionRate: 0 },
+      tomorrow: { tasks: [], events: [] },
+      weekSummary: { busyDays: [], lightDays: [], upcomingDeadlines: [] },
+    };
+  }
+}
+
+/**
+ * Build day review data (completed vs incomplete tasks)
+ */
+function buildDayReview(completed: TaskSummary[], incomplete: TaskSummary[]): DayReviewData {
+  const total = completed.length + incomplete.length;
+  const completionRate = total > 0 ? Math.round((completed.length / total) * 100) : 0;
+
+  return {
+    completedTasks: completed,
+    incompleteTasks: incomplete,
+    completionRate,
+  };
+}
+
+/**
+ * Build tomorrow preview data (tasks and calendar events)
+ */
+function buildTomorrowPreview(tomorrowTasks: TaskSummary[]): TomorrowPreviewData {
+  const events = deriveCalendarEventsForTomorrow(tomorrowTasks);
+
+  return {
+    tasks: tomorrowTasks,
+    events,
+  };
+}
+
+/**
+ * Derive calendar events for tomorrow (tasks with specific due times)
+ */
+function deriveCalendarEventsForTomorrow(tasks: TaskSummary[]): CalendarEvent[] {
+  const tomorrow = addDays(new Date(), 1);
+
+  return tasks
+    .filter((t) => t.dueTime) // Only tasks with specific times
+    .map((t) => {
+      const [hours, minutes] = t.dueTime!.split(':').map(Number);
+      const eventTime = new Date(tomorrow);
+      eventTime.setHours(hours, minutes, 0, 0);
+
+      return {
+        id: `cal-${t.id}`,
+        title: t.title,
+        time: format(eventTime, 'h:mm a'),
+        isUpcoming: false, // Not upcoming since it's tomorrow
+        sourceTaskId: t.id,
+      };
+    })
+    .sort((a, b) => {
+      const timeA = a.time.replace(/[^0-9:]/g, '');
+      const timeB = b.time.replace(/[^0-9:]/g, '');
+      return timeA.localeCompare(timeB);
+    });
+}
+
+/**
+ * Analyze week load (busy days, light days, upcoming deadlines)
+ */
+function analyzeWeekLoad(weekTasks: TaskSummary[]): WeekSummaryData {
+  const now = new Date();
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  // Group tasks by day
+  const tasksByDay: Record<string, TaskSummary[]> = {};
+  const deadlines: TaskSummary[] = [];
+
+  for (let i = 0; i < 7; i++) {
+    const day = addDays(now, i);
+    const dayKey = format(day, 'yyyy-MM-dd');
+    tasksByDay[dayKey] = [];
+  }
+
+  for (const task of weekTasks) {
+    if (!task.dueDate) continue;
+
+    const dueDate = parseISO(task.dueDate);
+    const dayKey = format(dueDate, 'yyyy-MM-dd');
+
+    if (tasksByDay[dayKey]) {
+      tasksByDay[dayKey].push(task);
+    }
+
+    // Check if it's a deadline (high priority or has specific time)
+    if (task.priority === 'High' || task.dueTime) {
+      deadlines.push(task);
+    }
+  }
+
+  // Identify busy days (>5 tasks) and light days (<2 tasks)
+  const busyDays: string[] = [];
+  const lightDays: string[] = [];
+
+  for (const [dayKey, tasks] of Object.entries(tasksByDay)) {
+    const date = parseISO(dayKey);
+    const dayName = dayNames[date.getDay()];
+
+    if (tasks.length > 5) {
+      busyDays.push(dayName);
+    } else if (tasks.length < 2) {
+      lightDays.push(dayName);
+    }
+  }
+
+  return {
+    busyDays,
+    lightDays,
+    upcomingDeadlines: deadlines.slice(0, 5), // Top 5 deadlines
+  };
 }

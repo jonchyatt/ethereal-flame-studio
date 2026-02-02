@@ -196,7 +196,7 @@ export interface HabitProperties {
  * Build a filter for task queries
  */
 export function buildTaskFilter(options: {
-  filter?: 'today' | 'this_week' | 'overdue' | 'all';
+  filter?: 'today' | 'tomorrow' | 'this_week' | 'overdue' | 'all';
   status?: 'pending' | 'completed' | 'all';
 }): { filter?: { and: NotionFilter[] } } {
   const filters: NotionFilter[] = [];
@@ -222,6 +222,13 @@ export function buildTaskFilter(options: {
     filters.push({
       property: TASK_PROPS.dueDate,
       date: { equals: today },
+    });
+  } else if (options.filter === 'tomorrow') {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    filters.push({
+      property: TASK_PROPS.dueDate,
+      date: { equals: tomorrow.toISOString().split('T')[0] },
     });
   } else if (options.filter === 'this_week') {
     const nextWeek = new Date();
