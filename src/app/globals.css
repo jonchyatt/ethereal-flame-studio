@@ -14,3 +14,19 @@ main {
   width: 100vw;
   height: 100vh;
 }
+
+/* Nudge overlay animation */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out;
+}

@@ -14,7 +14,7 @@
  */
 
 import type { BriefingData, BriefingSection, TaskSummary } from './types';
-import { buildMorningBriefing } from './BriefingBuilder';
+import { buildMorningBriefing } from './BriefingClient';
 import type { VoicePipeline } from '../voice/VoicePipeline';
 import { useJarvisStore } from '../stores/jarvisStore';
 

@@ -10,7 +10,7 @@
  */
 
 import type { CheckInType, BriefingData, CheckInProgress } from './types';
-import { buildCheckInData } from './BriefingBuilder';
+import { buildCheckInData } from './BriefingClient';
 import type { VoicePipeline } from '../voice/VoicePipeline';
 import { useJarvisStore } from '../stores/jarvisStore';
 

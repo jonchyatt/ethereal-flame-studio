@@ -1,0 +1,41 @@
+/**
+ * BriefingClient - Client-side wrapper for briefing data
+ *
+ * Fetches briefing data via API route since NotionClient uses
+ * child_process which only works server-side.
+ */
+
+import type { BriefingData, CheckInType, CheckInProgress } from './types';
+
+/**
+ * Fetch morning briefing data from server
+ */
+export async function fetchBriefingData(): Promise<BriefingData> {
+  const response = await fetch('/api/jarvis/briefing');
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch briefing data');
+  }
+
+  return response.json();
+}
+
+/**
+ * Fetch check-in data from server
+ */
+export async function fetchCheckInData(type: CheckInType): Promise<{
+  briefing: BriefingData;
+  progress: CheckInProgress;
+}> {
+  const response = await fetch(`/api/jarvis/briefing?type=${type}`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch check-in data');
+  }
+
+  return response.json();
+}
+
+// Re-export as buildMorningBriefing for compatibility with existing code
+export { fetchBriefingData as buildMorningBriefing };
+export { fetchCheckInData as buildCheckInData };

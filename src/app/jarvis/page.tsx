@@ -10,7 +10,7 @@ import { PushToTalk } from '@/components/jarvis/PushToTalk';
 import { DashboardPanel } from '@/components/jarvis/Dashboard';
 import { getScheduler, destroyScheduler } from '@/lib/jarvis/executive/Scheduler';
 import { BriefingFlow } from '@/lib/jarvis/executive/BriefingFlow';
-import { buildMorningBriefing } from '@/lib/jarvis/executive/BriefingBuilder';
+import { buildMorningBriefing } from '@/lib/jarvis/executive/BriefingClient';
 import { getNudgeManager, destroyNudgeManager } from '@/lib/jarvis/executive/NudgeManager';
 import { getCheckInManager, destroyCheckInManager } from '@/lib/jarvis/executive/CheckInManager';
 import { NudgeOverlay } from '@/components/jarvis/NudgeOverlay';
