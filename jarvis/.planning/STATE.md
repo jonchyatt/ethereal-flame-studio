@@ -103,6 +103,9 @@ Recent decisions affecting current work:
 - [05-03]: Mobile drawer from right with backdrop for orb visibility
 - [05-03]: triggerDashboardRefresh via setTimeout after Notion writes
 - [05-03]: Dashboard beside orb, not over it - responsive layout pattern
+- [05-02]: Web Audio API for generated chime (no external MP3 dependency)
+- [05-02]: BriefingClient wrapper to fix server/client module boundary issue
+- [05-02]: 10-second auto-dismiss timeout for skippable check-ins
 
 ### Pending Todos
 
@@ -227,9 +230,11 @@ Resume file: None
    - Orb tappable for voice activation
 
 2. **05-02**: Check-ins and Nudges
-   - NudgeManager for proactive nudges
-   - CheckInManager for midday/evening check-ins
-   - NudgeOverlay component for visual nudge display
+   - NudgeManager with Web Audio chime and visual delivery
+   - CheckInManager for midday/evening check-in flows
+   - NudgeOverlay component for subtle visual indicator
+   - BriefingClient wrapper for client-side API access
+   - /api/jarvis/briefing route for server-side Notion access
 
 3. **05-03**: Dashboard UI
    - dashboardStore with zustand persist for section visibility
