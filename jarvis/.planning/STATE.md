@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 ## Current Position
 
-Phase: 8 - Memory Loading & Integration
-Plan: 03 of 03 complete
-Status: Phase 8 COMPLETE
-Last activity: 2026-02-02 - Completed 08-03-PLAN.md (proactive memory surfacing)
+Phase: 9 - Memory Writing & Tools
+Plan: 01 of 04 complete
+Status: In progress
+Last activity: 2026-02-02 - Completed 09-01-PLAN.md (soft delete infrastructure)
 
-Progress: [########            ] 40% (6/15 plans complete)
+Progress: [#########           ] 47% (7/15 plans complete)
 
 ## Milestone Summary
 
@@ -36,7 +36,7 @@ Progress: [########            ] 40% (6/15 plans complete)
 |-------|------|--------------|--------|
 | 7 | Database Foundation | MEM-01, MEM-08 | Complete (3/3 plans) |
 | 8 | Memory Loading & Integration | MEM-06, MEM-07, MEM-11 | Complete (3/3 plans) |
-| 9 | Memory Writing & Tools | MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10 | Blocked |
+| 9 | Memory Writing & Tools | MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10 | In progress (1/4 plans) |
 | 10 | Guardrails & Safety | GUARD-01-05, FIX-01-02 | Blocked |
 | 11 | Production Deployment | PROD-01-04 | Blocked |
 
@@ -48,7 +48,7 @@ Progress: [########            ] 40% (6/15 plans complete)
 
 ## Next Steps
 
-1. Begin Phase 9 (Memory Writing & Tools) - MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10
+1. Continue Phase 9 - execute 09-02-PLAN.md (remember tool implementation)
 2. Install Turso CLI for local database testing (user action)
 
 ## Accumulated Context
@@ -79,6 +79,9 @@ Progress: [########            ] 40% (6/15 plans complete)
 | Proactive surfacing limits | Max 5 pending items, max 3 contextual facts | 2026-02-02 |
 | Recency filter for surfacing | Only items from last 3 days considered pending | 2026-02-02 |
 | No emotional check-ins | System prompt explicitly prohibits "How did X go?" style questions | 2026-02-02 |
+| Soft delete via deletedAt | TEXT column with ISO timestamp, null = active | 2026-02-02 |
+| 30-day restoration window | getDeletedMemories only returns entries deleted within 30 days | 2026-02-02 |
+| Word overlap fuzzy matching | Simple scoring: count query words found in content, boost exact matches | 2026-02-02 |
 
 ### Pending Todos
 
@@ -95,6 +98,6 @@ Progress: [########            ] 40% (6/15 plans complete)
 
 ## Session Continuity
 
-Last session: 2026-02-02T19:57:30Z
-Stopped at: Completed 08-03-PLAN.md (proactive memory surfacing) - Phase 8 complete
+Last session: 2026-02-02T21:19:00Z
+Stopped at: Completed 09-01-PLAN.md (soft delete infrastructure)
 Resume file: None
