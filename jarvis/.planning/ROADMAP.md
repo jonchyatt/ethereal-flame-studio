@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Voice Pipeline** - STT + TTS integration with streaming, turn-taking state machine
 - [x] **Phase 3: Intelligence Layer** - Claude API integration, conversation context, guide personality
 - [x] **Phase 4: Data Integration** - Notion MCP connection, read/write operations, tool execution
-- [ ] **Phase 5: Executive Function Core** - Daily briefings, time nudges, check-ins, habit/goal awareness
+- [x] **Phase 5: Executive Function Core** - Daily briefings, time nudges, check-ins, habit/goal awareness
 - [ ] **Phase 6: Advanced Executive Function** - Weekly review, life area weighting, evening wrap
 
 ## Phase Details
@@ -130,9 +130,9 @@ Plans:
 - Wave 2: 05-02, 05-03 (nudges/check-ins and dashboard are parallel)
 
 Plans:
-- [ ] 05-01-PLAN.md - Scheduler, BriefingBuilder, BriefingFlow, morning briefing workflow
-- [ ] 05-02-PLAN.md - NudgeManager, CheckInManager, time nudges, midday/evening check-ins
-- [ ] 05-03-PLAN.md - DashboardPanel, section components, priority indicators, responsive layout
+- [x] 05-01-PLAN.md - Scheduler, BriefingBuilder, BriefingFlow, morning briefing workflow
+- [x] 05-02-PLAN.md - NudgeManager, CheckInManager, time nudges, midday/evening check-ins
+- [x] 05-03-PLAN.md - DashboardPanel, section components, priority indicators, responsive layout
 
 ### Phase 6: Advanced Executive Function
 **Goal**: Jarvis provides comprehensive executive function partnership
@@ -161,10 +161,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Voice Pipeline | 3/3 | **COMPLETE** | 2026-01-31 |
 | 3. Intelligence Layer | 3/3 | **COMPLETE** | 2026-02-01 |
 | 4. Data Integration | 3/3 | **COMPLETE** | 2026-02-01 |
-| 5. Executive Function Core | 0/3 | **PLANNED** | - |
+| 5. Executive Function Core | 3/3 | **COMPLETE** | 2026-02-02 |
 | 6. Advanced Executive Function | 0/3 | Not started | - |
 
 ---
 *Roadmap created: 2026-01-31*
-*Updated: 2026-02-01 (Phase 5 planned)*
+*Updated: 2026-02-02 (Phase 5 complete)*
 *Requirements coverage: 39/39 mapped*
