@@ -6,6 +6,9 @@ import { MicrophoneCapture } from '@/lib/jarvis/audio/MicrophoneCapture';
 import { VoicePipeline } from '@/lib/jarvis/voice/VoicePipeline';
 import { PermissionPrompt } from '@/components/jarvis/PermissionPrompt';
 import { PushToTalk } from '@/components/jarvis/PushToTalk';
+import { getScheduler, destroyScheduler } from '@/lib/jarvis/executive/Scheduler';
+import { BriefingFlow } from '@/lib/jarvis/executive/BriefingFlow';
+import type { ScheduledEvent } from '@/lib/jarvis/executive/types';
 import dynamic from 'next/dynamic';
 
 // Dynamic import to avoid SSR issues with Three.js
@@ -16,6 +19,61 @@ const JarvisOrb = dynamic(
 
 type PermissionUIState = 'loading' | 'prompt' | 'denied' | 'ready';
 
+// Voice selector for debug panel
+function VoiceSelector() {
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState<string>('');
+
+  useEffect(() => {
+    const loadVoices = () => {
+      const available = speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
+      setVoices(available);
+      if (available.length > 0 && !selectedVoice) {
+        setSelectedVoice(available[0].name);
+      }
+    };
+
+    loadVoices();
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }, [selectedVoice]);
+
+  const testVoice = (voiceName: string) => {
+    const voice = voices.find(v => v.name === voiceName);
+    if (voice) {
+      speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance("Hello, I am Jarvis. How can I help you today?");
+      utterance.voice = voice;
+      speechSynthesis.speak(utterance);
+    }
+  };
+
+  return (
+    <div className="mt-3 pt-3 border-t border-white/20">
+      <p className="text-white/50 mb-2">Voice:</p>
+      <select
+        value={selectedVoice}
+        onChange={(e) => {
+          setSelectedVoice(e.target.value);
+          testVoice(e.target.value);
+        }}
+        className="w-full bg-zinc-800 text-white text-xs rounded px-2 py-1 border border-zinc-600"
+      >
+        {voices.map((v) => (
+          <option key={v.name} value={v.name}>
+            {v.name}
+          </option>
+        ))}
+      </select>
+      <button
+        onClick={() => testVoice(selectedVoice)}
+        className="mt-2 w-full bg-zinc-700 hover:bg-zinc-600 text-white text-xs rounded px-2 py-1"
+      >
+        Test Voice
+      </button>
+    </div>
+  );
+}
+
 export default function JarvisPage() {
   const isAudioPermissionGranted = useJarvisStore((s) => s.isAudioPermissionGranted);
   const audioLevel = useJarvisStore((s) => s.audioLevel);
@@ -24,6 +82,8 @@ export default function JarvisPage() {
   const pipelineState = useJarvisStore((s) => s.pipelineState);
   const currentTranscript = useJarvisStore((s) => s.currentTranscript);
   const error = useJarvisStore((s) => s.error);
+  const isBriefingActive = useJarvisStore((s) => s.isBriefingActive);
+  const currentBriefingSection = useJarvisStore((s) => s.currentBriefingSection);
 
   const [permissionUIState, setPermissionUIState] = useState<PermissionUIState>('loading');
   const [showDebug, setShowDebug] = useState(false);
@@ -31,39 +91,41 @@ export default function JarvisPage() {
   // Voice pipeline ref
   const pipelineRef = useRef<VoicePipeline | null>(null);
 
+  // Briefing flow ref
+  const briefingFlowRef = useRef<BriefingFlow | null>(null);
+
   // Check permission on mount and initialize pipeline
   useEffect(() => {
     const checkPermission = async () => {
       // Skip permission check on server side
       if (typeof window === 'undefined') return;
 
-      // Check if browser supports audio capture
-      if (!MicrophoneCapture.isSupported()) {
-        console.warn('[JarvisPage] Audio capture not supported in this browser');
-        setPermissionUIState('denied');
-        return;
-      }
+      try {
+        // Check if browser supports audio capture
+        if (!MicrophoneCapture.isSupported()) {
+          console.warn('[JarvisPage] Audio capture not supported in this browser');
+          setPermissionUIState('denied');
+          return;
+        }
 
-      // Check existing permission state
-      const state = await MicrophoneCapture.checkPermission();
-      console.log('[JarvisPage] Initial permission state:', state);
+        // Check existing permission state
+        const state = await MicrophoneCapture.checkPermission();
+        console.log('[JarvisPage] Initial permission state:', state);
 
-      if (state === 'granted') {
-        // Initialize capture (don't start yet, wait for button press)
-        const mic = MicrophoneCapture.getInstance();
-        const granted = await mic.requestPermission();
-        if (granted) {
-          // Initialize voice pipeline
+        if (state === 'granted') {
+          // Permission already granted at browser level - go straight to ready
+          // The VoicePipeline will request the actual stream when PTT is pressed
           pipelineRef.current = new VoicePipeline();
-          await pipelineRef.current.initialize();
-          console.log('[JarvisPage] Voice pipeline initialized');
+          console.log('[JarvisPage] Permission pre-granted, pipeline created');
           setPermissionUIState('ready');
+        } else if (state === 'denied') {
+          setPermissionUIState('denied');
         } else {
           setPermissionUIState('prompt');
         }
-      } else if (state === 'denied') {
-        setPermissionUIState('denied');
-      } else {
+      } catch (error) {
+        console.error('[JarvisPage] Error during initialization:', error);
+        // Fall back to prompt state on any error
         setPermissionUIState('prompt');
       }
     };
@@ -76,17 +138,70 @@ export default function JarvisPage() {
         pipelineRef.current.cleanup();
         pipelineRef.current = null;
       }
+      destroyScheduler();
       const mic = MicrophoneCapture.getInstance();
       mic.cleanup();
     };
   }, []);
 
+  // Initialize scheduler when ready
+  useEffect(() => {
+    if (permissionUIState !== 'ready') return;
+
+    const handleScheduledEvent = (event: ScheduledEvent) => {
+      console.log('[JarvisPage] Scheduled event:', event.type);
+      if (event.type === 'morning_briefing') {
+        startMorningBriefing();
+      }
+      // midday/evening check-ins handled in Plan 02
+    };
+
+    const handleMissedEvent = (event: ScheduledEvent) => {
+      console.log('[JarvisPage] Missed event:', event.type);
+      // Could prompt: "You missed your morning briefing. Want to hear it now?"
+      // For now, just log
+    };
+
+    const scheduler = getScheduler(handleScheduledEvent, handleMissedEvent);
+    scheduler.start();
+
+    return () => {
+      scheduler.stop();
+    };
+  }, [permissionUIState]);
+
+  // Start morning briefing
+  const startMorningBriefing = useCallback(async () => {
+    console.log('[JarvisPage] Starting morning briefing');
+
+    if (!pipelineRef.current) {
+      console.warn('[JarvisPage] Pipeline not ready for briefing');
+      return;
+    }
+
+    // Create speak function that uses the pipeline
+    const speakFn = async (text: string): Promise<void> => {
+      if (pipelineRef.current) {
+        await pipelineRef.current.speak(text);
+      }
+    };
+
+    // Create and start briefing flow
+    briefingFlowRef.current = new BriefingFlow(speakFn, {
+      onBriefingComplete: () => {
+        console.log('[JarvisPage] Briefing complete');
+        briefingFlowRef.current = null;
+      },
+    });
+
+    await briefingFlowRef.current.start();
+  }, []);
+
   // Handle permission granted from PermissionPrompt
-  const handlePermissionGranted = useCallback(async () => {
-    // Initialize voice pipeline after permission granted
+  const handlePermissionGranted = useCallback(() => {
+    // Create voice pipeline - it will initialize mic on first PTT press
     pipelineRef.current = new VoicePipeline();
-    await pipelineRef.current.initialize();
-    console.log('[JarvisPage] Voice pipeline initialized after permission granted');
+    console.log('[JarvisPage] Permission granted, pipeline created');
     setPermissionUIState('ready');
   }, []);
 
@@ -106,6 +221,23 @@ export default function JarvisPage() {
     setShowDebug((prev) => !prev);
   }, []);
 
+  // Handle orb tap - per CONTEXT.md: "Tap the orb to activate audio"
+  const handleOrbTap = useCallback(() => {
+    console.log('[JarvisPage] Orb tapped, orbState:', orbState);
+
+    // If speaking (during briefing), treat as barge-in / skip
+    if (orbState === 'speaking' && briefingFlowRef.current?.isActive()) {
+      pipelineRef.current?.stopSpeaking();
+      briefingFlowRef.current?.skipCurrentSection();
+      return;
+    }
+
+    // If idle, start listening
+    if (orbState === 'idle' && !isBriefingActive) {
+      pipelineRef.current?.startListening();
+    }
+  }, [orbState, isBriefingActive]);
+
   return (
     <main className="relative flex flex-col h-full w-full bg-black overflow-hidden">
       {/* Orb visualization - always visible, dimmed behind permission prompt */}
@@ -114,7 +246,7 @@ export default function JarvisPage() {
           permissionUIState !== 'ready' ? 'opacity-30' : 'opacity-100'
         }`}
       >
-        <JarvisOrb />
+        <JarvisOrb onTap={handleOrbTap} />
       </div>
 
       {/* Permission prompt overlay */}
@@ -158,13 +290,24 @@ export default function JarvisPage() {
             usePipeline={true}
           />
 
-          {/* Debug toggle button */}
-          <button
-            onClick={toggleDebug}
-            className="mt-4 text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
-          >
-            {showDebug ? 'Hide Debug' : 'Show Debug'}
-          </button>
+          {/* Briefing controls */}
+          <div className="mt-4 flex gap-3">
+            <button
+              onClick={startMorningBriefing}
+              disabled={isBriefingActive}
+              className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-700 disabled:text-zinc-400 text-white rounded-lg transition-colors"
+            >
+              {isBriefingActive ? `Briefing: ${currentBriefingSection || 'loading...'}` : 'Start Briefing'}
+            </button>
+
+            {/* Debug toggle button */}
+            <button
+              onClick={toggleDebug}
+              className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+            >
+              {showDebug ? 'Hide Debug' : 'Debug'}
+            </button>
+          </div>
         </div>
       )}
 
@@ -188,7 +331,7 @@ export default function JarvisPage() {
 
       {/* Debug overlay */}
       {showDebug && permissionUIState === 'ready' && (
-        <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm rounded-lg p-3 text-xs text-white/70 space-y-1 z-40">
+        <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm rounded-lg p-3 text-xs text-white/70 space-y-1 z-40 max-w-xs">
           <p>
             Orb State: <span className="text-white">{orbState}</span>
           </p>
@@ -214,6 +357,7 @@ export default function JarvisPage() {
               style={{ width: `${audioLevel * 100}%` }}
             />
           </div>
+          <VoiceSelector />
         </div>
       )}
     </main>

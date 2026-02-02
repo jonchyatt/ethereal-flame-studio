@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useMemo, useState, useCallback } from 'react';
+import { useRef, useMemo, useState, useCallback, Suspense } from 'react';
 import { Canvas, useFrame, useLoader } from '@react-three/fiber';
 import * as THREE from 'three';
 import { OrbStateManager, OrbAnimationState } from './OrbStateManager';
@@ -323,19 +323,61 @@ function JarvisOrbScene() {
   );
 }
 
-export function JarvisOrb() {
+interface JarvisOrbProps {
+  /** Called when user taps the orb */
+  onTap?: () => void;
+}
+
+export function JarvisOrb({ onTap }: JarvisOrbProps = {}) {
+  const orbState = useJarvisStore((s) => s.orbState);
+
+  // Handle orb tap - per CONTEXT.md: "Tap the orb to activate audio"
+  const handleOrbTap = useCallback(() => {
+    console.log('[JarvisOrb] Orb tapped, current state:', orbState);
+    if (onTap) {
+      onTap();
+    }
+  }, [onTap, orbState]);
+
   return (
-    <div className="w-full h-full">
+    <div
+      className="w-full h-full cursor-pointer"
+      onClick={handleOrbTap}
+      role="button"
+      aria-label="Tap to speak"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        // Allow Enter/Space to activate
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleOrbTap();
+        }
+      }}
+    >
       <Canvas
         camera={{ position: [0, 0, 3], fov: 50 }}
         gl={{
           alpha: true,
           antialias: true,
           powerPreference: 'high-performance',
+          failIfMajorPerformanceCaveat: false,
         }}
         style={{ background: 'transparent' }}
+        onCreated={({ gl }) => {
+          // Handle WebGL context loss gracefully
+          const canvas = gl.domElement;
+          canvas.addEventListener('webglcontextlost', (e) => {
+            e.preventDefault();
+            console.warn('[JarvisOrb] WebGL context lost');
+          });
+          canvas.addEventListener('webglcontextrestored', () => {
+            console.log('[JarvisOrb] WebGL context restored');
+          });
+        }}
       >
-        <JarvisOrbScene />
+        <Suspense fallback={null}>
+          <JarvisOrbScene />
+        </Suspense>
       </Canvas>
     </div>
   );

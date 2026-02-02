@@ -56,6 +56,10 @@ export class VoicePipeline {
   private accumulatedTranscript = '';
   private lastFinalTranscript = '';
 
+  // Speech completion callback (for briefing flow)
+  private onSpeechComplete: (() => void) | null = null;
+  private pendingSpeakResolve: (() => void) | null = null;
+
   constructor(config: VoicePipelineConfig = {}) {
     this.mic = MicrophoneCapture.getInstance();
     this.config = {
@@ -78,10 +82,27 @@ export class VoicePipeline {
       onEnd: () => {
         console.log('[VoicePipeline] TTS finished speaking');
         this.setState('idle');
+
+        // Resolve pending speak promise
+        if (this.pendingSpeakResolve) {
+          this.pendingSpeakResolve();
+          this.pendingSpeakResolve = null;
+        }
+
+        // Call speech complete callback
+        if (this.onSpeechComplete) {
+          this.onSpeechComplete();
+        }
       },
       onError: (error) => {
         console.error('[VoicePipeline] TTS error:', error);
         this.handleError(error);
+
+        // Resolve pending speak promise on error too
+        if (this.pendingSpeakResolve) {
+          this.pendingSpeakResolve();
+          this.pendingSpeakResolve = null;
+        }
       },
     };
 
@@ -266,6 +287,37 @@ export class VoicePipeline {
   clearConversation(clearPersisted: boolean = false): void {
     this.conversationManager.clear(clearPersisted);
     console.log('[VoicePipeline] Conversation cleared');
+  }
+
+  /**
+   * Speak text directly (for briefings and proactive speech)
+   * Returns a promise that resolves when speech completes
+   */
+  async speak(text: string): Promise<void> {
+    console.log('[VoicePipeline] Speaking (direct):', text.substring(0, 50) + '...');
+
+    return new Promise<void>((resolve) => {
+      this.pendingSpeakResolve = resolve;
+      this.setState('speaking');
+      this.tts.speak(text);
+      useJarvisStore.getState().setLastResponse(text);
+    });
+  }
+
+  /**
+   * Set callback for when speech completes
+   * Useful for briefing flow to know when to prompt for response
+   */
+  setOnSpeechComplete(callback: (() => void) | null): void {
+    this.onSpeechComplete = callback;
+  }
+
+  /**
+   * Stop current TTS playback
+   */
+  stopSpeaking(): void {
+    this.tts.stop();
+    this.setState('idle');
   }
 
   // Private methods
