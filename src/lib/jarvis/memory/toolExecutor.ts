@@ -24,7 +24,7 @@ import {
 import { observeAndInfer } from './preferenceInference';
 import { type PatternType } from './queries/observations';
 import { getDb, memoryEntries } from './db';
-import { logEvent, type ToolInvocationData } from './queries/dailyLogs';
+import { logEvent, getRecentToolInvocations, type ToolInvocationData } from './queries/dailyLogs';
 
 export type MemoryToolName =
   | 'remember_fact'
@@ -32,7 +32,8 @@ export type MemoryToolName =
   | 'list_memories'
   | 'delete_all_memories'
   | 'restore_memory'
-  | 'observe_pattern';
+  | 'observe_pattern'
+  | 'query_audit_log';
 
 /**
  * Execute a memory tool call.
@@ -69,6 +70,9 @@ export async function executeMemoryTool(
         break;
       case 'observe_pattern':
         result = await handleObservePattern(input);
+        break;
+      case 'query_audit_log':
+        result = await handleQueryAuditLog(input);
         break;
       default:
         result = JSON.stringify({ error: `Unknown memory tool: ${toolName}` });
@@ -124,6 +128,8 @@ function summarizeToolContext(
       return `Restored ID: ${input.id}`;
     case 'observe_pattern':
       return `Pattern: ${input.pattern}`;
+    case 'query_audit_log':
+      return `Queried audit log (limit: ${input.limit || 10})`;
     default:
       return toolName;
   }
@@ -415,5 +421,45 @@ async function handleObservePattern(
     success: true,
     inferred: false,
     message: `Observation recorded for pattern "${pattern}". Not yet at threshold.`,
+  });
+}
+
+/**
+ * Handle query_audit_log tool - return recent actions
+ */
+async function handleQueryAuditLog(
+  input: Record<string, unknown>
+): Promise<string> {
+  const limit = Math.min(
+    Math.max(1, (input.limit as number) || 10),
+    50  // Cap at 50
+  );
+
+  const invocations = await getRecentToolInvocations(limit);
+
+  if (invocations.length === 0) {
+    return JSON.stringify({
+      success: true,
+      message: "I haven't taken any actions yet this session.",
+      actions: [],
+    });
+  }
+
+  // Format for natural speech
+  const actionList = invocations.map(inv => {
+    const status = inv.success ? 'succeeded' : 'failed';
+    const time = new Date(inv.timestamp).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+    const detail = inv.context || inv.error || inv.toolName;
+    return `${time}: ${detail} (${status})`;
+  });
+
+  return JSON.stringify({
+    success: true,
+    message: `Here are my recent ${invocations.length} action(s).`,
+    actions: actionList,
+    raw: invocations,  // Include raw data for detailed queries
   });
 }

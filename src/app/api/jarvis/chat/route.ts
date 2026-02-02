@@ -43,6 +43,7 @@ const memoryToolNames = [
   'delete_all_memories',
   'restore_memory',
   'observe_pattern',
+  'query_audit_log',
 ];
 
 interface ChatMessage {
