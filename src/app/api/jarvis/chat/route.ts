@@ -8,6 +8,9 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { notionTools } from '@/lib/jarvis/intelligence/tools';
 import { executeNotionTool } from '@/lib/jarvis/notion/toolExecutor';
+import { getJarvisConfig } from '@/lib/jarvis/config';
+import { retrieveMemories, formatMemoriesForPrompt } from '@/lib/jarvis/memory';
+import { buildSystemPrompt } from '@/lib/jarvis/intelligence/systemPrompt';
 
 // Instantiate client - reads ANTHROPIC_API_KEY from environment automatically
 const anthropic = new Anthropic();
@@ -43,6 +46,33 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
+    // Load memory context if enabled
+    let memoryContext: string | undefined;
+    const config = getJarvisConfig();
+
+    if (config.enableMemoryLoading) {
+      try {
+        const memories = await retrieveMemories({
+          maxTokens: config.memoryTokenBudget,
+          maxEntries: config.maxMemories,
+        });
+        memoryContext = formatMemoriesForPrompt(memories);
+        console.log(
+          `[Chat] Loaded ${memories.entries.length} memories (${memories.totalTokens} tokens)`
+        );
+      } catch (error) {
+        console.error('[Chat] Memory loading failed, continuing without:', error);
+        // Don't fail the request, just proceed without memories
+      }
+    }
+
+    // Build system prompt server-side with memory context
+    // This ensures memory stays server-side and v1 behavior is preserved when flag is off
+    const serverSystemPrompt = buildSystemPrompt({
+      currentTime: new Date(),
+      memoryContext, // undefined when flag is off or loading failed
+    });
+
     // Create SSE stream
     const stream = new ReadableStream({
       async start(controller) {
@@ -62,10 +92,11 @@ export async function POST(request: Request): Promise<Response> {
             console.log(`[Chat] Tool loop iteration ${iteration}`);
 
             // Call Claude (non-streaming to detect tool_use)
+            // Use server-built system prompt with memory context
             const response = await anthropic.messages.create({
               model: 'claude-3-5-haiku-20241022',
               max_tokens: 1024,
-              system: systemPrompt || 'You are a helpful assistant.',
+              system: serverSystemPrompt,
               messages: claudeMessages as Anthropic.MessageParam[],
               tools: notionTools,
             });
