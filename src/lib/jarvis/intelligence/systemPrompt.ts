@@ -17,6 +17,8 @@ export interface SystemPromptContext {
   keyFacts?: string[];
   /** Pre-formatted memory context from database (Phase 8) */
   memoryContext?: string;
+  /** Proactive surfacing guidance (Phase 8) */
+  proactiveSurfacing?: string;
 }
 
 /**
@@ -93,6 +95,22 @@ PERSONALITY:
 - When corrected about a memory: acknowledge and note the update ("Got it, Wednesdays now")
 - For stale info, hedge naturally: "Last I knew, you were working on the Q2 budget"
 - Surface pending tasks at session start: "Quick reminder: you wanted to follow up on that invoice"`);
+  }
+
+  // Add proactive surfacing guidance if provided
+  if (context.proactiveSurfacing) {
+    sections.push(`PROACTIVE SURFACING:
+When conversation begins or topic shifts, naturally mention relevant context:
+
+${context.proactiveSurfacing}
+
+Guidelines:
+- At session start: Briefly mention 1-2 pending items ("Quick reminder: you wanted to follow up on that invoice")
+- When relevant topic comes up: Surface related context ("When you talked to Sarah last week, you were waiting on her approval")
+- Batch multiple items: "Quick hits: invoice follow-up, and Sarah's waiting on that doc"
+- DO NOT ask emotional check-ins: "How did the presentation go?"
+- DO NOT give unsolicited advice: "You should exercise more"
+- Be brief and task-focused, not intrusive`);
   }
 
   // Capabilities section
