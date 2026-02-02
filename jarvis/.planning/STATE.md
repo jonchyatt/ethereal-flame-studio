@@ -48,7 +48,7 @@ Progress: [##################  ] 93% (14/15 plans complete)
 
 ## Next Steps
 
-1. Execute Phase 10 - Guardrails & Safety
+1. Execute Phase 11 - Production Deployment
 2. Install Turso CLI for local database testing (user action)
 
 ## Accumulated Context
@@ -95,6 +95,10 @@ Progress: [##################  ] 93% (14/15 plans complete)
 | LEARNED PREFERENCES section | Added to system prompt after MEMORY MANAGEMENT section | 2026-02-02 |
 | Tool executor logging wrapper | Inner function for logic, outer for logging - separates concerns | 2026-02-02 |
 | Human-readable audit context | summarizeToolContext helpers produce readable logs, not raw JSON | 2026-02-02 |
+| Explicit memories exempt from decay | Return 0 decay (not reduced multiplier) - permanent until user deletes | 2026-02-02 |
+| Conservative 100K token limit | Safety margin vs 200K actual Claude 3.5 Haiku context | 2026-02-02 |
+| 80% context utilization warning | Log warning at high utilization for conversation summarization | 2026-02-02 |
+| Jest for unit testing | Added jest, ts-jest, @types/jest for memory module tests | 2026-02-02 |
 
 ### Pending Todos
 
@@ -112,11 +116,13 @@ Progress: [##################  ] 93% (14/15 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 10-01-PLAN.md (audit logging wire-up)
+Stopped at: Completed 10-04-PLAN.md (decay exemption & context monitoring)
 Resume file: None
 
 Phase 10 (Guardrails & Safety) complete:
 - 10-01: Audit logging wire-up (complete - tool invocations logged to dailyLogs)
-- 10-02: Decay exempt for explicit memories (complete)
+- 10-02: Input validation & rate limiting (complete)
 - 10-03: Bug fixes FIX-01, FIX-02 (complete)
-- 10-04: Context window monitoring (complete)
+- 10-04: Decay exemption & context monitoring (complete - GUARD-05)
+
+Ready for Phase 11: Production Deployment
