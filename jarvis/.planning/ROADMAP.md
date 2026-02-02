@@ -52,9 +52,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Memory retrieval with scoring and token budgeting
-- [ ] 08-02-PLAN.md — System prompt integration with feature flag
-- [ ] 08-03-PLAN.md — Proactive surfacing of pending items and context
+- [x] 08-01-PLAN.md — Memory retrieval with scoring and token budgeting
+- [x] 08-02-PLAN.md — System prompt integration with feature flag
+- [x] 08-03-PLAN.md — Proactive surfacing of pending items and context
 
 **Success Criteria:**
 1. When user opens Jarvis, relevant facts from previous sessions appear in system context
@@ -149,7 +149,7 @@ Plans:
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
 | 7 | Database Foundation | MEM-01, MEM-08 | Complete (3/3 plans) |
-| 8 | Memory Loading & Integration | MEM-06, MEM-07, MEM-11 | Planned (3 plans) |
+| 8 | Memory Loading & Integration | MEM-06, MEM-07, MEM-11 | Complete (3/3 plans) |
 | 9 | Memory Writing & Tools | MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10 | Not Started |
 | 10 | Guardrails & Safety | GUARD-01 to GUARD-05, FIX-01, FIX-02 | Not Started |
 | 11 | Production Deployment | PROD-01 to PROD-04 | Not Started |
