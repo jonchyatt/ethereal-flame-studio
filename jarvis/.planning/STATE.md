@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 7 - Database Foundation
-Plan: 02 of 03 complete
-Status: In progress
-Last activity: 2026-02-02 - Completed 07-02-PLAN.md (database schema definition)
+Plan: 03 of 03 complete
+Status: Phase complete
+Last activity: 2026-02-02 - Completed 07-03-PLAN.md (query layer & session API)
 
-Progress: [###                 ] 13% (2/15 plans complete)
+Progress: [####                ] 20% (3/15 plans complete)
 
 ## Milestone Summary
 
@@ -34,7 +34,7 @@ Progress: [###                 ] 13% (2/15 plans complete)
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 7 | Database Foundation | MEM-01, MEM-08 | In Progress (2/3 plans) |
+| 7 | Database Foundation | MEM-01, MEM-08 | Complete (3/3 plans) |
 | 8 | Memory Loading & Integration | MEM-06, MEM-07, MEM-11 | Blocked |
 | 9 | Memory Writing & Tools | MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10 | Blocked |
 | 10 | Guardrails & Safety | GUARD-01-05, FIX-01-02 | Blocked |
@@ -48,9 +48,9 @@ Progress: [###                 ] 13% (2/15 plans complete)
 
 ## Next Steps
 
-1. Execute 07-03-PLAN.md (if exists) or verify Phase 7 complete
-2. Verify phase 7 with success criteria
-3. Proceed to Phase 8
+1. Verify Phase 7 with success criteria
+2. Plan Phase 8 (Memory Loading & Integration)
+3. Install Turso CLI for local database testing (user action)
 
 ## Accumulated Context
 
@@ -67,6 +67,9 @@ Progress: [###                 ] 13% (2/15 plans complete)
 | TEXT for timestamps | ISO 8601 strings stored in TEXT columns (SQLite best practice) | 2026-02-02 |
 | Singleton db client | Prevents connection exhaustion in serverless environment | 2026-02-02 |
 | content_hash for dedup | Unique index enables silent updates when same fact restated | 2026-02-02 |
+| Content normalization | trim, lowercase, collapse spaces, strip trailing punctuation before hashing | 2026-02-02 |
+| MemoryService facade | Static methods for common operations (initSession, closeSession, remember) | 2026-02-02 |
+| Session API semantics | GET gets/creates, POST forces new (closing active), PATCH ends session | 2026-02-02 |
 
 ### Pending Todos
 
@@ -83,6 +86,6 @@ Progress: [###                 ] 13% (2/15 plans complete)
 
 ## Session Continuity
 
-Last session: 2026-02-02T14:17:30Z
-Stopped at: Completed 07-02-PLAN.md
-Resume file: jarvis/.planning/phases/07-database-foundation/07-03-PLAN.md
+Last session: 2026-02-02T14:26:10Z
+Stopped at: Completed 07-03-PLAN.md (Phase 7 complete)
+Resume file: None (ready for Phase 8 planning)
