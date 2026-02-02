@@ -185,10 +185,11 @@ export class CheckInManager {
     this.onComplete = onComplete || null;
 
     try {
-      // Fetch current data
-      const { briefing, progress } = await buildCheckInData('evening');
+      // Fetch current data (includes tomorrow tasks for evening check-ins)
+      const { briefing, progress, tomorrow } = await buildCheckInData('evening');
       this.state.data = briefing;
       this.state.progress = progress;
+      this.state.tomorrow = tomorrow;
       this.state.isActive = true;
 
       // Update store
@@ -395,11 +396,33 @@ export class CheckInManager {
   }
 
   /**
-   * Build tomorrow preview script
+   * Build tomorrow preview script using real tomorrow data
    */
   private buildTomorrowScript(): string {
-    // For now, just a placeholder - tomorrow's data would need to be fetched
-    return "Tomorrow looks manageable. Anything to adjust? Or say skip.";
+    // Use real tomorrow data from evening check-in
+    if (!this.state.tomorrow || this.state.tomorrow.tasks.length === 0) {
+      return "Tomorrow's clear. No tasks scheduled. Anything to adjust?";
+    }
+
+    const tasks = this.state.tomorrow.tasks;
+    const parts: string[] = [];
+
+    // Task count and brief list (match EveningWrapFlow style)
+    const titles = tasks.slice(0, 3).map(t => t.title).join(', ');
+    parts.push(`Tomorrow you have ${tasks.length} task${tasks.length > 1 ? 's' : ''}: ${titles}.`);
+
+    if (tasks.length > 3) {
+      parts.push(`Plus ${tasks.length - 3} more.`);
+    }
+
+    // Check for high priority tasks
+    const highPriority = tasks.filter(t => t.priority === 'High');
+    if (highPriority.length > 0) {
+      parts.push(`Note: ${highPriority[0].title} is high priority.`);
+    }
+
+    parts.push('Anything to adjust? Or say skip.');
+    return parts.join(' ');
   }
 
   /**
