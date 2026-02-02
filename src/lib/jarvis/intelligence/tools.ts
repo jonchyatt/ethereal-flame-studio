@@ -1,10 +1,14 @@
 /**
  * Tool Definitions for Jarvis
  *
- * Defines Claude tool schemas for Notion operations.
- * All 10 tools are fully implemented via MCP in toolExecutor.ts:
+ * Defines Claude tool schemas for Notion and Memory operations.
+ *
+ * Notion Tools (10 total, via MCP):
  * - 5 Read tools: query_tasks, query_bills, query_projects, query_goals, query_habits
  * - 5 Write tools: create_task, update_task_status, mark_bill_paid, pause_task, add_project_item
+ *
+ * Memory Tools (5 total, via local DB):
+ * - remember_fact, forget_fact, list_memories, delete_all_memories, restore_memory
  */
 
 /**
@@ -212,3 +216,6 @@ export const notionTools: ToolDefinition[] = [
     }
   }
 ];
+
+// Re-export memory tools for combined tool usage
+export { memoryTools } from './memoryTools';

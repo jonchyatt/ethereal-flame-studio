@@ -2,12 +2,13 @@
  * Claude Chat API Route
  *
  * SSE streaming proxy to Claude API with tool execution loop.
- * Executes Notion tools via MCP when Claude uses tool_use.
+ * Executes Notion tools via MCP and Memory tools via local DB.
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-import { notionTools } from '@/lib/jarvis/intelligence/tools';
+import { notionTools, memoryTools } from '@/lib/jarvis/intelligence/tools';
 import { executeNotionTool } from '@/lib/jarvis/notion/toolExecutor';
+import { executeMemoryTool } from '@/lib/jarvis/memory/toolExecutor';
 import { getJarvisConfig } from '@/lib/jarvis/config';
 import {
   retrieveMemories,
@@ -22,6 +23,18 @@ const anthropic = new Anthropic();
 
 // Maximum tool execution iterations to prevent infinite loops
 const MAX_TOOL_ITERATIONS = 5;
+
+// Combine all tools for Claude
+const allTools = [...notionTools, ...memoryTools];
+
+// Memory tool names for routing
+const memoryToolNames = [
+  'remember_fact',
+  'forget_fact',
+  'list_memories',
+  'delete_all_memories',
+  'restore_memory',
+];
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -111,7 +124,7 @@ export async function POST(request: Request): Promise<Response> {
               max_tokens: 1024,
               system: serverSystemPrompt,
               messages: claudeMessages as Anthropic.MessageParam[],
-              tools: notionTools,
+              tools: allTools,
             });
 
             console.log(`[Chat] Response stop_reason: ${response.stop_reason}`);
@@ -148,10 +161,19 @@ export async function POST(request: Request): Promise<Response> {
                 });
                 controller.enqueue(new TextEncoder().encode(`data: ${toolUseData}\n\n`));
 
-                const result = await executeNotionTool(
-                  toolUse.name,
-                  toolUse.input as Record<string, unknown>
-                );
+                // Route to correct executor based on tool name
+                let result: string;
+                if (memoryToolNames.includes(toolUse.name)) {
+                  result = await executeMemoryTool(
+                    toolUse.name,
+                    toolUse.input as Record<string, unknown>
+                  );
+                } else {
+                  result = await executeNotionTool(
+                    toolUse.name,
+                    toolUse.input as Record<string, unknown>
+                  );
+                }
 
                 // Stream tool_result event
                 const toolResultData = JSON.stringify({
