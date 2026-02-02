@@ -17,6 +17,9 @@ export * from './queries/memoryEntries';
 export * from './queries/sessions';
 export * from './queries/dailyLogs';
 
+// Re-export retrieval functions
+export * from './retrieval';
+
 // Import for MemoryService implementation
 import {
   storeMemoryEntry,
