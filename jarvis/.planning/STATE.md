@@ -9,12 +9,17 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 
 ## Current Position
 
-Phase: 5 of 6 (Executive Function Core) - COMPLETE
-Plan: 3 of 3 in current phase (ALL COMPLETE)
-Status: Phase 5 verified and complete, ready for Phase 6
-Last activity: 2026-02-02 - Completed 05-03-PLAN.md (Dashboard UI)
+Phase: 6 of 6 (Advanced Executive Function) - IN PROGRESS
+Plan: 1 of 3 in current phase (06-01 COMPLETE)
+Status: Phase 6 started, evening wrap flow complete
+Last activity: 2026-02-01 - Completed 06-01-PLAN.md (Evening Wrap Flow)
 
-Progress: [##############] 100% (15/15 plans complete)
+Progress: [################] 100% (16/18 plans complete)
+
+**Phase 6 Progress:**
+- [x] 06-01: Evening Wrap Flow
+- [ ] 06-02: Life Area Tracking
+- [ ] 06-03: Weekly Review
 
 ## Performance Metrics
 
@@ -117,8 +122,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-02
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-02-01
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None
 
 ## Phase 1 Summary
@@ -258,4 +263,25 @@ Resume file: None
 **Phase verified:** All 9/9 must-haves confirmed in codebase
 **Verification report:** .planning/phases/05-executive-function-core/05-VERIFICATION.md
 
-**Next:** Phase 6 (Advanced Executive Function) or manual acceptance testing
+## Phase 6 Progress (IN PROGRESS)
+
+**Advanced Executive Function started.** 1 of 3 plans executed:
+
+1. **06-01**: Evening Wrap Flow (COMPLETE)
+   - EveningWrapFlow state machine with 9 sections
+   - Scheduler extended with evening_wrap event at 21:00
+   - Extended missed event window (3 hours for evening wrap)
+   - EveningWrapData types: DayReviewData, TomorrowPreviewData, WeekSummaryData
+   - buildEveningWrapData() for day review, tomorrow preview, week load analysis
+   - API route handles type=evening_wrap parameter
+   - Factual day review per CONTEXT.md (not scorecard)
+   - capturedItems array for newCaptures phase
+
+**Key deliverables so far:**
+- Evening wrap scheduled at 21:00 by default
+- 9-section walkthrough adapts duration based on content
+- User can skip sections or capture new items
+- Tomorrow preview with high priority callout
+- Week summary shows busy/light days
+
+**Next:** 06-02 (Life Area Tracking)
