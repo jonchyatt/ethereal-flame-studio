@@ -9,10 +9,11 @@
  * Check-ins are easily skippable (voice, tap, or 10s timeout).
  */
 
-import type { CheckInType, BriefingData, CheckInProgress } from './types';
+import type { CheckInType, BriefingData, CheckInProgress, TaskSummary } from './types';
 import { buildCheckInData } from './BriefingClient';
 import type { VoicePipeline } from '../voice/VoicePipeline';
 import { useJarvisStore } from '../stores/jarvisStore';
+import { executeNotionTool } from '../notion/toolExecutor';
 
 // =============================================================================
 // Configuration
@@ -48,6 +49,7 @@ interface CheckInState {
   phase: CheckInPhase;
   data: BriefingData | null;
   progress: CheckInProgress | null;
+  tomorrow?: { tasks: TaskSummary[] };
   isActive: boolean;
   isWaitingForResponse: boolean;
   capturedItems: string[];
@@ -78,6 +80,7 @@ export class CheckInManager {
       phase: 'intro',
       data: null,
       progress: null,
+      tomorrow: undefined,
       isActive: false,
       isWaitingForResponse: false,
       capturedItems: [],
@@ -473,7 +476,7 @@ export class CheckInManager {
   /**
    * Complete the check-in
    */
-  private complete(): void {
+  private async complete(): Promise<void> {
     this.clearAutoDismissTimer();
     this.state.isActive = false;
     this.state.isWaitingForResponse = false;
@@ -482,10 +485,26 @@ export class CheckInManager {
     useJarvisStore.getState().setIsBriefingActive(false);
     useJarvisStore.getState().setCurrentBriefingSection(null);
 
-    // Log captured items
+    // Send captured items to Notion inbox
     if (this.state.capturedItems.length > 0) {
-      console.log('[CheckInManager] Captured items:', this.state.capturedItems);
-      // Future: Send to Notion inbox
+      console.log('[CheckInManager] Sending captured items to Notion:', this.state.capturedItems);
+
+      // Create tasks in parallel for efficiency
+      const createPromises = this.state.capturedItems.map(async (item) => {
+        try {
+          const result = await executeNotionTool('create_task', { title: item });
+          console.log(`[CheckInManager] Created task: "${item}"`, result);
+          return { success: true, item };
+        } catch (error) {
+          console.error(`[CheckInManager] Failed to create task: "${item}"`, error);
+          return { success: false, item, error };
+        }
+      });
+
+      // Wait for all creates (don't block on failures)
+      const results = await Promise.allSettled(createPromises);
+      const succeeded = results.filter(r => r.status === 'fulfilled' && (r.value as { success: boolean }).success).length;
+      console.log(`[CheckInManager] Created ${succeeded}/${this.state.capturedItems.length} tasks`);
     }
 
     // Call completion callback
