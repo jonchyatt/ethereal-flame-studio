@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 7 - Database Foundation
-Plan: 01 of 03 complete
+Plan: 02 of 03 complete
 Status: In progress
-Last activity: 2026-02-02 - Completed 07-01-PLAN.md (database tooling setup)
+Last activity: 2026-02-02 - Completed 07-02-PLAN.md (database schema definition)
 
-Progress: [##                  ] 7% (1/15 plans complete)
+Progress: [###                 ] 13% (2/15 plans complete)
 
 ## Milestone Summary
 
@@ -34,7 +34,7 @@ Progress: [##                  ] 7% (1/15 plans complete)
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 7 | Database Foundation | MEM-01, MEM-08 | In Progress (1/3 plans) |
+| 7 | Database Foundation | MEM-01, MEM-08 | In Progress (2/3 plans) |
 | 8 | Memory Loading & Integration | MEM-06, MEM-07, MEM-11 | Blocked |
 | 9 | Memory Writing & Tools | MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10 | Blocked |
 | 10 | Guardrails & Safety | GUARD-01-05, FIX-01-02 | Blocked |
@@ -48,10 +48,9 @@ Progress: [##                  ] 7% (1/15 plans complete)
 
 ## Next Steps
 
-1. Execute 07-02-PLAN.md (Database Schema Definition)
-2. Execute 07-03-PLAN.md (Database Client & Connection)
-3. Verify phase 7 with success criteria
-4. Proceed to Phase 8
+1. Execute 07-03-PLAN.md (if exists) or verify Phase 7 complete
+2. Verify phase 7 with success criteria
+3. Proceed to Phase 8
 
 ## Accumulated Context
 
@@ -65,6 +64,9 @@ Progress: [##                  ] 7% (1/15 plans complete)
 | Guardrails before production | Memory poisoning is documented attack vector | 2026-02-02 |
 | Turso dialect config | Using `dialect: 'turso'` in drizzle.config.ts per latest docs | 2026-02-02 |
 | Schema location | ./src/lib/jarvis/memory/schema.ts for memory system code | 2026-02-02 |
+| TEXT for timestamps | ISO 8601 strings stored in TEXT columns (SQLite best practice) | 2026-02-02 |
+| Singleton db client | Prevents connection exhaustion in serverless environment | 2026-02-02 |
+| content_hash for dedup | Unique index enables silent updates when same fact restated | 2026-02-02 |
 
 ### Pending Todos
 
@@ -72,7 +74,7 @@ Progress: [##                  ] 7% (1/15 plans complete)
 
 ### Blockers/Concerns
 
-- None currently
+- Turso CLI not installed locally (user setup required for local db testing)
 
 ### Known Bugs (from v1)
 
@@ -81,6 +83,6 @@ Progress: [##                  ] 7% (1/15 plans complete)
 
 ## Session Continuity
 
-Last session: 2026-02-02T14:11:38Z
-Stopped at: Completed 07-01-PLAN.md
-Resume file: jarvis/.planning/phases/07-database-foundation/07-02-PLAN.md
+Last session: 2026-02-02T14:17:30Z
+Stopped at: Completed 07-02-PLAN.md
+Resume file: jarvis/.planning/phases/07-database-foundation/07-03-PLAN.md
