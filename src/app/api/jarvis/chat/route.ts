@@ -15,6 +15,7 @@ import {
   formatMemoriesForPrompt,
   getProactiveSurfacing,
   formatProactiveSurfacing,
+  getEntriesByCategory,
 } from '@/lib/jarvis/memory';
 import { buildSystemPrompt } from '@/lib/jarvis/intelligence/systemPrompt';
 
@@ -68,6 +69,7 @@ export async function POST(request: Request): Promise<Response> {
     // Load memory context if enabled
     let memoryContext: string | undefined;
     let proactiveSurfacing: string | undefined;
+    let inferredPreferences: string[] | undefined;
     const config = getJarvisConfig();
 
     if (config.enableMemoryLoading) {
@@ -83,6 +85,14 @@ export async function POST(request: Request): Promise<Response> {
         const surfacingText = formatProactiveSurfacing(surfacing);
         proactiveSurfacing = surfacingText || undefined; // Convert empty string to undefined
 
+        // Load inferred preferences (source='jarvis_inferred', category='preference')
+        const prefEntries = await getEntriesByCategory('preference');
+        const inferred = prefEntries.filter(e => e.source === 'jarvis_inferred');
+        if (inferred.length > 0) {
+          inferredPreferences = inferred.map(e => e.content);
+          console.log(`[Chat] Loaded ${inferredPreferences.length} inferred preferences`);
+        }
+
         console.log(
           `[Chat] Loaded ${memories.entries.length} memories, ${surfacing.pendingItems.length} pending items`
         );
@@ -92,12 +102,13 @@ export async function POST(request: Request): Promise<Response> {
       }
     }
 
-    // Build system prompt server-side with memory context and proactive surfacing
+    // Build system prompt server-side with memory context, proactive surfacing, and inferred preferences
     // This ensures memory stays server-side and v1 behavior is preserved when flag is off
     const serverSystemPrompt = buildSystemPrompt({
       currentTime: new Date(),
       memoryContext, // undefined when flag is off or loading failed
       proactiveSurfacing, // undefined when flag is off, loading failed, or nothing to surface
+      inferredPreferences, // undefined when no inferred preferences exist
     });
 
     // Create SSE stream

@@ -19,6 +19,8 @@ export interface SystemPromptContext {
   memoryContext?: string;
   /** Proactive surfacing guidance (Phase 8) */
   proactiveSurfacing?: string;
+  /** Inferred preferences (Phase 9) - patterns like prefers_brief_responses */
+  inferredPreferences?: string[];
 }
 
 /**
@@ -133,6 +135,40 @@ Categories for facts:
 - work: projects, work patterns, professional context
 - health: medical, wellness, fitness info
 - other: anything that doesn't fit above`);
+  }
+
+  // Add learned preferences section if inferred preferences exist
+  if (context.inferredPreferences && context.inferredPreferences.length > 0) {
+    const preferenceGuidance: string[] = [];
+
+    for (const pref of context.inferredPreferences) {
+      // Map preference strings to actionable guidance
+      if (pref.includes('brief') || pref.includes('concise')) {
+        preferenceGuidance.push('- Keep responses SHORT. User prefers brevity.');
+      }
+      if (pref.includes('detailed')) {
+        preferenceGuidance.push('- User prefers detailed explanations. Expand on your answers.');
+      }
+      if (pref.includes('bullet')) {
+        preferenceGuidance.push('- Use bullet points for lists and structured info.');
+      }
+      if (pref.includes('informal')) {
+        preferenceGuidance.push('- Keep tone casual and conversational.');
+      }
+      if (pref.includes('formal')) {
+        preferenceGuidance.push('- Maintain professional, formal tone.');
+      }
+      if (pref.includes('morning')) {
+        preferenceGuidance.push('- User is most productive in mornings.');
+      }
+    }
+
+    if (preferenceGuidance.length > 0) {
+      sections.push(`LEARNED PREFERENCES (from observed behavior):
+${preferenceGuidance.join('\n')}
+
+These are patterns I've noticed over time. Act on them naturally without mentioning that you "learned" them.`);
+    }
   }
 
   // Add proactive surfacing guidance if provided
