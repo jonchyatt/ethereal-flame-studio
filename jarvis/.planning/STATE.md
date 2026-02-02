@@ -2,124 +2,47 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-01-31)
+See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** One system that knows everything, surfaces what matters, and keeps you on track
-**Current focus:** Phase 6 - Advanced Executive Function (COMPLETE)
+**Current focus:** v1 milestone complete — planning next milestone
 
 ## Current Position
 
-Phase: 6 of 6 (Advanced Executive Function) - COMPLETE
-Plan: 3 of 3 in current phase (06-03 COMPLETE)
-Status: Phase 6 complete - all executive function rituals implemented
-Last activity: 2026-02-01 - Completed 06-03-PLAN.md (Weekly Review Flow)
+Phase: Milestone v1 complete (6 phases, 18 plans shipped)
+Plan: Not started
+Status: Ready for next milestone
+Last activity: 2026-02-02 — v1 milestone complete
 
-Progress: [##################] 100% (18/18 plans complete)
+Progress: [####################] 100% (v1 shipped)
 
-**Phase 6 Progress:**
-- [x] 06-01: Evening Wrap Flow
-- [x] 06-02: Life Area Tracking
-- [x] 06-03: Weekly Review Flow
+## Milestone Summary
 
-## Performance Metrics
+**v1 Executive Function Partner** shipped 2026-02-02:
+- 6 phases, 18 plans, 39 requirements
+- 49 files, 11,851 LOC TypeScript
+- Full voice pipeline (Deepgram STT → Claude → ElevenLabs TTS)
+- Notion integration via MCP (10 tools)
+- Executive function: briefings, nudges, check-ins, weekly review
 
-**Velocity:**
-- Total plans completed: 18
-- Average duration: ~10 min
-- Total execution time: ~180 min
+## Archives
 
-**By Phase:**
+- `.planning/milestones/v1-ROADMAP.md` — Full phase details
+- `.planning/milestones/v1-REQUIREMENTS.md` — All 39 requirements
+- `.planning/milestones/v1-MILESTONE-AUDIT.md` — Verification report
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01-audio-foundation | 3/3 | 27 min | 9 min |
-| 02-voice-pipeline | 3/3 | 25 min | 8 min |
-| 03-intelligence-layer | 3/3 | 18 min | 6 min |
-| 04-data-integration | 3/3 | 31 min | 10 min |
-| 05-executive-function-core | 3/3 | 32 min | 11 min |
-| 06-advanced-executive-function | 3/3 | ~45 min | ~15 min |
+## Next Steps
 
-**Recent Trend:**
-- Last 5 plans: 05-03 (10 min), 06-01 (~15 min), 06-02 (~15 min), 06-03 (~15 min)
-- Trend: All phases complete
-
-*Updated after each plan completion*
+Start next milestone with `/gsd:new-milestone` to:
+1. Define v2 requirements (body doubling, wake word, adaptive pushiness)
+2. Create new roadmap
+3. Begin execution
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
-
-- [Roadmap]: Use Deepgram for STT (not Web Speech API) for cross-browser support
-- [Roadmap]: Use ElevenLabs Flash v2.5 for sub-75ms TTS latency
-- [Roadmap]: Follow chained pipeline architecture (STT -> LLM -> TTS) for modularity
-- [Roadmap]: 300ms total latency budget for conversational feel
-- [Context]: Omnipresent guide personality (NOT butler)
-- [Context]: NO butler voice - avoid formal British male voices, prefer neutral/warm US voices
-- [Context]: Orb state colors: blue->cyan->amber->orange (cool->warm)
-- [Context]: Intensity/reactivity increases with Jarvis's perceived importance
-- [Context]: Dynamic transition speeds based on emotional intensity
-- [Context]: Placeholder orb first, fancy animations after pipeline proven
-- [Scope]: Bill tracking in v1 (same workspace, FIN-01/02/03 added)
-- [01-01]: Use h-dvh for mobile viewport height handling
-- [01-01]: Clamp audioLevel and importance to 0-1 in store actions
-- [01-02]: 200 particles for mobile performance (vs 1000+ in main Ethereal Flame)
-- [01-02]: OrbStateManager as pure logic component (returns null)
-- [01-02]: Importance boosts both intensity (1.3x) and reactivity (1.5x)
-- [01-02]: Animation state passed via callback to avoid re-renders
-- [01-03]: RMS amplitude calculation for accurate voice level
-- [01-03]: 256 FFT size for fast response time
-- [01-03]: Singleton pattern for MicrophoneCapture
-- [01-03]: Permission explanation BEFORE browser prompt
-- [01-03]: Spacebar support for desktop push-to-talk
-- [02-01]: SSE + POST pattern for STT proxy (Next.js App Router WebSocket limitation)
-- [02-01]: In-memory session Map for single-instance deployment
-- [02-03]: Raw PCM (linear16) via Web Audio API (webm/opus from MediaRecorder failed)
-- [03-01]: claude-haiku-4-5 for fast TTFT (~360ms) within latency budget
-- [03-01]: SSE streaming matches existing STT pattern
-- [03-01]: Error events via SSE (type: error) for graceful handling
-- [03-02]: 10 message sliding window for context
-- [03-02]: 20 max key facts for cross-session memory
-- [03-02]: Summary injected as synthetic user/assistant exchange
-- [03-03]: Omnipresent guide personality (calm, knowing, NOT butler)
-- [03-03]: Time format as "Friday, 3:45 PM" for natural speech
-- [03-03]: Tool graceful degradation with "coming soon" message
-- [04-01]: MCP client singleton with lazy initialization
-- [04-01]: 30-second timeout for MCP requests
-- [04-01]: Windows-compatible spawn with shell option
-- [04-01]: Use actual MCP tool names (API-post-search, API-retrieve-a-database)
-- [04-01]: data_source filter for Notion API v2025-09-03
-- [04-02]: Non-streaming Claude calls for tool loop, streaming only for final response
-- [04-02]: Parallel tool execution with Promise.all
-- [04-02]: MAX_TOOL_ITERATIONS = 5 to prevent infinite loops
-- [04-02]: tool_result blocks must come FIRST in user message content
-- [04-03]: In-memory cache acceptable for serverless (works within tool loop)
-- [04-03]: Fuzzy match priority: exact > starts-with > contains > reverse-contains
-- [04-03]: 5-minute TTL for cached results
-- [04-03]: Title-to-ID resolution enables natural voice commands
-- [05-01]: date-fns for date manipulation (lightweight, tree-shakeable)
-- [05-01]: Client-side scheduler with localStorage persistence
-- [05-01]: Background tab visibility handling for missed events
-- [05-01]: Calendar events derived from tasks with due times (no separate calendar tool)
-- [05-01]: BriefingFlow uses Promise-returning speak() for await support
-- [05-01]: Orb is primary tap target per CONTEXT.md
-- [05-03]: Zustand persist for dashboard section visibility
-- [05-03]: Mobile drawer from right with backdrop for orb visibility
-- [05-03]: triggerDashboardRefresh via setTimeout after Notion writes
-- [05-03]: Dashboard beside orb, not over it - responsive layout pattern
-- [05-02]: Web Audio API for generated chime (no external MP3 dependency)
-- [05-02]: BriefingClient wrapper to fix server/client module boundary issue
-- [05-02]: 10-second auto-dismiss timeout for skippable check-ins
-- [06-02]: Neglect threshold 0.3 (30% below baseline)
-- [06-02]: Max 3 neglected areas surfaced to avoid overwhelm
-- [06-02]: Gentle message tiers: quiet/attention/no activity
-- [06-02]: Single mention in briefing (top neglected area only)
-- [06-03]: Factual retrospective only (no scorecard, no judgment)
-- [06-03]: 15 second checkpoint timeout for auto-advance
-- [06-03]: Weekly review disabled by default, user opts in
-- [06-03]: Skip horizon scan if empty, skip life areas if no neglected areas
+All v1 decisions documented in PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
@@ -131,190 +54,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-01
-Stopped at: Completed 06-03-PLAN.md (Phase 6 Complete)
+Last session: 2026-02-02
+Stopped at: v1 milestone completion
 Resume file: None
-
-## Phase 1 Summary
-
-**Audio Foundation complete.** All 3 plans executed:
-
-1. **01-01**: Jarvis app setup (store, types, page structure)
-2. **01-02**: JarvisOrb visualization with state-based colors and audio reactivity
-3. **01-03**: MicrophoneCapture, push-to-talk, permission UX
-
-**Key deliverables:**
-- `/jarvis` route with full-screen orb visualization
-- Push-to-talk interaction (mouse, touch, spacebar)
-- Permission explanation UI before browser prompt
-- Orb responds to voice amplitude in real-time
-- State colors: idle (blue) -> listening (cyan) -> thinking (amber) -> speaking (orange)
-
-## Phase 2 Summary
-
-**Voice Pipeline complete.** All 3 plans executed:
-
-1. **02-01**: Deepgram STT Integration
-   - Server-side Deepgram proxy (SSE + POST pattern)
-   - DeepgramClient browser class with raw PCM audio
-
-2. **02-02**: Browser TTS Client
-   - SpeechClient using Web Speech API
-   - AudioPlayer for orb sync
-
-3. **02-03**: Voice Pipeline Orchestration
-   - VoicePipeline state machine (idle -> listening -> processing -> speaking)
-   - Full echo test verified
-   - Fixed STT audio format (webm -> linear16 PCM)
-
-## Phase 3 Summary
-
-**Intelligence Layer complete.** All 3 plans executed:
-
-1. **03-01**: Claude API Integration
-   - @anthropic-ai/sdk installed
-   - POST /api/jarvis/chat with SSE streaming
-   - ClaudeClient browser class for stream parsing
-
-2. **03-02**: Conversation Memory
-   - ConversationManager with sliding window (10 messages)
-   - MemoryStore for localStorage persistence (summary, key facts)
-   - getContextMessages() for Claude API format
-
-3. **03-03**: Claude Integration
-   - System prompt with omnipresent guide personality
-   - Time awareness via buildSystemPrompt()
-   - 5 Notion tool definitions for Phase 4
-   - VoicePipeline wired to Claude (replaces echo)
-   - Multi-turn conversation context
-
-**Key deliverables:**
-- User speaks -> Jarvis responds intelligently (not echo)
-- Personality: calm, knowing, warm but not formal
-- Time awareness: "It's Friday, 3:45 PM"
-- Multi-turn memory: "My name is Jonathan" -> "What's my name?" works
-- Tool readiness: "Add a task" -> graceful "coming soon" message
-
-## Phase 4 Summary
-
-**Data Integration complete.** All 3 plans executed:
-
-1. **04-01**: MCP Client Infrastructure
-   - @modelcontextprotocol/sdk installed
-   - NotionClient.ts with stdio transport singleton
-   - Schema types for Tasks, Bills, Projects, Goals, Habits
-   - Discovery script found all 5 database IDs
-   - Query builders and result formatters ready
-
-2. **04-02**: Tool Execution Loop
-   - toolExecutor.ts routes all 5 read operations to MCP
-   - Chat route executes tools in loop until final text response
-   - 10 tool definitions (5 read + 5 write)
-   - All read operations verified working end-to-end
-
-3. **04-03**: Write Operations
-   - create_task: creates task with title, due date, priority
-   - update_task_status: marks complete/in-progress/to-do
-   - mark_bill_paid: marks bill as paid
-   - pause_task: sets status to On Hold with optional resume date
-   - add_project_item: creates task linked to project
-   - Recent results cache for voice item identification
-   - Fuzzy title matching for natural commands
-
-**Discovered database IDs:**
-- Tasks: `2f902093-f0b3-81e8-a5bd-000b0fcf5bcb`
-- Bills: `2f902093-f0b3-81d5-ab21-000b05f7f947`
-- Projects: `2f902093-f0b3-8146-99cc-000bf339a06d`
-- Goals: `2f902093-f0b3-8173-a34b-000ba2e03fc3`
-- Habits: `2f902093-f0b3-81a2-9a35-000bfe1ebf20`
-
-**All 10 Notion tools working:**
-- Read (5): query_tasks, query_bills, query_projects, query_goals, query_habits
-- Write (5): create_task, update_task_status, mark_bill_paid, pause_task, add_project_item
-
-## Phase 5 Summary (COMPLETE)
-
-**Executive Function Core complete.** All 3 plans executed:
-
-1. **05-01**: Morning Briefing Infrastructure
-   - Scheduler class with localStorage persistence
-   - BriefingBuilder aggregates Notion data in parallel
-   - BriefingFlow state machine for section-by-section walkthrough
-   - VoicePipeline.speak() for proactive speech
-   - Orb tappable for voice activation
-
-2. **05-02**: Check-ins and Nudges
-   - NudgeManager with Web Audio chime and visual delivery
-   - CheckInManager for midday/evening check-in flows
-   - NudgeOverlay component for subtle visual indicator
-   - BriefingClient wrapper for client-side API access
-   - /api/jarvis/briefing route for server-side Notion access
-
-3. **05-03**: Dashboard UI
-   - dashboardStore with zustand persist for section visibility
-   - PriorityIndicator component (overdue/urgent/deadline_near/needs_attention)
-   - Dashboard section components: TasksList, BillsSummary, HabitProgress, CalendarEvents
-   - DashboardPanel with responsive layout (desktop sidebar, mobile drawer)
-   - Auto-refresh after Notion write operations
-   - 5-minute periodic refresh as backup
-
-**Key deliverables:**
-- Scheduler triggers events at scheduled times (08:00 morning, 12:00 midday, 17:00 evening)
-- BriefingBuilder queries tasks, bills, habits, goals in parallel
-- Calendar events derived from tasks with due times
-- BriefingFlow presents outline first, then section-by-section
-- NudgeManager surfaces timely reminders
-- CheckInManager enables midday/evening reviews
-- Dashboard displays tasks, calendar, habits, bills beside the orb
-- Priority indicators highlight overdue/urgent items
-- Dashboard refreshes automatically after voice command completes task
-
-**Phase verified:** All 9/9 must-haves confirmed in codebase
-**Verification report:** .planning/phases/05-executive-function-core/05-VERIFICATION.md
-
-## Phase 6 Summary (COMPLETE)
-
-**Advanced Executive Function complete.** All 3 plans executed:
-
-1. **06-01**: Evening Wrap Flow (COMPLETE)
-   - EveningWrapFlow state machine with 9 sections
-   - Scheduler extended with evening_wrap event at 21:00
-   - Extended missed event window (3 hours for evening wrap)
-   - EveningWrapData types: DayReviewData, TomorrowPreviewData, WeekSummaryData
-   - buildEveningWrapData() for day review, tomorrow preview, week load analysis
-   - API route handles type=evening_wrap parameter
-   - Factual day review per CONTEXT.md (not scorecard)
-   - capturedItems array for newCaptures phase
-
-2. **06-02**: Life Area Priority Weighting (COMPLETE)
-   - lifeAreaStore with Zustand persist for activity tracking
-   - LifeAreaTracker service with rolling window neglect calculation
-   - BriefingBuilder includes life area insights
-   - BriefingFlow mentions neglected areas subtly in habits section
-   - Default areas: health, work, relationships, finance, personal, home
-   - Gentle awareness messaging: "Health has been quiet this week"
-
-3. **06-03**: Weekly Review Flow (COMPLETE)
-   - WeeklyReviewFlow state machine with 10 sections including checkpoints
-   - Scheduler supports weekly_review_reminder with dayOfWeek
-   - Weekly review disabled by default (user opts in)
-   - buildWeeklyReviewData() with retrospective, upcoming week, horizon scan
-   - Retrospective is factual only (no scorecard, no judgment)
-   - Forward planning is primary focus (per CONTEXT.md)
-   - Checkpoint pauses with 15s auto-advance timeout
-   - Life area balance surfaced during dedicated section
-
-**Key deliverables:**
-- Evening wrap scheduled at 21:00 by default
-- 9-section evening wrap adapts duration based on content
-- User can skip sections or capture new items
-- Tomorrow preview with high priority callout
-- Week summary shows busy/light days
-- Life area tracking with 28-day rolling baseline
-- Neglect detection surfaces top 3 neglected areas
-- Single gentle mention in briefing (top neglected area only)
-- Weekly review with checkpoint pauses for user input
-- Horizon scan looks 2-4 weeks ahead
-- Weekly review day/time user-configurable
-
-**Phase 6 Complete - Jarvis Executive Function Ready**

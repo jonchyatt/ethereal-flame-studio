@@ -864,24 +864,53 @@ async function discoverDataSources() {
 ## Open Questions
 
 1. **Database property names for user's Life OS Bundle**
-   - What we know: Life OS has Tasks, Projects, Bills databases with standard PARA structure
+   - What we know: Life OS has Tasks, Projects, Bills, Goals, Habits databases with standard PARA structure
    - What's unclear: Exact property names (case-sensitive) for this user's setup
-   - Recommendation: Build discovery step in 04-01 to fetch schemas and configure
+   - Recommendation: Build discovery step in 04-01 to fetch schemas for ALL databases and configure
+   - **RESOLVED in plan:** Discovery script searches for all 5 Life OS databases
 
 2. **OAuth vs Integration Token**
    - What we know: Project uses integration token (in .mcp.json), hosted MCP requires OAuth
    - What's unclear: Should support multiple users in future?
    - Recommendation: Keep integration token for v1 (single user), design for OAuth extensibility
+   - **DECISION:** Integration token for v1. OAuth is v2 scope.
 
 3. **Handling page ID references in voice**
    - What we know: Updates need page IDs, but voice can't dictate long IDs
    - What's unclear: Best UX for referencing tasks ("the first one", "call mom task")
-   - Recommendation: Store recent query results in conversation context, match by title
+   - Recommendation: Store recent query results in cache, match by title
+   - **RESOLVED in plan:** recentResults.ts caches tasks, bills, projects for title lookup
 
 4. **MCP process lifecycle**
    - What we know: MCP server runs as child process via stdio
    - What's unclear: Best pattern for serverless (Vercel) - process per request or keep alive?
    - Recommendation: Start with singleton, monitor cold start impact
+
+5. **v2 Client & Content OS Extension**
+   - What we know: v1 = Life OS Bundle only. v2 = Add Client & Content OS (EXE-ADV-04)
+   - Architecture: LIFE_OS_DATABASES config is separate, extensible for CLIENT_OS_DATABASES
+   - **RESOLVED in plan:** schemas.ts includes v2 extension point comments
+
+## Tool Coverage (Updated)
+
+**v1 Tools (10 total):**
+
+| Tool | Database | Operation | Requirement |
+|------|----------|-----------|-------------|
+| query_tasks | Tasks | Read | NOT-02 |
+| query_bills | Bills | Read | FIN-01 |
+| query_projects | Projects | Read | NOT-02 |
+| query_goals | Goals | Read | NOT-03 |
+| query_habits | Habits | Read | NOT-03 |
+| create_task | Tasks | Write | NOT-04, NOT-05 |
+| update_task_status | Tasks | Write | NOT-06, NOT-09 |
+| pause_task | Tasks | Write | NOT-07 |
+| add_project_item | Tasks/Projects | Write | NOT-08 |
+| mark_bill_paid | Bills | Write | FIN-02 |
+
+**v2 Tools (future):**
+- query_clients, query_content (Client & Content OS)
+- create_client_task, update_content_status, etc.
 
 ## Sources
 
