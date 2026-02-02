@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 8 - Memory Loading & Integration
-Plan: 02 of 03 complete
-Status: In progress
-Last activity: 2026-02-02 - Completed 08-02-PLAN.md (memory integration into voice pipeline)
+Plan: 03 of 03 complete
+Status: Phase 8 COMPLETE
+Last activity: 2026-02-02 - Completed 08-03-PLAN.md (proactive memory surfacing)
 
-Progress: [######              ] 33% (5/15 plans complete)
+Progress: [########            ] 40% (6/15 plans complete)
 
 ## Milestone Summary
 
@@ -35,7 +35,7 @@ Progress: [######              ] 33% (5/15 plans complete)
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
 | 7 | Database Foundation | MEM-01, MEM-08 | Complete (3/3 plans) |
-| 8 | Memory Loading & Integration | MEM-06, MEM-07, MEM-11 | In progress (2/3 plans) |
+| 8 | Memory Loading & Integration | MEM-06, MEM-07, MEM-11 | Complete (3/3 plans) |
 | 9 | Memory Writing & Tools | MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10 | Blocked |
 | 10 | Guardrails & Safety | GUARD-01-05, FIX-01-02 | Blocked |
 | 11 | Production Deployment | PROD-01-04 | Blocked |
@@ -48,7 +48,7 @@ Progress: [######              ] 33% (5/15 plans complete)
 
 ## Next Steps
 
-1. Execute 08-03-PLAN.md (proactive memory surfacing)
+1. Begin Phase 9 (Memory Writing & Tools) - MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10
 2. Install Turso CLI for local database testing (user action)
 
 ## Accumulated Context
@@ -75,6 +75,10 @@ Progress: [######              ] 33% (5/15 plans complete)
 | Feature flag default off | Memory loading disabled by default for safe rollout | 2026-02-02 |
 | Server-side prompt building | System prompt built on server, memories never sent to client | 2026-02-02 |
 | Graceful degradation | Memory loading errors logged but don't break chat | 2026-02-02 |
+| Action keywords for pending | follow up, remind, pending, waiting, need to, should, want to, deadline | 2026-02-02 |
+| Proactive surfacing limits | Max 5 pending items, max 3 contextual facts | 2026-02-02 |
+| Recency filter for surfacing | Only items from last 3 days considered pending | 2026-02-02 |
+| No emotional check-ins | System prompt explicitly prohibits "How did X go?" style questions | 2026-02-02 |
 
 ### Pending Todos
 
@@ -91,6 +95,6 @@ Progress: [######              ] 33% (5/15 plans complete)
 
 ## Session Continuity
 
-Last session: 2026-02-02T19:46:22Z
-Stopped at: Completed 08-02-PLAN.md (memory integration into voice pipeline)
+Last session: 2026-02-02T19:57:30Z
+Stopped at: Completed 08-03-PLAN.md (proactive memory surfacing) - Phase 8 complete
 Resume file: None
