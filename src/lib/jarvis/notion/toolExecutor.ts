@@ -35,6 +35,7 @@ import {
   CachedItem,
 } from './recentResults';
 import { useDashboardStore } from '../stores/dashboardStore';
+import { logEvent, type ToolInvocationData } from '../memory/queries/dailyLogs';
 
 /**
  * Trigger dashboard refresh after write operations
@@ -57,11 +58,13 @@ function triggerDashboardRefresh(): void {
  *
  * @param toolName - The Claude tool name (e.g., 'query_tasks')
  * @param input - The tool input parameters from Claude
+ * @param sessionId - Optional session ID for audit logging (unused currently, for API parity with memory executor)
  * @returns Speech-friendly result string
  */
 export async function executeNotionTool(
   toolName: string,
-  input: Record<string, unknown>
+  input: Record<string, unknown>,
+  _sessionId?: number
 ): Promise<string> {
   console.log(`[ToolExecutor] Executing tool: ${toolName}`, input);
 
