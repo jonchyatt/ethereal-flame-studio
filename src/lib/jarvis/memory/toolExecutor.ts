@@ -24,6 +24,7 @@ import {
 import { observeAndInfer } from './preferenceInference';
 import { type PatternType } from './queries/observations';
 import { getDb, memoryEntries } from './db';
+import { logEvent, type ToolInvocationData } from './queries/dailyLogs';
 
 export type MemoryToolName =
   | 'remember_fact'
@@ -38,35 +39,93 @@ export type MemoryToolName =
  *
  * @param toolName - The Claude tool name
  * @param input - The tool input parameters from Claude
+ * @param sessionId - Optional session ID for audit logging
  * @returns JSON string with result
  */
 export async function executeMemoryTool(
   toolName: string,
-  input: Record<string, unknown>
+  input: Record<string, unknown>,
+  sessionId?: number
 ): Promise<string> {
   console.log(`[MemoryToolExecutor] Executing tool: ${toolName}`, input);
 
   try {
+    let result: string;
     switch (toolName) {
       case 'remember_fact':
-        return handleRememberFact(input);
+        result = await handleRememberFact(input);
+        break;
       case 'forget_fact':
-        return handleForgetFact(input);
+        result = await handleForgetFact(input);
+        break;
       case 'list_memories':
-        return handleListMemories(input);
+        result = await handleListMemories(input);
+        break;
       case 'delete_all_memories':
-        return handleDeleteAll(input);
+        result = await handleDeleteAll(input);
+        break;
       case 'restore_memory':
-        return handleRestore(input);
+        result = await handleRestore(input);
+        break;
       case 'observe_pattern':
-        return handleObservePattern(input);
+        result = await handleObservePattern(input);
+        break;
       default:
-        return JSON.stringify({ error: `Unknown memory tool: ${toolName}` });
+        result = JSON.stringify({ error: `Unknown memory tool: ${toolName}` });
     }
+
+    // Log successful invocation
+    if (sessionId) {
+      await logEvent(sessionId, 'tool_invocation', {
+        toolName,
+        success: true,
+        context: summarizeToolContext(toolName, input, result),
+      } as ToolInvocationData);
+    }
+
+    return result;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error(`[MemoryToolExecutor] Error executing ${toolName}:`, error);
+
+    // Log failed invocation
+    if (sessionId) {
+      await logEvent(sessionId, 'tool_invocation', {
+        toolName,
+        success: false,
+        error: errorMessage,
+      } as ToolInvocationData);
+    }
+
     return JSON.stringify({ error: errorMessage });
+  }
+}
+
+/**
+ * Summarize tool context for audit logs (keep logs readable)
+ */
+function summarizeToolContext(
+  toolName: string,
+  input: Record<string, unknown>,
+  result: string
+): string {
+  switch (toolName) {
+    case 'remember_fact':
+      return `Stored: "${(input.content as string)?.slice(0, 50)}..."`;
+    case 'forget_fact':
+      return input.confirm_ids
+        ? `Deleted IDs: ${input.confirm_ids}`
+        : `Searching: "${input.query}"`;
+    case 'list_memories':
+      return 'Listed memories';
+    case 'delete_all_memories':
+      return input.confirm === 'true' ? 'Deleted all memories' : 'Confirmation required';
+    case 'restore_memory':
+      return `Restored ID: ${input.id}`;
+    case 'observe_pattern':
+      return `Pattern: ${input.pattern}`;
+    default:
+      return toolName;
   }
 }
 
