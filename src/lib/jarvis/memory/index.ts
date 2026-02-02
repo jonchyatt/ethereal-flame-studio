@@ -23,9 +23,14 @@ export * from './retrieval';
 // Import for MemoryService implementation
 import {
   storeMemoryEntry,
+  getMemoryEntryById,
+  softDeleteMemoryEntry,
+  restoreMemoryEntry,
+  findMemoriesMatching,
   type MemoryCategory,
   type MemorySource,
 } from './queries/memoryEntries';
+import type { MemoryEntry } from './schema';
 import {
   startSession,
   endSession,
@@ -198,5 +203,43 @@ export class MemoryService {
       ...(context && { context }),
     };
     return logEvent(sessionId, 'user_state', data);
+  }
+
+  /**
+   * Soft delete a memory entry (forget).
+   * Entry can be restored within 30 days.
+   *
+   * @param id - Memory entry ID
+   * @returns The deleted entry, or null if not found or already deleted
+   */
+  static async forget(id: number): Promise<MemoryEntry | null> {
+    const entry = await getMemoryEntryById(id);
+    if (!entry || entry.deletedAt) return null;
+    const deleted = await softDeleteMemoryEntry(id);
+    return deleted || null;
+  }
+
+  /**
+   * Restore a soft-deleted memory entry.
+   *
+   * @param id - Memory entry ID
+   * @returns The restored entry, or null if not found or not deleted
+   */
+  static async restore(id: number): Promise<MemoryEntry | null> {
+    const entry = await getMemoryEntryById(id);
+    if (!entry || !entry.deletedAt) return null;
+    const restored = await restoreMemoryEntry(id);
+    return restored || null;
+  }
+
+  /**
+   * Find memories matching a query for the "forget" flow.
+   * Used when user says "forget about X" to find candidate memories.
+   *
+   * @param query - Natural language search query
+   * @returns Array of matching memories (top 5)
+   */
+  static async findForForget(query: string): Promise<MemoryEntry[]> {
+    return findMemoriesMatching(query);
   }
 }

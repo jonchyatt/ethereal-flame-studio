@@ -245,3 +245,56 @@ export async function getDeletedMemories(limit = 50): Promise<MemoryEntry[]> {
     .orderBy(desc(memoryEntries.deletedAt))
     .limit(limit);
 }
+
+/**
+ * Find memories matching a natural language query.
+ * Used for "forget" requests to find the memory the user wants to delete.
+ *
+ * Scoring:
+ * - +1 for each query word found in normalized content
+ * - +bonus for exact substring match
+ *
+ * @param query - Natural language search query
+ * @param limit - Maximum matches to return (default 5)
+ * @returns Array of matching memory entries, sorted by relevance
+ */
+export async function findMemoriesMatching(
+  query: string,
+  limit = 5
+): Promise<MemoryEntry[]> {
+  const normalizedQuery = normalizeContent(query);
+  const queryWords = normalizedQuery.split(' ').filter((w) => w.length > 2);
+
+  // If no meaningful words, return empty
+  if (queryWords.length === 0) {
+    return [];
+  }
+
+  // Get all active entries (not deleted)
+  const allEntries = await getMemoryEntries(500);
+
+  // Score each entry by word overlap
+  const scored = allEntries.map((entry) => {
+    const normalizedContent = normalizeContent(entry.content);
+    let score = 0;
+
+    for (const word of queryWords) {
+      if (normalizedContent.includes(word)) {
+        score += 1;
+      }
+    }
+
+    // Boost exact substring match
+    if (normalizedContent.includes(normalizedQuery)) {
+      score += queryWords.length;
+    }
+
+    return { entry, score };
+  });
+
+  return scored
+    .filter((s) => s.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((s) => s.entry);
+}
