@@ -10,11 +10,21 @@
 // =============================================================================
 
 /**
- * A scheduled event (briefing, check-in, or nudge)
+ * Scheduled event types
+ */
+export type ScheduledEventType =
+  | 'morning_briefing'
+  | 'midday_checkin'
+  | 'evening_checkin'
+  | 'evening_wrap'
+  | 'nudge';
+
+/**
+ * A scheduled event (briefing, check-in, wrap, or nudge)
  */
 export interface ScheduledEvent {
   id: string;
-  type: 'morning_briefing' | 'midday_checkin' | 'evening_checkin' | 'nudge';
+  type: ScheduledEventType;
   time: string; // HH:mm format (e.g., "08:00")
   enabled: boolean;
   lastTriggered?: number; // Unix timestamp of last trigger
@@ -125,6 +135,9 @@ export interface BriefingData {
   calendar: {
     today: CalendarEvent[];
   };
+  lifeAreas?: {
+    insights: LifeAreaInsights;
+  };
 }
 
 // =============================================================================
@@ -168,4 +181,112 @@ export interface ActiveNudge {
   message: string;
   timestamp: number;
   acknowledged: boolean;
+}
+
+// =============================================================================
+// Evening Wrap Types (Plan 06-01)
+// =============================================================================
+
+/**
+ * Sections available in an evening wrap
+ */
+export type EveningWrapSection =
+  | 'outline'
+  | 'dayReview'
+  | 'taskUpdates'
+  | 'newCaptures'
+  | 'tomorrowPreview'
+  | 'weekSummary'
+  | 'financeCheck'
+  | 'closing'
+  | 'complete';
+
+/**
+ * Day review data for evening wrap
+ */
+export interface DayReviewData {
+  completedTasks: TaskSummary[];
+  incompleteTasks: TaskSummary[];
+  completionRate: number; // 0-100 percentage
+}
+
+/**
+ * Tomorrow preview data for evening wrap
+ */
+export interface TomorrowPreviewData {
+  tasks: TaskSummary[];
+  events: CalendarEvent[];
+}
+
+/**
+ * Week summary data for evening wrap
+ */
+export interface WeekSummaryData {
+  busyDays: string[]; // Day names with >5 tasks
+  lightDays: string[]; // Day names with <2 tasks
+  upcomingDeadlines: TaskSummary[]; // Tasks due within 7 days
+}
+
+/**
+ * Complete evening wrap data
+ */
+export interface EveningWrapData extends BriefingData {
+  dayReview: DayReviewData;
+  tomorrow: TomorrowPreviewData;
+  weekSummary: WeekSummaryData;
+}
+
+/**
+ * Info about a missed scheduled prompt
+ */
+export interface MissedPromptInfo {
+  type: 'evening_wrap' | 'weekly_review';
+  missedDate: string; // YYYY-MM-DD format
+}
+
+// =============================================================================
+// Life Area Types (Plan 06-02)
+// =============================================================================
+
+/**
+ * Configuration for a life area
+ * User-set importance and expected activity baseline
+ */
+export interface LifeAreaConfig {
+  id: string;
+  name: string;
+  userPriority: number; // User-set importance (1-5)
+  expectedActivityPerWeek: number; // User-set baseline tasks/week
+  color?: string; // For visual display
+}
+
+/**
+ * Activity history for a life area
+ * Tracks daily activity counts for rolling window calculation
+ */
+export interface LifeAreaActivity {
+  areaId: string;
+  activityCounts: Record<string, number>; // ISO date (YYYY-MM-DD) -> count
+}
+
+/**
+ * Neglect calculation result for a life area
+ * Used to generate gentle awareness nudges
+ */
+export interface LifeAreaNeglect {
+  areaId: string;
+  areaName: string;
+  neglectScore: number; // 0-1, higher = more neglected
+  recentActivity: number; // Tasks in last 7 days
+  baseline: number; // Expected tasks/week
+  suggestedMessage: string; // "Health has been quiet this week"
+}
+
+/**
+ * Complete life area insights for briefings
+ */
+export interface LifeAreaInsights {
+  neglectedAreas: LifeAreaNeglect[];
+  activeAreas: string[]; // Area names at or above baseline
+  lastUpdated: number; // Unix timestamp
 }

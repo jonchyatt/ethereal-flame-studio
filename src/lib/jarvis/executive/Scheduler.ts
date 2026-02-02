@@ -14,7 +14,11 @@ import type { ScheduledEvent } from './types';
 const STORAGE_KEY = 'jarvis_schedule';
 
 // How far back to check for missed events (in minutes)
+// Default window for most events
 const MISSED_EVENT_WINDOW_MINUTES = 60;
+
+// Extended window for evening wrap (3 hours - user might be busy in evening)
+const MISSED_EVENT_WINDOW_EVENING_WRAP_MINUTES = 180;
 
 /**
  * Scheduler class for managing time-based events
@@ -118,10 +122,16 @@ export class Scheduler {
 
     const now = new Date();
     const today = now.toDateString();
-    const oneHourAgo = subHours(now, 1);
 
     for (const event of this.events) {
       if (!event.enabled) continue;
+
+      // Use extended window for evening_wrap (3 hours vs 1 hour)
+      const windowMinutes =
+        event.type === 'evening_wrap'
+          ? MISSED_EVENT_WINDOW_EVENING_WRAP_MINUTES
+          : MISSED_EVENT_WINDOW_MINUTES;
+      const windowStart = subHours(now, windowMinutes / 60);
 
       // Parse the scheduled time for today
       const [hours, minutes] = event.time.split(':').map(Number);
@@ -133,10 +143,10 @@ export class Scheduler {
         ? new Date(event.lastTriggered).toDateString()
         : null;
 
-      // Was this event scheduled within the last hour but not triggered today?
+      // Was this event scheduled within the window but not triggered today?
       if (
         lastTriggeredDate !== today &&
-        isWithinInterval(scheduledTime, { start: oneHourAgo, end: now })
+        isWithinInterval(scheduledTime, { start: windowStart, end: now })
       ) {
         console.log(`[Scheduler] Missed event detected: ${event.type}`);
         this.onMissedEvent(event);
@@ -203,6 +213,12 @@ export class Scheduler {
         id: 'evening',
         type: 'evening_checkin',
         time: '17:00',
+        enabled: true,
+      },
+      {
+        id: 'evening_wrap',
+        type: 'evening_wrap',
+        time: '21:00', // 9 PM default, user-adjustable
         enabled: true,
       },
     ];
