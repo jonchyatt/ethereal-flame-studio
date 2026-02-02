@@ -6,7 +6,7 @@ import {
   DEFAULT_STATE_COLORS,
 } from '../types';
 import type { VoicePipelineState } from '../voice/types';
-import type { BriefingSection, BriefingData } from '../executive/types';
+import type { BriefingSection, BriefingData, NudgeState } from '../executive/types';
 
 type JarvisStore = JarvisState & JarvisActions;
 
@@ -36,6 +36,9 @@ export const useJarvisStore = create<JarvisStore>((set) => ({
   isBriefingActive: false,
   currentBriefingSection: null as BriefingSection | null,
   briefingData: null as BriefingData | null,
+
+  // Nudge state
+  activeNudge: null as NudgeState | null,
 
   // Actions
   setOrbState: (orbState: OrbState) => set({ orbState }),
@@ -67,4 +70,8 @@ export const useJarvisStore = create<JarvisStore>((set) => ({
   setCurrentBriefingSection: (currentBriefingSection: BriefingSection | null) =>
     set({ currentBriefingSection }),
   setBriefingData: (briefingData: BriefingData | null) => set({ briefingData }),
+
+  // Nudge actions
+  setActiveNudge: (activeNudge: NudgeState | null) => set({ activeNudge }),
+  acknowledgeNudge: () => set({ activeNudge: null }),
 }));

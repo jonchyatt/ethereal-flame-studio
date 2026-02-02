@@ -151,7 +151,18 @@ export interface CheckInProgress {
 // =============================================================================
 
 /**
- * Active nudge state for store
+ * Active nudge state for store (displayed in NudgeOverlay)
+ */
+export interface NudgeState {
+  id: string;
+  message: string;
+  type: 'calendar' | 'deadline' | 'bill' | 'business';
+  timestamp: number;
+  acknowledged: boolean;
+}
+
+/**
+ * @deprecated Use NudgeState instead
  */
 export interface ActiveNudge {
   message: string;

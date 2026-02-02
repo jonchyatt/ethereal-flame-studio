@@ -5,7 +5,7 @@ export type OrbState = 'idle' | 'listening' | 'thinking' | 'speaking';
 export type { VoicePipelineState } from './voice/types';
 
 // Re-export executive types for convenience
-export type { BriefingSection, BriefingData } from './executive/types';
+export type { BriefingSection, BriefingData, NudgeState } from './executive/types';
 
 // Default state colors (cool -> warm progression)
 // User can customize these in future settings phase
@@ -58,6 +58,9 @@ export interface JarvisState {
   isBriefingActive: boolean;
   currentBriefingSection: import('./executive/types').BriefingSection | null;
   briefingData: import('./executive/types').BriefingData | null;
+
+  // Nudge state (extended in 05-02)
+  activeNudge: import('./executive/types').NudgeState | null;
 }
 
 // Store actions
@@ -82,4 +85,8 @@ export interface JarvisActions {
   setIsBriefingActive: (active: boolean) => void;
   setCurrentBriefingSection: (section: import('./executive/types').BriefingSection | null) => void;
   setBriefingData: (data: import('./executive/types').BriefingData | null) => void;
+
+  // Nudge actions (extended in 05-02)
+  setActiveNudge: (nudge: import('./executive/types').NudgeState | null) => void;
+  acknowledgeNudge: () => void;
 }
