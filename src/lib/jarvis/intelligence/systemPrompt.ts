@@ -15,6 +15,8 @@ export interface SystemPromptContext {
   userName?: string;
   /** Key facts from cross-session memory */
   keyFacts?: string[];
+  /** Pre-formatted memory context from database (Phase 8) */
+  memoryContext?: string;
 }
 
 /**
@@ -67,6 +69,11 @@ PERSONALITY:
     }
   }
 
+  // Add memory context if provided (from database)
+  if (context.memoryContext) {
+    contextParts.push(`\n${context.memoryContext}`);
+  }
+
   sections.push(contextParts.join('\n'));
 
   // Conversation style section
@@ -76,6 +83,17 @@ PERSONALITY:
 - Reference previous conversation when relevant
 - DO NOT end responses with questions unless you truly need clarification
 - Confirmations should be brief: "Done." or "Task added." not lengthy explanations`);
+
+  // Add memory reference guidance when memory is loaded
+  if (context.memoryContext) {
+    sections.push(`MEMORY CONTEXT:
+- You have persistent memory of past conversations
+- Reference previous facts naturally: "Your therapy is at 3pm" not "According to my records..."
+- For preferences, just act on them without calling out: use bullet points if that's their preference
+- When corrected about a memory: acknowledge and note the update ("Got it, Wednesdays now")
+- For stale info, hedge naturally: "Last I knew, you were working on the Q2 budget"
+- Surface pending tasks at session start: "Quick reminder: you wanted to follow up on that invoice"`);
+  }
 
   // Capabilities section
   sections.push(`CAPABILITIES:
