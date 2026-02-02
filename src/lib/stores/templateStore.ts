@@ -84,6 +84,32 @@ export const useTemplateStore = create<TemplateState>()(
     {
       name: 'ethereal-flame-templates',
       storage: createJSONStorage(() => localStorage),
+      version: 2,
+      migrate: (persistedState, version) => {
+        if (!persistedState || typeof persistedState !== 'object') {
+          return persistedState as TemplateState;
+        }
+        const state = persistedState as { templates?: VisualTemplate[]; activeTemplateId?: string | null };
+        if (!state.templates || version >= 2) {
+          return persistedState as TemplateState;
+        }
+
+        const migratedTemplates = state.templates.map((template) => {
+          if (!template?.settings) return template;
+          return {
+            ...template,
+            settings: {
+              ...template.settings,
+              skyboxPoleLogoAutoScale: false,
+            },
+          };
+        });
+
+        return {
+          ...state,
+          templates: migratedTemplates,
+        } as TemplateState;
+      },
       partialize: (state) => ({
         // Persist templates and active ID
         templates: state.templates.filter(t => !t.isBuiltIn), // Only user templates

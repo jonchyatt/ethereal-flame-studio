@@ -150,3 +150,4 @@ All changes in the ethereal-flame-studio copy for skybox/orb controls are tracke
 - Added drag-to-look camera controls for world-anchored mode (no orbit translation).
 - Kept video and star skyboxes centered on the camera to prevent background dragging.
 - Set pole logo auto-scale default to OFF.
+- Migrated saved templates to force pole logo auto-scale OFF.
