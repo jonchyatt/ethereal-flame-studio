@@ -21,6 +21,13 @@ Jarvis v2.0 adds persistent cross-session memory and production deployment to th
 - MEM-01: User can have facts persist across browser sessions
 - MEM-08: Jarvis logs daily session events to persistent storage
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Install Drizzle + libsql, configure environment
+- [ ] 07-02-PLAN.md — Create schema (memory_entries, sessions, daily_logs) + db client
+- [ ] 07-03-PLAN.md — Query functions, API routes, verify persistence
+
 **Success Criteria:**
 1. User can close browser, reopen, and see that previous session data exists
 2. Session events (start time, topics discussed) are written to database
@@ -134,7 +141,7 @@ Jarvis v2.0 adds persistent cross-session memory and production deployment to th
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 7 | Database Foundation | MEM-01, MEM-08 | Not Started |
+| 7 | Database Foundation | MEM-01, MEM-08 | Planned (3 plans) |
 | 8 | Memory Loading & Integration | MEM-06, MEM-07, MEM-11 | Not Started |
 | 9 | Memory Writing & Tools | MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10 | Not Started |
 | 10 | Guardrails & Safety | GUARD-01 to GUARD-05, FIX-01, FIX-02 | Not Started |
