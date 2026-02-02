@@ -17,7 +17,12 @@
     "render:local": "tsx scripts/render-cli.ts",
     "discover-notion": "npx tsx scripts/discover-notion-databases.ts",
     "test:e2e": "npx playwright test",
-    "test:e2e:ui": "npx playwright test --ui"
+    "test:e2e:ui": "npx playwright test --ui",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "turso:dev": "turso dev --db-file ./jarvis.db"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.72.1",
