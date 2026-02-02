@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 9 - Memory Writing & Tools
-Plan: 01 of 04 complete
+Plan: 03 of 04 complete
 Status: In progress
-Last activity: 2026-02-02 - Completed 09-01-PLAN.md (soft delete infrastructure)
+Last activity: 2026-02-02 - Completed 09-03-PLAN.md (system prompt guidance + decay)
 
-Progress: [#########           ] 47% (7/15 plans complete)
+Progress: [############        ] 60% (9/15 plans complete)
 
 ## Milestone Summary
 
@@ -36,7 +36,7 @@ Progress: [#########           ] 47% (7/15 plans complete)
 |-------|------|--------------|--------|
 | 7 | Database Foundation | MEM-01, MEM-08 | Complete (3/3 plans) |
 | 8 | Memory Loading & Integration | MEM-06, MEM-07, MEM-11 | Complete (3/3 plans) |
-| 9 | Memory Writing & Tools | MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10 | In progress (1/4 plans) |
+| 9 | Memory Writing & Tools | MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10 | In progress (3/4 plans) |
 | 10 | Guardrails & Safety | GUARD-01-05, FIX-01-02 | Blocked |
 | 11 | Production Deployment | PROD-01-04 | Blocked |
 
@@ -48,7 +48,7 @@ Progress: [#########           ] 47% (7/15 plans complete)
 
 ## Next Steps
 
-1. Continue Phase 9 - execute 09-02-PLAN.md (remember tool implementation)
+1. Continue Phase 9 - execute 09-04-PLAN.md (delete all + MCP integration)
 2. Install Turso CLI for local database testing (user action)
 
 ## Accumulated Context
@@ -82,6 +82,10 @@ Progress: [#########           ] 47% (7/15 plans complete)
 | Soft delete via deletedAt | TEXT column with ISO timestamp, null = active | 2026-02-02 |
 | 30-day restoration window | getDeletedMemories only returns entries deleted within 30 days | 2026-02-02 |
 | Word overlap fuzzy matching | Simple scoring: count query words found in content, boost exact matches | 2026-02-02 |
+| 30-day decay half-life | At 30 days without access, memory has 50% decay | 2026-02-02 |
+| 0.5x explicit decay multiplier | User-stated facts decay 50% slower than inferred | 2026-02-02 |
+| 0.9 decay threshold | Memories 90% decayed are soft-deleted during cleanup | 2026-02-02 |
+| Conditional prompt section | MEMORY MANAGEMENT only added when memoryContext exists | 2026-02-02 |
 
 ### Pending Todos
 
@@ -98,6 +102,6 @@ Progress: [#########           ] 47% (7/15 plans complete)
 
 ## Session Continuity
 
-Last session: 2026-02-02T21:19:00Z
-Stopped at: Completed 09-01-PLAN.md (soft delete infrastructure)
+Last session: 2026-02-02T16:28:00Z
+Stopped at: Completed 09-03-PLAN.md (system prompt guidance + memory decay)
 Resume file: None
