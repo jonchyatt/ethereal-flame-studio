@@ -60,6 +60,23 @@ export const dailyLogs = sqliteTable('daily_logs', {
   timestamp: text('timestamp').notNull().$defaultFn(() => new Date().toISOString()),
 });
 
+/**
+ * Observations - Behavioral patterns tracked before becoming preferences
+ *
+ * When Jarvis notices consistent behavior (e.g., user always asks for brief responses),
+ * record an observation. After threshold observations of same pattern, infer preference.
+ *
+ * Pattern types: communication_style, scheduling, topic_interest, workflow
+ */
+export const observations = sqliteTable('observations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  pattern: text('pattern').notNull(),        // Normalized pattern identifier (e.g., "prefers_brief_responses")
+  patternType: text('pattern_type').notNull(), // 'communication_style' | 'scheduling' | 'topic_interest' | 'workflow'
+  evidence: text('evidence'),                 // What triggered this observation
+  sessionId: integer('session_id').references(() => sessions.id),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+});
+
 // Type exports for use in queries
 export type MemoryEntry = typeof memoryEntries.$inferSelect;
 export type NewMemoryEntry = typeof memoryEntries.$inferInsert;
@@ -67,3 +84,5 @@ export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
 export type DailyLog = typeof dailyLogs.$inferSelect;
 export type NewDailyLog = typeof dailyLogs.$inferInsert;
+export type Observation = typeof observations.$inferSelect;
+export type NewObservation = typeof observations.$inferInsert;
