@@ -119,26 +119,37 @@ Plans:
 **Depends on:** Phase 9
 
 **Requirements:**
-- GUARD-01: Destructive actions require explicit confirmation
+- GUARD-01: Destructive actions require explicit confirmation (ALREADY EXISTS for memory tools)
 - GUARD-02: All tool invocations logged with timestamp and parameters
-- GUARD-03: Memory entries tagged with source (user-explicit vs inferred)
-- GUARD-04: Malicious content in memory entries detected and rejected
+- GUARD-03: Memory entries tagged with source (user-explicit vs inferred) - provenance affects decay
+- GUARD-04: ~~Malicious content detection~~ SKIPPED per CONTEXT.md (single-user, trust self)
 - GUARD-05: Context window utilization monitored to prevent instruction drift
 - FIX-01: Captured items during check-ins reach Notion inbox
 - FIX-02: Tomorrow preview in evening check-in shows real data
 
+**Plans:** 4 plans in 2 waves
+
+Plans:
+- [ ] 10-01-PLAN.md — Wire audit logging to tool executors (sessionId propagation)
+- [ ] 10-02-PLAN.md — Add query_audit_log tool for "what did you do?" queries
+- [ ] 10-03-PLAN.md — Fix check-in bugs (Notion capture, tomorrow preview)
+- [ ] 10-04-PLAN.md — Decay respects provenance, context window monitoring
+
+**Wave Structure:**
+- Wave 1: 10-01, 10-03, 10-04 (parallel - independent concerns)
+- Wave 2: 10-02 (depends on 10-01 for audit data to exist)
+
 **Success Criteria:**
-1. User asked to confirm before any delete/complete operation executes
-2. Every tool call appears in audit log with timestamp, tool name, parameters
-3. Memory entries display their provenance (user said vs Jarvis inferred)
-4. Attempts to store instruction-like content in memory are rejected
-5. System warns when context window utilization exceeds 80%
-6. Items captured during midday/evening check-ins appear in Notion inbox
-7. Evening check-in tomorrow preview shows actual calendar/task data
+1. Every tool call appears in audit log with timestamp, tool name, parameters
+2. User can ask "what did you do?" and get readable action history
+3. Explicit memories never decay (permanent until user deletes)
+4. Context utilization logged, warnings at 80%+
+5. Items captured during check-ins appear in Notion inbox
+6. Evening check-in tomorrow preview shows actual task data
 
-**Research Needed:** YES - guardrail taxonomy for all Jarvis tools
+**Research Needed:** No - research complete (10-RESEARCH.md)
 
-**Status:** Not Started
+**Status:** PLANNED (4 plans ready)
 
 ---
 
@@ -174,7 +185,7 @@ Plans:
 | 7 | Database Foundation | MEM-01, MEM-08 | Complete (3/3 plans) |
 | 8 | Memory Loading & Integration | MEM-06, MEM-07, MEM-11 | Complete (3/3 plans) |
 | 9 | Memory Writing & Tools | MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10 | Complete (4/4 plans) |
-| 10 | Guardrails & Safety | GUARD-01 to GUARD-05, FIX-01, FIX-02 | Not Started |
+| 10 | Guardrails & Safety | GUARD-01 to GUARD-05, FIX-01, FIX-02 | Planned (4 plans) |
 | 11 | Production Deployment | PROD-01 to PROD-04 | Not Started |
 
 ---
@@ -200,13 +211,13 @@ Plans:
 | PROD-04 | 11 | Custom domain with HTTPS |
 | FIX-01 | 10 | Inbox capture bug |
 | FIX-02 | 10 | Tomorrow preview bug |
-| GUARD-01 | 10 | Confirmation for destructive actions |
+| GUARD-01 | 10 | Confirmation for destructive actions (EXISTS) |
 | GUARD-02 | 10 | Tool invocation logging |
-| GUARD-03 | 10 | Memory source tagging |
-| GUARD-04 | 10 | Malicious content detection |
+| GUARD-03 | 10 | Memory source tagging (provenance) |
+| GUARD-04 | 10 | ~~Malicious content detection~~ SKIPPED |
 | GUARD-05 | 10 | Context window monitoring |
 
-**Coverage:** 22/22 requirements mapped
+**Coverage:** 21/22 requirements mapped (GUARD-04 intentionally skipped)
 
 ---
 
@@ -239,11 +250,11 @@ All phases are sequential - each builds on the previous. No parallel work possib
 | 7 | No | Drizzle + @libsql/client well-documented |
 | 8 | No | Extension of existing VoicePipeline |
 | 9 | Minimal | Tool format may need iteration |
-| 10 | **YES** | Guardrail taxonomy, action classification |
+| 10 | No | Research complete (10-RESEARCH.md) |
 | 11 | **YES** | Turso setup, Vercel configuration |
 
 ---
 
 *Created: 2026-02-02*
-*Updated: 2026-02-02 - Phase 9 complete (4/4 plans executed)*
+*Updated: 2026-02-02 - Phase 10 planned (4 plans created)*
 *Milestone: v2.0 Memory & Production*
