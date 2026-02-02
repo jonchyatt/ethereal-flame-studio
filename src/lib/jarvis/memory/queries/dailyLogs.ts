@@ -191,3 +191,52 @@ export async function getLastEventOfType(
 
   return results[0];
 }
+
+/**
+ * Get recent tool invocations for "what did you do?" queries.
+ *
+ * @param limit - Maximum entries to return (default 10)
+ * @param sessionId - Optional filter to specific session
+ * @returns Array of tool invocations with parsed data
+ */
+export async function getRecentToolInvocations(
+  limit = 10,
+  sessionId?: number
+): Promise<Array<{
+  toolName: string;
+  success: boolean;
+  context?: string;
+  error?: string;
+  timestamp: string;
+}>> {
+  // Add session filter if provided
+  const results = sessionId
+    ? await db
+        .select()
+        .from(dailyLogs)
+        .where(
+          and(
+            eq(dailyLogs.eventType, 'tool_invocation'),
+            eq(dailyLogs.sessionId, sessionId)
+          )
+        )
+        .orderBy(desc(dailyLogs.timestamp))
+        .limit(limit)
+    : await db
+        .select()
+        .from(dailyLogs)
+        .where(eq(dailyLogs.eventType, 'tool_invocation'))
+        .orderBy(desc(dailyLogs.timestamp))
+        .limit(limit);
+
+  return results.map(log => {
+    const data = parseEventData<ToolInvocationData>(log.eventData);
+    return {
+      toolName: data?.toolName || 'unknown',
+      success: data?.success ?? false,
+      context: data?.context,
+      error: data?.error,
+      timestamp: log.timestamp,
+    };
+  });
+}
