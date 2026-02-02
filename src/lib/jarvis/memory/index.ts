@@ -16,12 +16,16 @@ export * from './schema';
 export * from './queries/memoryEntries';
 export * from './queries/sessions';
 export * from './queries/dailyLogs';
+export * from './queries/observations';
 
 // Re-export retrieval functions
 export * from './retrieval';
 
 // Re-export decay functions
 export * from './decay';
+
+// Re-export inference functions
+export * from './preferenceInference';
 
 // Import for MemoryService implementation
 import {
