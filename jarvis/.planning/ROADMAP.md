@@ -143,12 +143,16 @@ Plans:
   2. User receives evening wrap prompts to capture loose ends and plan tomorrow
   3. Jarvis applies life area priority weighting to surface neglected areas
   4. Triage suggestions are informed by life area balance
-**Plans**: TBD
+**Plans:** 3 plans in 2 waves
+
+**Wave Structure:**
+- Wave 1: 06-01, 06-02 (evening wrap and life area tracking are independent)
+- Wave 2: 06-03 (weekly review needs life area insights)
 
 Plans:
-- [ ] 06-01: Evening wrap workflow
-- [ ] 06-02: Life area weighting and priority triage
-- [ ] 06-03: Voice-guided weekly review session
+- [ ] 06-01-PLAN.md - Evening wrap workflow (day review, tomorrow preview, capture)
+- [ ] 06-02-PLAN.md - Life area weighting and priority triage
+- [ ] 06-03-PLAN.md - Voice-guided weekly review session
 
 ## Progress
 
@@ -162,9 +166,9 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Intelligence Layer | 3/3 | **COMPLETE** | 2026-02-01 |
 | 4. Data Integration | 3/3 | **COMPLETE** | 2026-02-01 |
 | 5. Executive Function Core | 3/3 | **COMPLETE** | 2026-02-02 |
-| 6. Advanced Executive Function | 0/3 | Not started | - |
+| 6. Advanced Executive Function | 0/3 | Ready for execution | - |
 
 ---
 *Roadmap created: 2026-01-31*
-*Updated: 2026-02-02 (Phase 5 complete)*
+*Updated: 2026-02-02 (Phase 6 planned)*
 *Requirements coverage: 39/39 mapped*
