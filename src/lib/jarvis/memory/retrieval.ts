@@ -299,3 +299,90 @@ export function formatMemoriesForPrompt(context: MemoryContext): string {
 
   return `User context:\n${lines.join('\n')}`;
 }
+
+/**
+ * Proactive surfacing categorization result
+ */
+export interface ProactiveSurfacing {
+  /** Pending tasks/follow-ups to mention at session start */
+  pendingItems: ScoredMemory[];
+  /** Facts likely relevant to current context */
+  contextualFacts: ScoredMemory[];
+}
+
+/**
+ * Identify memories that should be proactively surfaced.
+ *
+ * Per CONTEXT.md decisions:
+ * - YES: Task follow-ups (things user committed to do)
+ * - YES: Work/factual context (projects, people, blockers)
+ * - NO: Emotional check-ins ("How did the scary thing go?")
+ * - NO: Unsolicited lifestyle advice ("You should exercise")
+ *
+ * @param memories - All retrieved memories
+ * @param currentTime - For time-aware surfacing
+ * @returns Categorized memories for proactive surfacing
+ */
+export function getProactiveSurfacing(
+  memories: ScoredMemory[],
+  currentTime: Date = new Date()
+): ProactiveSurfacing {
+  // Pending items: recently accessed "fact" category items with action-oriented content
+  const pendingItems = memories.filter((m) => {
+    const content = m.content.toLowerCase();
+    // Look for action-oriented content
+    const hasActionIntent =
+      content.includes('follow up') ||
+      content.includes('remind') ||
+      content.includes('pending') ||
+      content.includes('waiting') ||
+      content.includes('need to') ||
+      content.includes('should') ||
+      content.includes('want to') ||
+      content.includes('deadline');
+    // Recent (accessed within last 3 days)
+    const isRecent =
+      m.age === 'today' ||
+      m.age === 'yesterday' ||
+      m.age.includes('2 days') ||
+      m.age.includes('3 days');
+    return hasActionIntent && isRecent;
+  });
+
+  // Contextual facts: high-score memories that aren't pending items
+  const contextualFacts = memories
+    .filter((m) => !pendingItems.includes(m))
+    .filter((m) => m.score >= 50) // Only high-relevance items
+    .slice(0, 3); // Max 3 contextual facts
+
+  return {
+    pendingItems: pendingItems.slice(0, 5), // Max 5 pending items
+    contextualFacts,
+  };
+}
+
+/**
+ * Format proactive surfacing for system prompt injection.
+ *
+ * @param surfacing - Categorized memories
+ * @returns Formatted string for system prompt, or empty if nothing to surface
+ */
+export function formatProactiveSurfacing(surfacing: ProactiveSurfacing): string {
+  const sections: string[] = [];
+
+  if (surfacing.pendingItems.length > 0) {
+    sections.push('Pending follow-ups (mention at session start):');
+    for (const item of surfacing.pendingItems) {
+      sections.push(`- ${item.content} (${item.age})`);
+    }
+  }
+
+  if (surfacing.contextualFacts.length > 0) {
+    sections.push('\nRelevant context (surface when topic comes up):');
+    for (const item of surfacing.contextualFacts) {
+      sections.push(`- ${item.content}`);
+    }
+  }
+
+  return sections.join('\n');
+}
