@@ -9,7 +9,12 @@ import Anthropic from '@anthropic-ai/sdk';
 import { notionTools } from '@/lib/jarvis/intelligence/tools';
 import { executeNotionTool } from '@/lib/jarvis/notion/toolExecutor';
 import { getJarvisConfig } from '@/lib/jarvis/config';
-import { retrieveMemories, formatMemoriesForPrompt } from '@/lib/jarvis/memory';
+import {
+  retrieveMemories,
+  formatMemoriesForPrompt,
+  getProactiveSurfacing,
+  formatProactiveSurfacing,
+} from '@/lib/jarvis/memory';
 import { buildSystemPrompt } from '@/lib/jarvis/intelligence/systemPrompt';
 
 // Instantiate client - reads ANTHROPIC_API_KEY from environment automatically
@@ -48,6 +53,7 @@ export async function POST(request: Request): Promise<Response> {
 
     // Load memory context if enabled
     let memoryContext: string | undefined;
+    let proactiveSurfacing: string | undefined;
     const config = getJarvisConfig();
 
     if (config.enableMemoryLoading) {
@@ -57,8 +63,14 @@ export async function POST(request: Request): Promise<Response> {
           maxEntries: config.maxMemories,
         });
         memoryContext = formatMemoriesForPrompt(memories);
+
+        // Generate proactive surfacing guidance
+        const surfacing = getProactiveSurfacing(memories.entries);
+        const surfacingText = formatProactiveSurfacing(surfacing);
+        proactiveSurfacing = surfacingText || undefined; // Convert empty string to undefined
+
         console.log(
-          `[Chat] Loaded ${memories.entries.length} memories (${memories.totalTokens} tokens)`
+          `[Chat] Loaded ${memories.entries.length} memories, ${surfacing.pendingItems.length} pending items`
         );
       } catch (error) {
         console.error('[Chat] Memory loading failed, continuing without:', error);
@@ -66,11 +78,12 @@ export async function POST(request: Request): Promise<Response> {
       }
     }
 
-    // Build system prompt server-side with memory context
+    // Build system prompt server-side with memory context and proactive surfacing
     // This ensures memory stays server-side and v1 behavior is preserved when flag is off
     const serverSystemPrompt = buildSystemPrompt({
       currentTime: new Date(),
       memoryContext, // undefined when flag is off or loading failed
+      proactiveSurfacing, // undefined when flag is off, loading failed, or nothing to surface
     });
 
     // Create SSE stream
