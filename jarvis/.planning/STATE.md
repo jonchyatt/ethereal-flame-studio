@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 9 - Memory Writing & Tools
-Plan: 03 of 04 complete (09-01, 09-02, 09-03 done)
-Status: In progress
-Last activity: 2026-02-02 - Completed 09-02-PLAN.md (memory CRUD tools)
+Plan: 04 of 04 complete (09-01, 09-02, 09-03, 09-04 done)
+Status: Phase complete
+Last activity: 2026-02-02 - Completed 09-04-PLAN.md (automatic preference learning)
 
-Progress: [############        ] 60% (9/15 plans complete)
+Progress: [#############       ] 67% (10/15 plans complete)
 
 ## Milestone Summary
 
@@ -36,7 +36,7 @@ Progress: [############        ] 60% (9/15 plans complete)
 |-------|------|--------------|--------|
 | 7 | Database Foundation | MEM-01, MEM-08 | Complete (3/3 plans) |
 | 8 | Memory Loading & Integration | MEM-06, MEM-07, MEM-11 | Complete (3/3 plans) |
-| 9 | Memory Writing & Tools | MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10 | In progress (3/4 plans) |
+| 9 | Memory Writing & Tools | MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10 | Complete (4/4 plans) |
 | 10 | Guardrails & Safety | GUARD-01-05, FIX-01-02 | Blocked |
 | 11 | Production Deployment | PROD-01-04 | Blocked |
 
@@ -48,7 +48,7 @@ Progress: [############        ] 60% (9/15 plans complete)
 
 ## Next Steps
 
-1. Execute 09-04-PLAN.md (e2e verification and integration tests)
+1. Execute Phase 10 - Guardrails & Safety
 2. Install Turso CLI for local database testing (user action)
 
 ## Accumulated Context
@@ -89,6 +89,10 @@ Progress: [############        ] 60% (9/15 plans complete)
 | Category mapping | Tool categories (schedule, work, health) map to DB categories (fact, preference, pattern) | 2026-02-02 |
 | Two-phase forget | forget_fact first searches, then requires confirm_ids to delete | 2026-02-02 |
 | delete_all safety | Requires explicit confirm="true" parameter to execute full wipe | 2026-02-02 |
+| OBSERVATION_THRESHOLD = 3 | Require 3 consistent observations within 7 days to infer preference | 2026-02-02 |
+| jarvis_inferred source tag | Inferred preferences tagged differently from user_explicit | 2026-02-02 |
+| Pattern enum | Limited set of patterns prevents arbitrary creation and enables consistent mapping | 2026-02-02 |
+| LEARNED PREFERENCES section | Added to system prompt after MEMORY MANAGEMENT section | 2026-02-02 |
 
 ### Pending Todos
 
@@ -105,6 +109,12 @@ Progress: [############        ] 60% (9/15 plans complete)
 
 ## Session Continuity
 
-Last session: 2026-02-02T21:32:00Z
-Stopped at: Completed 09-02-PLAN.md (memory CRUD tools for Claude)
+Last session: 2026-02-02
+Stopped at: Completed 09-04-PLAN.md (automatic preference learning)
 Resume file: None
+
+Phase 9 (Memory Writing & Tools) is now complete:
+- 09-01: Database infrastructure (schema, migrations, session API)
+- 09-02: Memory CRUD tools (remember, forget, list, delete_all, restore)
+- 09-03: Memory loading & proactive surfacing
+- 09-04: Automatic preference learning (observations -> inference)
