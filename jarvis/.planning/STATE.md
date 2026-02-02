@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** One system that knows everything, surfaces what matters, and keeps you on track
-**Current focus:** Phase 4 - Data Integration (COMPLETE)
+**Current focus:** Phase 5 - Executive Function Core (IN PROGRESS)
 
 ## Current Position
 
-Phase: 4 of 6 (Data Integration) - COMPLETE
-Plan: 3 of 3 in current phase (COMPLETE)
-Status: Phase 4 complete, ready for Phase 5
-Last activity: 2026-02-01 - Completed 04-03-PLAN.md (Write operations and voice item identification)
+Phase: 5 of 6 (Executive Function Core) - IN PROGRESS
+Plan: 1 of 3 in current phase
+Status: Plan 05-01 complete, ready for 05-02
+Last activity: 2026-02-01 - Completed 05-01-PLAN.md (Morning briefing infrastructure)
 
-Progress: [##############] 73% (11/15 plans complete)
+Progress: [###############] 80% (12/15 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
+- Total plans completed: 12
 - Average duration: 9 min
-- Total execution time: 100 min
+- Total execution time: 112 min
 
 **By Phase:**
 
@@ -31,10 +31,11 @@ Progress: [##############] 73% (11/15 plans complete)
 | 02-voice-pipeline | 3/3 | 25 min | 8 min |
 | 03-intelligence-layer | 3/3 | 18 min | 6 min |
 | 04-data-integration | 3/3 | 31 min | 10 min |
+| 05-executive-function-core | 1/3 | 12 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-03 (8 min), 04-01 (12 min), 04-02 (8 min), 04-03 (11 min)
-- Trend: Phase 4 integration work complete, all Notion tools functional
+- Last 5 plans: 04-01 (12 min), 04-02 (8 min), 04-03 (11 min), 05-01 (12 min)
+- Trend: Phase 5 executive function work started
 
 *Updated after each plan completion*
 
@@ -92,19 +93,25 @@ Recent decisions affecting current work:
 - [04-03]: Fuzzy match priority: exact > starts-with > contains > reverse-contains
 - [04-03]: 5-minute TTL for cached results
 - [04-03]: Title-to-ID resolution enables natural voice commands
+- [05-01]: date-fns for date manipulation (lightweight, tree-shakeable)
+- [05-01]: Client-side scheduler with localStorage persistence
+- [05-01]: Background tab visibility handling for missed events
+- [05-01]: Calendar events derived from tasks with due times (no separate calendar tool)
+- [05-01]: BriefingFlow uses Promise-returning speak() for await support
+- [05-01]: Orb is primary tap target per CONTEXT.md
 
 ### Pending Todos
 
-- None - Phase 4 complete
+- None
 
 ### Blockers/Concerns
 
-- None currently - all Phase 4 requirements satisfied
+- None currently
 
 ## Session Continuity
 
 Last session: 2026-02-01
-Stopped at: Completed 04-03-PLAN.md
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
 
 ## Phase 1 Summary
@@ -204,18 +211,23 @@ Resume file: None
 - Read (5): query_tasks, query_bills, query_projects, query_goals, query_habits
 - Write (5): create_task, update_task_status, mark_bill_paid, pause_task, add_project_item
 
-**Jarvis can now:**
-- Query all 5 Life OS databases via voice
-- Create tasks with due dates and priorities
-- Mark tasks complete/in-progress/to-do
-- Pause tasks with optional resume date
-- Mark bills as paid
-- Add items to projects
-- Identify items by title (fuzzy matching)
+## Phase 5 Summary (IN PROGRESS)
 
-**Verification:**
-- 8 Playwright e2e tests covering all voice commands
-- All 8 tests passing (tests 6-8 handle data-dependent scenarios gracefully)
-- MCP response unwrapping fix verified query results work correctly
+**Executive Function Core in progress.** 1/3 plans executed:
 
-**Next:** Phase 5 (Dashboard UI) or voice pipeline refinements
+1. **05-01**: Morning Briefing Infrastructure
+   - Scheduler class with localStorage persistence
+   - BriefingBuilder aggregates Notion data in parallel
+   - BriefingFlow state machine for section-by-section walkthrough
+   - VoicePipeline.speak() for proactive speech
+   - Orb tappable for voice activation
+
+**Key deliverables so far:**
+- Scheduler triggers events at scheduled times (08:00 morning, 12:00 midday, 17:00 evening)
+- BriefingBuilder queries tasks, bills, habits, goals in parallel
+- Calendar events derived from tasks with due times
+- BriefingFlow presents outline first, then section-by-section
+- User can skip sections or say "continue"
+- Start Briefing button for manual trigger
+
+**Next:** 05-02 (Check-ins and Nudges), 05-03 (Dashboard UI)
