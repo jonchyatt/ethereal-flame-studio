@@ -5,7 +5,7 @@
  * child_process which only works server-side.
  */
 
-import type { BriefingData, CheckInType, CheckInProgress, EveningWrapData, WeeklyReviewData } from './types';
+import type { BriefingData, CheckInType, CheckInProgress, EveningWrapData, WeeklyReviewData, TaskSummary } from './types';
 
 /**
  * Fetch morning briefing data from server
@@ -22,10 +22,12 @@ export async function fetchBriefingData(): Promise<BriefingData> {
 
 /**
  * Fetch check-in data from server
+ * Evening check-ins include tomorrow's tasks for preview
  */
 export async function fetchCheckInData(type: CheckInType): Promise<{
   briefing: BriefingData;
   progress: CheckInProgress;
+  tomorrow?: { tasks: TaskSummary[] };
 }> {
   const response = await fetch(`/api/jarvis/briefing?type=${type}`);
 

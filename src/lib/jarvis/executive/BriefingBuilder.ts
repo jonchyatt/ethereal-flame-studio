@@ -178,10 +178,12 @@ export async function buildMorningBriefing(): Promise<BriefingData> {
 
 /**
  * Build check-in data (for midday/evening check-ins)
+ * Evening check-ins also include tomorrow's tasks for preview
  */
 export async function buildCheckInData(type: CheckInType): Promise<{
   briefing: BriefingData;
   progress: CheckInProgress;
+  tomorrow?: { tasks: TaskSummary[] };
 }> {
   console.log(`[BriefingBuilder] Building ${type} check-in data...`);
 
@@ -203,6 +205,23 @@ export async function buildCheckInData(type: CheckInType): Promise<{
     overdueCount: briefing.tasks.overdue.length,
     newCaptures: [], // Filled in during check-in flow
   };
+
+  // For evening check-ins, also fetch tomorrow's tasks
+  if (type === 'evening') {
+    const tomorrowTasksResult = await queryNotionRaw('tasks', {
+      filter: 'tomorrow',
+      status: 'pending',
+    });
+    const tomorrowTasks = parseTaskResults(tomorrowTasksResult);
+
+    console.log(`[BriefingBuilder] Evening check-in includes ${tomorrowTasks.length} tomorrow tasks`);
+
+    return {
+      briefing,
+      progress,
+      tomorrow: { tasks: tomorrowTasks },
+    };
+  }
 
   return { briefing, progress };
 }
