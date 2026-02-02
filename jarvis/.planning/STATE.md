@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 ## Current Position
 
 Phase: 5 of 6 (Executive Function Core) - IN PROGRESS
-Plan: 1 of 3 in current phase
-Status: Plan 05-01 complete, ready for 05-02
-Last activity: 2026-02-01 - Completed 05-01-PLAN.md (Morning briefing infrastructure)
+Plan: 3 of 3 in current phase
+Status: Plan 05-03 complete, ready for 05 verification
+Last activity: 2026-02-02 - Completed 05-03-PLAN.md (Dashboard UI)
 
-Progress: [###############] 80% (12/15 plans complete)
+Progress: [##############] 93% (14/15 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
+- Total plans completed: 14
 - Average duration: 9 min
-- Total execution time: 112 min
+- Total execution time: 134 min
 
 **By Phase:**
 
@@ -31,11 +31,11 @@ Progress: [###############] 80% (12/15 plans complete)
 | 02-voice-pipeline | 3/3 | 25 min | 8 min |
 | 03-intelligence-layer | 3/3 | 18 min | 6 min |
 | 04-data-integration | 3/3 | 31 min | 10 min |
-| 05-executive-function-core | 1/3 | 12 min | 12 min |
+| 05-executive-function-core | 3/3 | 32 min | 11 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-01 (12 min), 04-02 (8 min), 04-03 (11 min), 05-01 (12 min)
-- Trend: Phase 5 executive function work started
+- Last 5 plans: 04-02 (8 min), 04-03 (11 min), 05-01 (12 min), 05-02 (10 min), 05-03 (10 min)
+- Trend: Phase 5 executive function complete
 
 *Updated after each plan completion*
 
@@ -99,6 +99,10 @@ Recent decisions affecting current work:
 - [05-01]: Calendar events derived from tasks with due times (no separate calendar tool)
 - [05-01]: BriefingFlow uses Promise-returning speak() for await support
 - [05-01]: Orb is primary tap target per CONTEXT.md
+- [05-03]: Zustand persist for dashboard section visibility
+- [05-03]: Mobile drawer from right with backdrop for orb visibility
+- [05-03]: triggerDashboardRefresh via setTimeout after Notion writes
+- [05-03]: Dashboard beside orb, not over it - responsive layout pattern
 
 ### Pending Todos
 
@@ -110,8 +114,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-01
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-02-02
+Stopped at: Completed 05-03-PLAN.md
 Resume file: None
 
 ## Phase 1 Summary
@@ -211,9 +215,9 @@ Resume file: None
 - Read (5): query_tasks, query_bills, query_projects, query_goals, query_habits
 - Write (5): create_task, update_task_status, mark_bill_paid, pause_task, add_project_item
 
-## Phase 5 Summary (IN PROGRESS)
+## Phase 5 Summary (COMPLETE)
 
-**Executive Function Core in progress.** 1/3 plans executed:
+**Executive Function Core complete.** All 3 plans executed:
 
 1. **05-01**: Morning Briefing Infrastructure
    - Scheduler class with localStorage persistence
@@ -222,12 +226,28 @@ Resume file: None
    - VoicePipeline.speak() for proactive speech
    - Orb tappable for voice activation
 
-**Key deliverables so far:**
+2. **05-02**: Check-ins and Nudges
+   - NudgeManager for proactive nudges
+   - CheckInManager for midday/evening check-ins
+   - NudgeOverlay component for visual nudge display
+
+3. **05-03**: Dashboard UI
+   - dashboardStore with zustand persist for section visibility
+   - PriorityIndicator component (overdue/urgent/deadline_near/needs_attention)
+   - Dashboard section components: TasksList, BillsSummary, HabitProgress, CalendarEvents
+   - DashboardPanel with responsive layout (desktop sidebar, mobile drawer)
+   - Auto-refresh after Notion write operations
+   - 5-minute periodic refresh as backup
+
+**Key deliverables:**
 - Scheduler triggers events at scheduled times (08:00 morning, 12:00 midday, 17:00 evening)
 - BriefingBuilder queries tasks, bills, habits, goals in parallel
 - Calendar events derived from tasks with due times
 - BriefingFlow presents outline first, then section-by-section
-- User can skip sections or say "continue"
-- Start Briefing button for manual trigger
+- NudgeManager surfaces timely reminders
+- CheckInManager enables midday/evening reviews
+- Dashboard displays tasks, calendar, habits, bills beside the orb
+- Priority indicators highlight overdue/urgent items
+- Dashboard refreshes automatically after voice command completes task
 
-**Next:** 05-02 (Check-ins and Nudges), 05-03 (Dashboard UI)
+**Next:** Phase 05 verification
