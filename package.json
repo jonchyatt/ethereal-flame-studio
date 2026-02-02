@@ -36,6 +36,7 @@
     "@tailwindcss/postcss": "^4.1.18",
     "bullmq": "^5.67.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "form-data": "^4.0.5",
     "googleapis": "^170.1.0",
