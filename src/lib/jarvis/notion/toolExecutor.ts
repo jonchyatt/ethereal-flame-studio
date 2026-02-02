@@ -34,6 +34,23 @@ import {
   findProjectByTitle,
   CachedItem,
 } from './recentResults';
+import { useDashboardStore } from '../stores/dashboardStore';
+
+/**
+ * Trigger dashboard refresh after write operations
+ * Uses setTimeout to ensure it runs after current call stack
+ */
+function triggerDashboardRefresh(): void {
+  setTimeout(() => {
+    try {
+      useDashboardStore.getState().triggerRefresh();
+      console.log('[ToolExecutor] Triggered dashboard refresh');
+    } catch (error) {
+      // Silently fail if store not available (e.g., SSR)
+      console.warn('[ToolExecutor] Could not trigger dashboard refresh:', error);
+    }
+  }, 100);
+}
 
 /**
  * Execute a Notion tool call by routing to MCP
@@ -184,6 +201,9 @@ export async function executeNotionTool(
           properties,
         });
 
+        // Trigger dashboard refresh after task creation
+        triggerDashboardRefresh();
+
         let response = `Created task: "${title}"`;
         if (input.due_date) {
           response += ` due ${input.due_date}`;
@@ -214,6 +234,9 @@ export async function executeNotionTool(
           properties,
         });
 
+        // Trigger dashboard refresh after status update
+        triggerDashboardRefresh();
+
         const statusLabel =
           newStatus === 'completed'
             ? 'complete'
@@ -242,6 +265,9 @@ export async function executeNotionTool(
           properties,
         });
 
+        // Trigger dashboard refresh after bill paid
+        triggerDashboardRefresh();
+
         return 'Marked the bill as paid.';
       }
 
@@ -264,6 +290,9 @@ export async function executeNotionTool(
           page_id: taskId,
           properties,
         });
+
+        // Trigger dashboard refresh after task pause
+        triggerDashboardRefresh();
 
         let response = 'Paused the task.';
         if (until) {
@@ -301,6 +330,9 @@ export async function executeNotionTool(
           parent: { database_id: databaseId },
           properties,
         });
+
+        // Trigger dashboard refresh after adding project item
+        triggerDashboardRefresh();
 
         return `Added "${item}" to the project.`;
       }

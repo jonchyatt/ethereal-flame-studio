@@ -2,13 +2,19 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useJarvisStore } from '@/lib/jarvis/stores/jarvisStore';
+import { useDashboardStore } from '@/lib/jarvis/stores/dashboardStore';
 import { MicrophoneCapture } from '@/lib/jarvis/audio/MicrophoneCapture';
 import { VoicePipeline } from '@/lib/jarvis/voice/VoicePipeline';
 import { PermissionPrompt } from '@/components/jarvis/PermissionPrompt';
 import { PushToTalk } from '@/components/jarvis/PushToTalk';
+import { DashboardPanel } from '@/components/jarvis/Dashboard';
 import { getScheduler, destroyScheduler } from '@/lib/jarvis/executive/Scheduler';
 import { BriefingFlow } from '@/lib/jarvis/executive/BriefingFlow';
-import type { ScheduledEvent } from '@/lib/jarvis/executive/types';
+import { buildMorningBriefing } from '@/lib/jarvis/executive/BriefingBuilder';
+import { getNudgeManager, destroyNudgeManager } from '@/lib/jarvis/executive/NudgeManager';
+import { getCheckInManager, destroyCheckInManager } from '@/lib/jarvis/executive/CheckInManager';
+import { NudgeOverlay } from '@/components/jarvis/NudgeOverlay';
+import type { ScheduledEvent, BriefingData } from '@/lib/jarvis/executive/types';
 import dynamic from 'next/dynamic';
 
 // Dynamic import to avoid SSR issues with Three.js
@@ -84,9 +90,15 @@ export default function JarvisPage() {
   const error = useJarvisStore((s) => s.error);
   const isBriefingActive = useJarvisStore((s) => s.isBriefingActive);
   const currentBriefingSection = useJarvisStore((s) => s.currentBriefingSection);
+  const activeNudge = useJarvisStore((s) => s.activeNudge);
 
   const [permissionUIState, setPermissionUIState] = useState<PermissionUIState>('loading');
   const [showDebug, setShowDebug] = useState(false);
+
+  // Dashboard state
+  const [dashboardData, setDashboardData] = useState<BriefingData | null>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const refreshCounter = useDashboardStore((s) => s.refreshCounter);
 
   // Voice pipeline ref
   const pipelineRef = useRef<VoicePipeline | null>(null);
@@ -139,6 +151,8 @@ export default function JarvisPage() {
         pipelineRef.current = null;
       }
       destroyScheduler();
+      destroyNudgeManager();
+      destroyCheckInManager();
       const mic = MicrophoneCapture.getInstance();
       mic.cleanup();
     };
@@ -152,8 +166,11 @@ export default function JarvisPage() {
       console.log('[JarvisPage] Scheduled event:', event.type);
       if (event.type === 'morning_briefing') {
         startMorningBriefing();
+      } else if (event.type === 'midday_checkin') {
+        startMiddayCheckIn();
+      } else if (event.type === 'evening_checkin') {
+        startEveningCheckIn();
       }
-      // midday/evening check-ins handled in Plan 02
     };
 
     const handleMissedEvent = (event: ScheduledEvent) => {
@@ -167,6 +184,48 @@ export default function JarvisPage() {
 
     return () => {
       scheduler.stop();
+    };
+  }, [permissionUIState]);
+
+  // Fetch dashboard data on mount, on refresh trigger, and periodically
+  useEffect(() => {
+    if (permissionUIState !== 'ready') return;
+
+    async function fetchDashboardData() {
+      setDashboardLoading(true);
+      try {
+        const data = await buildMorningBriefing();
+        setDashboardData(data);
+      } catch (error) {
+        console.error('[JarvisPage] Failed to fetch dashboard data:', error);
+      } finally {
+        setDashboardLoading(false);
+      }
+    }
+
+    fetchDashboardData();
+  }, [permissionUIState, refreshCounter]); // Re-fetch when refreshCounter changes
+
+  // Periodic dashboard refresh (every 5 minutes) as backup
+  useEffect(() => {
+    if (permissionUIState !== 'ready') return;
+
+    const interval = setInterval(() => {
+      useDashboardStore.getState().triggerRefresh();
+    }, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [permissionUIState]);
+
+  // Periodic nudge checking (every 5 minutes)
+  useEffect(() => {
+    if (permissionUIState !== 'ready') return;
+
+    const nudgeManager = getNudgeManager();
+    nudgeManager.startPeriodicCheck(buildMorningBriefing);
+
+    return () => {
+      nudgeManager.stopPeriodicCheck();
     };
   }, [permissionUIState]);
 
@@ -195,6 +254,36 @@ export default function JarvisPage() {
     });
 
     await briefingFlowRef.current.start();
+  }, []);
+
+  // Start midday check-in
+  const startMiddayCheckIn = useCallback(async () => {
+    console.log('[JarvisPage] Starting midday check-in');
+
+    if (!pipelineRef.current) {
+      console.warn('[JarvisPage] Pipeline not ready for check-in');
+      return;
+    }
+
+    const checkInManager = getCheckInManager();
+    await checkInManager.startMiddayCheckIn(pipelineRef.current, () => {
+      console.log('[JarvisPage] Midday check-in complete');
+    });
+  }, []);
+
+  // Start evening check-in
+  const startEveningCheckIn = useCallback(async () => {
+    console.log('[JarvisPage] Starting evening check-in');
+
+    if (!pipelineRef.current) {
+      console.warn('[JarvisPage] Pipeline not ready for check-in');
+      return;
+    }
+
+    const checkInManager = getCheckInManager();
+    await checkInManager.startEveningCheckIn(pipelineRef.current, () => {
+      console.log('[JarvisPage] Evening check-in complete');
+    });
   }, []);
 
   // Handle permission granted from PermissionPrompt
@@ -232,11 +321,20 @@ export default function JarvisPage() {
       return;
     }
 
+    // If there's an active nudge, engage with it
+    if (activeNudge && pipelineRef.current) {
+      console.log('[JarvisPage] Engaging with nudge:', activeNudge.message);
+      const nudgeManager = getNudgeManager();
+      nudgeManager.speakNudge(activeNudge.message, pipelineRef.current);
+      nudgeManager.acknowledgeNudge(activeNudge.id);
+      return;
+    }
+
     // If idle, start listening
     if (orbState === 'idle' && !isBriefingActive) {
       pipelineRef.current?.startListening();
     }
-  }, [orbState, isBriefingActive]);
+  }, [orbState, isBriefingActive, activeNudge]);
 
   return (
     <main className="relative flex flex-col h-full w-full bg-black overflow-hidden">
@@ -324,10 +422,18 @@ export default function JarvisPage() {
 
       {/* Error overlay */}
       {permissionUIState === 'ready' && error && (
-        <div className="absolute top-4 right-4 bg-red-900/70 backdrop-blur-sm rounded-lg px-4 py-2 max-w-sm z-40">
+        <div className="absolute top-4 left-4 bg-red-900/70 backdrop-blur-sm rounded-lg px-4 py-2 max-w-sm z-40">
           <p className="text-red-200 text-sm">{error}</p>
         </div>
       )}
+
+      {/* Dashboard panel - beside orb, not over it */}
+      {permissionUIState === 'ready' && (
+        <DashboardPanel data={dashboardData} loading={dashboardLoading} />
+      )}
+
+      {/* Nudge overlay - subtle indicator above controls */}
+      {permissionUIState === 'ready' && <NudgeOverlay />}
 
       {/* Debug overlay */}
       {showDebug && permissionUIState === 'ready' && (
