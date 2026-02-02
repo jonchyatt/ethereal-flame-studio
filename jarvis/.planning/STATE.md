@@ -5,28 +5,28 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** One system that knows everything, surfaces what matters, and keeps you on track
-**Current focus:** Phase 5 - Executive Function Core (IN PROGRESS)
+**Current focus:** Phase 6 - Advanced Executive Function (IN PROGRESS)
 
 ## Current Position
 
 Phase: 6 of 6 (Advanced Executive Function) - IN PROGRESS
-Plan: 1 of 3 in current phase (06-01 COMPLETE)
-Status: Phase 6 started, evening wrap flow complete
-Last activity: 2026-02-01 - Completed 06-01-PLAN.md (Evening Wrap Flow)
+Plan: 2 of 3 in current phase (06-02 COMPLETE)
+Status: Phase 6 in progress, life area tracking complete
+Last activity: 2026-02-02 - Completed 06-02-PLAN.md (Life Area Priority Weighting)
 
-Progress: [################] 100% (16/18 plans complete)
+Progress: [################] 94% (17/18 plans complete)
 
 **Phase 6 Progress:**
 - [x] 06-01: Evening Wrap Flow
-- [ ] 06-02: Life Area Tracking
+- [x] 06-02: Life Area Tracking
 - [ ] 06-03: Weekly Review
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
-- Average duration: 9 min
-- Total execution time: 134 min
+- Total plans completed: 17
+- Average duration: ~10 min
+- Total execution time: ~170 min
 
 **By Phase:**
 
@@ -37,10 +37,11 @@ Progress: [################] 100% (16/18 plans complete)
 | 03-intelligence-layer | 3/3 | 18 min | 6 min |
 | 04-data-integration | 3/3 | 31 min | 10 min |
 | 05-executive-function-core | 3/3 | 32 min | 11 min |
+| 06-advanced-executive-function | 2/3 | ~30 min | ~15 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-02 (8 min), 04-03 (11 min), 05-01 (12 min), 05-02 (10 min), 05-03 (10 min)
-- Trend: Phase 5 executive function complete
+- Last 5 plans: 05-02 (10 min), 05-03 (10 min), 06-01 (~15 min), 06-02 (~15 min)
+- Trend: Phase 6 advanced features in progress
 
 *Updated after each plan completion*
 
@@ -111,6 +112,10 @@ Recent decisions affecting current work:
 - [05-02]: Web Audio API for generated chime (no external MP3 dependency)
 - [05-02]: BriefingClient wrapper to fix server/client module boundary issue
 - [05-02]: 10-second auto-dismiss timeout for skippable check-ins
+- [06-02]: Neglect threshold 0.3 (30% below baseline)
+- [06-02]: Max 3 neglected areas surfaced to avoid overwhelm
+- [06-02]: Gentle message tiers: quiet/attention/no activity
+- [06-02]: Single mention in briefing (top neglected area only)
 
 ### Pending Todos
 
@@ -122,8 +127,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-01
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-02-02
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None
 
 ## Phase 1 Summary
@@ -265,7 +270,7 @@ Resume file: None
 
 ## Phase 6 Progress (IN PROGRESS)
 
-**Advanced Executive Function started.** 1 of 3 plans executed:
+**Advanced Executive Function in progress.** 2 of 3 plans executed:
 
 1. **06-01**: Evening Wrap Flow (COMPLETE)
    - EveningWrapFlow state machine with 9 sections
@@ -277,11 +282,22 @@ Resume file: None
    - Factual day review per CONTEXT.md (not scorecard)
    - capturedItems array for newCaptures phase
 
+2. **06-02**: Life Area Priority Weighting (COMPLETE)
+   - lifeAreaStore with Zustand persist for activity tracking
+   - LifeAreaTracker service with rolling window neglect calculation
+   - BriefingBuilder includes life area insights
+   - BriefingFlow mentions neglected areas subtly in habits section
+   - Default areas: health, work, relationships, finance, personal, home
+   - Gentle awareness messaging: "Health has been quiet this week"
+
 **Key deliverables so far:**
 - Evening wrap scheduled at 21:00 by default
 - 9-section walkthrough adapts duration based on content
 - User can skip sections or capture new items
 - Tomorrow preview with high priority callout
 - Week summary shows busy/light days
+- Life area tracking with 28-day rolling baseline
+- Neglect detection surfaces top 3 neglected areas
+- Single gentle mention in briefing (top neglected area only)
 
-**Next:** 06-02 (Life Area Tracking)
+**Next:** 06-03 (Weekly Review)
