@@ -17,6 +17,7 @@ export type ScheduledEventType =
   | 'midday_checkin'
   | 'evening_checkin'
   | 'evening_wrap'
+  | 'weekly_review_reminder'
   | 'nudge';
 
 /**
@@ -28,6 +29,7 @@ export interface ScheduledEvent {
   time: string; // HH:mm format (e.g., "08:00")
   enabled: boolean;
   lastTriggered?: number; // Unix timestamp of last trigger
+  dayOfWeek?: number; // 0=Sunday, 6=Saturday (for weekly events like weekly_review_reminder)
 }
 
 /**
@@ -289,4 +291,57 @@ export interface LifeAreaInsights {
   neglectedAreas: LifeAreaNeglect[];
   activeAreas: string[]; // Area names at or above baseline
   lastUpdated: number; // Unix timestamp
+}
+
+// =============================================================================
+// Weekly Review Types (Plan 06-03)
+// =============================================================================
+
+/**
+ * Sections available in a weekly review
+ * Per CONTEXT.md: very brief retrospective, then mostly forward planning
+ */
+export type WeeklyReviewSection =
+  | 'intro'
+  | 'retrospective'
+  | 'checkpoint1'      // "Anything to add about this week?"
+  | 'upcomingWeek'
+  | 'checkpoint2'      // "Anything to adjust?"
+  | 'horizonScan'
+  | 'checkpoint3'      // "Anything to add?"
+  | 'lifeAreas'
+  | 'closing'
+  | 'complete';
+
+/**
+ * Complete weekly review data
+ * Per CONTEXT.md: factual retrospective (no scorecard, no judgment), forward planning focus
+ */
+export interface WeeklyReviewData {
+  retrospective: {
+    tasksCompleted: number;
+    billsPaid: number;
+    projectsProgressed: string[];  // Project names that had activity
+  };
+  upcomingWeek: {
+    taskCount: number;
+    tasks: TaskSummary[];
+    events: CalendarEvent[];
+    busyDays: string[];
+    lightDays: string[];
+  };
+  horizon: {
+    deadlines: TaskSummary[];       // Due in 2-4 weeks
+    upcomingBills: BillSummary[];   // Due in 2-4 weeks
+    projectMilestones: string[];    // Notable upcoming items
+  };
+  lifeAreas: LifeAreaInsights;
+}
+
+/**
+ * Configuration for weekly review scheduling
+ */
+export interface WeeklyReviewConfig {
+  dayOfWeek: number;  // 0=Sunday, 6=Saturday (user-configurable)
+  time: string;       // HH:mm format
 }

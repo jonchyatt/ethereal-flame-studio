@@ -81,9 +81,15 @@ export class Scheduler {
     const now = new Date();
     const currentTime = format(now, 'HH:mm');
     const today = now.toDateString();
+    const currentDayOfWeek = now.getDay();
 
     for (const event of this.events) {
       if (!event.enabled) continue;
+
+      // For weekly events (like weekly_review_reminder), check dayOfWeek
+      if (event.dayOfWeek !== undefined) {
+        if (currentDayOfWeek !== event.dayOfWeek) continue;
+      }
 
       // Check if time matches
       if (event.time === currentTime) {
@@ -221,6 +227,13 @@ export class Scheduler {
         time: '21:00', // 9 PM default, user-adjustable
         enabled: true,
       },
+      {
+        id: 'weekly_review',
+        type: 'weekly_review_reminder',
+        time: '10:00', // 10 AM default, user-adjustable
+        enabled: false, // Disabled by default - user opts in
+        dayOfWeek: undefined, // User must configure day (no default imposed per CONTEXT.md)
+      },
     ];
   }
 
@@ -284,6 +297,21 @@ export class Scheduler {
         lastTriggered: Date.now(),
       };
       this.onTrigger(tempEvent);
+    }
+  }
+
+  /**
+   * Update the weekly review day of week
+   * @param day - Day of week (0=Sunday, 6=Saturday) or undefined to disable
+   */
+  updateWeeklyReviewDay(day: number | undefined): void {
+    const event = this.events.find((e) => e.type === 'weekly_review_reminder');
+    if (event) {
+      event.dayOfWeek = day;
+      // Enable if day is set, disable if undefined
+      event.enabled = day !== undefined;
+      this.saveSchedule();
+      console.log(`[Scheduler] Weekly review day updated to ${day !== undefined ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day] : 'disabled'}`);
     }
   }
 }
