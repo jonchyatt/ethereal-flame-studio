@@ -2,7 +2,7 @@
 
 **Milestone:** v2.0
 **Created:** 2026-02-02
-**Status:** Scoped
+**Status:** Roadmap Created
 
 ---
 
@@ -60,11 +60,11 @@
 
 ## Out of Scope
 
-- Mobile native app — web-first approach works
-- Calendar write access — read sufficient, writing adds risk
-- Multi-user accounts — single creator workflow
-- Offline mode — requires LLM, always needs internet
-- Automated task execution — Jarvis advises, user executes
+- Mobile native app -- web-first approach works
+- Calendar write access -- read sufficient, writing adds risk
+- Multi-user accounts -- single creator workflow
+- Offline mode -- requires LLM, always needs internet
+- Automated task execution -- Jarvis advises, user executes
 
 ---
 
@@ -72,30 +72,31 @@
 
 | REQ-ID | Phase | Plan | Status |
 |--------|-------|------|--------|
-| MEM-01 | — | — | Pending |
-| MEM-02 | — | — | Pending |
-| MEM-03 | — | — | Pending |
-| MEM-04 | — | — | Pending |
-| MEM-05 | — | — | Pending |
-| MEM-06 | — | — | Pending |
-| MEM-07 | — | — | Pending |
-| MEM-08 | — | — | Pending |
-| MEM-09 | — | — | Pending |
-| MEM-10 | — | — | Pending |
-| MEM-11 | — | — | Pending |
-| PROD-01 | — | — | Pending |
-| PROD-02 | — | — | Pending |
-| PROD-03 | — | — | Pending |
-| PROD-04 | — | — | Pending |
-| FIX-01 | — | — | Pending |
-| FIX-02 | — | — | Pending |
-| GUARD-01 | — | — | Pending |
-| GUARD-02 | — | — | Pending |
-| GUARD-03 | — | — | Pending |
-| GUARD-04 | — | — | Pending |
-| GUARD-05 | — | — | Pending |
+| MEM-01 | 7 | -- | Pending |
+| MEM-02 | 9 | -- | Pending |
+| MEM-03 | 9 | -- | Pending |
+| MEM-04 | 9 | -- | Pending |
+| MEM-05 | 9 | -- | Pending |
+| MEM-06 | 8 | -- | Pending |
+| MEM-07 | 8 | -- | Pending |
+| MEM-08 | 7 | -- | Pending |
+| MEM-09 | 9 | -- | Pending |
+| MEM-10 | 9 | -- | Pending |
+| MEM-11 | 8 | -- | Pending |
+| PROD-01 | 11 | -- | Pending |
+| PROD-02 | 11 | -- | Pending |
+| PROD-03 | 11 | -- | Pending |
+| PROD-04 | 11 | -- | Pending |
+| FIX-01 | 10 | -- | Pending |
+| FIX-02 | 10 | -- | Pending |
+| GUARD-01 | 10 | -- | Pending |
+| GUARD-02 | 10 | -- | Pending |
+| GUARD-03 | 10 | -- | Pending |
+| GUARD-04 | 10 | -- | Pending |
+| GUARD-05 | 10 | -- | Pending |
 
 ---
 
 *22 requirements across 4 categories*
+*All requirements mapped to phases 7-11*
 *Generated: 2026-02-02*
