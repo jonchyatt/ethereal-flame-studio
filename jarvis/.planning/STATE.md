@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 9 - Memory Writing & Tools
-Plan: 03 of 04 complete
+Plan: 03 of 04 complete (09-01, 09-02, 09-03 done)
 Status: In progress
-Last activity: 2026-02-02 - Completed 09-03-PLAN.md (system prompt guidance + decay)
+Last activity: 2026-02-02 - Completed 09-02-PLAN.md (memory CRUD tools)
 
 Progress: [############        ] 60% (9/15 plans complete)
 
@@ -48,7 +48,7 @@ Progress: [############        ] 60% (9/15 plans complete)
 
 ## Next Steps
 
-1. Continue Phase 9 - execute 09-04-PLAN.md (delete all + MCP integration)
+1. Execute 09-04-PLAN.md (e2e verification and integration tests)
 2. Install Turso CLI for local database testing (user action)
 
 ## Accumulated Context
@@ -86,6 +86,9 @@ Progress: [############        ] 60% (9/15 plans complete)
 | 0.5x explicit decay multiplier | User-stated facts decay 50% slower than inferred | 2026-02-02 |
 | 0.9 decay threshold | Memories 90% decayed are soft-deleted during cleanup | 2026-02-02 |
 | Conditional prompt section | MEMORY MANAGEMENT only added when memoryContext exists | 2026-02-02 |
+| Category mapping | Tool categories (schedule, work, health) map to DB categories (fact, preference, pattern) | 2026-02-02 |
+| Two-phase forget | forget_fact first searches, then requires confirm_ids to delete | 2026-02-02 |
+| delete_all safety | Requires explicit confirm="true" parameter to execute full wipe | 2026-02-02 |
 
 ### Pending Todos
 
@@ -102,6 +105,6 @@ Progress: [############        ] 60% (9/15 plans complete)
 
 ## Session Continuity
 
-Last session: 2026-02-02T16:28:00Z
-Stopped at: Completed 09-03-PLAN.md (system prompt guidance + memory decay)
+Last session: 2026-02-02T21:32:00Z
+Stopped at: Completed 09-02-PLAN.md (memory CRUD tools for Claude)
 Resume file: None
