@@ -1,240 +1,186 @@
-# Domain Pitfalls: Voice-Enabled AI Personal Assistant
+# Domain Pitfalls: Jarvis v2 Memory & Production
 
-**Project:** Jarvis - Voice AI Personal Assistant
-**Domain:** Voice assistant, executive function support, Notion integration
-**Researched:** 2026-01-31
-**Confidence:** HIGH (verified across multiple authoritative sources)
+**Project:** Jarvis v2.0 - Memory & Production Milestone
+**Domain:** AI voice assistant with persistent memory, production deployment
+**Researched:** 2026-02-02
+**Confidence:** HIGH (multiple authoritative sources cross-referenced)
+
+---
+
+## Overview
+
+This document covers pitfalls specific to the v2 milestone: **adding persistent memory and production deployment to an existing working system**. For v1 pitfalls (latency, browser compatibility, conversation flow), see the git history of this file.
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes that cause rewrites, user abandonment, or fundamental product failure.
+Mistakes that cause rewrites, security incidents, or major system failures.
 
 ---
 
-### Pitfall 1: The 300ms Latency Cliff
+### Pitfall 1: Memory Poisoning via Indirect Prompt Injection
 
-**What goes wrong:** Voice assistants with response latency >300ms feel broken. Users perceive delays above 200ms as slow, and anything above 500ms disrupts conversational flow entirely. At >2000ms, conversations fail completely.
+**What goes wrong:**
+Persistent memory creates a new attack surface absent in v1. Adversaries can inject malicious instructions through seemingly benign content (documents, web pages, API responses) that get stored in memory and execute later. Unlike session-scoped prompt injection, memory poisoning is temporally decoupled: poison planted today executes weeks later when semantically triggered.
 
 **Why it happens:**
-- LLM inference contributes 40-60% of total latency
-- Speech-to-text adds 20-30%
-- Text-to-speech adds 10-20%
-- Network round-trips add 100-300ms per hop
-- Developers optimize for accuracy first, discover latency problems in production
+- Memory systems store content without sufficient provenance tracking
+- No distinction between user-provided facts vs. inferred facts vs. external content
+- Summarization processes can be manipulated to store attacker-controlled instructions
+- The agent trusts its own memory as authoritative
 
 **Consequences:**
-- 68% of users drop interactions when systems feel slow (J.D. Power)
-- 16% reduction in satisfaction per second of delay (Forrester)
-- Users interrupt, talk over the assistant, or give up entirely
-- Product feels fundamentally broken regardless of feature quality
+- Silent data exfiltration in future sessions
+- Agent develops "persistent false beliefs" that it defends as correct
+- Cascading effects: one compromised memory entry poisons downstream decisions
+- Difficult to detect because the agent's behavior appears internally consistent
+
+**Warning signs:**
+- Memory entries with no clear provenance ("where did this come from?")
+- Agent behavior suddenly changes without obvious trigger
+- Memory entries that reference external actions (e.g., "always send copies to...")
+- Summarization producing content not in original conversation
 
 **Prevention:**
-- Set latency budgets upfront: 300ms total voice-to-voice target
-- Use streaming responses (time-to-first-token matters more than total generation time)
-- Choose low-latency TTS models (flash models achieve ~75ms inference)
-- Consider hybrid architecture: fast on-device decisions + cloud for complex reasoning
-- Measure P95 latency, not averages (tail latency destroys UX)
+1. **Tag all memory entries with source provenance** (user explicit, user implicit, system inferred, external)
+2. **Validate memory at retrieval time**, not just insertion
+3. **Implement belief drift detection**: alert when agent's "beliefs" shift significantly
+4. **Never store instructions in memory** - only facts/preferences
+5. **Regular memory audits**: human review of high-importance entries
+6. **Sanitize all external content** before it enters memory pipeline
 
-**Detection (warning signs):**
-- Users saying "hello?" or repeating themselves
-- High abandonment rates after initial interaction
-- Feedback mentioning the assistant feels "slow" or "robotic"
-
-**Phase to address:** Phase 1 (Core Infrastructure) - Latency architecture must be designed from the start, not retrofitted.
+**Which phase should address it:** Memory System (Phase 1 or 2)
 
 **Sources:**
-- [AssemblyAI: The 300ms Rule](https://www.assemblyai.com/blog/low-latency-voice-ai)
-- [Telnyx: Low Latency Voice AI](https://telnyx.com/resources/low-latency-voice-ai)
-- [Cresta: Engineering Real-Time Voice Agent Latency](https://cresta.com/blog/engineering-for-real-time-voice-agent-latency)
+- [Agent Memory Poisoning - The Attack That Waits](https://medium.com/@michael.hannecke/agent-memory-poisoning-the-attack-that-waits-9400f806fbd7)
+- [Palo Alto Unit42: Persistent Behaviors in Agents' Memory](https://unit42.paloaltonetworks.com/indirect-prompt-injection-poisons-ai-longterm-memory/)
+- [OWASP ASI06: Agentic Memory Poisoning (2026)](https://neuraltrust.ai/blog/memory-context-poisoning)
 
 ---
 
-### Pitfall 2: Web Speech API Browser Lock-in
+### Pitfall 2: Context Window Overflow Causing Instruction Drift
 
-**What goes wrong:** Building on the Web Speech API and discovering it only works in Chrome/Chromium browsers. Firefox, Safari, and Safari iOS have no support or severely limited functionality.
+**What goes wrong:**
+As conversation history + memory context + system prompts grow, the context window fills. When it overflows, the original system prompt (your carefully crafted guardrails and behavior rules) gets pushed out of the window. The model is now "flying blind," guided only by recent messages.
 
 **Why it happens:**
-- Web Speech API is not a web standard baseline feature
-- Developers prototype in Chrome, assume cross-browser support
-- Firefox explicitly refuses to implement SpeechRecognition
-- Safari on iOS breaks when installed as PWA
-- All recognition requires internet (sent to Google servers)
+- Memory grows unbounded over time
+- No monitoring of context utilization
+- Aggressive memory loading without prioritization
+- Long conversations compound the problem
 
 **Consequences:**
-- Product unusable for ~30-40% of potential users
-- Safari/Firefox users have completely broken experience
-- PWA distribution strategy fails on iOS
-- No offline capability whatsoever
+- **Instruction drift**: Agent "forgets" its core behaviors and safety rules
+- **Performance collapse**: Confused, lower-quality responses before outright failure
+- **API errors**: Best case is a clean `context_length_exceeded` error
+- **Silent degradation**: Worst case is the model silently dropping important context
+
+**Warning signs:**
+- Agent personality/tone shifts during long conversations
+- Agent violates established rules it was following earlier
+- Responses become slower and lower quality
+- Agent asks questions it should already know from context
 
 **Prevention:**
-- Use dedicated Speech-to-Text APIs (AssemblyAI, Deepgram, Whisper) from day one
-- Design for cloud STT with websocket streaming
-- Test on Firefox/Safari early in development
-- Document browser requirements prominently
-- Consider fallback to text input for unsupported browsers
+1. **Monitor context utilization**: Track percentage of context window used
+2. **Implement sliding window for conversation history**: Keep recent + important, drop middle
+3. **Prioritize system prompts**: Pin critical instructions at start AND end of context
+4. **Implement memory relevance scoring**: Only load memories relevant to current conversation
+5. **Set hard limits**: Max conversation turns, max memory entries per session
+6. **Compress/summarize older context** rather than dropping entirely
 
-**Detection (warning signs):**
-- "Works on my machine" during development (Chrome-only testing)
-- No cross-browser testing in CI/CD
-- User complaints from non-Chrome users
-
-**Phase to address:** Phase 1 (Core Infrastructure) - STT architecture decision cannot be changed later without rewrite.
+**Which phase should address it:** Memory System + Intelligence Layer
 
 **Sources:**
-- [MDN: SpeechRecognition](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition)
-- [Can I Use: Speech Recognition API](https://caniuse.com/speech-recognition)
-- [AssemblyAI: Web Speech API Limitations](https://www.assemblyai.com/blog/speech-recognition-javascript-web-speech-api)
+- [Context Window Overflow: Breaking the Barrier (AWS)](https://aws.amazon.com/blogs/security/context-window-overflow-breaking-the-barrier/)
+- [Preventing Context Window Overflows (AIQ.hu)](https://aiq.hu/en/preventing-context-window-overflows-memory-protection-strategies-for-llms/)
+- [Understanding LLM Performance Degradation (Demiliani)](https://demiliani.com/2025/11/02/understanding-llm-performance-degradation-a-deep-dive-into-context-window-limits/)
 
 ---
 
-### Pitfall 3: The "Repeat Yourself" Death Spiral
+### Pitfall 3: No Guardrails by Default (The Moltbot Lesson)
 
-**What goes wrong:** When STT mishears user input, users rephrase, the system still doesn't understand, frustration builds, users give up or demand a human (which doesn't exist in a personal assistant).
+**What goes wrong:**
+Jarvis v1 runs locally with implicit trust. Moving to production without explicit guardrails means the agent can execute any action without confirmation. Combined with memory + tools, this creates significant risk of unintended destructive actions.
 
 **Why it happens:**
-- Even 5% STT error rate creates correction cycles adding 5-10 seconds per interaction
-- No graceful error recovery designed
-- System keeps asking "I didn't understand, please try again"
-- Voice has no visual context for users to self-correct
+- Local development assumes trusted user
+- Guardrails are "friction" that gets skipped for MVP
+- Difficult to anticipate all dangerous action patterns
+- LLMs are probabilistic - edge cases happen
 
 **Consequences:**
-- Users abandon the product after 2-3 failed interactions
-- Trust is destroyed and never recovered
-- Product feels stupid regardless of AI quality
-- Users revert to manual methods (typing into Notion directly)
+- **Destructive actions without confirmation** (delete all tasks, clear calendar)
+- **Credential exposure** via prompt injection leaking API keys
+- **Cost runaway** from expensive operations (voice API, LLM calls)
+- **Data exfiltration** if agent can be tricked into sending data externally
+
+**Warning signs (from GOTCHA analysis):**
+- No confirmation flow for destructive operations
+- Tools have unbounded permissions
+- No rate limiting on expensive operations
+- No audit log of tool invocations
 
 **Prevention:**
-- Design explicit error recovery flows (max 3 attempts, then offer alternatives)
-- Use "You mean X?" confirmation rather than "try again"
-- Implement confidence thresholds - low confidence triggers clarification
-- Offer text input fallback always visible
-- Log and analyze misrecognition patterns to improve prompts
+1. **Action classification**: Label each tool as read/write/delete/expensive
+2. **Confirmation tiers**:
+   - Read: no confirmation
+   - Write: optional confirmation based on scope
+   - Delete: always confirm
+   - Expensive: rate limit + budget caps
+3. **Guardrails configuration file**: Externalize rules for easy auditing
+4. **Audit logging**: Every tool invocation logged with context
+5. **Kill switch**: Ability to immediately halt all agent actions
+6. **Least privilege**: Each tool gets minimum required permissions
 
-**Detection (warning signs):**
-- Analytics showing repeated interactions without successful completion
-- User feedback about "not understanding"
-- High rate of text fallback usage
-
-**Phase to address:** Phase 2 (Conversation Design) - Error flows must be designed alongside happy paths.
+**Which phase should address it:** Guardrails System (dedicated phase)
 
 **Sources:**
-- [AssemblyAI: 2026 Voice Agent Insights](https://www.assemblyai.com/blog/new-2026-insights-report-what-actually-makes-a-good-voice-agent)
-- [Google Cloud: Voice Agent Design](https://docs.cloud.google.com/dialogflow/cx/docs/concept/voice-agent-design)
+- [GOTCHA-ATLAS-ANALYSIS.md](/.planning/research/GOTCHA-ATLAS-ANALYSIS.md) (local research)
+- [Building Production-Ready Guardrails for Agentic AI (Medium)](https://ssahuupgrad-93226.medium.com/building-production-ready-guardrails-for-agentic-ai-a-defense-in-depth-framework-4ab7151be1fe)
+- [AI Guardrails: Enforcing Safety (Obsidian Security)](https://www.obsidiansecurity.com/blog/ai-guardrails)
 
 ---
 
-### Pitfall 4: Microphone Permission UX Failure
+### Pitfall 4: Environment Variable Exposure in Production
 
-**What goes wrong:** Asking for microphone permission on page load, getting blocked, and having no recovery path. Users who click "Block" are permanently stuck.
-
-**Why it happens:**
-- Developers ask for permissions immediately to "get it out of the way"
-- Users don't understand why a website needs their microphone
-- Modern browsers remember "Block" decisions permanently
-- Recovery requires navigating obscure browser settings
-
-**Consequences:**
-- Majority of first-time users reject permission (no context for why it's needed)
-- 14% lower permission grant rates vs. contextual requests (Google Meet study)
-- Blocked users cannot use the product without manual browser settings changes
-- Onboarding friction causes immediate abandonment
-
-**Prevention:**
-- Never request microphone on page load
-- Show explanatory UI before browser prompt ("To talk to Jarvis, allow microphone access")
-- Request permission only when user initiates voice interaction
-- Provide clear instructions for recovering from "Blocked" state
-- Always offer text input alternative
-- Use HTTPS (required for microphone access)
-
-**Detection (warning signs):**
-- High bounce rate on landing/onboarding
-- Analytics showing permission prompt shown but never granted
-- User complaints about "can't use the app"
-
-**Phase to address:** Phase 1 (Core Infrastructure) - Permission flow is first interaction, sets tone for entire product.
-
-**Sources:**
-- [web.dev: Google Meet Permissions Best Practices](https://web.dev/case-studies/google-meet-permissions-best-practices)
-- [Speechmatics: Browser Microphone Access](https://blog.speechmatics.com/browser-microphone-access)
-- [MDN: Getting Microphone Permission](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Build_a_phone_with_peerjs/Connect_peers/Get_microphone_permission)
-
----
-
-### Pitfall 5: Notion API Rate Limit Cascade
-
-**What goes wrong:** Hitting Notion's 3 requests/second rate limit during normal operation, causing the assistant to fail or become unresponsive during critical moments.
+**What goes wrong:**
+Secrets (API keys for ElevenLabs, Deepgram, Claude, Notion) get exposed through various vectors: error messages, client-side code, git commits, or log files. Once exposed, attackers can run up bills, access user data, or impersonate the service.
 
 **Why it happens:**
-- Notion API rate limit is an average of 3 requests/second
-- Daily briefings require fetching multiple databases, pages, and blocks
-- No request queuing or batching implemented
-- Burst operations (e.g., "show me everything for today") exceed limits
+- `NEXT_PUBLIC_` prefix accidentally used for server-only secrets
+- Error messages containing full environment in stack traces
+- Secrets committed to git history (even if removed later)
+- Logs capturing request headers with auth tokens
+- Different configs for dev/preview/prod not maintained correctly
 
 **Consequences:**
-- HTTP 429 errors during user interactions
-- Assistant appears to fail randomly
-- Data inconsistency if partial operations succeed
-- Daily briefings time out or fail to complete
+- **Financial damage**: API costs run up by attackers
+- **Data breach**: Access to user Notion data, conversation history
+- **Service disruption**: Rate limits exhausted, keys revoked
+- **Reputational harm**: User trust lost
+
+**Warning signs:**
+- Any `NEXT_PUBLIC_` variable containing "KEY", "SECRET", "TOKEN"
+- API keys appearing in browser Network tab
+- `.env` files in git history
+- Error responses containing environment details
 
 **Prevention:**
-- Implement request queue with exponential backoff
-- Cache frequently accessed data locally
-- Batch operations where possible (max 100 items per request)
-- Pre-fetch daily briefing data before user wakes up
-- Design for async updates rather than real-time sync
-- Respect Retry-After headers from 429 responses
+1. **Never use `NEXT_PUBLIC_` for secrets** - audit all env vars
+2. **Use Vercel Sensitive Environment Variables** for all secrets
+3. **Implement secrets scanning in CI/CD** (GitHub secret scanning, git-secrets)
+4. **Sanitize error responses** - never expose stack traces in production
+5. **Rotate keys** if any exposure suspected
+6. **Separate concerns**: Different keys for dev/preview/prod
+7. **Log scrubbing**: Filter sensitive values from logs
 
-**Detection (warning signs):**
-- Intermittent 429 errors in logs
-- Operations that "sometimes work"
-- Slow performance during high-activity periods
-
-**Phase to address:** Phase 2 (Notion Integration) - Rate limiting strategy must be designed before building features.
+**Which phase should address it:** Production Deployment (first item)
 
 **Sources:**
-- [Notion: Request Limits](https://developers.notion.com/reference/request-limits)
-- [Thomas Frank: Notion API Rate Limits](https://thomasjfrank.com/how-to-handle-notion-api-request-limits/)
-- [Oreate AI: Notion API Rate Limits 2025](https://www.oreateai.com/blog/understanding-notion-api-rate-limits-in-2025-what-you-need-to-know/50d89b885182f65117ff8af2609b34c2)
-
----
-
-### Pitfall 6: Context Amnesia in Conversations
-
-**What goes wrong:** The assistant forgets context mid-conversation. User says "Find hotels in London" then "What's the weather there?" and the assistant doesn't know what "there" means.
-
-**Why it happens:**
-- 95% of AI tools operate statelessly (each query isolated)
-- Context window limits cause early conversation to be forgotten
-- No persistent memory across sessions
-- Voice conversations can't scroll back to see previous messages
-
-**Consequences:**
-- Users must repeat information constantly
-- Conversations feel robotic and frustrating
-- Multi-step tasks become impossible
-- Trust and perceived intelligence plummet
-
-**Prevention:**
-- Implement per-conversation context tracking (user name, preferences, current topic)
-- Store conversation state in session storage
-- Use vector database for long-term memory across sessions
-- Design explicit context handoff for multi-turn conversations
-- Summarize and compress old context rather than dropping it
-
-**Detection (warning signs):**
-- Users repeating information they already provided
-- Assistant asking for the same details multiple times
-- Feedback about assistant being "forgetful"
-
-**Phase to address:** Phase 2 (AI Integration) - Memory architecture determines conversation quality.
-
-**Sources:**
-- [FreJun: Conversational Context with Voice](https://frejun.ai/best-practices-for-conversational-context-with-voice/)
-- [eesel.ai: Multi-turn AI Conversations](https://www.eesel.ai/blog/multi-turn-ai-conversations)
-- [Voiceflow: Memory](https://docs.voiceflow.com/docs/memory)
+- [Vercel: Sensitive Environment Variables](https://vercel.com/docs/environment-variables/sensitive-environment-variables)
+- [Do Not Use Secrets in Environment Variables (nodejs-security.com)](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better)
 
 ---
 
@@ -244,292 +190,389 @@ Mistakes that cause delays, technical debt, or degraded user experience.
 
 ---
 
-### Pitfall 7: Wake Word False Activation Nightmare
+### Pitfall 5: SQLite Concurrency Under Serverless
 
-**What goes wrong:** Building wake word detection ("Hey Jarvis") that either activates constantly from ambient noise/media, or never activates when called.
+**What goes wrong:**
+SQLite is an excellent local database but struggles with concurrent writes. In a serverless environment (Vercel), multiple function instances can try to write simultaneously, causing "database is locked" errors or even corruption.
 
 **Why it happens:**
-- Browser-based wake word detection is technically challenging
-- No mature browser-native wake word APIs
-- Trade-off between false accepts (activates wrongly) and false rejects (doesn't activate)
-- Media playback, podcasts, and conversations trigger false activations
+- SQLite uses database-level locks (only one writer at a time)
+- Serverless functions run in parallel, uncoordinated instances
+- File-based storage doesn't work with serverless ephemerality
+- Network file systems (if used) have unreliable locking
 
 **Consequences:**
-- False activations are creepy and annoying
-- False rejects make the product feel broken
-- Battery drain from constant listening
-- User disables voice activation entirely
+- "Database is locked" errors during normal operation
+- Lost writes when timeouts occur
+- Potential database corruption
+- Unpredictable behavior under load
+
+**Warning signs:**
+- Intermittent 500 errors on write operations
+- "SQLITE_BUSY" in logs
+- Data inconsistencies between reads
+- Errors correlating with traffic spikes
 
 **Prevention:**
-- Use proven libraries (Picovoice Porcupine has React/Next.js SDKs)
-- Implement VAD (Voice Activity Detection) as confirmation signal
-- Tune sensitivity based on user feedback
-- Offer push-to-talk as primary mode, wake word as optional
-- Test with background music, TV, and ambient noise
+1. **For serverless: Use a managed database** (Turso, PlanetScale, Supabase, Neon)
+2. **If SQLite required**: Use single-instance deployment only
+3. **Enable WAL mode**: Better concurrency for read-heavy workloads
+4. **Set busy_timeout**: At least 5-10 seconds
+5. **Avoid upgrading read transactions to write** (causes immediate locks)
+6. **Consider hybrid**: SQLite for local/dev, managed DB for production
 
-**Detection (warning signs):**
-- User reports of "random activations"
-- Activation logs showing patterns during media playback
-- Users asking how to disable voice activation
-
-**Phase to address:** Phase 3 (Voice UX Polish) - Wake word is polish, not MVP. Start with push-to-talk.
+**Which phase should address it:** Memory System + Production Deployment
 
 **Sources:**
-- [Picovoice: Wake Word Detection Complete Guide](https://picovoice.ai/blog/complete-guide-to-wake-word/)
-- [Picovoice: React.js Implementation](https://picovoice.ai/blog/wake-word-detection-with-reactjs/)
-- [Deep Core Labs: Open Wake Word on Web](https://deepcorelabs.com/open-wake-word-on-the-web/)
+- [SQLite: File Locking and Concurrency](https://sqlite.org/lockingv3.html)
+- [SQLite Concurrent Writes and "Database is Locked"](https://tenthousandmeters.com/blog/sqlite-concurrent-writes-and-database-is-locked-errors/)
+- [How to Corrupt an SQLite Database](https://www.sqlite.org/howtocorrupt.html)
 
 ---
 
-### Pitfall 8: Avatar-Audio Lip Sync Lag
+### Pitfall 6: Notion API Rate Limits and Silent Truncation
 
-**What goes wrong:** The animated orb avatar's visual responses don't sync with the audio, creating an uncanny valley effect or obviously robotic feel.
+**What goes wrong:**
+Jarvis v1 integrates heavily with Notion. At production scale, you'll hit the 3 requests/second rate limit. Additionally, Notion silently truncates relation properties at 25 references - no error, just missing data.
 
 **Why it happens:**
-- Audio processing and visual rendering have different latencies
-- TTS streaming doesn't naturally sync with avatar animation
-- Different browsers have different audio pipeline delays
-- Bluetooth audio adds 150-250ms latency
+- No rate limiting in client code
+- Burst operations during briefings (fetch tasks + calendar + projects)
+- Relation properties with >25 links return incomplete data silently
+- MCP has additional tool-specific limits (35 searches/minute)
 
 **Consequences:**
-- Avatar feels disconnected from voice
-- Uncanny valley discomfort for users
-- Professional appearance undermined
-- Users disable avatar or lose trust
+- `429 Too Many Requests` errors during briefings
+- Missing data from truncated relations (user confusion)
+- Failed operations with unclear errors
+- Poor UX during high-activity periods
+
+**Warning signs:**
+- Briefings taking longer than expected
+- Tasks or relations mysteriously missing
+- Intermittent 429 responses in logs
+- User reports of incomplete data
 
 **Prevention:**
-- For an orb (not humanoid), use audio-reactive visualization rather than lip sync
-- Tie orb animation to audio amplitude/frequency, not phonemes
-- Buffer audio slightly to allow visual sync
-- Test with various audio output devices including Bluetooth
-- Design abstract "speaking" animation that forgives timing mismatches
+1. **Implement request queue** with max 3 req/sec throughput
+2. **Respect Retry-After header** when 429 occurs
+3. **Paginate relation property fetches** (don't assume completeness)
+4. **Cache aggressively**: Notion data doesn't change that often
+5. **Batch operations where possible** (reduce request count)
+6. **Consider webhooks** instead of polling for changes
 
-**Detection (warning signs):**
-- User feedback about "weird" or "off" avatar
-- Visual animation continuing after audio stops
-- Delay between audio and visual response
-
-**Phase to address:** Phase 3 (Avatar Polish) - Orb doesn't need lip sync; audio-reactive animation is simpler and more forgiving.
+**Which phase should address it:** Production Deployment + Notion integration hardening
 
 **Sources:**
-- [dev.to: AI-Powered Conversational Avatar System](https://dev.to/anhducmata/ai-powered-conversational-avatar-system-tools-best-practices-oe0)
-- [Animaze: Audio Based Lip Sync](https://www.animaze.us/manual/appmanual/audiosync)
+- [Notion API: Request Limits](https://developers.notion.com/reference/request-limits)
+- [Solving the Notion 25-Reference Limit](https://www.mymcpshelf.com/blog/solving-notion-25-reference-limit-mcp/)
+- [Understanding Notion API Rate Limits in 2025](https://www.oreateai.com/blog/understanding-notion-api-rate-limits-in-2025-what-you-need-to-know/)
 
 ---
 
-### Pitfall 9: Notification Fatigue Destroying Value
+### Pitfall 7: Voice API Latency Spikes Under Load
 
-**What goes wrong:** Daily briefings and reminders become annoying rather than helpful. Users disable notifications, defeating the core value proposition for ADHD/executive function support.
+**What goes wrong:**
+Voice interaction feels natural under 300ms round-trip. Under production load, ElevenLabs and Deepgram latency can spike, creating awkward pauses that break conversational flow.
 
 **Why it happens:**
-- 71% of app users uninstall apps due to excessive notifications
-- Average user receives 46-63 push notifications daily across all apps
-- Poorly timed notifications interrupt focus (the opposite of intended effect)
-- One-size-fits-all notification strategy doesn't account for user state
+- API cold starts when traffic is bursty
+- Network jitter compounds across multiple services
+- Concurrent session limits can cause queueing
+- WebSocket connection management issues
 
 **Consequences:**
-- Users disable notifications, losing the proactive assistant value
-- Notifications during focus time damage productivity (ironic for ADHD tool)
-- App uninstallation after 5+ notifications per week for 64% of users
-- Product becomes "just another annoying app"
+- Awkward conversational pauses (>500ms feels unnatural)
+- User talks over the agent (assumes it's done)
+- Perception of "broken" or "slow" assistant
+- Users abandon voice for text
+
+**Warning signs:**
+- Time-to-first-audio > 300ms regularly
+- High variance in latency (sometimes fast, sometimes slow)
+- Users repeating themselves
+- WebSocket reconnection events in logs
 
 **Prevention:**
-- Implement daily digest instead of individual notifications
-- Respect quiet hours and user-defined focus periods
-- Allow granular notification control (briefings vs. reminders vs. alerts)
-- Personalize timing based on user activity patterns
-- Limit to 1-2 notifications per day maximum
-- Make notifications genuinely useful (actionable, not just informational)
+1. **Measure P95 latency**, not just average
+2. **Keep WebSocket connections warm** (persistent connections)
+3. **Implement streaming for TTS** (start playing before full response ready)
+4. **Have graceful degradation** (e.g., "Processing..." acknowledgment)
+5. **Consider edge deployment** for voice endpoints
+6. **Monitor concurrent session limits** vs actual usage
 
-**Detection (warning signs):**
-- Notification permission revocations
-- Declining engagement with briefings over time
-- User feedback about "too many" or "wrong time" notifications
-
-**Phase to address:** Phase 2 (Daily Briefings) - Notification strategy is core UX, not afterthought.
+**Which phase should address it:** Production Deployment + Voice optimization
 
 **Sources:**
-- [MagicBell: Help Users Avoid Notification Fatigue](https://www.magicbell.com/blog/help-your-users-avoid-notification-fatigue)
-- [Courier: Reduce Notification Fatigue](https://www.courier.com/blog/how-to-reduce-notification-fatigue-7-proven-product-strategies-for-saas)
-- [SuprSend: Understanding Alert Fatigue](https://www.suprsend.com/post/alert-fatigue)
+- [Voice AI Infrastructure: Building Real-Time Speech Agents (Introl)](https://introl.com/blog/voice-ai-infrastructure-real-time-speech-agents-asr-tts-guide-2025)
+- [ElevenLabs: Latency Optimization](https://elevenlabs.io/docs/developers/best-practices/latency-optimization)
+- [Deepgram vs ElevenLabs Comparison](https://deepgram.com/learn/deepgram-vs-elevenlabs)
 
 ---
 
-### Pitfall 10: Body Doubling Dependency Without Fallback
+### Pitfall 8: Memory System Integration Breaking Existing Flows
 
-**What goes wrong:** Users become dependent on body doubling features for task completion, then feel shame or helplessness when the feature is unavailable.
+**What goes wrong:**
+Adding memory to an existing working system introduces integration complexity. Memory loading adds latency to every conversation start. Memory context competes with conversation history for context space.
 
 **Why it happens:**
-- Body doubling is highly effective (80% improved task completion in studies)
-- Using it as sole coping mechanism creates dependency
-- ADHD users may feel shame about needing external support
-- No gradual skill-building or independence training designed
+- Memory added as afterthought, not designed in
+- No clear boundary between conversation context and memory context
+- Memory queries add latency on the critical path
+- Tightly coupled architecture makes changes ripple
 
 **Consequences:**
-- Users feel worse about themselves if feature breaks or they can't access it
-- Rejection Sensitive Dysphoria triggered by perceived judgment
-- Long-term users don't develop individual coping strategies
-- Product becomes a crutch rather than a tool
+- Briefings now take 2x longer to start
+- Agent behavior changes unpredictably with memory additions
+- Hard to debug whether issue is memory, context, or LLM
+- Regression in features that previously worked
+
+**Warning signs:**
+- Features that worked in v1 now fail intermittently
+- Conversation quality degrades after memory system added
+- Startup time noticeably slower
+- Context-related errors increase
 
 **Prevention:**
-- Frame body doubling as "tool for growth" not "crutch"
-- Combine with other strategies (Pomodoro, timeboxing, task decomposition)
-- Build in reflection/feedback after sessions
-- Gradually reduce scaffolding as users build skills
-- Offer multiple modes (virtual coworking, AI companion, silent presence)
-- Never present dependency as failure
+1. **Define clear boundaries**: Memory is *additive* to system prompt, not replacing
+2. **Make memory loading async where possible** (prefetch during audio processing)
+3. **Measure baseline latency** before adding memory, track regression
+4. **Feature flags**: Ability to disable memory system for debugging
+5. **Incremental rollout**: Memory for specific features first, not all at once
+6. **Test memory system in isolation** before integration
 
-**Detection (warning signs):**
-- Users unable to work at all without the feature
-- Anxiety or distress when feature unavailable
-- No improvement in independent task completion over time
-
-**Phase to address:** Phase 4 (Body Doubling Features) - Design for empowerment, not dependency.
+**Which phase should address it:** Memory System (core design)
 
 **Sources:**
-- [arXiv: Designing Body Doubling for ADHD in VR](https://arxiv.org/html/2509.12153v1)
-- [ADDA: The ADHD Body Double](https://add.org/the-body-double/)
-- [Shimmer: Body Doubling Apps](https://www.shimmer.care/blog/best-body-doubling-apps)
+- [Technical Debt: How Adding Features Creates Complexity (Qt)](https://www.qt.io/quality-assurance/blog/how-to-tackle-technical-debt)
+- [When to Prioritize Refactoring Over New Features (Revelo)](https://www.revelo.com/blog/rethinking-technical-debt-prioritizing-refactoring-vs-new-features)
+
+---
+
+### Pitfall 9: Prompt Injection Through Notion Content
+
+**What goes wrong:**
+Malicious content in Notion pages (task descriptions, project notes) gets fetched and included in context, executing prompt injection attacks via the user's own data.
+
+**Why it happens:**
+- Notion content treated as trusted because it's "user data"
+- Shared workspaces mean others can edit content
+- No sanitization of fetched Notion content
+- Content goes directly into LLM context
+
+**Consequences:**
+- Unauthorized actions taken by the agent
+- Data from other contexts leaked
+- Agent behavior manipulation
+- Trust violations
+
+**Warning signs:**
+- Agent doing unexpected things after fetching specific pages
+- Behavior changes correlated with specific Notion content
+- Agent "leaking" information from other contexts
+
+**Prevention:**
+1. **Treat Notion content as untrusted input**
+2. **Sanitize before including in context** (remove suspicious patterns)
+3. **Separate data from instructions** in prompt structure
+4. **Log which Notion content was accessed** for audit
+5. **Consider content isolation**: Limit what can be fetched per request
+
+**Which phase should address it:** Guardrails System
+
+**Sources:**
+- [LLM Security Risks in 2026 (Sombra)](https://sombrainc.com/blog/llm-security-risks-2026)
+- [OWASP: Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)
 
 ---
 
 ## Minor Pitfalls
 
-Mistakes that cause annoyance but are fixable without major refactoring.
+Mistakes that cause annoyance but are fixable without major rework.
 
 ---
 
-### Pitfall 11: TTS Voice Personality Mismatch
+### Pitfall 10: Memory Deduplication Failures
 
-**What goes wrong:** The TTS voice sounds robotic, cold, or mismatched to the "Jarvis" personality users expect, breaking immersion.
+**What goes wrong:**
+The same fact gets stored multiple times with slightly different wording, cluttering memory and wasting context space.
 
 **Why it happens:**
-- Default TTS voices are generic and emotionless
-- No voice selection/customization offered
-- Speed and tone not optimized for assistant use case
-- Different TTS services have vastly different quality
+- Hash-based deduplication fails on paraphrased content
+- No semantic deduplication
+- Summarization produces multiple versions of same fact
+- User states same thing different ways
+
+**Consequences:**
+- Memory bloat over time
+- Redundant information in context
+- Wasted tokens on duplicates
+- Confusing when reviewing memory
 
 **Prevention:**
-- Evaluate TTS services specifically for voice quality (ElevenLabs, Play.ht, etc.)
-- Allow user voice selection/customization
-- Tune speech rate, pitch, and emphasis for conversational use
-- Keep responses concise (TTS magnifies verbosity problems)
+1. **Semantic deduplication** using embeddings (cosine similarity threshold)
+2. **Merge similar entries** rather than keeping all versions
+3. **Periodic memory compaction** job
+4. **Track entry lineage** (this fact derived from that conversation)
 
-**Phase to address:** Phase 1 (Voice Infrastructure) - TTS selection is early decision but voice tuning can iterate.
+**Which phase should address it:** Memory System (data layer)
 
 ---
 
-### Pitfall 12: Interruption Handling Failures
+### Pitfall 11: Missing Memory Expiration/Decay
 
-**What goes wrong:** User tries to interrupt the assistant, but it keeps talking, ignoring the interruption until it finishes its response.
+**What goes wrong:**
+Stale facts persist forever. "User is on vacation next week" remains true months later.
 
 **Why it happens:**
-- Streaming TTS doesn't naturally handle interruption
-- No Voice Activity Detection during playback
-- Response cancellation not implemented
-- "Walkie-talkie" mode instead of natural conversation
+- No temporal awareness in memory entries
+- No decay mechanism for time-sensitive facts
+- No review/refresh process
+
+**Consequences:**
+- Agent acts on outdated information
+- Memory grows unbounded
+- Contradictions between old and new facts
 
 **Prevention:**
-- Implement VAD during playback to detect user speech
-- Cancel TTS stream immediately on user interruption
-- Use Claude/OpenAI APIs that support interruption events
-- Design responses to be interruptible at any point
-- Resume gracefully after interruption
+1. **Add `expires_at` field** for time-sensitive entries
+2. **Implement importance decay** over time (access_count tracking)
+3. **Periodic memory review** surfacing stale high-importance entries
+4. **User can mark facts as "outdated"**
 
-**Phase to address:** Phase 2 (Conversation Flow) - Interruption handling is core conversational UX.
-
-**Sources:**
-- [OpenAI Community: Interrupting Realtime API](https://community.openai.com/t/need-help-being-able-to-interrupt-the-realtime-api-response/972589)
-- [Twilio: Token Streaming and Interruption Handling](https://www.twilio.com/en-us/blog/anthropic-conversationrelay-token-streaming-interruptions-javascript)
+**Which phase should address it:** Memory System (data model)
 
 ---
 
-### Pitfall 13: Task Definition Ambiguity
+### Pitfall 12: Vercel Cold Start Affecting Voice Experience
 
-**What goes wrong:** Users ask for help with vague tasks ("work on my project"), and the assistant either does nothing useful or picks the wrong interpretation.
+**What goes wrong:**
+First request after idle period hits serverless cold start, adding 1-3 seconds latency. For voice, this is jarring.
 
 **Why it happens:**
-- ADHD users especially struggle with task definition
-- Voice input tends to be less precise than text
-- Assistant lacks context about user's current work
-- No clarification flow designed
+- Serverless functions spin down when idle
+- Voice interactions expect instant response
+- No warm-up mechanism
+
+**Consequences:**
+- First interaction of session feels broken
+- User uncertainty ("is it working?")
+- May retry, causing confusion
 
 **Prevention:**
-- Implement task decomposition prompts ("What's the first small step?")
-- Connect to Notion context for task awareness
-- Ask clarifying questions before acting on vague requests
-- Offer task templates for common activities
-- Remember user patterns for similar past tasks
+1. **Warm-up pings** from client on page load
+2. **Keep-alive requests** during active session
+3. **Edge functions** for latency-critical paths
+4. **Graceful loading states** ("Jarvis is waking up...")
 
-**Phase to address:** Phase 3 (Triage Features) - Task understanding is core to executive function support.
+**Which phase should address it:** Production Deployment
 
 ---
 
-### Pitfall 14: Privacy Anxiety About Always-Listening
+### Pitfall 13: Missing Monitoring and Observability
 
-**What goes wrong:** Users feel uncomfortable knowing the app could be listening, even when it's not actively processing, leading to distrust or non-adoption.
+**What goes wrong:**
+Production issues go undetected because there's no visibility into system health, costs, or errors.
 
 **Why it happens:**
-- Voice assistants have real privacy concerns (Amazon/Google incidents)
-- Users don't understand when recording happens
-- No visual indicator of microphone state
-- Marketing of "always available" sounds like "always listening"
+- Monitoring is "post-MVP" work that never happens
+- Local development doesn't need monitoring
+- Unclear what metrics matter for voice AI
+
+**Consequences:**
+- Cost overruns discovered only when invoiced
+- User-reported bugs are first sign of issues
+- No data for debugging production problems
+- Can't measure performance improvements
 
 **Prevention:**
-- Clear, prominent microphone state indicator
-- Explicit "listening" vs "sleeping" visual states
-- Push-to-talk as default, wake word as opt-in
-- Local wake word processing (no cloud until activated)
-- Transparent privacy documentation
-- Mute button always accessible
+1. **Set up error tracking** (Sentry) from day one
+2. **Track key metrics**: Latency P50/P95, error rate, API costs
+3. **Set up cost alerts** on Vercel, ElevenLabs, Deepgram, Claude
+4. **Implement health checks** for all external services
+5. **Create dashboards** for daily review
 
-**Phase to address:** Phase 1 (UI Foundation) - Trust indicators are foundational UX.
-
-**Sources:**
-- [Medium: Voice Assistants Privacy Risks](https://medium.com/@staneyjoseph.in/the-dark-side-of-ai-how-your-voice-assistants-are-spying-on-you-without-you-knowing-6db584871dee)
-- [TermsFeed: Voice Assistants and Privacy Issues](https://www.termsfeed.com/blog/voice-assistants-privacy-issues/)
+**Which phase should address it:** Production Deployment (first item after secrets)
 
 ---
 
-## Phase-Specific Pitfall Summary
+## Phase-Specific Warnings
 
-| Phase | Primary Pitfalls | Mitigation Strategy |
-|-------|-----------------|---------------------|
-| Phase 1: Core Infrastructure | Latency (1), Browser Lock-in (2), Permissions (4), Privacy (14) | Design for 300ms latency, use cloud STT not Web Speech API, contextual permission requests |
-| Phase 2: Basic Conversations | Repeat Death Spiral (3), Rate Limits (5), Context Amnesia (6), Notifications (9), Interruptions (12) | Error recovery flows, request queuing, session memory, digest notifications |
-| Phase 3: Voice Polish | Wake Word (7), Avatar Sync (8), Task Ambiguity (13) | Push-to-talk first, audio-reactive orb, clarification flows |
-| Phase 4: ADHD Features | Body Doubling Dependency (10) | Empowerment framing, multiple strategies, gradual independence |
-| Ongoing | TTS Voice (11) | Iterate on voice selection and tuning |
-
----
-
-## Research Confidence Assessment
-
-| Pitfall | Confidence | Verification |
-|---------|------------|--------------|
-| Latency Cliff | HIGH | Multiple authoritative sources (AssemblyAI, Telnyx, Cresta) with consistent data |
-| Browser Lock-in | HIGH | MDN documentation, Can I Use data |
-| Repeat Death Spiral | HIGH | Industry research (AssemblyAI 2026 report) |
-| Permission UX | HIGH | Google Meet case study with quantitative data |
-| Notion Rate Limits | HIGH | Official Notion documentation |
-| Context Amnesia | MEDIUM | Multiple sources but less quantitative data |
-| Wake Word Issues | MEDIUM | Technical documentation, community reports |
-| Avatar Sync | MEDIUM | Technical sources, less specific to orb avatars |
-| Notification Fatigue | HIGH | Multiple studies with consistent statistics |
-| Body Doubling | MEDIUM | Limited formal research, mostly practitioner knowledge |
-| TTS Voice | MEDIUM | General best practices |
-| Interruption Handling | HIGH | Official API documentation from OpenAI/Anthropic |
-| Task Ambiguity | MEDIUM | ADHD literature, practitioner knowledge |
-| Privacy Anxiety | HIGH | Well-documented public incidents and surveys |
+| Phase Topic | Likely Pitfall | Risk Level | Mitigation |
+|-------------|---------------|------------|------------|
+| Memory System | Memory poisoning (Pitfall 1) | CRITICAL | Provenance tracking, sanitization |
+| Memory System | Context overflow (Pitfall 2) | CRITICAL | Utilization monitoring, sliding window |
+| Memory System | Integration breaks existing (Pitfall 8) | MODERATE | Feature flags, incremental rollout |
+| Memory System | SQLite concurrency (Pitfall 5) | MODERATE | Use managed DB for prod |
+| Memory System | Deduplication (Pitfall 10) | MINOR | Semantic dedup |
+| Memory System | Expiration (Pitfall 11) | MINOR | expires_at field |
+| Guardrails | No guardrails by default (Pitfall 3) | CRITICAL | Action classification, confirmation tiers |
+| Guardrails | Notion content injection (Pitfall 9) | MODERATE | Sanitization, isolation |
+| Production Deployment | Secret exposure (Pitfall 4) | CRITICAL | Audit env vars, use sensitive vars |
+| Production Deployment | Notion rate limits (Pitfall 6) | MODERATE | Request queue, caching |
+| Production Deployment | Voice latency (Pitfall 7) | MODERATE | Warm connections, streaming |
+| Production Deployment | Cold starts (Pitfall 12) | MINOR | Warm-up pings, edge functions |
+| Production Deployment | No monitoring (Pitfall 13) | MODERATE | Set up from day one |
 
 ---
 
-## Key Takeaways for Roadmap
+## Pitfalls Requiring Phase-Specific Research
 
-1. **Latency is existential** - Must be designed from day one, not optimized later
-2. **Don't trust Web Speech API** - Use professional STT services from the start
-3. **Voice needs visual fallback** - Always offer text input
-4. **ADHD users need empowerment, not dependency** - Frame tools as growth aids
-5. **Notifications must be precious** - One bad notification experience destroys trust
-6. **Context memory is conversational quality** - Stateless design fails for voice
-7. **Push-to-talk before wake word** - Get basics right before adding complexity
+These pitfalls need deeper investigation during implementation:
+
+1. **Memory schema design**: Exact fields needed, embedding dimensions, search strategy (hybrid vs pure semantic)
+2. **Guardrails taxonomy**: Complete classification of all Jarvis tools by risk level
+3. **Production monitoring**: Which metrics matter for voice AI in production (specific thresholds)
+4. **Memory UI**: How users view/edit/delete their memories (if at all)
+5. **Database selection**: Turso vs Neon vs Supabase for serverless memory storage
+
+---
+
+## Key Takeaways for v2 Roadmap
+
+1. **Memory is a security surface** - Treat it as untrusted data flowing into the system
+2. **Context is finite** - Memory competes with conversation history; design for this
+3. **Guardrails are not optional** - Production deployment without them is negligent
+4. **Secrets exposure is likely** - Audit everything before first production deploy
+5. **SQLite won't scale** - Plan for managed database from the start
+6. **Measure before optimizing** - Set up monitoring before adding features
+7. **Incremental rollout** - Don't break v1 while adding v2 features
+
+---
+
+## Sources Summary
+
+### Memory & Context
+- [Memory for AI Agents: A New Paradigm (The New Stack)](https://thenewstack.io/memory-for-ai-agents-a-new-paradigm-of-context-engineering/)
+- [Why Personal AI Memory is Difficult (Kin)](https://mykin.ai/resources/why-personal-ai-memory-difficult)
+- [OpenAI Cookbook: Session Memory](https://cookbook.openai.com/examples/agents_sdk/session_memory)
+- [arXiv: AI Agents Need Memory Control Over More Context](https://arxiv.org/html/2601.11653)
+
+### Security & Guardrails
+- [LLM Security Risks in 2026 (Sombra)](https://sombrainc.com/blog/llm-security-risks-2026)
+- [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)
+- [15 Threats to Security of AI Agents in 2026](https://research.aimultiple.com/security-of-ai-agents/)
+- [Top 10 Predictions for AI Security in 2026 (PointGuard)](https://www.pointguardai.com/blog/top-10-predictions-for-ai-security-in-2026)
+- [Prompt Injection Attacks: A Comprehensive Review (MDPI)](https://www.mdpi.com/2078-2489/17/1/54)
+
+### Production Deployment
+- [Next.js Production Checklist](https://nextjs.org/docs/app/guides/production-checklist)
+- [Top Mistakes When Deploying Next.js Apps](https://dev.to/kuberns_cloud/top-mistakes-when-deploying-nextjs-apps-170f)
+- [Vercel Environment Variables](https://vercel.com/docs/environment-variables)
+- [Vercel: Sensitive Environment Variables](https://vercel.com/docs/environment-variables/sensitive-environment-variables)
+
+### Voice AI
+- [Voice AI Infrastructure Guide (Introl)](https://introl.com/blog/voice-ai-infrastructure-real-time-speech-agents-asr-tts-guide-2025)
+- [ElevenLabs: Latency Optimization](https://elevenlabs.io/docs/developers/best-practices/latency-optimization)
+- [Handling ElevenLabs API Rate Limits](https://prosperasoft.com/blog/voice-synthesis/elevenlabs/elevenlabs-api-rate-limits/)
+
+### Database & Concurrency
+- [SQLite: File Locking and Concurrency](https://sqlite.org/lockingv3.html)
+- [SQLite Concurrent Writes](https://tenthousandmeters.com/blog/sqlite-concurrent-writes-and-database-is-locked-errors/)
+- [Notion API: Request Limits](https://developers.notion.com/reference/request-limits)
+
+---
+
+*Research compiled: 2026-02-02*
+*Previous version (v1 pitfalls): 2026-01-31*
+*Confidence: HIGH - Multiple authoritative sources verified*

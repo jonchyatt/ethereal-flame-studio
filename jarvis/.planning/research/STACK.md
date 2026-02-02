@@ -1,9 +1,326 @@
 # Technology Stack
 
 **Project:** Jarvis - Voice-Enabled AI Personal Assistant
-**Researched:** 2026-01-31
+**Researched:** 2026-02-02 (v2.0 Update)
 
-## Recommended Stack
+---
+
+## v2.0 Stack Additions Summary
+
+This update adds stack requirements for v2.0 features:
+- **Persistent Memory** - Cross-session conversation continuity with SQLite
+- **Messaging Gateway** - Optional Telegram integration for mobile access
+- **Production Deployment** - Custom domain configuration for Vercel
+
+**Critical Finding:** The existing `better-sqlite3` (already installed) **will NOT work in Vercel's serverless environment**. For production, we need `@libsql/client` which provides a unified API for local SQLite files (development) and Turso cloud database (production).
+
+---
+
+## Validated v1 Stack (DO NOT CHANGE)
+
+| Technology | Version | Status |
+|------------|---------|--------|
+| Next.js | ^15.1.4 | Validated |
+| TypeScript | ^5.7.2 | Validated |
+| React | ^19.0.0 | Validated |
+| @anthropic-ai/sdk | ^0.72.1 | Validated |
+| @deepgram/sdk | ^4.11.3 | Validated |
+| @modelcontextprotocol/sdk | ^1.25.3 | Validated |
+| @react-three/fiber | ^9.0.0 | Validated |
+| @react-three/drei | ^10.0.0 | Validated |
+| better-sqlite3 | ^12.6.2 | **Development only** |
+| Zustand | ^5.0.2 | Validated |
+| Zod | ^4.3.6 | Validated |
+| date-fns | ^4.1.0 | Validated |
+
+---
+
+## v2.0 New Dependencies
+
+### 1. Persistent Memory System
+
+#### Primary: @libsql/client + Drizzle ORM
+
+| Library | Version | Purpose | Why | Confidence |
+|---------|---------|---------|-----|------------|
+| `@libsql/client` | ^0.17.0 | Database driver | Unified API for local SQLite files AND Turso cloud. Works in serverless. | HIGH |
+| `drizzle-orm` | ^0.45.1 | Type-safe ORM | Zero dependencies, tree-shakeable, excellent TypeScript inference | HIGH |
+| `drizzle-kit` | (dev) | Migrations CLI | Schema management without runtime overhead | HIGH |
+
+**Rationale:**
+
+The existing `better-sqlite3` driver is synchronous and requires filesystem access, which **will not work on Vercel serverless functions**. Vercel's functions are stateless and ephemeral - each invocation may run on a different container with no shared storage.
+
+`@libsql/client` solves this by providing:
+- `file:local.db` - Local SQLite for development (same as better-sqlite3)
+- `libsql://` - Remote Turso database for production
+- Identical API for both environments
+
+**Environment Configuration Pattern:**
+```typescript
+// lib/jarvis/memory/db.ts
+import { createClient } from '@libsql/client';
+import { drizzle } from 'drizzle-orm/libsql';
+
+const client = createClient({
+  url: process.env.DATABASE_URL!, // file:./jarvis.db OR libsql://your-db.turso.io
+  authToken: process.env.DATABASE_AUTH_TOKEN, // Only needed for Turso
+});
+
+export const db = drizzle(client);
+```
+
+**Installation:**
+```bash
+npm install @libsql/client drizzle-orm
+npm install -D drizzle-kit
+```
+
+#### Optional: Embeddings for Semantic Search
+
+| Library | Version | Purpose | Why | Confidence |
+|---------|---------|---------|-----|------------|
+| `voyageai` | ^0.1.0 | Embedding generation | Anthropic's recommended provider, better quality than OpenAI for Claude context | MEDIUM |
+
+**Rationale:**
+
+Anthropic does not offer embeddings. They officially recommend Voyage AI. For hybrid search (keyword + semantic), we need embeddings stored alongside memory entries.
+
+**However, this is OPTIONAL for v2.0.** BM25-style keyword search in SQLite can handle most use cases. Add embeddings only if:
+- User explicitly requests "find things similar to X"
+- Memory corpus exceeds 10,000 entries
+- Keyword search proves insufficient
+
+**If needed:**
+```bash
+npm install voyageai
+```
+
+**Vector Storage:**
+For semantic search, vectors can be stored as JSON arrays in SQLite text columns. This is simpler than sqlite-vec and sufficient for <100k entries. The GOTCHA framework's hybrid search pattern uses:
+- BM25 (0.7 weight) - Exact token matching via SQL LIKE/FTS5
+- Semantic (0.3 weight) - Cosine similarity on vectors
+
+---
+
+### 2. Messaging Gateway (Optional)
+
+#### Primary: grammY
+
+| Library | Version | Purpose | Why | Confidence |
+|---------|---------|---------|-----|------------|
+| `grammy` | ^1.39.2 | Telegram Bot Framework | First-class TypeScript, modern API, runs in Edge/serverless | HIGH |
+
+**Rationale:**
+
+Compared to alternatives:
+- **Telegraf** - Older, larger bundle, worse TypeScript support
+- **node-telegram-bot-api** - Requires separate @types package, callback-based
+- **grammY** - Native TypeScript, smaller bundle, works in Cloudflare Workers
+
+grammY supports Next.js API routes directly via webhook mode (no long-polling required).
+
+**Why Telegram over Slack/Discord:**
+- Works on mobile without app switching
+- Simple 1:1 conversation model matches Jarvis's design
+- Webhook-based (serverless-compatible)
+- Free, no workspace required
+
+**Installation:**
+```bash
+npm install grammy
+```
+
+**Implementation Pattern:**
+```typescript
+// app/api/telegram/route.ts
+import { Bot, webhookCallback } from 'grammy';
+
+const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN!);
+bot.on('message:text', async (ctx) => {
+  // Route to existing Jarvis chat handler
+  const response = await jarvisChat(ctx.message.text);
+  await ctx.reply(response);
+});
+
+export const POST = webhookCallback(bot, 'std/http');
+```
+
+---
+
+### 3. Production Deployment
+
+#### Platform: Vercel (already used)
+
+No new dependencies required. Configuration changes only.
+
+**Custom Domain Setup:**
+1. Add `jarvis.whatareyouappreciatingnow.com` in Vercel Project Settings > Domains
+2. Configure DNS (A record or CNAME as Vercel instructs)
+3. SSL is automatic
+
+#### Database: Turso (for production)
+
+| Service | Tier | Purpose | Why | Confidence |
+|---------|------|---------|-----|------------|
+| Turso | Free/Starter | SQLite in the cloud | SQLite-compatible, Vercel-native integration, edge-ready | HIGH |
+
+**Turso Free Tier:**
+- 9 GB storage
+- 500 databases
+- 1 billion row reads/month
+- Unlimited writes
+
+This is more than sufficient for Jarvis's memory system.
+
+**Setup:**
+```bash
+# Install Turso CLI (one-time)
+brew install tursodatabase/tap/turso  # macOS
+# Or: curl -sSfL https://get.tur.so/install.sh | bash
+
+# Create database
+turso db create jarvis
+turso db show jarvis --url  # Get DATABASE_URL
+turso db tokens create jarvis  # Get DATABASE_AUTH_TOKEN
+```
+
+---
+
+## What NOT to Add for v2
+
+| Rejected | Reason |
+|----------|--------|
+| `sqlite-vec` | Adds complexity for vector search. JSON arrays + manual cosine similarity work fine for <100k entries. |
+| `Prisma` | Heavy ORM, worse TypeScript inference than Drizzle, connection pooling issues on serverless |
+| `openai` (for embeddings) | Anthropic recommends Voyage AI. Also adds another API key to manage. |
+| `Redis/BullMQ` for memory | Already in project for rendering. Don't use for memory - SQLite is simpler for single-user. |
+| `socket.io` | SSE already works. WebSockets add complexity without benefit for voice assistant. |
+| `Slack SDK` | Requires workspace. Telegram is simpler for personal assistant. |
+
+---
+
+## Database Schema (Drizzle)
+
+```typescript
+// lib/jarvis/memory/schema.ts
+import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
+
+export const memoryEntries = sqliteTable('memory_entries', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  type: text('type').notNull(), // 'fact' | 'preference' | 'event' | 'insight' | 'task'
+  content: text('content').notNull(),
+  contentHash: text('content_hash').unique(), // For deduplication
+  source: text('source').notNull(), // 'user' | 'inferred' | 'session' | 'system'
+  confidence: real('confidence').default(1.0),
+  importance: integer('importance').default(5), // 1-10
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+  lastAccessed: text('last_accessed'),
+  accessCount: integer('access_count').default(0),
+  embedding: text('embedding'), // JSON array, optional
+  tags: text('tags'), // JSON array
+  expiresAt: text('expires_at'),
+  isActive: integer('is_active').default(1),
+});
+
+export const dailyLogs = sqliteTable('daily_logs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  date: text('date').notNull().unique(), // 'YYYY-MM-DD'
+  summary: text('summary'),
+  rawLog: text('raw_log'),
+  keyEvents: text('key_events'), // JSON array
+  entryCount: integer('entry_count').default(0),
+});
+
+export const sessions = sqliteTable('sessions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  startedAt: text('started_at').notNull(),
+  endedAt: text('ended_at'),
+  messageCount: integer('message_count').default(0),
+  summary: text('summary'),
+  platform: text('platform').default('web'), // 'web' | 'telegram'
+});
+```
+
+---
+
+## Migration from Current MemoryStore
+
+The existing `MemoryStore.ts` uses browser `localStorage`. This works but:
+- Is browser-only (no server-side access)
+- Doesn't persist across devices
+- Limited storage (~5MB)
+- No semantic search capability
+
+**Migration Path:**
+1. Keep `localStorage` for immediate UI state (keyFacts display)
+2. Sync to SQLite on session end
+3. Load from SQLite on session start
+4. Gradually deprecate localStorage as SQLite becomes primary
+
+---
+
+## Installation Summary for v2
+
+**Required for v2:**
+```bash
+npm install @libsql/client drizzle-orm
+npm install -D drizzle-kit
+```
+
+**Optional (Telegram gateway):**
+```bash
+npm install grammy
+```
+
+**Optional (semantic search):**
+```bash
+npm install voyageai
+```
+
+**Total new dependencies:** 2-4 packages (minimal)
+
+---
+
+## Environment Variables for v2
+
+Add to `.env.local` (development):
+```env
+# Database (local SQLite)
+DATABASE_URL=file:./jarvis.db
+```
+
+Add to Vercel (production):
+```env
+# Database (Turso)
+DATABASE_URL=libsql://jarvis-[account].turso.io
+DATABASE_AUTH_TOKEN=eyJ...
+
+# Optional: Telegram
+TELEGRAM_BOT_TOKEN=123456:ABC...
+TELEGRAM_WEBHOOK_SECRET=random_secret_string
+
+# Optional: Embeddings
+VOYAGE_API_KEY=pa-...
+```
+
+---
+
+## Confidence Assessment for v2 Additions
+
+| Area | Confidence | Reasoning |
+|------|------------|-----------|
+| @libsql/client | HIGH | Official Turso client, verified serverless compatibility, v0.17.0 published 2 days ago |
+| Drizzle ORM | HIGH | Active development (v0.45.1), widespread adoption, zero-dep |
+| Turso | HIGH | Official Vercel integration, SQLite-compatible, free tier sufficient |
+| grammY | HIGH | v1.39.2 verified, excellent TypeScript support, modern API |
+| Voyage AI | MEDIUM | Anthropic-recommended but not personally validated |
+| sqlite-vec rejection | HIGH | JSON arrays simpler for expected scale (<100k entries) |
+
+---
+
+## Recommended Stack (Original v1)
 
 ### Core Framework
 
@@ -138,6 +455,7 @@ Clerk provides this out-of-box with minimal setup. If you're the only user, you 
 ### Production Dependencies
 
 ```bash
+# Core (already installed)
 npm install next@latest react@latest react-dom@latest
 npm install @anthropic-ai/sdk ai @vercel/ai-sdk
 npm install @modelcontextprotocol/sdk zod
@@ -145,6 +463,11 @@ npm install @react-three/fiber @react-three/drei three
 npm install zustand @tanstack/react-query
 npm install @clerk/nextjs
 npm install @elevenlabs/elevenlabs-js
+
+# v2 Additions
+npm install @libsql/client drizzle-orm
+npm install grammy  # Optional: Telegram
+npm install voyageai  # Optional: Embeddings
 ```
 
 ### Development Dependencies
@@ -153,6 +476,7 @@ npm install @elevenlabs/elevenlabs-js
 npm install -D typescript @types/react @types/node
 npm install -D tailwindcss @tailwindcss/postcss
 npm install -D eslint prettier
+npm install -D drizzle-kit  # v2 Addition
 ```
 
 ### Environment Variables
@@ -171,6 +495,18 @@ ELEVENLABS_API_KEY=...
 # Auth
 CLERK_SECRET_KEY=sk_...
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
+
+# v2: Database
+DATABASE_URL=file:./jarvis.db  # Development
+# DATABASE_URL=libsql://jarvis-[account].turso.io  # Production
+# DATABASE_AUTH_TOKEN=eyJ...  # Production only
+
+# v2: Optional Telegram
+# TELEGRAM_BOT_TOKEN=123456:ABC...
+# TELEGRAM_WEBHOOK_SECRET=random_secret_string
+
+# v2: Optional Embeddings
+# VOYAGE_API_KEY=pa-...
 ```
 
 ---
@@ -185,6 +521,9 @@ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
 | Auth0 | More complex than Clerk, enterprise-focused pricing. |
 | Styled Components | Tailwind 4 is faster, simpler, and industry standard. |
 | Jotai | Good alternative to Zustand, but Zustand has larger ecosystem. |
+| Prisma | Heavy ORM, worse TypeScript inference than Drizzle for SQLite. |
+| sqlite-vec | Over-engineering for <100k memory entries. |
+| better-sqlite3 (production) | Does not work on Vercel serverless. Use @libsql/client. |
 
 ---
 
@@ -197,6 +536,8 @@ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
 | @react-three/fiber | 9.0 | React 19.x, Three.js 0.160+ |
 | Tailwind CSS | 4.0 | Safari 16.4+, Chrome 111+, Firefox 128+ |
 | @modelcontextprotocol/sdk | 1.x | zod 3.25+ |
+| @libsql/client | 0.17.0 | drizzle-orm 0.45+ |
+| drizzle-orm | 0.45.1 | @libsql/client 0.15+ |
 
 ---
 
@@ -245,11 +586,54 @@ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
 
 **Consequences:** Requires MCP client setup. Depends on Notion's hosted infrastructure.
 
+### ADR-004: @libsql/client over better-sqlite3 for Production (v2)
+
+**Decision:** Use @libsql/client for database access in production.
+
+**Context:** better-sqlite3 is already installed and works locally.
+
+**Rationale:**
+1. better-sqlite3 requires filesystem access - not available on Vercel serverless
+2. @libsql/client provides identical API for local files AND Turso cloud
+3. Single codebase works in both development and production
+4. Turso free tier (9GB, 1B reads/mo) exceeds Jarvis requirements
+
+**Consequences:** Need Turso account for production. Local development uses SQLite file.
+
+### ADR-005: grammY over Telegraf for Telegram (v2)
+
+**Decision:** Use grammY for Telegram bot integration.
+
+**Context:** Multiple Telegram bot libraries exist (Telegraf, node-telegram-bot-api, grammY).
+
+**Rationale:**
+1. First-class TypeScript support (types built-in)
+2. Modern API design with excellent DX
+3. Works in serverless/edge environments (webhook mode)
+4. Smaller bundle size than Telegraf
+5. Active development (v1.39.2, Jan 2026)
+
+**Consequences:** None significant. Migration from other libraries is straightforward.
+
 ---
 
 ## Sources
 
-### Official Documentation
+### v2 Research Sources
+- [@libsql/client npm](https://www.npmjs.com/package/@libsql/client) - v0.17.0 (published 2 days ago)
+- [Turso + Next.js Guide](https://docs.turso.tech/sdk/ts/guides/nextjs)
+- [Drizzle ORM SQLite](https://orm.drizzle.team/docs/get-started-sqlite)
+- [drizzle-orm npm](https://www.npmjs.com/drizzle-orm) - v0.45.1
+- [grammY Framework](https://grammy.dev/)
+- [grammy npm](https://www.npmjs.com/package/grammy) - v1.39.2
+- [Anthropic Embeddings Docs](https://docs.claude.com/en/docs/build-with-claude/embeddings) - Recommends Voyage AI
+- [Voyage AI TypeScript SDK](https://github.com/voyage-ai/typescript-sdk)
+- [Is SQLite supported in Vercel?](https://vercel.com/kb/guide/is-sqlite-supported-in-vercel) - No, use Turso
+- [Turso Cloud for Vercel](https://vercel.com/marketplace/tursocloud)
+- [Adding Custom Domain](https://vercel.com/docs/domains/working-with-domains/add-a-domain)
+- [GOTCHA-ATLAS-ANALYSIS.md](./GOTCHA-ATLAS-ANALYSIS.md) - Memory system patterns
+
+### Official Documentation (v1)
 - [Next.js 16.1 Release](https://nextjs.org/blog/next-16-1)
 - [React 19.2 Release](https://react.dev/blog/2025/10/01/react-19-2)
 - [Anthropic TypeScript SDK](https://github.com/anthropics/anthropic-sdk-typescript)
