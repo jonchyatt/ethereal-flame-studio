@@ -87,7 +87,7 @@
 - [ ] 07-12: Multi-layer compositor and render pipeline
 
 **Phase 11 (IN PROGRESS - Jarvis Production Deployment):**
-- [ ] 11-01: Environment configuration and secrets
+- [x] 11-01: Notion SDK migration (Direct SDK for Vercel serverless)
 - [x] 11-02: API authentication (X-Jarvis-Secret)
 - [ ] 11-03: Rate limiting
 - [ ] 11-04: Error boundaries
@@ -102,7 +102,7 @@ Phase 3:  [##########] 100% (8/8 plans) - COMPLETE
 Phase 4:  [##########] 100% (9/9 plans) - COMPLETE
 Phase 5:  [##########] 100% (4/4 plans) - COMPLETE
 Phase 7:  [          ]   0% (0/12 plans) - NOT STARTED
-Phase 11: [##        ]  17% (1/6 plans) - IN PROGRESS
+Phase 11: [####      ]  33% (2/6 plans) - IN PROGRESS
 Overall:  [#######   ]  68% (36/53 plans)
 ```
 
@@ -195,6 +195,9 @@ Overall:  [#######   ]  68% (36/53 plans)
 | 2026-02-03 | X-Jarvis-Secret header for API auth (11-02) | Standard custom header pattern, middleware validation |
 | 2026-02-03 | _secret query param for SSE auth (11-02) | EventSource API limitation workaround |
 | 2026-02-03 | Optional auth in dev mode (11-02) | Allow local development without configuring secrets |
+| 2026-02-02 | Direct Notion SDK over MCP (11-01) | child_process.spawn() breaks Vercel serverless |
+| 2026-02-02 | Park MCP code in NotionClient.mcp.ts (11-01) | Preserve for future MacBook daemon integration |
+| 2026-02-02 | dataSources.query() for Notion SDK v5 (11-01) | API change from databases.query |
 
 ### Technical Context
 
@@ -241,16 +244,17 @@ Overall:  [#######   ]  68% (36/53 plans)
 ## Session Continuity
 
 ### Last Session
-- **Date:** 2026-02-03
-- **Action:** Executed Plan 11-02: API Authentication
-- **Outcome:** Jarvis API endpoints now protected with X-Jarvis-Secret header
+- **Date:** 2026-02-02
+- **Action:** Executed Plan 11-01: Notion SDK Migration
+- **Outcome:** Replaced MCP-based Notion integration with Direct SDK for Vercel serverless
 
 **Work completed:**
-- Added middleware auth gate for /api/jarvis/* routes
-- Created fetchWithAuth.ts wrapper with all helpers
-- Updated all client-side API calls to use authenticated fetch
+- Installed @notionhq/client ^5.9.0 dependency
+- Rewrote NotionClient.ts with direct SDK (no child_process)
+- Parked MCP code in NotionClient.mcp.ts for future MacBook daemon
+- Updated toolExecutor.ts and BriefingBuilder.ts to use direct SDK
 
-**Stopped at:** Completed 11-02-PLAN.md
+**Stopped at:** Completed 11-01-PLAN.md
 **Resume file:** None
 
 ### v1 Complete (Phases 1-5)
@@ -290,4 +294,4 @@ The phone-to-published-video pipeline is fully implemented:
 
 ---
 
-*Last updated: 2026-02-03 - Completed 11-02 API Authentication*
+*Last updated: 2026-02-02 - Completed 11-01 Notion SDK Migration*
