@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 11 - Production Deployment
-Plan: Context gathered, ready for planning
-Status: Context complete (11-CONTEXT.md)
-Last activity: 2026-02-02 - Gathered Phase 11 context, identified 6 issues to fix
+Plan: 3 of 4 (11-03 Production Hardening complete)
+Status: In progress
+Last activity: 2026-02-03 - Completed 11-03-PLAN.md (memory dedup, error sanitization, timezone)
 
-Progress: [####################] 100% (15/15 v2.0 plans complete, Phase 11 pending)
+Progress: [##################--] 90% (18/20 v2.0 plans complete)
 
 ## Milestone Summary
 
@@ -38,7 +38,7 @@ Progress: [####################] 100% (15/15 v2.0 plans complete, Phase 11 pendi
 | 8 | Memory Loading & Integration | MEM-06, MEM-07, MEM-11 | Complete (3/3 plans) |
 | 9 | Memory Writing & Tools | MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10 | Complete (4/4 plans) |
 | 10 | Guardrails & Safety | GUARD-01-05, FIX-01-02 | Complete (4/4) |
-| 11 | Production Deployment | PROD-01-04 | Ready |
+| 11 | Production Deployment | PROD-01-04 | In Progress (3/4 plans) |
 
 ## Archives
 
@@ -106,6 +106,9 @@ Progress: [####################] 100% (15/15 v2.0 plans complete, Phase 11 pendi
 | Single-user API secret | X-Jarvis-Secret header for API auth, simplest solution | 2026-02-02 |
 | Subdomain-only access | jarvis.whatamiappreciatingnow.com is sole entry point | 2026-02-02 |
 | MacBook for full agent | Browser automation, Telegram, MCP require persistent process | 2026-02-02 |
+| Atomic upsert for memory dedup | onConflictDoUpdate prevents race conditions | 2026-02-03 |
+| Production error sanitization | Return "Internal server error" in prod, details only in dev | 2026-02-03 |
+| Intl.DateTimeFormat for timezone | Client timezone from X-Timezone header determines "today" | 2026-02-03 |
 
 ### Pending Todos
 
@@ -122,15 +125,15 @@ Progress: [####################] 100% (15/15 v2.0 plans complete, Phase 11 pendi
 
 ## Session Continuity
 
-Last session: 2026-02-02
-Stopped at: Phase 11 context gathering complete
-Resume file: `.planning/phases/11-production-deployment/11-CONTEXT.md`
+Last session: 2026-02-03
+Stopped at: Completed 11-03-PLAN.md
+Resume file: None
 
-Phase 10 (Guardrails & Safety) complete:
-- 10-01: Audit logging wire-up (complete)
-- 10-02: Audit log query tool (complete)
-- 10-03: Bug fixes FIX-01, FIX-02 (complete)
-- 10-04: Decay exemption & context monitoring (complete)
+Phase 11 (Production Deployment) in progress:
+- 11-01: Direct Notion SDK migration (complete)
+- 11-02: API authentication (complete)
+- 11-03: Production hardening - memory dedup, error sanitization, timezone (complete)
+- 11-04: Final deployment verification (pending)
 
 ### Phase 11 Context Summary
 
