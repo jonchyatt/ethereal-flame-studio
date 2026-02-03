@@ -47,7 +47,7 @@ export const notionTools: ToolDefinition[] = [
         },
         due_date: {
           type: 'string',
-          description: 'Optional due date in YYYY-MM-DD format'
+          description: 'Optional due date in YYYY-MM-DD format. Use the current date from context for "today", add days for "tomorrow", etc.'
         },
         priority: {
           type: 'string',

@@ -24,19 +24,34 @@ export interface SystemPromptContext {
 }
 
 /**
- * Format a Date as a human-readable string
- * Example: "Friday, 3:45 PM"
+ * Format a Date as a human-readable string with full date
+ * Example: "Monday, February 3, 2026 at 3:45 PM"
  */
 function formatTime(date: Date): string {
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                  'July', 'August', 'September', 'October', 'November', 'December'];
   const day = days[date.getDay()];
+  const month = months[date.getMonth()];
+  const dayOfMonth = date.getDate();
+  const year = date.getFullYear();
 
   let hours = date.getHours();
   const minutes = date.getMinutes().toString().padStart(2, '0');
   const ampm = hours >= 12 ? 'PM' : 'AM';
   hours = hours % 12 || 12;
 
-  return `${day}, ${hours}:${minutes} ${ampm}`;
+  return `${day}, ${month} ${dayOfMonth}, ${year} at ${hours}:${minutes} ${ampm}`;
+}
+
+/**
+ * Format a Date as YYYY-MM-DD for tool use
+ */
+function formatDateISO(date: Date): string {
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 /**
@@ -62,9 +77,11 @@ PERSONALITY:
 - DO NOT ask follow-up questions unless absolutely necessary
 - When a task is done, just confirm it's done - no "anything else?" or "would you like..."`);
 
-  // Current context section
+  // Current context section - include ISO date for tool use
+  const isoDate = formatDateISO(context.currentTime);
   const contextParts = [`CURRENT CONTEXT:
-- Current time: ${timeString}`];
+- Current time: ${timeString}
+- Today's date (for due dates): ${isoDate}`];
 
   if (context.keyFacts && context.keyFacts.length > 0) {
     contextParts.push(`- What I know about ${userName}:`);

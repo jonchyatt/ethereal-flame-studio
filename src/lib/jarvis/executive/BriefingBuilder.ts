@@ -90,24 +90,25 @@ function extractCheckbox(prop: unknown): boolean {
 
 /**
  * Build complete morning briefing data by querying all databases in parallel
+ * @param timezone - IANA timezone string for date calculations (e.g., 'America/New_York')
  */
-export async function buildMorningBriefing(): Promise<BriefingData> {
-  console.log('[BriefingBuilder] Building morning briefing data...');
+export async function buildMorningBriefing(timezone?: string): Promise<BriefingData> {
+  console.log('[BriefingBuilder] Building morning briefing data...', { timezone });
 
   try {
     // Parallel queries for all data sources using Phase 4 MCP tools
     const [todayTasksResult, overdueTasksResult, billsResult, habitsResult, goalsResult] =
       await Promise.all([
-        queryNotionRaw('tasks', { filter: 'today', status: 'pending' }),
-        queryNotionRaw('tasks', { filter: 'overdue', status: 'pending' }),
-        queryNotionRaw('bills', { timeframe: 'this_week', unpaidOnly: true }),
+        queryNotionRaw('tasks', { filter: 'today', status: 'pending', timezone }),
+        queryNotionRaw('tasks', { filter: 'overdue', status: 'pending', timezone }),
+        queryNotionRaw('bills', { timeframe: 'this_week', unpaidOnly: true, timezone }),
         queryNotionRaw('habits', { frequency: 'all' }),
         queryNotionRaw('goals', { status: 'active' }),
       ]);
 
-    // Parse task results
-    const todayTasks = parseTaskResults(todayTasksResult);
-    const overdueTasks = parseTaskResults(overdueTasksResult);
+    // Parse task results with client-side status filtering
+    const todayTasks = parseTaskResults(todayTasksResult, 'pending');
+    const overdueTasks = parseTaskResults(overdueTasksResult, 'pending');
 
     // Parse bill results
     const bills = parseBillResults(billsResult);
@@ -179,25 +180,26 @@ export async function buildMorningBriefing(): Promise<BriefingData> {
 /**
  * Build check-in data (for midday/evening check-ins)
  * Evening check-ins also include tomorrow's tasks for preview
+ * @param timezone - IANA timezone string for date calculations
  */
-export async function buildCheckInData(type: CheckInType): Promise<{
+export async function buildCheckInData(type: CheckInType, timezone?: string): Promise<{
   briefing: BriefingData;
   progress: CheckInProgress;
   tomorrow?: { tasks: TaskSummary[] };
 }> {
-  console.log(`[BriefingBuilder] Building ${type} check-in data...`);
+  console.log(`[BriefingBuilder] Building ${type} check-in data...`, { timezone });
 
   // Get full briefing data
-  const briefing = await buildMorningBriefing();
+  const briefing = await buildMorningBriefing(timezone);
 
   // Calculate progress
   const [allTodayTasks, completedTodayTasks] = await Promise.all([
-    queryNotionRaw('tasks', { filter: 'today', status: 'all' }),
-    queryNotionRaw('tasks', { filter: 'today', status: 'completed' }),
+    queryNotionRaw('tasks', { filter: 'today', status: 'all', timezone }),
+    queryNotionRaw('tasks', { filter: 'today', status: 'completed', timezone }),
   ]);
 
-  const totalTasks = parseTaskResults(allTodayTasks);
-  const completedTasks = parseTaskResults(completedTodayTasks);
+  const totalTasks = parseTaskResults(allTodayTasks, 'all');
+  const completedTasks = parseTaskResults(completedTodayTasks, 'completed');
 
   const progress: CheckInProgress = {
     tasksCompletedToday: completedTasks.length,
@@ -211,8 +213,9 @@ export async function buildCheckInData(type: CheckInType): Promise<{
     const tomorrowTasksResult = await queryNotionRaw('tasks', {
       filter: 'tomorrow',
       status: 'pending',
+      timezone,
     });
-    const tomorrowTasks = parseTaskResults(tomorrowTasksResult);
+    const tomorrowTasks = parseTaskResults(tomorrowTasksResult, 'pending');
 
     console.log(`[BriefingBuilder] Evening check-in includes ${tomorrowTasks.length} tomorrow tasks`);
 
@@ -232,6 +235,10 @@ export async function buildCheckInData(type: CheckInType): Promise<{
 
 /**
  * Query Notion and return raw results (not formatted for speech)
+ *
+ * NOTE: For tasks, status filtering is done client-side because the Notion
+ * dataSources.query API has issues with Status property filters on some databases.
+ * The status option is preserved for client-side filtering in parseTaskResults.
  */
 async function queryNotionRaw(
   database: 'tasks' | 'bills' | 'habits' | 'goals',
@@ -244,18 +251,26 @@ async function queryNotionRaw(
   }
 
   let filter: Record<string, unknown> = {};
+  const timezone = options.timezone as string | undefined;
 
   switch (database) {
     case 'tasks':
+      // Don't include status in the API filter - it causes "property not found" errors
+      // on some Notion databases. We'll filter by status client-side instead.
       filter = buildTaskFilter({
         filter: options.filter as 'today' | 'tomorrow' | 'this_week' | 'overdue' | 'all' | undefined,
-        status: options.status as 'pending' | 'completed' | 'all' | undefined,
+        // status is intentionally omitted - will be filtered client-side
+        timezone,
       });
       break;
     case 'bills':
+      // Don't include unpaidOnly in the API filter - "Paid" property may not exist
+      // on some Notion databases. We'll filter by paid status client-side instead.
       filter = buildBillFilter({
         timeframe: options.timeframe as 'this_week' | 'this_month' | 'overdue' | undefined,
-        unpaidOnly: options.unpaidOnly as boolean | undefined,
+        // unpaidOnly is intentionally omitted - will be filtered client-side
+        unpaidOnly: false, // Disable API-level filtering
+        timezone,
       });
       break;
     case 'habits':
@@ -264,8 +279,10 @@ async function queryNotionRaw(
       });
       break;
     case 'goals':
+      // Don't include status in the API filter - "Status" property may not exist
+      // on some Notion databases. We'll filter by status client-side if needed.
       filter = buildGoalFilter({
-        status: options.status as 'active' | 'achieved' | 'all' | undefined,
+        status: 'all', // Disable API-level filtering
       });
       break;
   }
@@ -279,12 +296,35 @@ async function queryNotionRaw(
 
 /**
  * Parse raw Notion task results into TaskSummary[]
+ *
+ * @param result - Raw Notion query result
+ * @param filterStatus - Optional client-side status filter: 'pending' (not completed),
+ *                       'completed', or undefined/all (no filter)
  */
-function parseTaskResults(result: unknown): TaskSummary[] {
+function parseTaskResults(result: unknown, filterStatus?: 'pending' | 'completed' | 'all'): TaskSummary[] {
   const pages = (result as { results?: unknown[] })?.results || [];
-  return pages.map((page: unknown) => {
+  const tasks: TaskSummary[] = [];
+
+  for (const page of pages) {
     const p = page as { properties: Record<string, unknown>; id: string };
     const dueDate = extractDate(p.properties[TASK_PROPS.dueDate]);
+    const status = extractSelect(p.properties[TASK_PROPS.status]);
+
+    // Client-side status filtering (API filter doesn't work reliably)
+    if (filterStatus === 'pending') {
+      // Exclude completed tasks (handles various completion status names)
+      const isCompleted = status.toLowerCase().includes('completed') ||
+                          status.toLowerCase().includes('done') ||
+                          status === 'Completed';
+      if (isCompleted) continue;
+    } else if (filterStatus === 'completed') {
+      // Only include completed tasks
+      const isCompleted = status.toLowerCase().includes('completed') ||
+                          status.toLowerCase().includes('done') ||
+                          status === 'Completed';
+      if (!isCompleted) continue;
+    }
+    // 'all' or undefined = no filtering
 
     // Extract time from due date if it includes time (ISO format with T)
     let dueTime: string | null = null;
@@ -297,15 +337,17 @@ function parseTaskResults(result: unknown): TaskSummary[] {
       }
     }
 
-    return {
+    tasks.push({
       id: p.id,
       title: extractTitle(p.properties[TASK_PROPS.title]),
-      status: extractSelect(p.properties[TASK_PROPS.status]),
+      status,
       dueDate: dueDate?.split('T')[0] || dueDate,
       dueTime,
       priority: extractSelect(p.properties[TASK_PROPS.priority]) || null,
-    };
-  });
+    });
+  }
+
+  return tasks;
 }
 
 /**
@@ -440,9 +482,10 @@ export function buildStreakSummary(habits: HabitSummary[]): string {
 /**
  * Build complete evening wrap data
  * Includes day review, tomorrow preview, and week summary
+ * @param timezone - IANA timezone string for date calculations
  */
-export async function buildEveningWrapData(): Promise<EveningWrapData> {
-  console.log('[BriefingBuilder] Building evening wrap data...');
+export async function buildEveningWrapData(timezone?: string): Promise<EveningWrapData> {
+  console.log('[BriefingBuilder] Building evening wrap data...', { timezone });
 
   try {
     // Parallel queries for all data sources
@@ -455,20 +498,20 @@ export async function buildEveningWrapData(): Promise<EveningWrapData> {
       habitsResult,
       goalsResult,
     ] = await Promise.all([
-      queryNotionRaw('tasks', { filter: 'today', status: 'completed' }),
-      queryNotionRaw('tasks', { filter: 'today', status: 'pending' }),
-      queryNotionRaw('tasks', { filter: 'tomorrow', status: 'all' }),
-      queryNotionRaw('tasks', { filter: 'this_week', status: 'all' }),
-      queryNotionRaw('bills', { timeframe: 'this_week', unpaidOnly: true }),
+      queryNotionRaw('tasks', { filter: 'today', status: 'completed', timezone }),
+      queryNotionRaw('tasks', { filter: 'today', status: 'pending', timezone }),
+      queryNotionRaw('tasks', { filter: 'tomorrow', status: 'all', timezone }),
+      queryNotionRaw('tasks', { filter: 'this_week', status: 'all', timezone }),
+      queryNotionRaw('bills', { timeframe: 'this_week', unpaidOnly: true, timezone }),
       queryNotionRaw('habits', { frequency: 'all' }),
       queryNotionRaw('goals', { status: 'active' }),
     ]);
 
-    // Parse task results
-    const completedTasks = parseTaskResults(completedTasksResult);
-    const pendingTasks = parseTaskResults(pendingTasksResult);
-    const tomorrowTasks = parseTaskResults(tomorrowTasksResult);
-    const weekTasks = parseTaskResults(weekTasksResult);
+    // Parse task results with client-side status filtering
+    const completedTasks = parseTaskResults(completedTasksResult, 'completed');
+    const pendingTasks = parseTaskResults(pendingTasksResult, 'pending');
+    const tomorrowTasks = parseTaskResults(tomorrowTasksResult, 'all');
+    const weekTasks = parseTaskResults(weekTasksResult, 'all');
 
     // Build day review
     const dayReview = buildDayReview(completedTasks, pendingTasks);
@@ -654,9 +697,10 @@ function analyzeWeekLoad(weekTasks: TaskSummary[]): WeekSummaryData {
  * Build weekly review data
  * Per CONTEXT.md: very brief retrospective, then mostly forward planning
  * Retrospective is factual only (tasks completed, bills paid, project progress)
+ * @param timezone - IANA timezone string for date calculations
  */
-export async function buildWeeklyReviewData(): Promise<WeeklyReviewData> {
-  console.log('[BriefingBuilder] Building weekly review data...');
+export async function buildWeeklyReviewData(timezone?: string): Promise<WeeklyReviewData> {
+  console.log('[BriefingBuilder] Building weekly review data...', { timezone });
 
   try {
     // Calculate date ranges
@@ -675,19 +719,19 @@ export async function buildWeeklyReviewData(): Promise<WeeklyReviewData> {
       horizonBillsResult,
     ] = await Promise.all([
       // Retrospective: completed tasks in last 7 days
-      queryNotionRaw('tasks', { filter: 'all', status: 'completed' }),
+      queryNotionRaw('tasks', { filter: 'all', status: 'completed', timezone }),
       // Retrospective: bills paid in last 7 days
-      queryNotionRaw('bills', { timeframe: 'this_month', unpaidOnly: false }),
+      queryNotionRaw('bills', { timeframe: 'this_month', unpaidOnly: false, timezone }),
       // Upcoming week: tasks due in next 7 days
-      queryNotionRaw('tasks', { filter: 'this_week', status: 'all' }),
+      queryNotionRaw('tasks', { filter: 'this_week', status: 'all', timezone }),
       // Horizon scan: tasks due in 14-28 days
-      queryNotionRaw('tasks', { filter: 'all', status: 'pending' }),
+      queryNotionRaw('tasks', { filter: 'all', status: 'pending', timezone }),
       // Horizon scan: bills due in next month
-      queryNotionRaw('bills', { timeframe: 'this_month', unpaidOnly: true }),
+      queryNotionRaw('bills', { timeframe: 'this_month', unpaidOnly: true, timezone }),
     ]);
 
     // Parse and filter retrospective data (last 7 days)
-    const allCompletedTasks = parseTaskResults(completedTasksResult);
+    const allCompletedTasks = parseTaskResults(completedTasksResult, 'completed');
     const recentCompletedTasks = allCompletedTasks.filter((t) => {
       if (!t.dueDate) return false;
       const dueDate = parseISO(t.dueDate);
@@ -708,12 +752,12 @@ export async function buildWeeklyReviewData(): Promise<WeeklyReviewData> {
     const projectsProgressed = extractProjectsFromTasks(recentCompletedTasks);
 
     // Parse upcoming week data
-    const upcomingWeekTasks = parseTaskResults(upcomingWeekTasksResult);
+    const upcomingWeekTasks = parseTaskResults(upcomingWeekTasksResult, 'all');
     const weekAnalysis = analyzeWeekLoad(upcomingWeekTasks);
     const calendarEvents = deriveCalendarEvents(upcomingWeekTasks);
 
     // Parse horizon data (14-28 days out)
-    const allPendingTasks = parseTaskResults(horizonTasksResult);
+    const allPendingTasks = parseTaskResults(horizonTasksResult, 'pending');
     const horizonTasks = allPendingTasks.filter((t) => {
       if (!t.dueDate) return false;
       const dueDate = parseISO(t.dueDate);

@@ -23,9 +23,11 @@ export interface PushToTalkProps {
   onPTTEnd?: () => void;
   /** Use external pipeline control (skips direct MicrophoneCapture calls) */
   usePipeline?: boolean;
+  /** Hide the visual button (keep only spacebar support) */
+  hideVisual?: boolean;
 }
 
-export function PushToTalk({ onPTTStart, onPTTEnd, usePipeline = false }: PushToTalkProps = {}) {
+export function PushToTalk({ onPTTStart, onPTTEnd, usePipeline = false, hideVisual = false }: PushToTalkProps = {}) {
   const isCapturing = useJarvisStore((s) => s.isCapturing);
   const audioLevel = useJarvisStore((s) => s.audioLevel);
   const orbState = useJarvisStore((s) => s.orbState);
@@ -162,6 +164,19 @@ export function PushToTalk({ onPTTStart, onPTTEnd, usePipeline = false }: PushTo
   const scale = isCapturing ? 1 + audioLevel * 0.15 : 1;
   const glowIntensity = isCapturing ? 20 + audioLevel * 30 : 0;
   const pulseOpacity = isCapturing ? 0.3 + audioLevel * 0.4 : 0;
+
+  // If hideVisual is true, only render minimal status text (spacebar handlers still work via useEffect)
+  if (hideVisual) {
+    return (
+      <p className="text-sm text-zinc-400">
+        {isCapturing ? (
+          <span className="text-cyan-400">Listening...</span>
+        ) : (
+          <span>Hold to speak or press Space</span>
+        )}
+      </p>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center gap-4">

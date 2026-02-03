@@ -24,18 +24,21 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type') || 'morning';
 
+  // Extract timezone from header (sent by fetchWithAuth)
+  const timezone = request.headers.get('X-Timezone') || undefined;
+
   try {
     if (type === 'weekly_review') {
-      const data = await buildWeeklyReviewFromNotion();
+      const data = await buildWeeklyReviewFromNotion(timezone);
       return NextResponse.json(data);
     } else if (type === 'evening_wrap') {
-      const data = await buildEveningWrapFromNotion();
+      const data = await buildEveningWrapFromNotion(timezone);
       return NextResponse.json(data);
     } else if (type === 'midday' || type === 'evening') {
-      const data = await buildCheckInFromNotion(type as 'midday' | 'evening');
+      const data = await buildCheckInFromNotion(type as 'midday' | 'evening', timezone);
       return NextResponse.json(data);
     } else {
-      const data = await buildBriefingFromNotion();
+      const data = await buildBriefingFromNotion(timezone);
       return NextResponse.json(data);
     }
   } catch (error) {

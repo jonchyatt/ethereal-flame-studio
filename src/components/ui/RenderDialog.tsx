@@ -15,7 +15,6 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import Link from 'next/link';
 import { X, Upload, Cloud, MessageSquare, CheckCircle, AlertCircle, Loader2, Download, Terminal } from 'lucide-react';
 import { useVisualStore } from '@/lib/stores/visualStore';
 import { createConfigFromState, type LocalOutputFormat } from '@/lib/render/renderConfig';
@@ -495,16 +494,6 @@ pause
               <Cloud className="w-4 h-4 text-white/60" />
               <span className="text-sm text-white/80">Upload to Google Drive</span>
             </label>
-          </div>
-
-          <div className="flex items-center justify-between text-xs text-white/50">
-            <span>Need to render multiple audio files?</span>
-            <Link
-              href="/batch"
-              className="text-blue-300 hover:text-blue-200"
-            >
-              Open Batch Render
-            </Link>
           </div>
 
           {/* Progress/Status */}

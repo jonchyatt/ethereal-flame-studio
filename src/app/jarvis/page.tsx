@@ -314,10 +314,13 @@ export default function JarvisPage() {
   const handleOrbTap = useCallback(() => {
     console.log('[JarvisPage] Orb tapped, orbState:', orbState);
 
-    // If speaking (during briefing), treat as barge-in / skip
-    if (orbState === 'speaking' && briefingFlowRef.current?.isActive()) {
+    // If speaking (any mode), stop immediately - this is the primary way to interrupt on mobile
+    if (orbState === 'speaking') {
       pipelineRef.current?.stopSpeaking();
-      briefingFlowRef.current?.skipCurrentSection();
+      // If during briefing, also skip the current section
+      if (briefingFlowRef.current?.isActive()) {
+        briefingFlowRef.current?.skipCurrentSection();
+      }
       return;
     }
 
@@ -386,6 +389,7 @@ export default function JarvisPage() {
             onPTTStart={handlePTTStart}
             onPTTEnd={handlePTTEnd}
             usePipeline={true}
+            hideVisual={true}
           />
 
           {/* Briefing controls */}
@@ -409,11 +413,11 @@ export default function JarvisPage() {
         </div>
       )}
 
-      {/* Transcript overlay */}
+      {/* Transcript overlay - small, positioned in bottom-left corner to not block orb touch */}
       {permissionUIState === 'ready' && currentTranscript && (
-        <div className="absolute top-1/4 left-4 right-4 flex justify-center z-30 pointer-events-none">
-          <div className="bg-black/60 backdrop-blur-sm rounded-lg px-4 py-2 max-w-lg">
-            <p className="text-white/90 text-center text-lg">
+        <div className="absolute bottom-28 left-3 z-30 pointer-events-none max-w-[200px] sm:max-w-xs">
+          <div className="bg-black/70 backdrop-blur-sm rounded px-2 py-1">
+            <p className="text-white/80 text-xs sm:text-sm leading-tight">
               {currentTranscript}
             </p>
           </div>
