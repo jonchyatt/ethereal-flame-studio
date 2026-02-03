@@ -17,12 +17,15 @@
     "render:local": "tsx scripts/render-cli.ts"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.0",
     "@react-three/drei": "^10.0.0",
     "@react-three/fiber": "^9.0.0",
     "@react-three/postprocessing": "^3.0.4",
     "@tailwindcss/postcss": "^4.1.18",
     "better-sqlite3": "^12.6.2",
     "bullmq": "^5.67.1",
+    "date-fns": "^4.1.0",
+    "drizzle-orm": "^0.45.1",
     "form-data": "^4.0.5",
     "googleapis": "^170.1.0",
     "lucide-react": "^0.563.0",
