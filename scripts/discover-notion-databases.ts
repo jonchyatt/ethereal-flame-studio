@@ -11,14 +11,12 @@
  * - Database IDs for .env.local
  * - Property schema mappings for schemas.ts
  * - Instructions for sharing databases with integration
+ *
+ * Uses Direct Notion SDK (not MCP) for Vercel serverless compatibility.
  */
 
-import {
-  ensureMCPRunning,
-  callMCPTool,
-  closeMCPClient,
-  listMCPTools,
-} from '../src/lib/jarvis/notion/NotionClient';
+import { searchNotion, isNotionConfigured } from '../src/lib/jarvis/notion/NotionClient';
+import { Client } from '@notionhq/client';
 
 // Database search terms (common names in Life OS templates)
 const LIFE_OS_DATABASES = {
@@ -40,50 +38,62 @@ interface DiscoveryResult {
   notFound: string[];
 }
 
+// Singleton Notion client for discovery
+let notionClient: Client | null = null;
+
+function getNotionClient(): Client {
+  if (notionClient) return notionClient;
+
+  const notionToken = process.env.NOTION_TOKEN;
+  if (!notionToken) {
+    throw new Error('NOTION_TOKEN environment variable is required');
+  }
+
+  notionClient = new Client({ auth: notionToken });
+  return notionClient;
+}
+
 /**
- * Search for a database by name using Notion MCP API
- * Tool name: API-post-search (Notion | Search by title)
+ * Search for a database by name using Direct Notion SDK
  */
 async function searchDatabase(
   searchTerms: string[]
 ): Promise<DatabaseInfo | null> {
+  const client = getNotionClient();
+
   for (const term of searchTerms) {
     console.log(`  Searching for "${term}"...`);
 
     try {
-      // Use API-post-search tool (actual MCP tool name)
-      // Note: Notion API v2025-09-03 uses 'data_source' instead of 'database'
-      const result = (await callMCPTool('API-post-search', {
+      // Use Notion SDK search with data_source filter
+      // Note: Notion API uses 'data_source' not 'data_source' for newer API versions
+      const response = await client.search({
         query: term,
         filter: { value: 'data_source', property: 'object' },
-      })) as { content?: Array<{ type: string; text?: string }> };
+      });
 
-      // Parse the result from MCP response
-      const textContent = result.content?.find((c) => c.type === 'text');
-      if (!textContent?.text) continue;
-
-      const data = JSON.parse(textContent.text);
-      if (data.results && data.results.length > 0) {
+      if (response.results && response.results.length > 0) {
         // Find the best match (exact title match preferred)
-        const exactMatch = data.results.find((db: { title?: Array<{ plain_text?: string }> }) => {
-          const dbTitle = db.title?.[0]?.plain_text?.toLowerCase();
+        const exactMatch = response.results.find((db) => {
+          if (db.object !== 'data_source') return false;
+          const dbTitle = (db as { title?: Array<{ plain_text?: string }> }).title?.[0]?.plain_text?.toLowerCase();
           return dbTitle === term.toLowerCase();
         });
 
-        const db = exactMatch || data.results[0];
-        const title =
-          db.title?.[0]?.plain_text ||
-          db.name?.[0]?.plain_text ||
-          'Untitled';
+        const db = exactMatch || response.results[0];
+        if (db.object !== 'data_source') continue;
+
+        const dbTyped = db as { id: string; title?: Array<{ plain_text?: string }>; properties?: Record<string, { type: string }> };
+        const title = dbTyped.title?.[0]?.plain_text || 'Untitled';
 
         // Get detailed database info including properties
-        const dbInfo = await getDetailedDatabaseInfo(db.id);
+        const dbInfo = await getDetailedDatabaseInfo(dbTyped.id);
         if (dbInfo) {
           return { ...dbInfo, title };
         }
 
         return {
-          id: db.id,
+          id: dbTyped.id,
           title,
           properties: {},
         };
@@ -101,39 +111,39 @@ async function searchDatabase(
 }
 
 /**
- * Get detailed database information including properties
- * Tool name: API-retrieve-a-database (Notion | Retrieve a database)
+ * Get detailed database information including properties using Direct SDK
  */
 async function getDetailedDatabaseInfo(
   databaseId: string
 ): Promise<DatabaseInfo | null> {
+  const client = getNotionClient();
+
   try {
-    // Use API-retrieve-a-database tool (actual MCP tool name)
-    const result = (await callMCPTool('API-retrieve-a-database', {
+    const data = await client.databases.retrieve({
       database_id: databaseId,
-    })) as { content?: Array<{ type: string; text?: string }> };
+    });
 
-    const textContent = result.content?.find((c) => c.type === 'text');
-    if (!textContent?.text) return null;
+    const dataTyped = data as {
+      id: string;
+      title?: Array<{ plain_text?: string }>;
+      properties?: Record<string, { type: string }>;
+    };
 
-    const data = JSON.parse(textContent.text);
-    const title =
-      data.title?.[0]?.plain_text || data.name?.[0]?.plain_text || 'Untitled';
+    const title = dataTyped.title?.[0]?.plain_text || 'Untitled';
 
     // Extract property names and types
     const properties: Record<string, { type: string; name: string }> = {};
-    if (data.properties) {
-      for (const [name, prop] of Object.entries(data.properties)) {
-        const p = prop as { type?: string };
+    if (dataTyped.properties) {
+      for (const [name, prop] of Object.entries(dataTyped.properties)) {
         properties[name] = {
           name,
-          type: p.type || 'unknown',
+          type: prop.type || 'unknown',
         };
       }
     }
 
     return {
-      id: data.id || databaseId,
+      id: dataTyped.id,
       title,
       properties,
     };
@@ -157,20 +167,17 @@ async function discoverDatabases(): Promise<DiscoveryResult> {
     notFound: [],
   };
 
-  // Initialize MCP client
-  console.log('Connecting to Notion MCP server...\n');
+  // Check Notion configuration
+  console.log('Connecting to Notion via Direct SDK...\n');
   try {
-    await ensureMCPRunning();
+    if (!isNotionConfigured()) {
+      throw new Error('NOTION_TOKEN not configured');
+    }
+    // Test connection with a simple search
+    await searchNotion('test');
     console.log('Connected!\n');
-
-    // List available tools
-    const tools = await listMCPTools();
-    console.log(
-      'Available MCP tools:',
-      JSON.stringify(tools, null, 2).slice(0, 500) + '...\n'
-    );
   } catch (err) {
-    console.error('Failed to connect to Notion MCP server:', err);
+    console.error('Failed to connect to Notion:', err);
     console.log('\nTroubleshooting:');
     console.log('1. Verify NOTION_TOKEN is set in .env.local');
     console.log('2. Ensure the Notion integration has access to your workspace');
@@ -360,10 +367,6 @@ async function main(): Promise<void> {
   } catch (err) {
     console.error('\nDiscovery failed:', err);
     process.exit(1);
-  } finally {
-    // Clean up MCP client
-    console.log('\nClosing MCP connection...');
-    closeMCPClient();
   }
 }
 

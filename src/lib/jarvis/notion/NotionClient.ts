@@ -56,11 +56,14 @@ type DataSourceSorts = QueryDataSourceParameters['sorts'];
  * @param dataSourceId - The data source (database) ID to query
  * @param options - Optional filter, sorts, page_size, start_cursor
  * @returns Query results with pages
+ *
+ * Note: filter accepts the legacy NotionFilter format for backward compatibility
+ * The type casting is safe because the SDK will validate at runtime
  */
 export async function queryDatabase(
   dataSourceId: string,
   options?: {
-    filter?: DataSourceFilter;
+    filter?: DataSourceFilter | { and?: unknown[] } | { or?: unknown[] };
     sorts?: DataSourceSorts;
     page_size?: number;
     start_cursor?: string;
@@ -72,7 +75,7 @@ export async function queryDatabase(
 
   const response = await client.dataSources.query({
     data_source_id: dataSourceId,
-    filter: options?.filter,
+    filter: options?.filter as DataSourceFilter,
     sorts: options?.sorts,
     page_size: options?.page_size,
     start_cursor: options?.start_cursor,
@@ -90,12 +93,14 @@ type PageProperties = CreatePageParameters['properties'];
  * Create a new page in a Notion database
  *
  * @param databaseId - The parent database ID
- * @param properties - The page properties
+ * @param properties - The page properties (accepts Record<string, unknown> for backward compatibility)
  * @returns The created page
+ *
+ * Note: properties are cast to the SDK type for flexibility with legacy code
  */
 export async function createPage(
   databaseId: string,
-  properties: PageProperties
+  properties: PageProperties | Record<string, unknown>
 ): Promise<unknown> {
   const client = getNotionClient();
 
@@ -103,7 +108,7 @@ export async function createPage(
 
   const response = await client.pages.create({
     parent: { database_id: databaseId },
-    properties,
+    properties: properties as PageProperties,
   });
 
   console.log('[Notion] Page created:', response.id);
@@ -118,12 +123,14 @@ type UpdateProperties = UpdatePageParameters['properties'];
  * Update an existing Notion page
  *
  * @param pageId - The page ID to update
- * @param properties - The properties to update
+ * @param properties - The properties to update (accepts Record<string, unknown> for backward compatibility)
  * @returns The updated page
+ *
+ * Note: properties are cast to the SDK type for flexibility with legacy code
  */
 export async function updatePage(
   pageId: string,
-  properties: UpdateProperties
+  properties: UpdateProperties | Record<string, unknown>
 ): Promise<unknown> {
   const client = getNotionClient();
 
@@ -131,7 +138,7 @@ export async function updatePage(
 
   const response = await client.pages.update({
     page_id: pageId,
-    properties,
+    properties: properties as UpdateProperties,
   });
 
   console.log('[Notion] Page updated:', response.id);

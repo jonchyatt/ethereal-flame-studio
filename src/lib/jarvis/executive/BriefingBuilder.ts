@@ -26,8 +26,8 @@ import type {
 } from './types';
 import { getLifeAreaTracker } from './LifeAreaTracker';
 
-// Import the internal query function that returns raw results
-import { callMCPTool } from '../notion/NotionClient';
+// Import the direct SDK query function
+import { queryDatabase } from '../notion/NotionClient';
 import {
   LIFE_OS_DATABASES,
   buildTaskFilter,
@@ -270,10 +270,7 @@ async function queryNotionRaw(
       break;
   }
 
-  return callMCPTool('API-query-data-source', {
-    data_source_id: databaseId,
-    ...filter,
-  });
+  return queryDatabase(databaseId, filter);
 }
 
 // =============================================================================

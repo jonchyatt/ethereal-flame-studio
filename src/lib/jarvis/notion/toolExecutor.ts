@@ -1,13 +1,13 @@
 /**
  * Tool Executor for Notion Operations
  *
- * Routes Claude tool_use calls to MCP operations.
+ * Routes Claude tool_use calls to Notion SDK operations.
  * Handles ALL Life OS operations:
  * - Read: Tasks, Bills, Projects, Goals, Habits queries
  * - Write: Create tasks, update status, mark bills paid, pause tasks, add project items
  */
 
-import { callMCPTool } from './NotionClient';
+import { queryDatabase, createPage, updatePage } from './NotionClient';
 import {
   LIFE_OS_DATABASES,
   LIFE_OS_DATABASE_IDS,
@@ -54,7 +54,7 @@ function triggerDashboardRefresh(): void {
 }
 
 /**
- * Execute a Notion tool call by routing to MCP
+ * Execute a Notion tool call by routing to SDK
  *
  * @param toolName - The Claude tool name (e.g., 'query_tasks')
  * @param input - The tool input parameters from Claude
@@ -101,8 +101,8 @@ export async function executeNotionTool(
     if (errorMessage.includes('timeout')) {
       return 'Notion took too long to respond. Please try again in a moment.';
     }
-    if (errorMessage.includes('not running') || errorMessage.includes('exited')) {
-      return 'Lost connection to Notion. Let me try reconnecting on your next request.';
+    if (errorMessage.includes('Could not find')) {
+      return `I couldn't find that item in Notion. It may have been deleted or renamed.`;
     }
 
     return `I had trouble accessing Notion: ${errorMessage}. Please try again.`;
@@ -146,20 +146,17 @@ async function executeNotionToolInner(
     // =========================================================================
 
     case 'query_tasks': {
-      const databaseId = LIFE_OS_DATABASES.tasks;
-      if (!databaseId) {
+      const dataSourceId = LIFE_OS_DATABASES.tasks;
+      if (!dataSourceId) {
         return 'Task database is not configured. Please set NOTION_TASKS_DATA_SOURCE_ID.';
       }
 
-      const filter = buildTaskFilter({
+      const filterOptions = buildTaskFilter({
         filter: input.filter as 'today' | 'this_week' | 'overdue' | 'all' | undefined,
         status: input.status as 'pending' | 'completed' | 'all' | undefined,
       });
 
-      const result = await callMCPTool('API-query-data-source', {
-        data_source_id: databaseId,
-        ...filter,
-      });
+      const result = await queryDatabase(dataSourceId, filterOptions);
 
       // Cache results for follow-up operations
       cacheQueryResults(result, 'task');
@@ -168,20 +165,17 @@ async function executeNotionToolInner(
     }
 
     case 'query_bills': {
-      const databaseId = LIFE_OS_DATABASES.bills;
-      if (!databaseId) {
+      const dataSourceId = LIFE_OS_DATABASES.bills;
+      if (!dataSourceId) {
         return 'Bills database is not configured. Please set NOTION_BILLS_DATA_SOURCE_ID.';
       }
 
-      const filter = buildBillFilter({
+      const filterOptions = buildBillFilter({
         timeframe: input.timeframe as 'this_week' | 'this_month' | 'overdue' | undefined,
         unpaidOnly: input.unpaidOnly !== false,
       });
 
-      const result = await callMCPTool('API-query-data-source', {
-        data_source_id: databaseId,
-        ...filter,
-      });
+      const result = await queryDatabase(dataSourceId, filterOptions);
 
       // Cache results for follow-up operations
       cacheQueryResults(result, 'bill');
@@ -190,19 +184,16 @@ async function executeNotionToolInner(
     }
 
     case 'query_projects': {
-      const databaseId = LIFE_OS_DATABASES.projects;
-      if (!databaseId) {
+      const dataSourceId = LIFE_OS_DATABASES.projects;
+      if (!dataSourceId) {
         return 'Projects database is not configured. Please set NOTION_PROJECTS_DATA_SOURCE_ID.';
       }
 
-      const filter = buildProjectFilter({
+      const filterOptions = buildProjectFilter({
         status: input.status as 'active' | 'completed' | 'all' | undefined,
       });
 
-      const result = await callMCPTool('API-query-data-source', {
-        data_source_id: databaseId,
-        ...filter,
-      });
+      const result = await queryDatabase(dataSourceId, filterOptions);
 
       // Cache results for follow-up operations
       cacheQueryResults(result, 'project');
@@ -211,19 +202,16 @@ async function executeNotionToolInner(
     }
 
     case 'query_goals': {
-      const databaseId = LIFE_OS_DATABASES.goals;
-      if (!databaseId) {
+      const dataSourceId = LIFE_OS_DATABASES.goals;
+      if (!dataSourceId) {
         return 'Goals database is not configured. Please set NOTION_GOALS_DATA_SOURCE_ID.';
       }
 
-      const filter = buildGoalFilter({
+      const filterOptions = buildGoalFilter({
         status: input.status as 'active' | 'achieved' | 'all' | undefined,
       });
 
-      const result = await callMCPTool('API-query-data-source', {
-        data_source_id: databaseId,
-        ...filter,
-      });
+      const result = await queryDatabase(dataSourceId, filterOptions);
 
       // Cache results for follow-up operations
       cacheQueryResults(result, 'goal');
@@ -232,19 +220,16 @@ async function executeNotionToolInner(
     }
 
     case 'query_habits': {
-      const databaseId = LIFE_OS_DATABASES.habits;
-      if (!databaseId) {
+      const dataSourceId = LIFE_OS_DATABASES.habits;
+      if (!dataSourceId) {
         return 'Habits database is not configured. Please set NOTION_HABITS_DATA_SOURCE_ID.';
       }
 
-      const filter = buildHabitFilter({
+      const filterOptions = buildHabitFilter({
         frequency: input.frequency as 'daily' | 'weekly' | 'monthly' | 'all' | undefined,
       });
 
-      const result = await callMCPTool('API-query-data-source', {
-        data_source_id: databaseId,
-        ...filter,
-      });
+      const result = await queryDatabase(dataSourceId, filterOptions);
 
       // Cache results for follow-up operations
       cacheQueryResults(result, 'habit');
@@ -270,10 +255,7 @@ async function executeNotionToolInner(
         priority: input.priority as string | undefined,
       });
 
-      await callMCPTool('API-post-page', {
-        parent: { database_id: databaseId },
-        properties,
-      });
+      await createPage(databaseId, properties);
 
       // Trigger dashboard refresh after task creation
       triggerDashboardRefresh();
@@ -303,10 +285,7 @@ async function executeNotionToolInner(
 
       const properties = buildTaskStatusUpdate(newStatus);
 
-      await callMCPTool('API-patch-page', {
-        page_id: taskId,
-        properties,
-      });
+      await updatePage(taskId, properties);
 
       // Trigger dashboard refresh after status update
       triggerDashboardRefresh();
@@ -334,10 +313,7 @@ async function executeNotionToolInner(
 
       const properties = buildBillPaidUpdate();
 
-      await callMCPTool('API-patch-page', {
-        page_id: billId,
-        properties,
-      });
+      await updatePage(billId, properties);
 
       // Trigger dashboard refresh after bill paid
       triggerDashboardRefresh();
@@ -360,10 +336,7 @@ async function executeNotionToolInner(
 
       const properties = buildTaskPauseUpdate(until);
 
-      await callMCPTool('API-patch-page', {
-        page_id: taskId,
-        properties,
-      });
+      await updatePage(taskId, properties);
 
       // Trigger dashboard refresh after task pause
       triggerDashboardRefresh();
@@ -400,10 +373,7 @@ async function executeNotionToolInner(
         project_id: projectId,
       });
 
-      await callMCPTool('API-post-page', {
-        parent: { database_id: databaseId },
-        properties,
-      });
+      await createPage(databaseId, properties);
 
       // Trigger dashboard refresh after adding project item
       triggerDashboardRefresh();
