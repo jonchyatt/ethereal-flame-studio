@@ -41,8 +41,9 @@ export function hashContent(content: string): string {
 /**
  * Store a memory entry with deduplication.
  *
+ * Uses atomic upsert (INSERT ... ON CONFLICT DO UPDATE) to handle race conditions.
  * If identical content (by hash) exists:
- * - Updates lastAccessed timestamp
+ * - Updates lastAccessed timestamp atomically
  * - Returns existing entry (no duplicate created)
  *
  * If new content:
@@ -62,25 +63,9 @@ export async function storeMemoryEntry(
   const contentHash = hashContent(content);
   const now = new Date().toISOString();
 
-  // Check for existing entry with same hash
-  const existing = await db
-    .select()
-    .from(memoryEntries)
-    .where(eq(memoryEntries.contentHash, contentHash))
-    .limit(1);
-
-  if (existing.length > 0) {
-    // Silent update: just update lastAccessed
-    await db
-      .update(memoryEntries)
-      .set({ lastAccessed: now })
-      .where(eq(memoryEntries.id, existing[0].id));
-
-    return { ...existing[0], lastAccessed: now };
-  }
-
-  // Create new entry
-  const inserted = await db
+  // Atomic upsert: insert new entry or update lastAccessed if contentHash exists
+  // This prevents race conditions where concurrent requests could both try to insert
+  const result = await db
     .insert(memoryEntries)
     .values({
       content,
@@ -89,9 +74,13 @@ export async function storeMemoryEntry(
       source,
       lastAccessed: now,
     })
+    .onConflictDoUpdate({
+      target: memoryEntries.contentHash,
+      set: { lastAccessed: now },
+    })
     .returning();
 
-  return inserted[0];
+  return result[0];
 }
 
 /**
