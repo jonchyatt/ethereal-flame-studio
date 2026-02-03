@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 ## Current Position
 
-Phase: 10 - Guardrails & Safety
-Plan: 04 of 04 complete (10-01, 10-02, 10-03, 10-04 done)
-Status: Phase complete
-Last activity: 2026-02-02 - Completed 10-01-PLAN.md (audit logging wire-up)
+Phase: 11 - Production Deployment
+Plan: Context gathered, ready for planning
+Status: Context complete (11-CONTEXT.md)
+Last activity: 2026-02-02 - Gathered Phase 11 context, identified 6 issues to fix
 
-Progress: [####################] 100% (15/15 plans complete)
+Progress: [####################] 100% (15/15 v2.0 plans complete, Phase 11 pending)
 
 ## Milestone Summary
 
@@ -101,6 +101,11 @@ Progress: [####################] 100% (15/15 plans complete)
 | Jest for unit testing | Added jest, ts-jest, @types/jest for memory module tests | 2026-02-02 |
 | Audit log query limit cap at 50 | Prevents excessive response sizes while allowing reasonable history | 2026-02-02 |
 | Voice-friendly timestamps | toLocaleTimeString with en-US locale for natural speech output | 2026-02-02 |
+| Direct Notion SDK over MCP | MCP requires persistent process, incompatible with Vercel serverless | 2026-02-02 |
+| Park MCP code for MacBook | NotionClient.mcp.ts preserved for future always-on daemon | 2026-02-02 |
+| Single-user API secret | X-Jarvis-Secret header for API auth, simplest solution | 2026-02-02 |
+| Subdomain-only access | jarvis.whatamiappreciatingnow.com is sole entry point | 2026-02-02 |
+| MacBook for full agent | Browser automation, Telegram, MCP require persistent process | 2026-02-02 |
 
 ### Pending Todos
 
@@ -118,13 +123,39 @@ Progress: [####################] 100% (15/15 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 10-02-PLAN.md (audit log query tool)
-Resume file: None
+Stopped at: Phase 11 context gathering complete
+Resume file: `.planning/phases/11-production-deployment/11-CONTEXT.md`
 
 Phase 10 (Guardrails & Safety) complete:
-- 10-01: Audit logging wire-up (complete - tool invocations logged to dailyLogs)
-- 10-02: Audit log query tool (complete - query_audit_log for "what did you do?" queries)
+- 10-01: Audit logging wire-up (complete)
+- 10-02: Audit log query tool (complete)
 - 10-03: Bug fixes FIX-01, FIX-02 (complete)
-- 10-04: Decay exemption & context monitoring (complete - GUARD-05)
+- 10-04: Decay exemption & context monitoring (complete)
 
-Ready for Phase 11: Production Deployment
+### Phase 11 Context Summary
+
+**Current Production State:**
+- Domain `jarvis.whatamiappreciatingnow.com` is LIVE (old deployment)
+- New deployments FAIL due to `child_process` module error in NotionClient.ts
+- Notion integration BROKEN - dashboard shows no data
+
+**6 Issues to Fix:**
+1. **Notion MCP in serverless** (CRITICAL) - Replace MCP with Direct Notion SDK
+2. **Tomorrow preview placeholder** - Already fixed in 10-03, verify in prod
+3. **Unauthenticated API routes** - Add single-user secret header
+4. **Session API leaks env/stack** - Gate behind NODE_ENV
+5. **Memory dedup race condition** - Catch unique-constraint errors
+6. **UTC date filters** - Use user's local timezone
+
+**Key Decision: Direct Notion SDK (not MCP)**
+- MCP requires persistent process (incompatible with Vercel serverless)
+- Direct SDK does everything MCP does
+- Park MCP code for future MacBook integration
+- Migration back to MCP is easy (~2 hours)
+
+**Long-Term Architecture:**
+- Phase 11: Vercel-only deployment with Direct SDK
+- Phase 12+: MacBook daemon for browser automation, Telegram, full MCP
+- MacBook required for "book flights", "pay bills" agent capabilities
+
+**Next Step:** `/gsd:plan-phase 11` to create execution plans
