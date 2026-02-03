@@ -266,14 +266,9 @@ async function queryNotionRaw(
       });
       break;
     case 'bills':
-      // Don't include unpaidOnly in the API filter - "Paid" property may not exist
-      // on some Notion databases. We'll filter by paid status client-side instead.
-      filter = buildBillFilter({
-        timeframe: options.timeframe as 'this_week' | 'this_month' | 'overdue' | undefined,
-        // unpaidOnly is intentionally omitted - will be filtered client-side
-        unpaidOnly: false, // Disable API-level filtering
-        timezone,
-      });
+      // Don't use any API-level filtering - property names may not match user's database
+      // The "Due Date" property may not exist. Filter client-side instead.
+      filter = {};
       break;
     case 'habits':
       filter = buildHabitFilter({
@@ -289,10 +284,16 @@ async function queryNotionRaw(
       break;
   }
 
-  console.log(`[BriefingBuilder] Querying ${database}:`, { databaseId, filter });
-  const result = await queryDatabase(databaseId, filter);
-  console.log(`[BriefingBuilder] ${database} result count:`, (result as { results?: unknown[] })?.results?.length || 0);
-  return result;
+  try {
+    console.log(`[BriefingBuilder] Querying ${database}:`, { databaseId, filter });
+    const result = await queryDatabase(databaseId, filter);
+    console.log(`[BriefingBuilder] ${database} result count:`, (result as { results?: unknown[] })?.results?.length || 0);
+    return result;
+  } catch (error) {
+    // Log but don't throw - return empty results so other queries can succeed
+    console.error(`[BriefingBuilder] Error querying ${database}:`, error);
+    return { results: [] };
+  }
 }
 
 // =============================================================================
