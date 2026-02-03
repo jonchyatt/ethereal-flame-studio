@@ -193,14 +193,62 @@ export interface HabitProperties {
 // =============================================================================
 
 /**
+ * Get today's date in the specified timezone.
+ * Falls back to server time if timezone is invalid.
+ *
+ * @param timezone - IANA timezone string (e.g., 'America/New_York', 'Europe/London')
+ * @returns Date string in YYYY-MM-DD format
+ */
+export function getTodayInTimezone(timezone?: string): string {
+  const now = new Date();
+
+  if (timezone) {
+    try {
+      // Use Intl.DateTimeFormat to get the date in the user's timezone
+      const formatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+      return formatter.format(now);
+    } catch {
+      // Invalid timezone, fall back to server time
+      console.warn(`[schemas] Invalid timezone: ${timezone}, using server time`);
+    }
+  }
+
+  return now.toISOString().split('T')[0];
+}
+
+/**
+ * Get a date relative to today in the specified timezone.
+ *
+ * @param daysOffset - Number of days from today (positive = future, negative = past)
+ * @param timezone - IANA timezone string
+ * @returns Date string in YYYY-MM-DD format
+ */
+export function getDateInTimezone(daysOffset: number, timezone?: string): string {
+  const today = getTodayInTimezone(timezone);
+  const date = new Date(today + 'T00:00:00');
+  date.setDate(date.getDate() + daysOffset);
+  return date.toISOString().split('T')[0];
+}
+
+/**
  * Build a filter for task queries
+ *
+ * @param options.filter - Date filter: 'today' | 'tomorrow' | 'this_week' | 'overdue' | 'all'
+ * @param options.status - Status filter: 'pending' | 'completed' | 'all'
+ * @param options.timezone - IANA timezone for date calculations (from X-Timezone header)
  */
 export function buildTaskFilter(options: {
   filter?: 'today' | 'tomorrow' | 'this_week' | 'overdue' | 'all';
   status?: 'pending' | 'completed' | 'all';
+  timezone?: string;
 }): { filter?: { and: NotionFilter[] } } {
   const filters: NotionFilter[] = [];
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayInTimezone(options.timezone);
 
   // Status filter
   if (options.status && options.status !== 'all') {
@@ -224,18 +272,16 @@ export function buildTaskFilter(options: {
       date: { equals: today },
     });
   } else if (options.filter === 'tomorrow') {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrow = getDateInTimezone(1, options.timezone);
     filters.push({
       property: TASK_PROPS.dueDate,
-      date: { equals: tomorrow.toISOString().split('T')[0] },
+      date: { equals: tomorrow },
     });
   } else if (options.filter === 'this_week') {
-    const nextWeek = new Date();
-    nextWeek.setDate(nextWeek.getDate() + 7);
+    const nextWeek = getDateInTimezone(7, options.timezone);
     filters.push({
       property: TASK_PROPS.dueDate,
-      date: { on_or_before: nextWeek.toISOString().split('T')[0] },
+      date: { on_or_before: nextWeek },
     });
   } else if (options.filter === 'overdue') {
     filters.push({
@@ -254,13 +300,18 @@ export function buildTaskFilter(options: {
 
 /**
  * Build a filter for bill queries
+ *
+ * @param options.timeframe - 'this_week' | 'this_month' | 'overdue'
+ * @param options.unpaidOnly - Filter to unpaid bills only (default true)
+ * @param options.timezone - IANA timezone for date calculations (from X-Timezone header)
  */
 export function buildBillFilter(options: {
   timeframe?: 'this_week' | 'this_month' | 'overdue';
   unpaidOnly?: boolean;
+  timezone?: string;
 }): { filter?: { and: NotionFilter[] } } {
   const filters: NotionFilter[] = [];
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayInTimezone(options.timezone);
 
   // Default to unpaid only
   if (options.unpaidOnly !== false) {
@@ -271,18 +322,16 @@ export function buildBillFilter(options: {
   }
 
   if (options.timeframe === 'this_week') {
-    const nextWeek = new Date();
-    nextWeek.setDate(nextWeek.getDate() + 7);
+    const nextWeek = getDateInTimezone(7, options.timezone);
     filters.push({
       property: BILL_PROPS.dueDate,
-      date: { on_or_before: nextWeek.toISOString().split('T')[0] },
+      date: { on_or_before: nextWeek },
     });
   } else if (options.timeframe === 'this_month') {
-    const nextMonth = new Date();
-    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    const nextMonth = getDateInTimezone(30, options.timezone);
     filters.push({
       property: BILL_PROPS.dueDate,
-      date: { on_or_before: nextMonth.toISOString().split('T')[0] },
+      date: { on_or_before: nextMonth },
     });
   } else if (options.timeframe === 'overdue') {
     filters.push({
