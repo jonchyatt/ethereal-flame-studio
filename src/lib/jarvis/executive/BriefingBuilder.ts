@@ -97,9 +97,11 @@ export async function buildMorningBriefing(timezone?: string): Promise<BriefingD
 
   try {
     // Parallel queries for all data sources using Phase 4 MCP tools
+    // Note: Using 'all' filter instead of 'today' to show all pending tasks
+    // since many tasks may not have dates set in the 'Do Dates' field
     const [todayTasksResult, overdueTasksResult, billsResult, habitsResult, goalsResult] =
       await Promise.all([
-        queryNotionRaw('tasks', { filter: 'today', status: 'pending', timezone }),
+        queryNotionRaw('tasks', { filter: 'all', status: 'pending', timezone }),
         queryNotionRaw('tasks', { filter: 'overdue', status: 'pending', timezone }),
         queryNotionRaw('bills', { timeframe: 'this_week', unpaidOnly: true, timezone }),
         queryNotionRaw('habits', { frequency: 'all' }),
