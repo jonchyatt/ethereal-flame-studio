@@ -1,322 +1,203 @@
 /**
- * Notion MCP Client
+ * Notion Direct SDK Client
  *
- * Singleton MCP client for communicating with the Notion MCP server.
- * Uses stdio transport to spawn `npx -y @notionhq/notion-mcp-server`.
+ * Direct @notionhq/client integration for Vercel serverless deployment.
+ * Replaces MCP implementation to avoid child_process spawning.
  *
  * This module provides:
- * - ensureMCPRunning(): Start MCP process if not running
- * - sendMCPRequest(method, params): Send JSON-RPC request
- * - callMCPTool(name, args): Wrapper for tools/call
- * - closeMCPClient(): Clean shutdown
+ * - queryDatabase(databaseId, filter?): Query a Notion database (via dataSources API)
+ * - createPage(databaseId, properties): Create a new page in a database
+ * - updatePage(pageId, properties): Update an existing page
+ * - retrievePage(pageId): Get a page by ID
+ * - searchNotion(query): Search across all accessible Notion content
  */
 
-import { spawn, ChildProcess } from 'child_process';
+import { Client } from '@notionhq/client';
+import type {
+  QueryDataSourceParameters,
+  QueryDataSourceResponse,
+  CreatePageParameters,
+  UpdatePageParameters,
+  SearchParameters,
+  SearchResponse,
+} from '@notionhq/client/build/src/api-endpoints';
 
-// MCP client state
-let mcpProcess: ChildProcess | null = null;
-let requestId = 0;
-let initialized = false;
-let initializePromise: Promise<void> | null = null;
-
-// Pending requests map for JSON-RPC response matching
-const pendingRequests = new Map<
-  number,
-  {
-    resolve: (value: unknown) => void;
-    reject: (error: Error) => void;
-    timeoutId: ReturnType<typeof setTimeout>;
-  }
->();
-
-// Default timeout for MCP requests (30 seconds)
-const REQUEST_TIMEOUT_MS = 30000;
-
-// Buffer for incomplete JSON lines
-let stdoutBuffer = '';
+// Singleton Notion client instance
+let notionClient: Client | null = null;
 
 /**
- * Ensure the MCP process is running and initialized
+ * Get or create the Notion client singleton
  */
-export async function ensureMCPRunning(): Promise<void> {
-  // If already initialized, return immediately
-  if (initialized && mcpProcess && !mcpProcess.killed) {
-    return;
+function getNotionClient(): Client {
+  if (notionClient) {
+    return notionClient;
   }
 
-  // If initialization is in progress, wait for it
-  if (initializePromise) {
-    return initializePromise;
+  const notionToken = process.env.NOTION_TOKEN;
+  if (!notionToken) {
+    throw new Error('NOTION_TOKEN environment variable is required');
   }
 
-  // Start new initialization
-  initializePromise = new Promise<void>((resolve, reject) => {
-    const notionToken = process.env.NOTION_TOKEN;
-    if (!notionToken) {
-      reject(new Error('NOTION_TOKEN environment variable is required'));
-      initializePromise = null;
-      return;
-    }
-
-    console.log('[MCP] Starting Notion MCP server...');
-
-    // Use spawn without shell for Windows compatibility
-    mcpProcess = spawn('npx', ['-y', '@notionhq/notion-mcp-server'], {
-      env: {
-        ...process.env,
-        NOTION_TOKEN: notionToken,
-      },
-      stdio: ['pipe', 'pipe', 'pipe'],
-      // Windows compatibility: use shell only on Windows
-      shell: process.platform === 'win32',
-    });
-
-    // Handle stdout - parse JSON-RPC responses
-    mcpProcess.stdout?.on('data', (data: Buffer) => {
-      stdoutBuffer += data.toString();
-
-      // Process complete lines
-      const lines = stdoutBuffer.split('\n');
-      stdoutBuffer = lines.pop() || ''; // Keep incomplete line in buffer
-
-      for (const line of lines) {
-        if (!line.trim()) continue;
-
-        try {
-          const response = JSON.parse(line);
-
-          // Handle responses with IDs (request responses)
-          if (response.id !== undefined) {
-            const pending = pendingRequests.get(response.id);
-            if (pending) {
-              clearTimeout(pending.timeoutId);
-              pendingRequests.delete(response.id);
-
-              if (response.error) {
-                pending.reject(
-                  new Error(response.error.message || 'MCP request failed')
-                );
-              } else {
-                pending.resolve(response.result);
-              }
-            }
-          }
-
-          // Handle notifications (no ID)
-          if (response.method) {
-            console.log(`[MCP] Notification: ${response.method}`);
-          }
-        } catch {
-          // Non-JSON output, log it
-          if (line.trim()) {
-            console.log('[MCP stdout]', line);
-          }
-        }
-      }
-    });
-
-    // Handle stderr
-    mcpProcess.stderr?.on('data', (data: Buffer) => {
-      const message = data.toString().trim();
-      if (message) {
-        console.error('[MCP stderr]', message);
-      }
-    });
-
-    // Handle process errors
-    mcpProcess.on('error', (err) => {
-      console.error('[MCP] Process error:', err);
-      if (!initialized) {
-        reject(err);
-        initializePromise = null;
-      }
-    });
-
-    // Handle process exit
-    mcpProcess.on('exit', (code, signal) => {
-      console.log(`[MCP] Process exited with code ${code}, signal ${signal}`);
-      mcpProcess = null;
-      initialized = false;
-      initializePromise = null;
-
-      // Reject all pending requests
-      for (const [id, pending] of pendingRequests) {
-        clearTimeout(pending.timeoutId);
-        pending.reject(new Error('MCP process exited'));
-        pendingRequests.delete(id);
-      }
-    });
-
-    // Send initialize request
-    const initRequest = sendMCPRequestInternal('initialize', {
-      protocolVersion: '2024-11-05',
-      capabilities: {},
-      clientInfo: { name: 'jarvis', version: '1.0.0' },
-    });
-
-    initRequest
-      .then(() => {
-        // Send initialized notification
-        const notification = JSON.stringify({
-          jsonrpc: '2.0',
-          method: 'notifications/initialized',
-        });
-        mcpProcess?.stdin?.write(notification + '\n');
-
-        initialized = true;
-        console.log('[MCP] Notion MCP server initialized');
-        resolve();
-      })
-      .catch((err) => {
-        console.error('[MCP] Initialization failed:', err);
-        closeMCPClient();
-        reject(err);
-        initializePromise = null;
-      });
+  notionClient = new Client({
+    auth: notionToken,
   });
 
-  return initializePromise;
+  console.log('[Notion] Client initialized');
+  return notionClient;
 }
 
-/**
- * Internal function to send MCP request (used during initialization)
- */
-function sendMCPRequestInternal(
-  method: string,
-  params: unknown
-): Promise<unknown> {
-  return new Promise((resolve, reject) => {
-    if (!mcpProcess || mcpProcess.killed) {
-      reject(new Error('MCP process not running'));
-      return;
-    }
-
-    const id = ++requestId;
-
-    // Set up timeout
-    const timeoutId = setTimeout(() => {
-      pendingRequests.delete(id);
-      reject(new Error(`MCP request timeout: ${method}`));
-    }, REQUEST_TIMEOUT_MS);
-
-    pendingRequests.set(id, { resolve, reject, timeoutId });
-
-    const request = JSON.stringify({
-      jsonrpc: '2.0',
-      id,
-      method,
-      params,
-    });
-
-    mcpProcess.stdin?.write(request + '\n');
-  });
-}
+// Type for filter from QueryDataSourceParameters
+type DataSourceFilter = QueryDataSourceParameters['filter'];
+type DataSourceSorts = QueryDataSourceParameters['sorts'];
 
 /**
- * Send a JSON-RPC request to the MCP server
+ * Query a Notion database (using dataSources API)
  *
- * @param method - The JSON-RPC method name
- * @param params - The request parameters
- * @returns Promise resolving to the result
+ * @param dataSourceId - The data source (database) ID to query
+ * @param options - Optional filter, sorts, page_size, start_cursor
+ * @returns Query results with pages
  */
-export async function sendMCPRequest(
-  method: string,
-  params: unknown
-): Promise<unknown> {
-  await ensureMCPRunning();
-  return sendMCPRequestInternal(method, params);
-}
+export async function queryDatabase(
+  dataSourceId: string,
+  options?: {
+    filter?: DataSourceFilter;
+    sorts?: DataSourceSorts;
+    page_size?: number;
+    start_cursor?: string;
+  }
+): Promise<QueryDataSourceResponse> {
+  const client = getNotionClient();
 
-/**
- * Call an MCP tool
- *
- * @param name - The tool name
- * @param args - The tool arguments
- * @returns Promise resolving to the unwrapped tool result (parsed JSON from content)
- */
-export async function callMCPTool(
-  name: string,
-  args: Record<string, unknown>
-): Promise<unknown> {
-  await ensureMCPRunning();
-  const result = await sendMCPRequestInternal('tools/call', {
-    name,
-    arguments: args,
+  console.log('[Notion] Querying data source:', dataSourceId);
+
+  const response = await client.dataSources.query({
+    data_source_id: dataSourceId,
+    filter: options?.filter,
+    sorts: options?.sorts,
+    page_size: options?.page_size,
+    start_cursor: options?.start_cursor,
   });
 
-  // MCP tools/call response format: { content: [{ type: "text", text: "...JSON..." }] }
-  // We need to unwrap and parse the actual data
-  return unwrapMCPContent(result);
+  console.log(`[Notion] Query returned ${response.results.length} results`);
+
+  return response;
 }
 
+// Type for properties from CreatePageParameters
+type PageProperties = CreatePageParameters['properties'];
+
 /**
- * Unwrap MCP content response
+ * Create a new page in a Notion database
  *
- * MCP tools return responses in format: { content: [{ type: "text", text: "...JSON..." }] }
- * This function extracts and parses the actual data.
+ * @param databaseId - The parent database ID
+ * @param properties - The page properties
+ * @returns The created page
  */
-function unwrapMCPContent(result: unknown): unknown {
-  // If result has content array, extract the text
-  const mcpResult = result as {
-    content?: Array<{ type: string; text?: string }>;
-  };
+export async function createPage(
+  databaseId: string,
+  properties: PageProperties
+): Promise<unknown> {
+  const client = getNotionClient();
 
-  if (mcpResult?.content && Array.isArray(mcpResult.content)) {
-    // Find text content (could be multiple, we take the first text type)
-    const textContent = mcpResult.content.find((c) => c.type === 'text');
-    if (textContent?.text) {
-      try {
-        // Parse the JSON string to get actual Notion data
-        return JSON.parse(textContent.text);
-      } catch {
-        // If not valid JSON, return raw text
-        console.warn('[MCP] Content is not valid JSON, returning raw text');
-        return textContent.text;
-      }
-    }
-  }
+  console.log('[Notion] Creating page in database:', databaseId);
 
-  // If no content wrapper, return as-is (shouldn't happen for tools/call)
-  console.warn('[MCP] Unexpected response format, returning raw result');
-  return result;
+  const response = await client.pages.create({
+    parent: { database_id: databaseId },
+    properties,
+  });
+
+  console.log('[Notion] Page created:', response.id);
+
+  return response;
 }
 
+// Type for properties from UpdatePageParameters
+type UpdateProperties = UpdatePageParameters['properties'];
+
 /**
- * List available tools from the MCP server
+ * Update an existing Notion page
  *
- * @returns Promise resolving to the list of tools
+ * @param pageId - The page ID to update
+ * @param properties - The properties to update
+ * @returns The updated page
  */
-export async function listMCPTools(): Promise<unknown> {
-  await ensureMCPRunning();
-  return sendMCPRequestInternal('tools/list', {});
+export async function updatePage(
+  pageId: string,
+  properties: UpdateProperties
+): Promise<unknown> {
+  const client = getNotionClient();
+
+  console.log('[Notion] Updating page:', pageId);
+
+  const response = await client.pages.update({
+    page_id: pageId,
+    properties,
+  });
+
+  console.log('[Notion] Page updated:', response.id);
+
+  return response;
 }
 
 /**
- * Clean shutdown of the MCP client
+ * Retrieve a Notion page by ID
+ *
+ * @param pageId - The page ID to retrieve
+ * @returns The page object
  */
-export function closeMCPClient(): void {
-  if (mcpProcess && !mcpProcess.killed) {
-    console.log('[MCP] Closing Notion MCP server...');
+export async function retrievePage(pageId: string): Promise<unknown> {
+  const client = getNotionClient();
 
-    // Reject all pending requests
-    for (const [id, pending] of pendingRequests) {
-      clearTimeout(pending.timeoutId);
-      pending.reject(new Error('MCP client closed'));
-      pendingRequests.delete(id);
-    }
+  console.log('[Notion] Retrieving page:', pageId);
 
-    mcpProcess.kill();
-    mcpProcess = null;
+  const response = await client.pages.retrieve({
+    page_id: pageId,
+  });
+
+  return response;
+}
+
+// Types for search parameters
+type SearchFilter = SearchParameters['filter'];
+type SearchSort = SearchParameters['sort'];
+
+/**
+ * Search across all accessible Notion content
+ *
+ * @param query - The search query string
+ * @param options - Optional filter (page or database), sort, page_size
+ * @returns Search results
+ */
+export async function searchNotion(
+  query: string,
+  options?: {
+    filter?: SearchFilter;
+    sort?: SearchSort;
+    page_size?: number;
+    start_cursor?: string;
   }
+): Promise<SearchResponse> {
+  const client = getNotionClient();
 
-  initialized = false;
-  initializePromise = null;
-  stdoutBuffer = '';
+  console.log('[Notion] Searching:', query);
+
+  const response = await client.search({
+    query,
+    filter: options?.filter,
+    sort: options?.sort,
+    page_size: options?.page_size,
+    start_cursor: options?.start_cursor,
+  });
+
+  console.log(`[Notion] Search returned ${response.results.length} results`);
+
+  return response;
 }
 
 /**
- * Check if the MCP client is currently running
+ * Check if the Notion client is initialized
+ * (Always returns true if NOTION_TOKEN is set, since client is lazy-initialized)
  */
-export function isMCPRunning(): boolean {
-  return initialized && mcpProcess !== null && !mcpProcess.killed;
+export function isNotionConfigured(): boolean {
+  return !!process.env.NOTION_TOKEN;
 }
