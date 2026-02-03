@@ -15,7 +15,7 @@ import type { NextRequest } from 'next/server';
  */
 
 /**
- * Validate X-Jarvis-Secret header for Jarvis API requests
+ * Validate X-Jarvis-Secret header (or query param for SSE) for Jarvis API requests
  */
 function validateJarvisAuth(request: NextRequest): NextResponse | null {
   const secret = process.env.JARVIS_API_SECRET;
@@ -33,8 +33,14 @@ function validateJarvisAuth(request: NextRequest): NextResponse | null {
     );
   }
 
-  // Check X-Jarvis-Secret header
-  const providedSecret = request.headers.get('X-Jarvis-Secret');
+  // Check X-Jarvis-Secret header first
+  let providedSecret = request.headers.get('X-Jarvis-Secret');
+
+  // If no header, check query param (_secret) for SSE connections
+  // EventSource doesn't support custom headers, so we fall back to query params
+  if (!providedSecret) {
+    providedSecret = request.nextUrl.searchParams.get('_secret');
+  }
 
   if (!providedSecret) {
     return NextResponse.json(
