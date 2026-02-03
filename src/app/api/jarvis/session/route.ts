@@ -26,8 +26,20 @@ import {
  * Returns session ID and start time.
  */
 export async function GET() {
+  const isProduction = process.env.NODE_ENV === 'production';
+
   try {
+    // Only log in development
+    if (!isProduction) {
+      console.log('[Session API] GET request received');
+    }
+
     const sessionId = await MemoryService.initSession('user_initiated');
+
+    if (!isProduction) {
+      console.log('[Session API] Session ID:', sessionId);
+    }
+
     const session = await getSessionById(sessionId);
 
     if (!session) {
@@ -43,9 +55,23 @@ export async function GET() {
       active: true,
     });
   } catch (error) {
-    console.error('Session GET error:', error);
+    // Log full error details server-side only
+    console.error('[Session API] Error:', isProduction ? 'Session error occurred' : error);
+
+    // In production, return generic error without sensitive details
+    if (isProduction) {
+      return NextResponse.json(
+        { error: 'Internal server error' },
+        { status: 500 }
+      );
+    }
+
+    // In development, return detailed error for debugging
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      },
       { status: 500 }
     );
   }
@@ -60,6 +86,8 @@ export async function GET() {
  * Body: { source?: 'morning_briefing' | 'user_initiated' | 'return_after_gap' }
  */
 export async function POST(request: NextRequest) {
+  const isProduction = process.env.NODE_ENV === 'production';
+
   try {
     const body = await request.json().catch(() => ({}));
     const source = body.source || 'user_initiated';
@@ -85,7 +113,15 @@ export async function POST(request: NextRequest) {
       previousSessionClosed: existingSession?.id ?? null,
     });
   } catch (error) {
-    console.error('Session POST error:', error);
+    console.error('[Session API] POST error:', isProduction ? 'Session POST error occurred' : error);
+
+    if (isProduction) {
+      return NextResponse.json(
+        { error: 'Internal server error' },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
@@ -104,6 +140,8 @@ export async function POST(request: NextRequest) {
  * }
  */
 export async function PATCH(request: NextRequest) {
+  const isProduction = process.env.NODE_ENV === 'production';
+
   try {
     const body = await request.json();
     const trigger: EndTrigger = body.trigger || 'explicit';
@@ -126,7 +164,15 @@ export async function PATCH(request: NextRequest) {
       active: false,
     });
   } catch (error) {
-    console.error('Session PATCH error:', error);
+    console.error('[Session API] PATCH error:', isProduction ? 'Session PATCH error occurred' : error);
+
+    if (isProduction) {
+      return NextResponse.json(
+        { error: 'Internal server error' },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
