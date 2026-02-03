@@ -5,6 +5,8 @@
  * as tokens arrive for low-latency conversational experience.
  */
 
+import { fetchJarvisAPI } from '../api/fetchWithAuth';
+
 export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
@@ -64,7 +66,8 @@ export class ClaudeClient {
     let fullText = '';
 
     try {
-      const response = await fetch('/api/jarvis/chat', {
+      // Use authenticated fetch wrapper
+      const response = await fetchJarvisAPI('/api/jarvis/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages, systemPrompt }),

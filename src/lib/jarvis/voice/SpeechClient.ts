@@ -12,6 +12,7 @@
 
 import { TTSConfig, TTSCallbacks } from './types';
 import { useJarvisStore } from '../stores/jarvisStore';
+import { postJarvisAPI } from '../api/fetchWithAuth';
 
 // Default Polly voice (warm US male, NOT butler-like)
 const DEFAULT_POLLY_VOICE = 'Matthew';
@@ -102,14 +103,10 @@ export class SpeechClient {
    * Speak using AWS Polly
    */
   private async speakWithPolly(text: string): Promise<void> {
-    // Fetch audio from Polly API
-    const response = await fetch('/api/jarvis/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text,
-        voice: this.config.voice || DEFAULT_POLLY_VOICE,
-      }),
+    // Fetch audio from Polly API (with authentication)
+    const response = await postJarvisAPI('/api/jarvis/tts', {
+      text,
+      voice: this.config.voice || DEFAULT_POLLY_VOICE,
     });
 
     if (!response.ok) {

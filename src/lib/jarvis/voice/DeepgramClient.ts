@@ -2,16 +2,47 @@
  * DeepgramClient - Browser-side STT client
  *
  * Connects to /api/jarvis/stt via SSE for receiving transcripts
- * Uses MediaRecorder to capture audio from MicrophoneCapture's MediaStream
- * POSTs audio chunks to server
+ * Uses Web Audio API (ScriptProcessorNode) to capture raw PCM audio
+ * POSTs audio chunks to server as linear16
  * Emits transcript events via callbacks
  */
 
 import type { STTCallbacks, STTConfig, TranscriptResult } from './types';
+import { postBinaryJarvisAPI, deleteJarvisAPI, buildSSEUrl } from '../api/fetchWithAuth';
 
 // Generate unique session ID
 function generateSessionId(): string {
   return `stt-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+}
+
+// Convert Float32Array samples to Int16 linear PCM
+function floatTo16BitPCM(float32Array: Float32Array): ArrayBuffer {
+  const buffer = new ArrayBuffer(float32Array.length * 2);
+  const view = new DataView(buffer);
+  for (let i = 0; i < float32Array.length; i++) {
+    const s = Math.max(-1, Math.min(1, float32Array[i]));
+    view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+  }
+  return buffer;
+}
+
+// Downsample audio to target sample rate
+function downsampleBuffer(
+  buffer: Float32Array,
+  inputSampleRate: number,
+  outputSampleRate: number
+): Float32Array {
+  if (inputSampleRate === outputSampleRate) {
+    return buffer;
+  }
+  const ratio = inputSampleRate / outputSampleRate;
+  const newLength = Math.round(buffer.length / ratio);
+  const result = new Float32Array(newLength);
+  for (let i = 0; i < newLength; i++) {
+    const index = Math.round(i * ratio);
+    result[i] = buffer[index];
+  }
+  return result;
 }
 
 export class DeepgramClient {
@@ -20,12 +51,17 @@ export class DeepgramClient {
   private callbacks: STTCallbacks;
 
   private eventSource: EventSource | null = null;
-  private mediaRecorder: MediaRecorder | null = null;
+  private audioContext: AudioContext | null = null;
+  private sourceNode: MediaStreamAudioSourceNode | null = null;
+  private processorNode: ScriptProcessorNode | null = null;
   private isRunning = false;
 
   // Track connection state
   private isConnected = false;
   private audioQueue: ArrayBuffer[] = [];
+
+  // Target sample rate for Deepgram
+  private readonly TARGET_SAMPLE_RATE = 16000;
 
   constructor(callbacks: STTCallbacks, config: STTConfig = {}) {
     this.sessionId = generateSessionId();
@@ -58,8 +94,8 @@ export class DeepgramClient {
     // 1. Open SSE connection for receiving transcripts
     this.setupEventSource();
 
-    // 2. Setup MediaRecorder for audio capture
-    await this.setupMediaRecorder(mediaStream);
+    // 2. Setup Web Audio API for raw PCM capture
+    await this.setupAudioCapture(mediaStream);
   }
 
   /**
@@ -71,11 +107,21 @@ export class DeepgramClient {
     console.log(`[DeepgramClient] Stopping session: ${this.sessionId}`);
     this.isRunning = false;
 
-    // Stop MediaRecorder
-    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-      this.mediaRecorder.stop();
+    // Stop audio processing
+    if (this.processorNode) {
+      this.processorNode.disconnect();
+      this.processorNode = null;
     }
-    this.mediaRecorder = null;
+
+    if (this.sourceNode) {
+      this.sourceNode.disconnect();
+      this.sourceNode = null;
+    }
+
+    if (this.audioContext) {
+      this.audioContext.close();
+      this.audioContext = null;
+    }
 
     // Close SSE connection
     if (this.eventSource) {
@@ -109,13 +155,12 @@ export class DeepgramClient {
    * Setup EventSource for receiving transcripts via SSE
    */
   private setupEventSource(): void {
-    const params = new URLSearchParams({
+    // Build authenticated SSE URL (includes _secret query param)
+    const url = buildSSEUrl('/api/jarvis/stt', {
       sessionId: this.sessionId,
       model: this.config.model,
       language: this.config.language,
     });
-
-    const url = `/api/jarvis/stt?${params}`;
     this.eventSource = new EventSource(url);
 
     this.eventSource.onmessage = (event) => {
@@ -198,68 +243,53 @@ export class DeepgramClient {
   }
 
   /**
-   * Setup MediaRecorder for audio capture
+   * Setup Web Audio API for raw PCM capture
+   * Uses ScriptProcessorNode to get raw audio samples
    */
-  private async setupMediaRecorder(mediaStream: MediaStream): Promise<void> {
-    // Check for supported MIME types
-    // webm/opus is widely supported and efficient
-    // linear16 (PCM) would be better for Deepgram but needs conversion
-    const mimeType = this.getSupportedMimeType();
+  private async setupAudioCapture(mediaStream: MediaStream): Promise<void> {
+    // Create audio context
+    this.audioContext = new AudioContext();
+    const inputSampleRate = this.audioContext.sampleRate;
 
-    if (!mimeType) {
-      throw new Error('No supported audio MIME type found');
-    }
+    console.log(`[DeepgramClient] Audio context sample rate: ${inputSampleRate}Hz`);
 
-    console.log(`[DeepgramClient] Using MIME type: ${mimeType}`);
+    // Create source from media stream
+    this.sourceNode = this.audioContext.createMediaStreamSource(mediaStream);
 
-    this.mediaRecorder = new MediaRecorder(mediaStream, {
-      mimeType,
-      audioBitsPerSecond: 128000,
-    });
+    // Create processor node (buffer size 4096 gives ~93ms chunks at 44.1kHz)
+    // Using 4096 for balance between latency and efficiency
+    const bufferSize = 4096;
+    this.processorNode = this.audioContext.createScriptProcessor(bufferSize, 1, 1);
 
-    // Send audio chunks as they become available
-    this.mediaRecorder.ondataavailable = async (event) => {
-      if (event.data.size > 0 && this.isRunning) {
-        const audioBuffer = await event.data.arrayBuffer();
+    // Process audio samples
+    this.processorNode.onaudioprocess = (event) => {
+      if (!this.isRunning) return;
 
-        if (this.isConnected) {
-          await this.sendAudioChunk(audioBuffer);
-        } else {
-          // Queue audio until Deepgram connection is ready
-          this.audioQueue.push(audioBuffer);
-        }
+      const inputData = event.inputBuffer.getChannelData(0);
+
+      // Downsample to 16kHz
+      const downsampled = downsampleBuffer(
+        inputData,
+        inputSampleRate,
+        this.TARGET_SAMPLE_RATE
+      );
+
+      // Convert to 16-bit PCM
+      const pcmData = floatTo16BitPCM(downsampled);
+
+      if (this.isConnected) {
+        this.sendAudioChunk(pcmData);
+      } else {
+        // Queue audio until Deepgram connection is ready
+        this.audioQueue.push(pcmData);
       }
     };
 
-    this.mediaRecorder.onerror = (event) => {
-      console.error('[DeepgramClient] MediaRecorder error:', event);
-      this.callbacks.onError(new Error('MediaRecorder error'));
-    };
+    // Connect: source -> processor -> destination (required for processing to work)
+    this.sourceNode.connect(this.processorNode);
+    this.processorNode.connect(this.audioContext.destination);
 
-    // Start recording with 100ms chunks for low latency
-    this.mediaRecorder.start(100);
-    console.log('[DeepgramClient] MediaRecorder started');
-  }
-
-  /**
-   * Get a supported MIME type for MediaRecorder
-   */
-  private getSupportedMimeType(): string | null {
-    const mimeTypes = [
-      'audio/webm;codecs=opus',
-      'audio/webm',
-      'audio/ogg;codecs=opus',
-      'audio/ogg',
-      'audio/mp4',
-    ];
-
-    for (const mimeType of mimeTypes) {
-      if (MediaRecorder.isTypeSupported(mimeType)) {
-        return mimeType;
-      }
-    }
-
-    return null;
+    console.log('[DeepgramClient] Audio capture started (raw PCM, 16kHz, 16-bit)');
   }
 
   /**
@@ -267,14 +297,13 @@ export class DeepgramClient {
    */
   private async sendAudioChunk(audioBuffer: ArrayBuffer): Promise<void> {
     try {
-      const response = await fetch('/api/jarvis/stt', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/octet-stream',
-          'X-Session-Id': this.sessionId,
-        },
-        body: audioBuffer,
-      });
+      // Use authenticated binary POST
+      const response = await postBinaryJarvisAPI(
+        '/api/jarvis/stt',
+        audioBuffer,
+        'application/octet-stream',
+        { 'X-Session-Id': this.sessionId }
+      );
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({ error: 'Unknown error' }));
@@ -304,9 +333,8 @@ export class DeepgramClient {
    */
   private async cleanupServerSession(): Promise<void> {
     try {
-      await fetch(`/api/jarvis/stt?sessionId=${this.sessionId}`, {
-        method: 'DELETE',
-      });
+      // Use authenticated DELETE
+      await deleteJarvisAPI(`/api/jarvis/stt?sessionId=${this.sessionId}`);
     } catch {
       // Ignore cleanup errors
     }

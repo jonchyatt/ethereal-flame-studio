@@ -6,12 +6,13 @@
  */
 
 import type { BriefingData, CheckInType, CheckInProgress, EveningWrapData, WeeklyReviewData, TaskSummary } from './types';
+import { getJarvisAPI } from '../api/fetchWithAuth';
 
 /**
  * Fetch morning briefing data from server
  */
 export async function fetchBriefingData(): Promise<BriefingData> {
-  const response = await fetch('/api/jarvis/briefing');
+  const response = await getJarvisAPI('/api/jarvis/briefing');
 
   if (!response.ok) {
     throw new Error('Failed to fetch briefing data');
@@ -29,7 +30,7 @@ export async function fetchCheckInData(type: CheckInType): Promise<{
   progress: CheckInProgress;
   tomorrow?: { tasks: TaskSummary[] };
 }> {
-  const response = await fetch(`/api/jarvis/briefing?type=${type}`);
+  const response = await getJarvisAPI(`/api/jarvis/briefing?type=${type}`);
 
   if (!response.ok) {
     throw new Error('Failed to fetch check-in data');
@@ -42,7 +43,7 @@ export async function fetchCheckInData(type: CheckInType): Promise<{
  * Fetch evening wrap data from server
  */
 export async function fetchEveningWrapData(): Promise<EveningWrapData> {
-  const response = await fetch('/api/jarvis/briefing?type=evening_wrap');
+  const response = await getJarvisAPI('/api/jarvis/briefing?type=evening_wrap');
 
   if (!response.ok) {
     throw new Error('Failed to fetch evening wrap data');
@@ -55,7 +56,7 @@ export async function fetchEveningWrapData(): Promise<EveningWrapData> {
  * Fetch weekly review data from server
  */
 export async function fetchWeeklyReviewData(): Promise<WeeklyReviewData> {
-  const response = await fetch('/api/jarvis/briefing?type=weekly_review');
+  const response = await getJarvisAPI('/api/jarvis/briefing?type=weekly_review');
 
   if (!response.ok) {
     throw new Error('Failed to fetch weekly review data');
