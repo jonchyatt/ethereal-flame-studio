@@ -324,6 +324,13 @@ export default function JarvisPage() {
       return;
     }
 
+    // If listening, stop listening (toggle behavior for mobile)
+    if (orbState === 'listening') {
+      console.log('[JarvisPage] Stopping listening via tap');
+      pipelineRef.current?.stopListening();
+      return;
+    }
+
     // If there's an active nudge, engage with it
     if (activeNudge && pipelineRef.current) {
       console.log('[JarvisPage] Engaging with nudge:', activeNudge.message);

@@ -341,8 +341,18 @@ export function JarvisOrb({ onTap }: JarvisOrbProps = {}) {
 
   return (
     <div
-      className="w-full h-full cursor-pointer"
+      className="w-full h-full cursor-pointer select-none"
       onClick={handleOrbTap}
+      onTouchStart={(e) => {
+        // Prevent browser defaults (image search, text selection, etc.)
+        e.preventDefault();
+      }}
+      onTouchEnd={(e) => {
+        // Fire tap on touch end to avoid accidental triggers
+        e.preventDefault();
+        handleOrbTap();
+      }}
+      style={{ touchAction: 'none', WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }}
       role="button"
       aria-label="Tap to speak"
       tabIndex={0}
