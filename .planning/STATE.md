@@ -8,23 +8,24 @@
 
 **Core Value:** Phone to published video without touching a computer
 
-**Current Focus:** ALL PHASES COMPLETE - Project v1 finished
+**Current Focus:** Phase 11 - Production Deployment (Jarvis)
 
 **Key Files:**
 - `.planning/PROJECT.md` - Project definition
 - `.planning/REQUIREMENTS.md` - v1 requirements (41 total)
-- `.planning/ROADMAP.md` - Phase structure
+- `.planning/ROADMAP.md` - Phase structure (now includes Phase 7)
 - `.planning/research/SUMMARY.md` - Architecture decisions
 - `.planning/phases/05-n8n/05-SUMMARY.md` - Phase 5 summary
+- `.planning/phases/07-blender-vfx-pipeline/07-RESEARCH.md` - Phase 7 master research
 
 ---
 
 ## Current Position
 
-**Phase:** 5 of 5 (n8n Integration) - COMPLETE
-**Plan:** ALL COMPLETE
-**Status:** PROJECT v1 COMPLETE
-**Last activity:** 2026-01-27 - Completed Phase 5 (n8n Integration + Remote Access)
+**Phase:** 11 (Production Deployment - Jarvis)
+**Plan:** 02 of 6 complete
+**Status:** In progress
+**Last activity:** 2026-02-03 - Completed 11-02 API Authentication
 
 **Phase 1 (COMPLETE):**
 - [x] 01-01: Project scaffolding
@@ -71,14 +72,38 @@
 - [x] 05-03: Webhook integration (render -> n8n)
 - [x] 05-04: YouTube upload workflow
 
+**Phase 7 (NOT STARTED):**
+- [ ] 07-01: Blender + MCP installation and configuration
+- [ ] 07-02: Audio analysis expansion
+- [ ] 07-03: Mantaflow fire simulation template
+- [ ] 07-04: Mantaflow water simulation template
+- [ ] 07-05: Audio-to-keyframe parameter mapping
+- [ ] 07-06: VR video import and equirectangular setup
+- [ ] 07-07: Depth map extraction from 360° footage
+- [ ] 07-08: Shadow catcher and VR compositing
+- [ ] 07-09: Video masking and chroma keying
+- [ ] 07-10: EDM volumetric laser effects
+- [ ] 07-11: EDM LED grid and strobe effects
+- [ ] 07-12: Multi-layer compositor and render pipeline
+
+**Phase 11 (IN PROGRESS - Jarvis Production Deployment):**
+- [ ] 11-01: Environment configuration and secrets
+- [x] 11-02: API authentication (X-Jarvis-Secret)
+- [ ] 11-03: Rate limiting
+- [ ] 11-04: Error boundaries
+- [ ] 11-05: Production deployment
+- [ ] 11-06: Monitoring and alerts
+
 **Progress:**
 ```
-Phase 1: [##########] 100% (8/8 plans) - COMPLETE
-Phase 2: [##########] 100% (6/6 plans) - COMPLETE
-Phase 3: [##########] 100% (8/8 plans) - COMPLETE
-Phase 4: [##########] 100% (9/9 plans) - COMPLETE
-Phase 5: [##########] 100% (4/4 plans) - COMPLETE
-Overall: [##########] 100% (35/35 plans)
+Phase 1:  [##########] 100% (8/8 plans) - COMPLETE
+Phase 2:  [##########] 100% (6/6 plans) - COMPLETE
+Phase 3:  [##########] 100% (8/8 plans) - COMPLETE
+Phase 4:  [##########] 100% (9/9 plans) - COMPLETE
+Phase 5:  [##########] 100% (4/4 plans) - COMPLETE
+Phase 7:  [          ]   0% (0/12 plans) - NOT STARTED
+Phase 11: [##        ]  17% (1/6 plans) - IN PROGRESS
+Overall:  [#######   ]  68% (36/53 plans)
 ```
 
 **Note:** Visual quality (particle asymmetry, organic shapes) flagged for v2 redesign.
@@ -90,10 +115,11 @@ Overall: [##########] 100% (35/35 plans)
 | Metric | Value |
 |--------|-------|
 | Requirements (v1) | 41 |
-| Requirements mapped | 41 |
-| Phases total | 5 |
+| Requirements (v2/Phase 7) | 18 |
+| Requirements mapped | 59 |
+| Phases total | 7 |
 | Phases complete | 5 |
-| Plans complete | 35 |
+| Plans complete | 35/47 |
 
 ---
 
@@ -162,6 +188,13 @@ Overall: [##########] 100% (35/35 plans)
 | 2026-01-27 | Cloudflare Tunnel over VPN (05-01) | Free, no port exposure, encrypted end-to-end |
 | 2026-01-27 | Fire-and-forget webhooks (05-03) | Don't block render queue on notification delivery |
 | 2026-01-27 | Exponential backoff for retries (05-03) | Graceful handling of transient failures |
+| 2026-01-30 | Phase 7: Blender VFX Pipeline added | Physics simulations, VR compositing, EDM effects |
+| 2026-01-30 | Hybrid rendering approach | Three.js preview, Blender cinema quality |
+| 2026-01-30 | Blender MCP integration | Claude-controlled scene setup via MCP protocol |
+| 2026-01-30 | Audio-to-keyframe system | Export analysis JSON for Blender Python scripts |
+| 2026-02-03 | X-Jarvis-Secret header for API auth (11-02) | Standard custom header pattern, middleware validation |
+| 2026-02-03 | _secret query param for SSE auth (11-02) | EventSource API limitation workaround |
+| 2026-02-03 | Optional auth in dev mode (11-02) | Allow local development without configuring secrets |
 
 ### Technical Context
 
@@ -179,7 +212,8 @@ Overall: [##########] 100% (35/35 plans)
 
 ### Blockers
 
-None - project complete.
+- **Blender Installation:** Requires Blender 5.0+ to be installed via winget
+- **Blender MCP:** Requires MCP addon installation and Claude Desktop config
 
 ### TODOs
 
@@ -188,10 +222,18 @@ None - project complete.
 - [x] Phase 3: Rendering Pipeline (frame capture, export, headless)
 - [x] Phase 4: Automation (batch queue, transcription, sync, notifications)
 - [x] Phase 5: n8n Integration (workflow automation, remote access)
+- [ ] Phase 7: Blender VFX Production Pipeline (12 plans)
 
-**Future Considerations (v2):**
+**Phase 7 Research Complete:**
+- [x] 07-RESEARCH.md - Master research document
+- [x] 07-RESEARCH-AUDIO-STYLES.md - Audio analysis expansion
+- [x] 07-RESEARCH-VR-COMPOSITING.md - VR compositing techniques
+- [x] 07-RESEARCH-DEPTH-MAPS.md - Depth extraction methods
+- [x] 07-RESEARCH-EDM-EFFECTS.md - Light show visual styles
+- [x] 07-RESEARCH-BLENDER-360-STEREO.md - Blender 360/stereo rendering
+
+**Future Considerations:**
 - [ ] Visual quality improvements (particle asymmetry, organic shapes)
-- [ ] 8K rendering via Blender integration
 - [ ] Multi-platform posting via Blotato
 
 ---
@@ -199,21 +241,21 @@ None - project complete.
 ## Session Continuity
 
 ### Last Session
-- **Date:** 2026-01-27
-- **Action:** Executed Phase 5 plans (05-01 through 05-04)
-- **Outcome:** Complete n8n integration and remote access pipeline
+- **Date:** 2026-02-03
+- **Action:** Executed Plan 11-02: API Authentication
+- **Outcome:** Jarvis API endpoints now protected with X-Jarvis-Secret header
 
-**Phase 5 Commits:**
-- `509ee34` feat(05-01,05-02): add Cloudflare Tunnel and n8n services
-- `fa12fee` feat(05-03): add webhook notifier for n8n integration
-- `84b5d71` feat(05-04): add YouTube upload workflow documentation
+**Work completed:**
+- Added middleware auth gate for /api/jarvis/* routes
+- Created fetchWithAuth.ts wrapper with all helpers
+- Updated all client-side API calls to use authenticated fetch
 
-**Stopped at:** PROJECT COMPLETE
+**Stopped at:** Completed 11-02-PLAN.md
 **Resume file:** None
 
-### Project Complete
+### v1 Complete (Phases 1-5)
 
-The phone-to-published-video pipeline is now fully implemented:
+The phone-to-published-video pipeline is fully implemented:
 
 1. **Trigger** render from phone (via Cloudflare Tunnel remote access)
 2. **Render** video with template (Web UI or API)
@@ -223,15 +265,29 @@ The phone-to-published-video pipeline is now fully implemented:
 6. **Upload** to YouTube (via n8n workflow)
 7. **Alert** user (via ntfy push notification)
 
+### Phase 7 Overview (Blender VFX Pipeline)
+
+**Goal:** Transform from particle orb generator to full VFX production pipeline
+
+**Capabilities to Add:**
+1. **Physics-based fire/water** - Mantaflow simulations driven by audio
+2. **VR compositing** - Overlay effects onto real 360° footage
+3. **Depth-aware rendering** - Realistic shadows and occlusion
+4. **EDM light shows** - Volumetric lasers, LED grids, strobes
+5. **Multi-layer output** - Combine all effects for VR video
+
+**Architecture:**
+- Hybrid approach: Three.js for preview, Blender for cinema quality
+- Blender MCP for Claude-controlled scene setup
+- Audio JSON export for Blender Python keyframe generation
+
 ### Context to Preserve
-- All 5 phases complete with 35 plans executed
+- All 5 v1 phases complete with 35 plans executed
+- Phase 7 adds 12 more plans (47 total)
 - Docker Compose orchestrates all services
-- Documentation in /docs for user setup:
-  - REMOTE_ACCESS.md (Cloudflare Tunnel)
-  - N8N_SETUP.md (n8n + YouTube OAuth)
-  - N8N_WORKFLOWS.md (workflow configuration)
-  - google-drive-setup.md (rclone configuration)
+- Documentation in /docs for user setup
+- Phase 7 research in `.planning/phases/07-blender-vfx-pipeline/`
 
 ---
 
-*Last updated: 2026-01-27 - PROJECT v1 COMPLETE*
+*Last updated: 2026-02-03 - Completed 11-02 API Authentication*
