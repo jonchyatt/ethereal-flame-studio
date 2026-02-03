@@ -289,7 +289,10 @@ async function queryNotionRaw(
       break;
   }
 
-  return queryDatabase(databaseId, filter);
+  console.log(`[BriefingBuilder] Querying ${database}:`, { databaseId, filter });
+  const result = await queryDatabase(databaseId, filter);
+  console.log(`[BriefingBuilder] ${database} result count:`, (result as { results?: unknown[] })?.results?.length || 0);
+  return result;
 }
 
 // =============================================================================
