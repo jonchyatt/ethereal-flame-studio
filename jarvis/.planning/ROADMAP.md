@@ -160,21 +160,33 @@ Plans:
 **Depends on:** Phase 10
 
 **Requirements:**
-- PROD-01: Jarvis deployed to jarvis.whatareyouappreciatingnow.com
+- PROD-01: Jarvis deployed to jarvis.whatamiappreciatingnow.com
 - PROD-02: All API keys stored securely (not exposed to client)
 - PROD-03: Production database configured (Turso)
 - PROD-04: Custom domain with HTTPS configured
 
+**Plans:** 4 plans in 2 waves
+
+Plans:
+- [ ] 11-01-PLAN.md — Replace MCP with Direct Notion SDK
+- [ ] 11-02-PLAN.md — API authentication middleware
+- [ ] 11-03-PLAN.md — Production hardening (race condition, env leaks, timezone)
+- [ ] 11-04-PLAN.md — Deploy and verify all functionality
+
+**Wave Structure:**
+- Wave 1: 11-01, 11-02, 11-03 (parallel - independent fixes)
+- Wave 2: 11-04 (depends on Wave 1 - deployment + verification)
+
 **Success Criteria:**
-1. User can access Jarvis at jarvis.whatareyouappreciatingnow.com
+1. User can access Jarvis at jarvis.whatamiappreciatingnow.com
 2. No API keys appear in client-side JavaScript or network requests
 3. Production database (Turso) is connected and storing data
 4. HTTPS certificate valid and auto-renewing
 5. Cold start latency acceptable (under 3 seconds)
 
-**Research Needed:** YES - Turso setup specifics, Vercel edge deployment
+**Research Needed:** Complete (11-RESEARCH.md)
 
-**Status:** Not Started
+**Status:** Planning Complete - Ready for Execution
 
 ---
 
@@ -186,7 +198,7 @@ Plans:
 | 8 | Memory Loading & Integration | MEM-06, MEM-07, MEM-11 | Complete (3/3 plans) |
 | 9 | Memory Writing & Tools | MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10 | Complete (4/4 plans) |
 | 10 | Guardrails & Safety | GUARD-01 to GUARD-05, FIX-01, FIX-02 | Complete (4/4 plans) |
-| 11 | Production Deployment | PROD-01 to PROD-04 | Not Started |
+| 11 | Production Deployment | PROD-01 to PROD-04 | **Ready for Execution** (0/4 plans) |
 
 ---
 
@@ -251,10 +263,10 @@ All phases are sequential - each builds on the previous. No parallel work possib
 | 8 | No | Extension of existing VoicePipeline |
 | 9 | Minimal | Tool format may need iteration |
 | 10 | No | Research complete (10-RESEARCH.md) |
-| 11 | **YES** | Turso setup, Vercel configuration |
+| 11 | No | Research complete (11-RESEARCH.md) |
 
 ---
 
 *Created: 2026-02-02*
-*Updated: 2026-02-02 - Phase 10 complete*
+*Updated: 2026-02-02 - Phase 11 plans created*
 *Milestone: v2.0 Memory & Production*
