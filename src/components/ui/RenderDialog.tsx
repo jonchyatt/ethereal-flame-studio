@@ -15,7 +15,10 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { X, Upload, Cloud, MessageSquare, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { X, Upload, Cloud, MessageSquare, CheckCircle, AlertCircle, Loader2, Download, Terminal } from 'lucide-react';
+import { useVisualStore } from '@/lib/stores/visualStore';
+import { createConfigFromState, type LocalOutputFormat } from '@/lib/render/renderConfig';
 
 // =============================================================================
 // TYPES
@@ -134,14 +137,33 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
   // Convert File to base64
   const fileToBase64 = useCallback((file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
+      if (!file || file.size === 0) {
+        reject(new Error('Invalid or empty file'));
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result as string;
+        if (!result || typeof result !== 'string') {
+          reject(new Error('Failed to read file'));
+          return;
+        }
         // Remove data URL prefix (e.g., "data:audio/mpeg;base64,")
-        const base64 = result.split(',')[1];
+        const commaIndex = result.indexOf(',');
+        if (commaIndex === -1) {
+          reject(new Error('Invalid file data format'));
+          return;
+        }
+        const base64 = result.substring(commaIndex + 1);
+        if (!base64 || base64.length < 10) {
+          reject(new Error('File appears to be empty or corrupted'));
+          return;
+        }
+        console.log('[RenderDialog] Base64 conversion successful, length:', base64.length);
         resolve(base64);
       };
-      reader.onerror = reject;
+      reader.onerror = () => reject(new Error('FileReader error: ' + reader.error?.message));
       reader.readAsDataURL(file);
     });
   }, []);
@@ -158,15 +180,24 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
 
     try {
       // Build audio input - convert file to base64 if needed
-      let audioInput: { type: string; path?: string; data?: string; filename?: string; mimeType?: string };
+      let audioInput: { type: string; path?: string; url?: string; data?: string; filename?: string; mimeType?: string };
 
       if (audioPath) {
-        audioInput = { type: 'path', path: audioPath };
+        // Check if it's a URL or a local path
+        if (audioPath.startsWith('http://') || audioPath.startsWith('https://')) {
+          audioInput = { type: 'url', url: audioPath, filename: audioFile?.name };
+          console.log('[RenderDialog] Using URL audio:', audioPath);
+        } else {
+          audioInput = { type: 'path', path: audioPath };
+          console.log('[RenderDialog] Using path audio:', audioPath);
+        }
       } else if (audioFile) {
+        console.log('[RenderDialog] Converting audio file:', audioFile.name, 'size:', audioFile.size, 'type:', audioFile.type);
         const base64Data = await fileToBase64(audioFile);
         // mimeType is required by the API schema
         const mimeType = audioFile.type || 'audio/mpeg';
         audioInput = { type: 'base64', data: base64Data, filename: audioFile.name, mimeType };
+        console.log('[RenderDialog] Audio input ready, data length:', base64Data.length);
       } else {
         throw new Error('No audio source');
       }
@@ -226,6 +257,114 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
     setJobStatus(null);
     setError(null);
   }, []);
+
+  // Get visual state for export
+  const visualState = useVisualStore();
+
+  // State for exported config info
+  const [exportedConfig, setExportedConfig] = useState<{ filename: string; command: string } | null>(null);
+
+  // Export config for local CLI rendering
+  const handleExportConfig = useCallback(() => {
+    const audioFileName = audioFile?.name || 'audio.mp3';
+    const baseName = audioFileName.replace(/\.[^.]+$/, '');
+    const outputFileName = `${baseName}_${selectedFormat}.mp4`;
+    const configFilename = `${baseName}_render.json`;
+    const batFilename = `${baseName}_render.bat`;
+
+    const config = createConfigFromState(
+      `./${audioFileName}`,
+      `./output/${outputFileName}`,
+      selectedFormat as LocalOutputFormat,
+      selectedFps,
+      {
+        currentMode: template === 'etherealMist' ? 'etherealMist' : 'etherealFlame',
+        skyboxPreset: visualState.skyboxPreset,
+        skyboxRotationSpeed: visualState.skyboxRotationSpeed,
+        waterEnabled: visualState.waterEnabled,
+        waterColor: visualState.waterColor,
+        waterReflectivity: visualState.waterReflectivity,
+        layers: visualState.layers,
+      }
+    );
+
+    // Download config JSON
+    const configBlob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+    const configUrl = URL.createObjectURL(configBlob);
+    const configLink = document.createElement('a');
+    configLink.href = configUrl;
+    configLink.download = configFilename;
+    configLink.click();
+    URL.revokeObjectURL(configUrl);
+
+    // Create and download .bat file
+    const batContent = `@echo off
+echo ========================================
+echo   Ethereal Flame Local Render
+echo ========================================
+echo.
+echo Config: ${configFilename}
+echo Audio:  ${audioFileName}
+echo Output: output/${outputFileName}
+echo.
+
+REM Change to the ethereal-flame-studio directory
+cd /d "%~dp0"
+cd ..
+
+REM Check if we're in the right directory
+if not exist "package.json" (
+    echo ERROR: Please place this file in the ethereal-flame-studio folder
+    echo        or a subfolder like "renders"
+    pause
+    exit /b 1
+)
+
+REM Create output directory
+if not exist "output" mkdir output
+
+REM Run the render
+echo Starting render...
+echo.
+call npm run render:local -- --config "%~dp0${configFilename}"
+
+echo.
+echo ========================================
+if %ERRORLEVEL% EQU 0 (
+    echo Render complete! Check output folder.
+) else (
+    echo Render failed. Check errors above.
+)
+echo ========================================
+pause
+`;
+
+    const batBlob = new Blob([batContent], { type: 'application/x-bat' });
+    const batUrl = URL.createObjectURL(batBlob);
+    const batLink = document.createElement('a');
+    batLink.href = batUrl;
+    batLink.download = batFilename;
+
+    // Small delay to ensure config downloads first
+    setTimeout(() => {
+      batLink.click();
+      URL.revokeObjectURL(batUrl);
+    }, 100);
+
+    // Show success message
+    setError(null);
+    setExportedConfig({
+      filename: configFilename,
+      command: batFilename,
+    });
+  }, [audioFile, selectedFormat, selectedFps, template, visualState]);
+
+  // Copy command to clipboard
+  const handleCopyCommand = useCallback(() => {
+    if (exportedConfig) {
+      navigator.clipboard.writeText(exportedConfig.command);
+    }
+  }, [exportedConfig]);
 
   if (!isOpen) return null;
 
@@ -358,6 +497,16 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
             </label>
           </div>
 
+          <div className="flex items-center justify-between text-xs text-white/50">
+            <span>Need to render multiple audio files?</span>
+            <Link
+              href="/batch"
+              className="text-blue-300 hover:text-blue-200"
+            >
+              Open Batch Render
+            </Link>
+          </div>
+
           {/* Progress/Status */}
           {renderState !== 'idle' && renderState !== 'error' && (
             <div className="p-4 bg-white/5 rounded-lg space-y-3">
@@ -399,30 +548,67 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
               <span className="text-sm text-red-300">{error}</span>
             </div>
           )}
+
+          {/* Export Success */}
+          {exportedConfig && (
+            <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
+              <div className="flex items-start gap-2 mb-2">
+                <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                <span className="text-sm text-green-300 font-medium">Config exported!</span>
+              </div>
+              <div className="text-xs text-white/60 space-y-1 ml-7">
+                <p>1. Place both downloaded files in a folder with your audio</p>
+                <p>2. Double-click <span className="text-green-300 font-mono">{exportedConfig.command}</span> to render</p>
+              </div>
+              <button
+                onClick={() => setExportedConfig(null)}
+                className="mt-2 ml-7 text-xs text-white/40 hover:text-white/60"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-white/10 flex gap-3">
+        <div className="p-4 border-t border-white/10 flex flex-col gap-3">
           {renderState === 'idle' || renderState === 'error' ? (
             <>
+              <div className="flex gap-3">
+                <button
+                  onClick={onClose}
+                  className="flex-1 py-2 rounded-lg font-medium bg-white/10 text-white/80 hover:bg-white/20 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={!audioFile && !audioPath}
+                  className={`
+                    flex-1 py-2 rounded-lg font-medium transition-colors
+                    ${audioFile || audioPath
+                      ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                      : 'bg-white/10 text-white/40 cursor-not-allowed'
+                    }
+                  `}
+                >
+                  Start Render
+                </button>
+              </div>
+              {/* Export Config for Local CLI */}
               <button
-                onClick={onClose}
-                className="flex-1 py-2 rounded-lg font-medium bg-white/10 text-white/80 hover:bg-white/20 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmit}
+                onClick={handleExportConfig}
                 disabled={!audioFile && !audioPath}
                 className={`
-                  flex-1 py-2 rounded-lg font-medium transition-colors
+                  w-full py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2
                   ${audioFile || audioPath
-                    ? 'bg-blue-500 hover:bg-blue-600 text-white'
-                    : 'bg-white/10 text-white/40 cursor-not-allowed'
+                    ? 'bg-white/5 border border-white/20 text-white/70 hover:bg-white/10 hover:text-white'
+                    : 'bg-white/5 border border-white/10 text-white/30 cursor-not-allowed'
                   }
                 `}
               >
-                Start Render
+                <Terminal className="w-4 h-4" />
+                Export Config (Local CLI)
               </button>
             </>
           ) : renderState === 'complete' ? (

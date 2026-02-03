@@ -15,6 +15,32 @@ import { STAR_NEST_PRESETS } from '@/components/canvas/StarNestSkybox';
 export function PresetSelector() {
   const skyboxPreset = useVisualStore((state) => state.skyboxPreset);
   const setSkyboxPreset = useVisualStore((state) => state.setSkyboxPreset);
+  const skyboxMode = useVisualStore((state) => state.skyboxMode);
+  const skyboxMaskMode = useVisualStore((state) => state.skyboxMaskMode);
+  const skyboxVideoUrl = useVisualStore((state) => state.skyboxVideoUrl);
+
+  const skyboxRectMaskEnabled = useVisualStore((state) => state.skyboxRectMaskEnabled);
+  const skyboxHoleFixEnabled = useVisualStore((state) => state.skyboxHoleFixEnabled);
+  const skyboxPoleFadeEnabled = useVisualStore((state) => state.skyboxPoleFadeEnabled);
+  const skyboxPatchEnabled = useVisualStore((state) => state.skyboxPatchEnabled);
+  const skyboxPatch2Enabled = useVisualStore((state) => state.skyboxPatch2Enabled);
+  const skyboxPatch3Enabled = useVisualStore((state) => state.skyboxPatch3Enabled);
+  const skyboxPatch4Enabled = useVisualStore((state) => state.skyboxPatch4Enabled);
+  const showPreset =
+    skyboxMode !== 'video' ||
+    !skyboxVideoUrl ||
+    skyboxMaskMode !== 'none' ||
+    skyboxRectMaskEnabled ||
+    skyboxHoleFixEnabled ||
+    skyboxPoleFadeEnabled ||
+    skyboxPatchEnabled ||
+    skyboxPatch2Enabled ||
+    skyboxPatch3Enabled ||
+    skyboxPatch4Enabled;
+
+  if (!showPreset) {
+    return null;
+  }
 
   const handlePresetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const presetKey = e.target.value;

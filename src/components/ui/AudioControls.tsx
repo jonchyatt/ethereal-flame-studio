@@ -105,9 +105,9 @@ export function AudioControls() {
       await audioAnalyzer.connect(audioElement);
       setIsConnected(true);
 
-      // Create a mock File for the store
+      // Create a mock File for the store - but pass the URL for render
       const mockFile = new File([], fileName, { type: 'audio/mpeg' });
-      setAudioFile(mockFile, fileName);
+      setAudioFile(mockFile, fileName, directUrl);
 
       console.log('Audio loaded from URL:', fileName);
       setShowUrlInput(false);

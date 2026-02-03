@@ -562,7 +562,7 @@ export function ParticleLayer({
   });
 
   return (
-    <points ref={pointsRef} frustumCulled={false}>
+    <points ref={pointsRef} frustumCulled={false} renderOrder={10}>
       <bufferGeometry ref={geometryRef}>
         <bufferAttribute
           attach="attributes-position"

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useMemo } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import type { StarNestPreset } from "@/types";
 import starNestShader from "@/lib/shaders/starnest.frag.glsl";
@@ -466,6 +466,9 @@ export const STAR_NEST_PRESETS: StarNestPreset[] = [
 type StarNestSkyboxProps = {
   preset?: StarNestPreset;
   rotationSpeed?: number;
+  audioReactiveEnabled?: boolean;
+  audioReactivity?: number;
+  driftSpeed?: number;
 };
 
 /**
@@ -483,9 +486,13 @@ type StarNestSkyboxProps = {
 export function StarNestSkybox({
   preset = STAR_NEST_PRESETS[0], // Default to DarkWorld1
   rotationSpeed,
+  audioReactiveEnabled = true,
+  audioReactivity = 1.0,
+  driftSpeed = 1.0,
 }: StarNestSkyboxProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const { camera } = useThree();
 
   // Render mode support for headless rendering
   const renderMode = useRenderMode();
@@ -536,6 +543,9 @@ export function StarNestSkybox({
 
   useFrame(({ clock }) => {
     if (!materialRef.current) return;
+    if (meshRef.current) {
+      meshRef.current.position.copy(camera.position);
+    }
     const currentPreset = presetRef.current;
 
     // In render mode, use fixed time directly
@@ -553,9 +563,9 @@ export function StarNestSkybox({
       const bass = audioState.bass;
 
       // Modulate time increment with audio: faster rotation when louder
-      // Audio boosts speed by up to 50% (0.3 amplitude + 0.2 bass contribution)
-      // Using incremental accumulation prevents time from jumping backwards
-      const audioModulation = 1.0 + (amplitude * 0.3 + bass * 0.2);
+      // Audio boost is user-controlled via audioReactivity (0..2)
+      const audioBoost = audioReactiveEnabled ? audioReactivity : 0;
+      const audioModulation = 1.0 + (amplitude * 0.3 + bass * 0.2) * audioBoost;
       accumulatedTimeRef.current += deltaTime * audioModulation;
 
       // Update time with smoothly accumulated value (never jumps backward)
@@ -574,7 +584,13 @@ export function StarNestSkybox({
     materialRef.current.uniforms.uSaturation.value = currentPreset.saturation;
     materialRef.current.uniforms.uColor.value.set(...currentPreset.color);
     materialRef.current.uniforms.uCenter.value.set(...currentPreset.center);
-    materialRef.current.uniforms.uScroll.value.set(...currentPreset.scroll);
+    const scroll = currentPreset.scroll;
+    materialRef.current.uniforms.uScroll.value.set(
+      scroll[0] * driftSpeed,
+      scroll[1] * driftSpeed,
+      scroll[2] * driftSpeed,
+      scroll[3]
+    );
 
     // Apply rotation speed override if provided
     const rotation = [...currentPreset.rotation] as [number, number, number, number];

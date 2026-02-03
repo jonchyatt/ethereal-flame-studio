@@ -10,10 +10,11 @@ interface AudioState extends AudioLevels {
   isPlaying: boolean;
   audioFile: File | null;
   audioFileName: string | null;
+  audioUrl: string | null; // URL source for render (when loaded from URL)
 
   // Actions
   setPlaying: (playing: boolean) => void;
-  setAudioFile: (file: File | null, fileName: string | null) => void;
+  setAudioFile: (file: File | null, fileName: string | null, url?: string | null) => void;
   setLevels: (levels: Omit<AudioLevels, 'mid'> & { mid?: number; mids?: number }) => void;
   setBeat: (isBeat: boolean) => void;
 }
@@ -35,13 +36,15 @@ export const useAudioStore = create<AudioState>((set) => ({
   isPlaying: false,
   audioFile: null,
   audioFileName: null,
+  audioUrl: null,
 
   // Actions
   setPlaying: (playing) => set({ isPlaying: playing }),
 
-  setAudioFile: (file, fileName) => set({
+  setAudioFile: (file, fileName, url = null) => set({
     audioFile: file,
     audioFileName: fileName,
+    audioUrl: url,
   }),
 
   setLevels: (levels) => {

@@ -1,0 +1,153 @@
+# Visuals Change Log
+
+All changes in the ethereal-flame-studio copy for skybox/orb controls are tracked here.
+
+## 2026-01-31
+- Added this log file for tracking skybox/orb control changes.
+- Added skybox audio reactivity and drift settings to visual store.
+- Added skybox audio reactivity and drift controls to StarNestSkybox rendering logic.
+- Wired skybox audio/drift settings from visual store into the main page canvas.
+- Added Skybox controls (audio reactivity toggle/strength + drift speed) to Advanced Editor UI.
+- Added skybox video/mask state fields and actions to visual store.
+- Added VideoSkybox component with optional luma/chroma key masking.
+- Wired video skybox + mask settings into the main canvas scene (conditional StarNest overlay).
+- Updated AdvancedEditor to prepare for video skybox controls (useState import).
+- Added video skybox/mask selectors and local state hooks in AdvancedEditor.
+- Added video skybox handlers and StarNest overlay visibility logic in AdvancedEditor.
+- Adjusted AdvancedEditor skybox fallback logic and reset skybox mode when clearing videos.
+- Updated main canvas skybox fallback to show StarNest when no video is loaded.
+- Hid the Skybox Preset selector when the video skybox is active without a StarNest overlay.
+- Added skybox mask preview state to the visual store.
+- Added a mask preview shader mode to the video skybox (keyed areas tint magenta).
+- Wired mask preview state into the main canvas video skybox.
+- Added mask preview state hooks to the Advanced Editor.
+- Added a mask preview toggle and a Video Skybox Quickstart helper block in the Advanced Editor.
+- Added orb placement state (anchor mode + offsets) to the visual store.
+- Added OrbAnchor component to position the particle orb in viewer or world space.
+- Routed the particle system through OrbAnchor in the main canvas.
+- Added orb placement controls (viewer/world anchor + offsets) to the Advanced Editor.
+- Added VR comfort mode flag to the visual store (to disable skybox rotation in VR).
+- Added VR comfort toggle in the Advanced Editor skybox controls.
+- Applied VR comfort mode to freeze skybox rotation while in VR.
+- Added skybox mask preview split/invert settings and camera options to the visual store.
+- Expanded template settings type to include skybox video/mask and orb/camera placement fields.
+- Added template persistence for skybox video/mask, orb placement, and camera options.
+- Updated built-in template presets with defaults for the new skybox/orb/camera fields.
+- Added Advanced Editor state hooks for mask preview split/invert and camera controls.
+- Added invert mask toggle and preview color/split controls to the Advanced Editor.
+- Added non-VR camera controls (look-at and orbit settings) to the Advanced Editor.
+- Added CameraRig to apply look-at and orbit behavior in non-VR mode.
+- Wired camera rig controls, mask preview props, and VR comfort drift behavior into the main canvas.
+- Added invert mask, preview color, and split-view support to the video skybox shader.
+- Made template application resilient to older templates missing new fields.
+- Guarded invert mask to only apply when masking is active.
+- Added render-only orbit setting to camera options in the visual store.
+- Added render-only orbit to template settings schema.
+- Added render-only orbit default to built-in presets.
+- Added render-only orbit to template save/load state.
+- Added render-only orbit state hook in Advanced Editor.
+- Added mask reset helper for restoring default key settings.
+- Added a Reset Mask Defaults button to the masking UI.
+- Added render-only orbit toggle to camera controls.
+- CameraRig now respects render-only orbit mode via render state.
+- OrbitControls now stay enabled when orbit is set to render-only outside render mode.
+- Added a split-view divider line in the mask preview shader.
+- Added video skybox hole-fix settings to the visual store and template state.
+- Added hole-fix fields to template settings schema.
+- Added hole-fix defaults to built-in presets.
+- Added hole-fix uniforms and logic to the video skybox shader.
+- Wired hole-fix settings into the main canvas video skybox.
+- Made video skybox transparent when hole-fix is enabled to reveal the star nest.
+- Ensured StarNest renders behind video when hole-fix is active.
+- Updated Advanced Editor overlay logic to keep StarNest controls visible for hole-fix.
+- Updated Skybox Preset visibility logic to include hole-fix overlays.
+- Updated Skybox Preset visibility logic to include pole fade and patch masks.
+- Reduced skybox rotation slider increments in the right-side controls panel.
+- Restored audio URL tracking in the audio store for render dialog compatibility.
+- Added hole-fix state hooks, mask debug helper, and hole-fix controls in the Advanced Editor.
+- Added a split-view Preview/Live label overlay for mask debugging.
+- Reworked the control UI into left/right docked panels with independent hide buttons.
+- Added pole-fade and patch-mask settings to the visual store and templates.
+- Added pole-fade and patch-mask fields to template settings schema.
+- Added pole-fade and patch-mask defaults to built-in presets.
+- Added pole-fade and patch-mask uniforms to the video skybox shader.
+- Wired pole-fade and patch-mask settings into the main canvas video skybox.
+- Added pole-fade and patch-mask state hooks in the Advanced Editor.
+- Updated StarNest overlay logic to include pole fade and patch masks.
+- Reduced skybox rotation slider increments and precision in the Advanced Editor.
+- Added pole-fade and patch-mask controls in the Advanced Editor UI.
+- Video skybox now enables transparency for pole fade/patch masks and renders earlier.
+- StarNest overlay now activates when pole fade or patch masks are enabled.
+
+## 2026-02-01
+- Set built-in template skybox rotation speeds to 0.0 (off by default).
+- Reduced skybox rotation slider step in the right-side Controls panel to 0.01.
+- Reduced skybox rotation slider step in the Advanced Editor to 0.01.
+- Set server-side render default skybox rotation speed to 0.0.
+- Render the orb particle layers after skyboxes to avoid video skybox occlusion.
+- Added a second patch-mask slot to the visual store for multi-mask support.
+- Added template schema fields for a second patch-mask slot.
+- Added built-in template defaults for the second patch-mask slot.
+- Extended video skybox shader/uniforms for a second patch mask and transparency trigger.
+- Wired second patch-mask settings into the main canvas video skybox and StarNest overlay logic.
+- Added a UI tip that World Anchored places the orb inside the scene/video skybox.
+- Added Patch Mask B controls to the Advanced Editor for multi-mask tuning.
+- Updated skybox preset visibility logic to account for the second patch mask.
+- Added patch C/D fields and a pick-target flag to the visual store.
+- Added patch C/D fields to the template schema.
+- Added patch C/D defaults to built-in template settings.
+- Added Patch C/D uniforms and click-to-pick handling to the video skybox shader.
+- Added Patch Mask C/D controls and pick-center buttons in the Advanced Editor.
+- Wired patch C/D settings and pick-target overlay into the main page.
+- Updated skybox preset visibility logic for patch C/D.
+- Added multi-pick and cursor tracking state for patch picking.
+- Added multi-pick cursor handling for patch picking on the video skybox.
+- Added a Multi-pick toggle to keep patch picking active in the Advanced Editor.
+- Added a crosshair overlay that follows the pick cursor during patch selection.
+- Reset skybox rotation speed to 0 when switching to or loading a video skybox.
+- Added a PoleLogoOverlay component to cover skybox poles with a logo.
+- Added a pole-logo toggle in the visual store and template serialization.
+- Added pole-logo enabled flag to the template schema.
+- Added pole-logo default to built-in templates.
+- Wired the pole-logo overlay into the main canvas scene.
+- Added a pole-logo toggle in the Advanced Editor skybox controls.
+- Added WAIANCircle logo to public overlays for pole coverage.
+- Added pole-logo URL/size/opacity settings to the visual store and template serialization.
+- Added pole-logo URL/size/opacity fields to the template schema.
+- Added pole-logo URL/size/opacity defaults to built-in templates.
+- Wired pole-logo URL/size/opacity into the main canvas overlay.
+- Added pole logo size/opacity sliders and custom logo picker controls.
+- Updated patch crosshair to snap to the last clicked position (no live cursor tracking).
+- Added pole-logo auto-scale setting to the visual store and template serialization.
+- Added pole-logo auto-scale flag to the template schema.
+- Added pole-logo auto-scale default to built-in templates.
+- Added auto-scale handling in PoleLogoOverlay and wired it into the canvas.
+- Added an auto-scale toggle for pole logo sizing in the Advanced Editor.
+- Added a visuals TODO list for items 1–4 (research/plan/execute).
+- Added rect-mask and mask-preview-mode fields to the visual store and template serialization.
+- Added mask preview mode and rect mask controls in the Advanced Editor.
+- Added rect mask + preview mode uniforms and shader logic to the video skybox.
+- Wired rect mask and preview mode props into the main canvas video skybox.
+- Added rect mask fields to template schema and built-in defaults.
+- Updated skybox preset visibility logic to include the rect mask.
+- Updated visuals TODO to reflect masking improvements progress.
+- Marked masking improvements as completed in visuals TODO.
+- Added video yaw/pitch offsets and seam blend fields to the visual store and templates.
+- Added video yaw/pitch and seam blend fields to the template schema and defaults.
+- Added video yaw/pitch offsets and seam blending uniforms to the video skybox shader.
+- Wired video yaw/pitch and seam blend props into the main canvas skybox.
+- Added video alignment (yaw/pitch) and seam blend controls to the Advanced Editor.
+- Marked seam/pole handling as completed in visuals TODO.
+- Added a batch render quick link inside the Render dialog.
+- Added template import/export controls to the Templates gallery.
+- Updated visuals TODO to mark export workflow polish as completed.
+- Added a VR debug overlay toggle and persisted it in templates.
+- Updated visuals TODO to mark VR comfort + UX work as completed.
+- Fixed duplicate pole logo fields in visual store serialization.
+- Locked OrbitControls to world-anchored orb target and disabled pan/zoom for world anchoring.
+- Styled the video skybox file picker with a button-like control.
+- Expanded hole/pole slider ranges and strengthened the shader fade curve.
+- Added drag-to-look camera controls for world-anchored mode (no orbit translation).
+- Kept video and star skyboxes centered on the camera to prevent background dragging.
+- Set pole logo auto-scale default to OFF.
+- Migrated saved templates to force pole logo auto-scale OFF.

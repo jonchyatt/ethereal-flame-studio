@@ -392,11 +392,13 @@ export function VRModeOverlay({
   onExit,
   showInstructions,
   onDismissInstructions,
+  showDebugOverlay,
 }: {
   enabled: boolean;
   onExit: () => void;
   showInstructions: boolean;
   onDismissInstructions: () => void;
+  showDebugOverlay: boolean;
 }) {
   const { permissionState, requestPermission } = useVRContext();
   const [isRequesting, setIsRequesting] = useState(false);
@@ -525,7 +527,7 @@ export function VRModeOverlay({
       )}
 
       {/* Debug overlay - shows orientation values on screen */}
-      {permissionState === 'granted' && (
+      {permissionState === 'granted' && showDebugOverlay && (
         <VRDebugOverlay />
       )}
     </div>
