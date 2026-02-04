@@ -59,38 +59,21 @@ export function DashboardPanel({ data, loading }: DashboardPanelProps) {
             </div>
           </div>
 
-          {/* Expanded view - shows tasks */}
+          {/* Expanded view - shows interactive tasks */}
           {mobileExpanded && (
-            <div className="px-4 pb-4 max-h-[50vh] overflow-y-auto">
-              {/* Tasks */}
+            <div
+              className="px-4 pb-4 max-h-[60vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()} // Prevent collapse when interacting with tasks
+            >
+              {/* Tasks - using interactive TasksList component */}
               {sections.tasks.visible && (
                 <div className="mb-3">
-                  {loading ? (
-                    <div className="animate-pulse space-y-2">
-                      <div className="h-4 bg-white/10 rounded" />
-                      <div className="h-4 bg-white/10 rounded w-3/4" />
-                    </div>
-                  ) : allTasks.length === 0 ? (
-                    <p className="text-white/40 text-sm">No tasks for today</p>
-                  ) : (
-                    <ul className="space-y-1">
-                      {allTasks.slice(0, 8).map((task) => {
-                        const isOverdue = data?.tasks.overdue?.some(t => t.id === task.id);
-                        return (
-                          <li
-                            key={task.id}
-                            className={`text-sm ${isOverdue ? 'text-red-300' : 'text-white/80'}`}
-                          >
-                            {isOverdue && <span className="text-red-400 mr-1">!</span>}
-                            {task.title}
-                          </li>
-                        );
-                      })}
-                      {allTasks.length > 8 && (
-                        <li className="text-white/40 text-xs">+{allTasks.length - 8} more</li>
-                      )}
-                    </ul>
-                  )}
+                  <TasksList
+                    tasks={data?.tasks.today || []}
+                    overdue={data?.tasks.overdue || []}
+                    loading={loading}
+                    expanded={true}
+                  />
                 </div>
               )}
 
