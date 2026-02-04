@@ -14,76 +14,110 @@ interface DashboardPanelProps {
 }
 
 export function DashboardPanel({ data, loading }: DashboardPanelProps) {
-  const { sections, isVisible, setIsVisible } = useDashboardStore();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const { sections, isVisible } = useDashboardStore();
+  const [mobileExpanded, setMobileExpanded] = useState(false);
 
   if (!isVisible) return null;
 
-  // Mobile drawer toggle button
-  const MobileToggle = () => (
-    <button
-      onClick={() => setMobileOpen(!mobileOpen)}
-      className="fixed bottom-4 right-4 z-40 md:hidden
-                 bg-white/10 backdrop-blur-md rounded-full p-3
-                 border border-white/20"
-      aria-label={mobileOpen ? 'Close dashboard' : 'Open dashboard'}
-    >
-      <svg
-        className="w-6 h-6 text-white"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        {mobileOpen ? (
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        ) : (
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-        )}
-      </svg>
-    </button>
-  );
+  const allTasks = [...(data?.tasks.overdue || []), ...(data?.tasks.today || [])];
+  const taskCount = allTasks.length;
+  const overdueCount = data?.tasks.overdue?.length || 0;
 
   return (
     <>
-      {/* Mobile toggle button */}
-      <MobileToggle />
-
-      {/* Mobile backdrop */}
-      {mobileOpen && (
+      {/* Mobile: Compact top bar - always visible */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-20 safe-area-top">
         <div
-          className="fixed inset-0 bg-black/40 z-10 md:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
+          className="bg-black/70 backdrop-blur-md border-b border-white/10"
+          onClick={() => setMobileExpanded(!mobileExpanded)}
+        >
+          {/* Collapsed view - tap to expand */}
+          <div className="px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-white/60 text-xs uppercase tracking-wide">Today</span>
+              {loading ? (
+                <span className="text-white/40 text-sm">Loading...</span>
+              ) : (
+                <span className="text-white/80 text-sm">
+                  {taskCount} task{taskCount !== 1 ? 's' : ''}
+                  {overdueCount > 0 && (
+                    <span className="text-red-400 ml-1">({overdueCount} overdue)</span>
+                  )}
+                </span>
+              )}
+            </div>
+            <svg
+              className={`w-4 h-4 text-white/60 transition-transform ${mobileExpanded ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
 
-      {/* Dashboard panel */}
+          {/* Expanded view - shows tasks */}
+          {mobileExpanded && (
+            <div className="px-4 pb-4 max-h-[50vh] overflow-y-auto">
+              {/* Tasks */}
+              {sections.tasks.visible && (
+                <div className="mb-3">
+                  {loading ? (
+                    <div className="animate-pulse space-y-2">
+                      <div className="h-4 bg-white/10 rounded" />
+                      <div className="h-4 bg-white/10 rounded w-3/4" />
+                    </div>
+                  ) : allTasks.length === 0 ? (
+                    <p className="text-white/40 text-sm">No tasks for today</p>
+                  ) : (
+                    <ul className="space-y-1">
+                      {allTasks.slice(0, 8).map((task) => {
+                        const isOverdue = data?.tasks.overdue?.some(t => t.id === task.id);
+                        return (
+                          <li
+                            key={task.id}
+                            className={`text-sm ${isOverdue ? 'text-red-300' : 'text-white/80'}`}
+                          >
+                            {isOverdue && <span className="text-red-400 mr-1">!</span>}
+                            {task.title}
+                          </li>
+                        );
+                      })}
+                      {allTasks.length > 8 && (
+                        <li className="text-white/40 text-xs">+{allTasks.length - 8} more</li>
+                      )}
+                    </ul>
+                  )}
+                </div>
+              )}
+
+              {/* Calendar preview */}
+              {sections.calendar.visible && (data?.calendar.today?.length || 0) > 0 && (
+                <div className="pt-2 border-t border-white/10">
+                  <p className="text-white/60 text-xs mb-1">Upcoming</p>
+                  {data?.calendar.today?.slice(0, 3).map((event) => (
+                    <p key={event.id} className="text-white/70 text-sm">
+                      {event.time} - {event.title}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Desktop: Right sidebar - existing design */}
       <aside
-        className={`
-          fixed z-20 bg-black/60 backdrop-blur-md
-          border-white/10 overflow-y-auto
-
-          /* Desktop: right sidebar */
-          md:right-4 md:top-4 md:bottom-4 md:w-80
-          md:rounded-2xl md:border
-
-          /* Mobile: full-height drawer from right */
-          ${mobileOpen ? 'right-0' : '-right-full'}
-          top-0 bottom-0 w-80
-          border-l transition-all duration-300
-          md:translate-x-0
-        `}
+        className="hidden md:block fixed z-20 bg-black/60 backdrop-blur-md
+                   border-white/10 overflow-y-auto
+                   right-4 top-4 bottom-4 w-80
+                   rounded-2xl border"
       >
         <div className="p-4 space-y-6">
-          {/* Header with close button */}
+          {/* Header */}
           <div className="flex items-center justify-between">
             <h2 className="text-white/80 text-sm font-medium">Today</h2>
-            <button
-              onClick={() => setIsVisible(false)}
-              className="text-white/40 hover:text-white/60 text-xs"
-              aria-label="Hide dashboard"
-            >
-              Hide
-            </button>
           </div>
 
           {/* Tasks Section */}

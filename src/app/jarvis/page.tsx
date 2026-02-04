@@ -349,8 +349,9 @@ export default function JarvisPage() {
   return (
     <main className="relative flex flex-col h-full w-full bg-black overflow-hidden">
       {/* Orb visualization - always visible, dimmed behind permission prompt */}
+      {/* On mobile, add top padding to account for the dashboard bar */}
       <div
-        className={`flex-1 w-full transition-opacity duration-300 ${
+        className={`flex-1 w-full transition-opacity duration-300 pt-14 md:pt-0 ${
           permissionUIState !== 'ready' ? 'opacity-30' : 'opacity-100'
         }`}
       >
