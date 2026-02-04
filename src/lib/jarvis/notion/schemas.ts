@@ -250,17 +250,17 @@ export function buildTaskFilter(options: {
   const filters: NotionFilter[] = [];
   const today = getTodayInTimezone(options.timezone);
 
-  // Status filter
+  // Status filter (Jarvis Life OS uses 'Done' not 'Completed')
   if (options.status && options.status !== 'all') {
     if (options.status === 'pending') {
       filters.push({
         property: TASK_PROPS.status,
-        status: { does_not_equal: 'Completed' },
+        status: { does_not_equal: 'Done' },
       });
     } else if (options.status === 'completed') {
       filters.push({
         property: TASK_PROPS.status,
-        status: { equals: 'Completed' },
+        status: { equals: 'Done' },
       });
     }
   }
@@ -288,10 +288,10 @@ export function buildTaskFilter(options: {
       property: TASK_PROPS.dueDate,
       date: { before: today },
     });
-    // Only incomplete tasks for overdue
+    // Only incomplete tasks for overdue (Jarvis Life OS uses 'Done')
     filters.push({
       property: TASK_PROPS.status,
-      status: { does_not_equal: 'Completed' },
+      status: { does_not_equal: 'Done' },
     });
   }
 
@@ -644,15 +644,17 @@ export function isValidUUID(str: string): boolean {
 export function mapTaskStatus(
   status: 'pending' | 'in_progress' | 'completed' | string
 ): string {
+  // Note: Jarvis Life OS database uses 'Done' not 'Completed'
   const statusMap: Record<string, string> = {
     pending: 'Not started',
     in_progress: 'In progress',
-    completed: 'Completed',
+    completed: 'Done',  // Jarvis Life OS uses 'Done'
     paused: 'On Hold',
     // Also accept the Notion values directly
     'Not started': 'Not started',
     'In progress': 'In progress',
-    Completed: 'Completed',
+    Done: 'Done',
+    Completed: 'Done',  // Map legacy 'Completed' to 'Done'
     'On Hold': 'On Hold',
   };
   return statusMap[status] || 'Not started';

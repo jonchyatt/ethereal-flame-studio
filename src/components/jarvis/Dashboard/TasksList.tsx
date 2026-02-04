@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { PriorityIndicator } from '../PriorityIndicator';
 import { useDashboardStore } from '@/lib/jarvis/stores/dashboardStore';
+import { fetchJarvisAPI } from '@/lib/jarvis/api/fetchWithAuth';
 import type { TaskSummary } from '@/lib/jarvis/executive/types';
 
 interface TasksListProps {
@@ -36,7 +37,7 @@ export function TasksList({ tasks, overdue, loading, expanded }: TasksListProps)
     }
 
     try {
-      const response = await fetch('/api/jarvis/task', {
+      const response = await fetchJarvisAPI('/api/jarvis/task', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

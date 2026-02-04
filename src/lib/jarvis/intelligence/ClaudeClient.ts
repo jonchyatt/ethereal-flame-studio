@@ -6,6 +6,16 @@
  */
 
 import { fetchJarvisAPI } from '../api/fetchWithAuth';
+import { useDashboardStore } from '../stores/dashboardStore';
+
+// Tools that modify data and should trigger a dashboard refresh
+const WRITE_TOOLS = [
+  'create_task',
+  'update_task_status',
+  'mark_bill_paid',
+  'pause_task',
+  'add_project_item',
+];
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -107,6 +117,18 @@ export class ClaudeClient {
               if (data.type === 'text') {
                 fullText += data.text;
                 callbacks.onToken(data.text);
+              } else if (data.type === 'tool_result') {
+                // Check if this was a write operation that succeeded
+                const toolName = data.tool_name;
+                const result = data.result || '';
+                const isWriteTool = WRITE_TOOLS.includes(toolName);
+                const isSuccess = !result.includes('trouble') && !result.includes("couldn't find");
+
+                if (isWriteTool && isSuccess) {
+                  // Trigger dashboard refresh on client
+                  console.log('[ClaudeClient] Write operation succeeded, refreshing dashboard');
+                  useDashboardStore.getState().triggerRefresh();
+                }
               } else if (data.type === 'done') {
                 callbacks.onComplete(fullText);
               } else if (data.type === 'error') {

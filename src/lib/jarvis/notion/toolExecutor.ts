@@ -452,12 +452,14 @@ async function executeNotionToolInner(
 /**
  * Property name constants for extracting titles from different database types
  */
+// Property names for title extraction - must match actual Notion database schema
+// See schemas.ts for the source of truth
 const TITLE_PROPS: Record<CachedItem['type'], string> = {
-  task: 'Task',
-  bill: 'Bill',
-  project: 'Project',
-  goal: 'Goal',
-  habit: 'Habit',
+  task: 'Name',       // Jarvis Life OS uses 'Name' for task titles
+  bill: 'Bill',       // Bills database uses 'Bill'
+  project: 'Project', // Projects database uses 'Project'
+  goal: 'Goal',       // Goals database uses 'Goal'
+  habit: 'Habit',     // Habits database uses 'Habit'
 };
 
 /**
