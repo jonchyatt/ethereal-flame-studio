@@ -26,19 +26,19 @@ export function DashboardPanel({ data, loading }: DashboardPanelProps) {
   return (
     <>
       {/* Mobile: Compact top bar - always visible */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-20 safe-area-top">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 safe-area-top">
         <div
-          className="bg-black/70 backdrop-blur-md border-b border-white/10"
+          className="bg-black/80 backdrop-blur-md border-b border-white/20 shadow-lg"
           onClick={() => setMobileExpanded(!mobileExpanded)}
         >
           {/* Collapsed view - tap to expand */}
           <div className="px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-white/60 text-xs uppercase tracking-wide">Today</span>
+              <span className="text-cyan-400/80 text-xs uppercase tracking-wide font-medium">Today</span>
               {loading ? (
                 <span className="text-white/40 text-sm">Loading...</span>
               ) : (
-                <span className="text-white/80 text-sm">
+                <span className="text-white/90 text-sm font-medium">
                   {taskCount} task{taskCount !== 1 ? 's' : ''}
                   {overdueCount > 0 && (
                     <span className="text-red-400 ml-1">({overdueCount} overdue)</span>
@@ -46,14 +46,17 @@ export function DashboardPanel({ data, loading }: DashboardPanelProps) {
                 </span>
               )}
             </div>
-            <svg
-              className={`w-4 h-4 text-white/60 transition-transform ${mobileExpanded ? 'rotate-180' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+            <div className="flex items-center gap-2">
+              <span className="text-white/40 text-xs">{mobileExpanded ? 'tap to close' : 'tap to expand'}</span>
+              <svg
+                className={`w-4 h-4 text-white/60 transition-transform ${mobileExpanded ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </div>
 
           {/* Expanded view - shows tasks */}

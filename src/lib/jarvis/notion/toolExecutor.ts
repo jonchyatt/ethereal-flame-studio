@@ -276,9 +276,25 @@ async function executeNotionToolInner(
       const newStatus = input.new_status as string;
 
       if (!isValidUUID(taskId)) {
-        const foundId = findTaskByTitle(taskId);
+        // First try the cache
+        let foundId = findTaskByTitle(taskId);
+
+        // If not in cache, auto-query tasks to populate cache then retry
         if (!foundId) {
-          return `I couldn't find a task matching "${taskId}". Try asking "What tasks do I have?" first so I can see your task list.`;
+          console.log('[ToolExecutor] Task not in cache, auto-querying to populate cache');
+          const dataSourceId = LIFE_OS_DATABASES.tasks;
+          if (dataSourceId) {
+            // Query all pending tasks to populate cache
+            const filterOptions = buildTaskFilter({ filter: 'all', status: 'pending' });
+            const result = await queryDatabase(dataSourceId, filterOptions);
+            cacheQueryResults(result, 'task');
+            // Try again after populating cache
+            foundId = findTaskByTitle(taskId);
+          }
+        }
+
+        if (!foundId) {
+          return `I couldn't find a task matching "${taskId}". The task might be completed already or have a different name.`;
         }
         taskId = foundId;
       }
@@ -304,9 +320,23 @@ async function executeNotionToolInner(
       let billId = input.bill_id as string;
 
       if (!isValidUUID(billId)) {
-        const foundId = findBillByTitle(billId);
+        // First try the cache
+        let foundId = findBillByTitle(billId);
+
+        // If not in cache, auto-query bills to populate cache then retry
         if (!foundId) {
-          return `I couldn't find a bill matching "${billId}". Try asking "What bills are due?" first so I can see your bills.`;
+          console.log('[ToolExecutor] Bill not in cache, auto-querying to populate cache');
+          const dataSourceId = LIFE_OS_DATABASES.bills;
+          if (dataSourceId) {
+            const filterOptions = buildBillFilter({ timeframe: 'this_month', unpaidOnly: true });
+            const result = await queryDatabase(dataSourceId, filterOptions);
+            cacheQueryResults(result, 'bill');
+            foundId = findBillByTitle(billId);
+          }
+        }
+
+        if (!foundId) {
+          return `I couldn't find a bill matching "${billId}". The bill might already be paid or have a different name.`;
         }
         billId = foundId;
       }
@@ -327,9 +357,23 @@ async function executeNotionToolInner(
       const until = input.until as string | undefined;
 
       if (!isValidUUID(taskId)) {
-        const foundId = findTaskByTitle(taskId);
+        // First try the cache
+        let foundId = findTaskByTitle(taskId);
+
+        // If not in cache, auto-query tasks to populate cache then retry
         if (!foundId) {
-          return `I couldn't find a task matching "${taskId}". Try asking "What tasks do I have?" first so I can see your task list.`;
+          console.log('[ToolExecutor] Task not in cache, auto-querying to populate cache');
+          const dataSourceId = LIFE_OS_DATABASES.tasks;
+          if (dataSourceId) {
+            const filterOptions = buildTaskFilter({ filter: 'all', status: 'pending' });
+            const result = await queryDatabase(dataSourceId, filterOptions);
+            cacheQueryResults(result, 'task');
+            foundId = findTaskByTitle(taskId);
+          }
+        }
+
+        if (!foundId) {
+          return `I couldn't find a task matching "${taskId}". The task might be completed already or have a different name.`;
         }
         taskId = foundId;
       }
@@ -360,9 +404,23 @@ async function executeNotionToolInner(
       const item = input.item as string;
 
       if (!isValidUUID(projectId)) {
-        const foundId = findProjectByTitle(projectId);
+        // First try the cache
+        let foundId = findProjectByTitle(projectId);
+
+        // If not in cache, auto-query projects to populate cache then retry
         if (!foundId) {
-          return `I couldn't find a project matching "${projectId}". Try asking "What projects am I working on?" first so I can see your projects.`;
+          console.log('[ToolExecutor] Project not in cache, auto-querying to populate cache');
+          const dataSourceId = LIFE_OS_DATABASES.projects;
+          if (dataSourceId) {
+            const filterOptions = buildProjectFilter({ status: 'active' });
+            const result = await queryDatabase(dataSourceId, filterOptions);
+            cacheQueryResults(result, 'project');
+            foundId = findProjectByTitle(projectId);
+          }
+        }
+
+        if (!foundId) {
+          return `I couldn't find a project matching "${projectId}". The project might be completed or have a different name.`;
         }
         projectId = foundId;
       }

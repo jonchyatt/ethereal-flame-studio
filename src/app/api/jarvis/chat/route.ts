@@ -2,13 +2,16 @@
  * Claude Chat API Route
  *
  * SSE streaming proxy to Claude API with tool execution loop.
- * Executes Notion tools via MCP and Memory tools via local DB.
+ * Executes Notion tools via MCP, Memory tools via local DB, and Tutorial tools via TutorialManager.
  */
 
 import Anthropic from '@anthropic-ai/sdk';
 import { notionTools, memoryTools } from '@/lib/jarvis/intelligence/tools';
+import { tutorialTools } from '@/lib/jarvis/tutorial/tutorialTools';
 import { executeNotionTool } from '@/lib/jarvis/notion/toolExecutor';
 import { executeMemoryTool } from '@/lib/jarvis/memory/toolExecutor';
+import { executeTutorialTool, isTutorialTool } from '@/lib/jarvis/tutorial/toolExecutor';
+import { getTutorialManager } from '@/lib/jarvis/tutorial/TutorialManager';
 import { getJarvisConfig } from '@/lib/jarvis/config';
 import {
   retrieveMemories,
@@ -33,7 +36,7 @@ const WARN_THRESHOLD_PERCENT = 80;
 const CHARS_PER_TOKEN = 4;  // Per STATE.md decision
 
 // Combine all tools for Claude
-const allTools = [...notionTools, ...memoryTools];
+const allTools = [...notionTools, ...memoryTools, ...tutorialTools];
 
 // Memory tool names for routing
 const memoryToolNames = [
@@ -44,6 +47,16 @@ const memoryToolNames = [
   'restore_memory',
   'observe_pattern',
   'query_audit_log',
+];
+
+// Tutorial tool names for routing
+const tutorialToolNames = [
+  'start_tutorial',
+  'teach_topic',
+  'continue_tutorial',
+  'skip_tutorial_module',
+  'get_tutorial_progress',
+  'get_quick_reference',
 ];
 
 interface ChatMessage {
@@ -114,13 +127,25 @@ export async function POST(request: Request): Promise<Response> {
       }
     }
 
-    // Build system prompt server-side with memory context, proactive surfacing, and inferred preferences
+    // Get tutorial context (works client-side, so safe to call here)
+    let tutorialContext: string | undefined;
+    try {
+      // Note: TutorialManager uses localStorage which only works client-side
+      // For server-side, we'll pass undefined and let the client handle tutorial state
+      // This is a limitation that will be addressed when we move to server-side session storage
+      tutorialContext = undefined;
+    } catch {
+      tutorialContext = undefined;
+    }
+
+    // Build system prompt server-side with memory context, proactive surfacing, inferred preferences, and tutorial context
     // This ensures memory stays server-side and v1 behavior is preserved when flag is off
     const serverSystemPrompt = buildSystemPrompt({
       currentTime: new Date(),
       memoryContext, // undefined when flag is off or loading failed
       proactiveSurfacing, // undefined when flag is off, loading failed, or nothing to surface
       inferredPreferences, // undefined when no inferred preferences exist
+      tutorialContext, // undefined when no tutorial context (server-side limitation)
     });
 
     // Create SSE stream
@@ -202,7 +227,13 @@ export async function POST(request: Request): Promise<Response> {
 
                 // Route to correct executor based on tool name
                 let result: string;
-                if (memoryToolNames.includes(toolUse.name)) {
+                if (tutorialToolNames.includes(toolUse.name)) {
+                  const tutorialResult = await executeTutorialTool(
+                    toolUse.name,
+                    toolUse.input as Record<string, unknown>
+                  );
+                  result = tutorialResult.content || tutorialResult.error || 'Tutorial operation completed';
+                } else if (memoryToolNames.includes(toolUse.name)) {
                   result = await executeMemoryTool(
                     toolUse.name,
                     toolUse.input as Record<string, unknown>,

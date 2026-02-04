@@ -1,7 +1,7 @@
 /**
  * Tool Definitions for Jarvis
  *
- * Defines Claude tool schemas for Notion and Memory operations.
+ * Defines Claude tool schemas for Notion, Memory, and Tutorial operations.
  *
  * Notion Tools (10 total, via MCP):
  * - 5 Read tools: query_tasks, query_bills, query_projects, query_goals, query_habits
@@ -9,6 +9,9 @@
  *
  * Memory Tools (5 total, via local DB):
  * - remember_fact, forget_fact, list_memories, delete_all_memories, restore_memory
+ *
+ * Tutorial Tools (6 total, via TutorialManager):
+ * - start_tutorial, teach_topic, continue_tutorial, skip_tutorial_module, get_tutorial_progress, get_quick_reference
  */
 
 /**
@@ -219,3 +222,21 @@ export const notionTools: ToolDefinition[] = [
 
 // Re-export memory tools for combined tool usage
 export { memoryTools } from './memoryTools';
+
+// Re-export tutorial tools
+export { tutorialTools } from '../tutorial/tutorialTools';
+
+/**
+ * Get all available tools for Claude
+ */
+export function getAllTools(): ToolDefinition[] {
+  // Import dynamically to avoid circular dependencies
+  const { memoryTools } = require('./memoryTools');
+  const { tutorialTools } = require('../tutorial/tutorialTools');
+
+  return [
+    ...notionTools,
+    ...memoryTools,
+    ...tutorialTools
+  ];
+}

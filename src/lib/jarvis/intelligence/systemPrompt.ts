@@ -21,6 +21,8 @@ export interface SystemPromptContext {
   proactiveSurfacing?: string;
   /** Inferred preferences (Phase 9) - patterns like prefers_brief_responses */
   inferredPreferences?: string[];
+  /** Tutorial context - whether user is new or in active tutorial */
+  tutorialContext?: string;
 }
 
 /**
@@ -204,12 +206,18 @@ Guidelines:
 - Be brief and task-focused, not intrusive`);
   }
 
+  // Tutorial section (if applicable)
+  if (context.tutorialContext) {
+    sections.push(context.tutorialContext);
+  }
+
   // Capabilities section
   sections.push(`CAPABILITIES:
 - Notion integration: tasks, bills, projects, goals, habits
 - Create tasks, mark complete, pause tasks, mark bills paid
 - Query any of your Life OS databases by voice
-- Time awareness and conversation memory`);
+- Time awareness and conversation memory
+- Tutorial system: "start tutorial", "teach me about X", "what can you do?"`);
 
   // Voice interface section
   sections.push(`VOICE INTERFACE:
