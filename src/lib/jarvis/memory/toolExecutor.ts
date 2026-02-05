@@ -25,6 +25,7 @@ import { observeAndInfer } from './preferenceInference';
 import { type PatternType } from './queries/observations';
 import { getDb, memoryEntries } from './db';
 import { logEvent, getRecentToolInvocations, type ToolInvocationData } from './queries/dailyLogs';
+import { trackErrorPattern } from '../resilience/errorTracking';
 
 export type MemoryToolName =
   | 'remember_fact'
@@ -100,6 +101,9 @@ export async function executeMemoryTool(
         error: errorMessage,
       } as ToolInvocationData);
     }
+
+    // Track error pattern for self-healing (Phase 14)
+    trackErrorPattern(error, 'turso', toolName, sessionId).catch(() => {});
 
     return JSON.stringify({ error: errorMessage });
   }

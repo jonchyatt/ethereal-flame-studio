@@ -25,6 +25,8 @@ export interface SystemPromptContext {
   tutorialContext?: string;
   /** Recent conversation history from previous sessions (Phase 13) */
   conversationHistory?: string;
+  /** Service health status for degraded/down services (Phase 14) */
+  serviceHealth?: Record<string, 'degraded' | 'down'>;
 }
 
 /**
@@ -221,6 +223,19 @@ You have context from previous conversations that persists across browser sessio
 ${context.conversationHistory}
 
 Reference this naturally — don't say "in our previous conversation" or "from my records". Just demonstrate continuity as if you remember.`);
+  }
+
+  // Service health section (Phase 14)
+  if (context.serviceHealth && Object.keys(context.serviceHealth).length > 0) {
+    const statusLines = Object.entries(context.serviceHealth)
+      .map(([service, status]) => `- ${service}: ${status}`)
+      .join('\n');
+
+    sections.push(`SERVICE STATUS:
+Some services are currently experiencing issues:
+${statusLines}
+
+If the user's request involves an affected service, mention it briefly: "Notion seems to be having trouble right now, I'll keep trying." Don't over-explain or apologize excessively.`);
   }
 
   // Capabilities section

@@ -9,7 +9,7 @@ import { eq, and, gte, desc, sql } from 'drizzle-orm';
 import { db } from '../db';
 import { observations, type Observation, type NewObservation } from '../schema';
 
-export type PatternType = 'communication_style' | 'scheduling' | 'topic_interest' | 'workflow';
+export type PatternType = 'communication_style' | 'scheduling' | 'topic_interest' | 'workflow' | 'error_pattern';
 
 /**
  * Record a new observation of a behavioral pattern.

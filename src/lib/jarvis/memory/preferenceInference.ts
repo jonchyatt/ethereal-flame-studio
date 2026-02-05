@@ -31,6 +31,10 @@ const PATTERN_TO_PREFERENCE: Record<string, string> = {
   interested_in_health: 'Interested in health and wellness topics',
   uses_informal_language: 'Prefers informal conversational tone',
   uses_formal_language: 'Prefers formal professional tone',
+  // Error patterns (Phase 14)
+  notion_transient_error: 'Notion API has been experiencing intermittent failures',
+  claude_transient_error: 'Claude API has been experiencing intermittent failures',
+  turso_transient_error: 'Database has been experiencing intermittent failures',
 };
 
 /**
@@ -41,6 +45,7 @@ const PATTERN_TYPE_TO_CATEGORY: Record<PatternType, string> = {
   scheduling: 'fact',
   topic_interest: 'preference',
   workflow: 'preference',
+  error_pattern: 'pattern',
 };
 
 /**

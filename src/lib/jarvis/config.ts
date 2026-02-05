@@ -22,6 +22,8 @@ export interface JarvisConfig {
   historyTokenBudget: number;
   /** Maximum messages to load from previous session for history (default 5) */
   maxHistoryMessages: number;
+  /** Enable self-healing: retry, circuit breakers, error tracking (default true) */
+  enableSelfHealing: boolean;
 }
 
 /**
@@ -42,6 +44,7 @@ export function getJarvisConfig(): JarvisConfig {
     decayThreshold: parseFloat(process.env.JARVIS_DECAY_THRESHOLD || '0.9'),
     historyTokenBudget: parseInt(process.env.JARVIS_HISTORY_TOKEN_BUDGET || '2000', 10),
     maxHistoryMessages: parseInt(process.env.JARVIS_MAX_HISTORY_MESSAGES || '5', 10),
+    enableSelfHealing: process.env.JARVIS_ENABLE_SELF_HEALING !== 'false', // ON by default
   };
 }
 

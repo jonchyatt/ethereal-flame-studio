@@ -37,6 +37,7 @@ import {
 import { findNotionDatabase } from './notionUrls';
 import { useDashboardStore } from '../stores/dashboardStore';
 import { logEvent, type ToolInvocationData } from '../memory/queries/dailyLogs';
+import { trackErrorPattern } from '../resilience/errorTracking';
 
 /**
  * Trigger dashboard refresh after write operations
@@ -94,6 +95,9 @@ export async function executeNotionTool(
         error: errorMessage,
       } as ToolInvocationData);
     }
+
+    // Track error pattern for self-healing (Phase 14)
+    trackErrorPattern(error, 'notion', toolName, sessionId).catch(() => {});
 
     // Return user-friendly error messages
     if (errorMessage.includes('NOTION_TOKEN')) {

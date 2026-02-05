@@ -13,6 +13,9 @@ import { executeMemoryTool } from '@/lib/jarvis/memory/toolExecutor';
 import { executeTutorialTool, isTutorialTool } from '@/lib/jarvis/tutorial/toolExecutor';
 import { getTutorialManager } from '@/lib/jarvis/tutorial/TutorialManager';
 import { getJarvisConfig } from '@/lib/jarvis/config';
+import { withRetry } from '@/lib/jarvis/resilience/withRetry';
+import { getServiceHealth } from '@/lib/jarvis/resilience/CircuitBreaker';
+import { trackErrorPattern } from '@/lib/jarvis/resilience/errorTracking';
 import {
   retrieveMemories,
   formatMemoriesForPrompt,
@@ -169,6 +172,21 @@ export async function POST(request: Request): Promise<Response> {
       }
     }
 
+    // Build service health context (Phase 14)
+    let serviceHealth: Record<string, 'degraded' | 'down'> | undefined;
+    if (config.enableSelfHealing) {
+      const health = getServiceHealth();
+      const issues: Record<string, 'degraded' | 'down'> = {};
+      for (const [service, state] of Object.entries(health)) {
+        if (state.state === 'OPEN') issues[service] = 'down';
+        else if (state.state === 'HALF_OPEN') issues[service] = 'degraded';
+      }
+      if (Object.keys(issues).length > 0) {
+        serviceHealth = issues;
+        console.log('[Chat] Service health issues:', issues);
+      }
+    }
+
     // Build system prompt server-side with memory context, proactive surfacing, inferred preferences, and tutorial context
     // This ensures memory stays server-side and v1 behavior is preserved when flag is off
     const serverSystemPrompt = buildSystemPrompt({
@@ -178,6 +196,7 @@ export async function POST(request: Request): Promise<Response> {
       inferredPreferences,
       tutorialContext,
       conversationHistory,
+      serviceHealth,
     });
 
     // Create SSE stream
@@ -223,13 +242,18 @@ export async function POST(request: Request): Promise<Response> {
 
             // Call Claude (non-streaming to detect tool_use)
             // Use server-built system prompt with memory context
-            const response = await anthropic.messages.create({
-              model: 'claude-3-5-haiku-20241022',
-              max_tokens: 1024,
-              system: serverSystemPrompt,
-              messages: claudeMessages as Anthropic.MessageParam[],
-              tools: allTools,
-            });
+            // Wrapped with retry for transient failures (Phase 14)
+            const response = await withRetry(
+              () => anthropic.messages.create({
+                model: 'claude-3-5-haiku-20241022',
+                max_tokens: 1024,
+                system: serverSystemPrompt,
+                messages: claudeMessages as Anthropic.MessageParam[],
+                tools: allTools,
+              }),
+              'claude',
+              { maxAttempts: 2, initialDelayMs: 1000, maxDelayMs: 5000 }
+            );
 
             console.log(`[Chat] Response stop_reason: ${response.stop_reason}`);
 

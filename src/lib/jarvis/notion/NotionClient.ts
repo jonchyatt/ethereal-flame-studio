@@ -13,6 +13,8 @@
  */
 
 import { Client } from '@notionhq/client';
+import { withRetry } from '../resilience/withRetry';
+import { getBreaker } from '../resilience/CircuitBreaker';
 import type {
   QueryDataSourceParameters,
   QueryDataSourceResponse,
@@ -70,16 +72,23 @@ export async function queryDatabase(
   }
 ): Promise<QueryDataSourceResponse> {
   const client = getNotionClient();
+  const breaker = getBreaker('notion');
 
   console.log('[Notion] Querying data source:', dataSourceId);
 
-  const response = await client.dataSources.query({
-    data_source_id: dataSourceId,
-    filter: options?.filter as DataSourceFilter,
-    sorts: options?.sorts,
-    page_size: options?.page_size,
-    start_cursor: options?.start_cursor,
-  });
+  const response = await breaker.execute(() =>
+    withRetry(
+      () => client.dataSources.query({
+        data_source_id: dataSourceId,
+        filter: options?.filter as DataSourceFilter,
+        sorts: options?.sorts,
+        page_size: options?.page_size,
+        start_cursor: options?.start_cursor,
+      }),
+      'notion',
+      { maxAttempts: 3, initialDelayMs: 500 }
+    )
+  );
 
   console.log(`[Notion] Query returned ${response.results.length} results`);
 
@@ -103,15 +112,22 @@ export async function createPage(
   properties: PageProperties | Record<string, unknown>
 ): Promise<unknown> {
   const client = getNotionClient();
+  const breaker = getBreaker('notion');
 
   console.log('[Notion] Creating page in database:', databaseId);
 
-  const response = await client.pages.create({
-    parent: { database_id: databaseId },
-    properties: properties as PageProperties,
-  });
+  const response = await breaker.execute(() =>
+    withRetry(
+      () => client.pages.create({
+        parent: { database_id: databaseId },
+        properties: properties as PageProperties,
+      }),
+      'notion',
+      { maxAttempts: 3, initialDelayMs: 500 }
+    )
+  );
 
-  console.log('[Notion] Page created:', response.id);
+  console.log('[Notion] Page created:', (response as { id: string }).id);
 
   return response;
 }
@@ -133,15 +149,22 @@ export async function updatePage(
   properties: UpdateProperties | Record<string, unknown>
 ): Promise<unknown> {
   const client = getNotionClient();
+  const breaker = getBreaker('notion');
 
   console.log('[Notion] Updating page:', pageId);
 
-  const response = await client.pages.update({
-    page_id: pageId,
-    properties: properties as UpdateProperties,
-  });
+  const response = await breaker.execute(() =>
+    withRetry(
+      () => client.pages.update({
+        page_id: pageId,
+        properties: properties as UpdateProperties,
+      }),
+      'notion',
+      { maxAttempts: 3, initialDelayMs: 500 }
+    )
+  );
 
-  console.log('[Notion] Page updated:', response.id);
+  console.log('[Notion] Page updated:', (response as { id: string }).id);
 
   return response;
 }
@@ -154,12 +177,19 @@ export async function updatePage(
  */
 export async function retrievePage(pageId: string): Promise<unknown> {
   const client = getNotionClient();
+  const breaker = getBreaker('notion');
 
   console.log('[Notion] Retrieving page:', pageId);
 
-  const response = await client.pages.retrieve({
-    page_id: pageId,
-  });
+  const response = await breaker.execute(() =>
+    withRetry(
+      () => client.pages.retrieve({
+        page_id: pageId,
+      }),
+      'notion',
+      { maxAttempts: 3, initialDelayMs: 500 }
+    )
+  );
 
   return response;
 }
@@ -185,16 +215,23 @@ export async function searchNotion(
   }
 ): Promise<SearchResponse> {
   const client = getNotionClient();
+  const breaker = getBreaker('notion');
 
   console.log('[Notion] Searching:', query);
 
-  const response = await client.search({
-    query,
-    filter: options?.filter,
-    sort: options?.sort,
-    page_size: options?.page_size,
-    start_cursor: options?.start_cursor,
-  });
+  const response = await breaker.execute(() =>
+    withRetry(
+      () => client.search({
+        query,
+        filter: options?.filter,
+        sort: options?.sort,
+        page_size: options?.page_size,
+        start_cursor: options?.start_cursor,
+      }),
+      'notion',
+      { maxAttempts: 3, initialDelayMs: 500 }
+    )
+  );
 
   console.log(`[Notion] Search returned ${response.results.length} results`);
 
