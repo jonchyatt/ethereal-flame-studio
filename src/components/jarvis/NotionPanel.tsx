@@ -11,7 +11,7 @@ import { useNotionPanelStore } from '@/lib/jarvis/stores/notionPanelStore';
  * that opens the database/page directly in Notion.
  */
 export function NotionPanel() {
-  const { isOpen, currentUrl, currentLabel, currentCluster, mode, closePanel } =
+  const { isOpen, currentUrl, currentLabel, currentCluster, mode, closePanel, history, goBack } =
     useNotionPanelStore();
 
   const [closing, setClosing] = useState(false);
@@ -98,13 +98,18 @@ export function NotionPanel() {
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-zinc-900/80">
           <button
-            onClick={handleClose}
-            className="text-white/60 hover:text-white transition-colors p-1"
-            aria-label="Close panel"
+            onClick={history.length > 0 ? goBack : handleClose}
+            className="relative text-white/60 hover:text-white transition-colors p-1"
+            aria-label={history.length > 0 ? 'Go back' : 'Close panel'}
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
+            {history.length > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-cyan-500/80 rounded-full text-[10px] text-white flex items-center justify-center">
+                {history.length}
+              </span>
+            )}
           </button>
 
           <div className="flex-1 min-w-0">

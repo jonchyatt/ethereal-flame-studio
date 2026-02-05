@@ -11,7 +11,7 @@ interface TasksListProps {
   overdue: TaskSummary[];
   loading: boolean;
   expanded: boolean;
-  onItemTap?: (taskId: string) => void;
+  onItemTap?: (taskId: string, title: string) => void;
 }
 
 export function TasksList({ tasks, overdue, loading, expanded, onItemTap }: TasksListProps) {
@@ -175,7 +175,7 @@ export function TasksList({ tasks, overdue, loading, expanded, onItemTap }: Task
 
               {/* Task title — opens in Notion panel if handler provided, otherwise toggles complete */}
               <span
-                onClick={() => onItemTap ? onItemTap(task.id) : handleToggleComplete(task)}
+                onClick={() => onItemTap ? onItemTap(task.id, task.title) : handleToggleComplete(task)}
                 className={`flex-1 cursor-pointer ${
                   isCompleted
                     ? 'line-through text-white/40'

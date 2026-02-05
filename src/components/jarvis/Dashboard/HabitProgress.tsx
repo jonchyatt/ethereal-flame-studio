@@ -6,9 +6,10 @@ interface HabitProgressProps {
   habits: HabitSummary[];
   loading: boolean;
   expanded: boolean;
+  onItemTap?: (habitId: string, title: string) => void;
 }
 
-export function HabitProgress({ habits, loading, expanded }: HabitProgressProps) {
+export function HabitProgress({ habits, loading, expanded, onItemTap }: HabitProgressProps) {
   if (loading) {
     return (
       <div className="space-y-2">
@@ -37,7 +38,10 @@ export function HabitProgress({ habits, loading, expanded }: HabitProgressProps)
         {displayHabits.map((habit) => (
           <li
             key={habit.id}
-            className="flex items-center justify-between text-white/80 text-sm"
+            onClick={() => onItemTap?.(habit.id, habit.title)}
+            className={`flex items-center justify-between text-white/80 text-sm rounded-lg px-2 py-1.5 -mx-2 transition-colors ${
+              onItemTap ? 'cursor-pointer hover:bg-white/5 active:bg-white/10' : ''
+            }`}
           >
             <span>{habit.title}</span>
             <span className="text-white/50">

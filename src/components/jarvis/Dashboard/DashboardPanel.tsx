@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import { useDashboardStore } from '@/lib/jarvis/stores/dashboardStore';
+import { useNotionPanelStore } from '@/lib/jarvis/stores/notionPanelStore';
+import { getNotionPageUrl } from '@/lib/jarvis/notion/notionUrls';
+import type { ClusterName } from '@/lib/jarvis/notion/notionUrls';
 import { TasksList } from './TasksList';
 import { CalendarEvents } from './CalendarEvents';
 import { HabitProgress } from './HabitProgress';
@@ -16,7 +19,13 @@ interface DashboardPanelProps {
 
 export function DashboardPanel({ data, loading }: DashboardPanelProps) {
   const { sections, isVisible } = useDashboardStore();
+  const openPanel = useNotionPanelStore((s) => s.openPanel);
   const [mobileExpanded, setMobileExpanded] = useState(false);
+
+  const handleItemTap = (id: string, label: string, cluster: ClusterName) => {
+    const url = getNotionPageUrl(id);
+    openPanel(url, label, 'view', cluster);
+  };
 
   if (!isVisible) return null;
 
@@ -74,6 +83,7 @@ export function DashboardPanel({ data, loading }: DashboardPanelProps) {
                     overdue={data?.tasks.overdue || []}
                     loading={loading}
                     expanded={true}
+                    onItemTap={(id, title) => handleItemTap(id, title, 'daily_action')}
                   />
                 </div>
               )}
@@ -114,6 +124,7 @@ export function DashboardPanel({ data, loading }: DashboardPanelProps) {
               overdue={data?.tasks.overdue || []}
               loading={loading}
               expanded={sections.tasks.expanded}
+              onItemTap={(id, title) => handleItemTap(id, title, 'daily_action')}
             />
           )}
 
@@ -142,6 +153,7 @@ export function DashboardPanel({ data, loading }: DashboardPanelProps) {
               habits={data?.habits.active || []}
               loading={loading}
               expanded={sections.habits.expanded}
+              onItemTap={(id, title) => handleItemTap(id, title, 'daily_action')}
             />
           )}
 
@@ -157,6 +169,7 @@ export function DashboardPanel({ data, loading }: DashboardPanelProps) {
               total={data?.bills.total || 0}
               loading={loading}
               expanded={sections.bills.expanded}
+              onItemTap={(id, title) => handleItemTap(id, title, 'financial')}
             />
           )}
 

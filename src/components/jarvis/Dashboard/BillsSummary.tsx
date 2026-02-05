@@ -9,9 +9,10 @@ interface BillsSummaryProps {
   total: number;
   loading: boolean;
   expanded: boolean;
+  onItemTap?: (billId: string, title: string) => void;
 }
 
-export function BillsSummary({ bills, total, loading, expanded }: BillsSummaryProps) {
+export function BillsSummary({ bills, total, loading, expanded, onItemTap }: BillsSummaryProps) {
   if (loading) {
     return (
       <div className="space-y-2">
@@ -55,7 +56,10 @@ export function BillsSummary({ bills, total, loading, expanded }: BillsSummaryPr
         {displayBills.map((bill) => (
           <li
             key={bill.id}
-            className="flex items-center justify-between text-white/80 text-sm"
+            onClick={() => onItemTap?.(bill.id, bill.title)}
+            className={`flex items-center justify-between text-white/80 text-sm rounded-lg px-2 py-1.5 -mx-2 transition-colors ${
+              onItemTap ? 'cursor-pointer hover:bg-white/5 active:bg-white/10' : ''
+            }`}
           >
             <div className="flex items-center gap-2">
               {isDueToday(bill) && <PriorityIndicator type="deadline_near" />}

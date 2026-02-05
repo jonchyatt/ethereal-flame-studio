@@ -46,9 +46,13 @@ export interface CurriculumCluster {
 
 // ─── Helper: build notion.so URL from an ID ─────────────────────────────────
 
-function notionUrl(id: string): string {
+/** Build a direct Notion URL from any page or database ID. */
+export function getNotionPageUrl(id: string): string {
   return `https://notion.so/${id.replace(/-/g, '')}`;
 }
+
+// Internal alias so all existing call sites still work
+const notionUrl = getNotionPageUrl;
 
 // ─── Database URL Map ────────────────────────────────────────────────────────
 
