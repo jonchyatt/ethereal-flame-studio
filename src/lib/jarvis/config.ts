@@ -24,6 +24,8 @@ export interface JarvisConfig {
   maxHistoryMessages: number;
   /** Enable self-healing: retry, circuit breakers, error tracking (default true) */
   enableSelfHealing: boolean;
+  /** Enable Telegram bot integration (default false) */
+  enableTelegram: boolean;
 }
 
 /**
@@ -45,6 +47,7 @@ export function getJarvisConfig(): JarvisConfig {
     historyTokenBudget: parseInt(process.env.JARVIS_HISTORY_TOKEN_BUDGET || '2000', 10),
     maxHistoryMessages: parseInt(process.env.JARVIS_MAX_HISTORY_MESSAGES || '5', 10),
     enableSelfHealing: process.env.JARVIS_ENABLE_SELF_HEALING !== 'false', // ON by default
+    enableTelegram: process.env.JARVIS_ENABLE_TELEGRAM === 'true',
   };
 }
 
