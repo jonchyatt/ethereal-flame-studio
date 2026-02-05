@@ -8,6 +8,7 @@
 import { fetchJarvisAPI } from '../api/fetchWithAuth';
 import { useDashboardStore } from '../stores/dashboardStore';
 import { useNotionPanelStore } from '../stores/notionPanelStore';
+import { useCurriculumProgressStore } from '../stores/curriculumProgressStore';
 
 // Tools that modify data and should trigger a dashboard refresh
 const WRITE_TOOLS = [
@@ -18,6 +19,8 @@ const WRITE_TOOLS = [
   'add_project_item',
   'open_notion_panel',
   'close_notion_panel',
+  'start_lesson',
+  'complete_lesson',
 ];
 
 export interface ChatMessage {
@@ -146,6 +149,33 @@ export class ClaudeClient {
                 } else if (toolName === 'close_notion_panel') {
                   console.log('[ClaudeClient] Closing Notion panel');
                   useNotionPanelStore.getState().closePanel();
+                } else if (toolName === 'start_lesson' && isSuccess) {
+                  try {
+                    const parsed = JSON.parse(result);
+                    if (parsed.action === 'start_lesson') {
+                      console.log('[ClaudeClient] Starting lesson:', parsed.lessonId);
+                      useNotionPanelStore.getState().openPanel(
+                        parsed.url,
+                        parsed.title,
+                        'teach',
+                        parsed.cluster
+                      );
+                      useNotionPanelStore.getState().setTeachContent({
+                        lessonId: parsed.lessonId,
+                        title: parsed.title,
+                        steps: parsed.steps,
+                      });
+                    }
+                  } catch { /* not JSON */ }
+                } else if (toolName === 'complete_lesson' && isSuccess) {
+                  try {
+                    const parsed = JSON.parse(result);
+                    if (parsed.action === 'complete_lesson') {
+                      console.log('[ClaudeClient] Completing lesson:', parsed.lessonId);
+                      useCurriculumProgressStore.getState().completeLesson(parsed.lessonId);
+                      useNotionPanelStore.getState().setTeachContent(null);
+                    }
+                  } catch { /* not JSON */ }
                 }
 
                 if (isWriteTool && isSuccess) {

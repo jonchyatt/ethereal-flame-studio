@@ -87,6 +87,34 @@ export const tutorialTools: ToolDefinition[] = [
         }
       }
     }
+  },
+  {
+    name: 'start_lesson',
+    description: 'Start a Notion Life OS lesson. Use when user says "teach me about X", "start the habits lesson", "learn about tasks", or requests a specific lesson from the curriculum.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        lesson_id: {
+          type: 'string',
+          description: 'The lesson ID (e.g., "tasks-overview", "habits-intro", "areas-intro")'
+        }
+      },
+      required: ['lesson_id']
+    }
+  },
+  {
+    name: 'complete_lesson',
+    description: 'Mark a lesson as completed. Call after you have narrated all steps and the outro.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        lesson_id: {
+          type: 'string',
+          description: 'The lesson ID to mark complete'
+        }
+      },
+      required: ['lesson_id']
+    }
   }
 ];
 

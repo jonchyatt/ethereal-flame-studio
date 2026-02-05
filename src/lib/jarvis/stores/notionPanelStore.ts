@@ -16,6 +16,12 @@ interface HistoryEntry {
   cluster: ClusterName | null;
 }
 
+export interface TeachContent {
+  lessonId: string;
+  title: string;
+  steps: Array<{ title: string; panelNote?: string }>;
+}
+
 interface NotionPanelState {
   isOpen: boolean;
   mode: NotionPanelMode;
@@ -24,6 +30,7 @@ interface NotionPanelState {
   currentCluster: ClusterName | null;
   history: HistoryEntry[];
   historyIndex: number;
+  teachContent: TeachContent | null;
 }
 
 interface NotionPanelActions {
@@ -31,6 +38,7 @@ interface NotionPanelActions {
   closePanel: () => void;
   setMode: (mode: NotionPanelMode) => void;
   goBack: () => void;
+  setTeachContent: (content: TeachContent | null) => void;
 }
 
 const MAX_HISTORY = 20;
@@ -44,6 +52,7 @@ export const useNotionPanelStore = create<NotionPanelState & NotionPanelActions>
     currentCluster: null,
     history: [],
     historyIndex: -1,
+    teachContent: null,
 
     openPanel: (url, label, mode, cluster) => {
       const state = get();
@@ -80,9 +89,12 @@ export const useNotionPanelStore = create<NotionPanelState & NotionPanelActions>
         currentCluster: null,
         history: [],
         historyIndex: -1,
+        teachContent: null,
       }),
 
     setMode: (mode) => set({ mode }),
+
+    setTeachContent: (content) => set({ teachContent: content }),
 
     goBack: () => {
       const state = get();

@@ -57,6 +57,9 @@ const tutorialToolNames = [
   'skip_tutorial_module',
   'get_tutorial_progress',
   'get_quick_reference',
+  'get_curriculum_status',
+  'start_lesson',
+  'complete_lesson',
 ];
 
 interface ChatMessage {

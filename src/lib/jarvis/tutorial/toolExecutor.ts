@@ -7,8 +7,9 @@
 import { getTutorialManager } from './TutorialManager';
 import { TutorialToolResult } from './tutorialTools';
 import { TUTORIAL_SEQUENCE } from './modules';
-import { CURRICULUM_CLUSTERS } from '../notion/notionUrls';
+import { CURRICULUM_CLUSTERS, findNotionDatabase } from '../notion/notionUrls';
 import { getLessonsForCluster, LESSON_REGISTRY } from '../curriculum/lessonRegistry';
+import { getLessonContent } from '../curriculum/lessonContent';
 
 /**
  * Execute a tutorial tool
@@ -225,6 +226,50 @@ export async function executeTutorialTool(
       };
     }
 
+    case 'start_lesson': {
+      const lessonId = input.lesson_id as string;
+      const lessonMeta = LESSON_REGISTRY.find((l) => l.id === lessonId);
+      if (!lessonMeta) {
+        return { success: false, error: `Lesson "${lessonId}" not found.` };
+      }
+      const content = getLessonContent(lessonId);
+      if (!content) {
+        return {
+          success: false,
+          error: `Content for "${lessonId}" not yet available. Only Daily Action lessons are available so far.`,
+        };
+      }
+      const dbEntry = findNotionDatabase(lessonMeta.databaseKey);
+
+      return {
+        success: true,
+        content: JSON.stringify({
+          action: 'start_lesson',
+          lessonId,
+          title: lessonMeta.title,
+          databaseKey: lessonMeta.databaseKey,
+          url: dbEntry?.notionUrl || '',
+          cluster: lessonMeta.cluster,
+          steps: content.steps.map((s) => ({ title: s.title, panelNote: s.panelNote })),
+          intro: content.intro,
+          narration: content.steps.map((s) => s.narration),
+          outro: content.outro,
+        }),
+      };
+    }
+
+    case 'complete_lesson': {
+      const lessonId = input.lesson_id as string;
+      const lessonMeta = LESSON_REGISTRY.find((l) => l.id === lessonId);
+      if (!lessonMeta) {
+        return { success: false, error: `Lesson "${lessonId}" not found.` };
+      }
+      return {
+        success: true,
+        content: JSON.stringify({ action: 'complete_lesson', lessonId }),
+      };
+    }
+
     default:
       return {
         success: false,
@@ -245,5 +290,7 @@ export function isTutorialTool(toolName: string): boolean {
     'get_tutorial_progress',
     'get_quick_reference',
     'get_curriculum_status',
+    'start_lesson',
+    'complete_lesson',
   ].includes(toolName);
 }
