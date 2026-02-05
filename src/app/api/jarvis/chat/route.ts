@@ -22,6 +22,8 @@ import {
 } from '@/lib/jarvis/memory';
 import { getOrCreateSession } from '@/lib/jarvis/memory/queries/sessions';
 import { buildSystemPrompt } from '@/lib/jarvis/intelligence/systemPrompt';
+import { saveMessage, loadConversationHistory, getSessionMessageCount } from '@/lib/jarvis/memory/queries/messages';
+import { triggerSummarization, backfillSummarization } from '@/lib/jarvis/memory/summarization';
 
 // Instantiate client - reads ANTHROPIC_API_KEY from environment automatically
 const anthropic = new Anthropic();
@@ -94,11 +96,19 @@ export async function POST(request: Request): Promise<Response> {
     const session = await getOrCreateSession();
     const sessionId = session.id;
 
+    // On new session, backfill-summarize previous session if needed (async)
+    const isNewSession = Date.now() - new Date(session.startedAt).getTime() < 2000;
+    const config = getJarvisConfig();
+    if (isNewSession && config.enableMemoryLoading) {
+      backfillSummarization(sessionId).catch(err =>
+        console.error('[Chat] Backfill summarization failed:', err)
+      );
+    }
+
     // Load memory context if enabled
     let memoryContext: string | undefined;
     let proactiveSurfacing: string | undefined;
     let inferredPreferences: string[] | undefined;
-    const config = getJarvisConfig();
 
     if (config.enableMemoryLoading) {
       try {
@@ -141,14 +151,33 @@ export async function POST(request: Request): Promise<Response> {
       tutorialContext = undefined;
     }
 
+    // Load PREVIOUS session history (BEFORE saving current message)
+    let conversationHistory: string | undefined;
+    if (config.enableMemoryLoading) {
+      try {
+        const history = await loadConversationHistory(
+          sessionId,
+          config.historyTokenBudget,
+          config.maxHistoryMessages
+        );
+        conversationHistory = history || undefined;
+        if (history) {
+          console.log(`[Chat] Loaded cross-session history: ${history.length} chars`);
+        }
+      } catch (error) {
+        console.error('[Chat] History loading failed, continuing without:', error);
+      }
+    }
+
     // Build system prompt server-side with memory context, proactive surfacing, inferred preferences, and tutorial context
     // This ensures memory stays server-side and v1 behavior is preserved when flag is off
     const serverSystemPrompt = buildSystemPrompt({
       currentTime: new Date(),
-      memoryContext, // undefined when flag is off or loading failed
-      proactiveSurfacing, // undefined when flag is off, loading failed, or nothing to surface
-      inferredPreferences, // undefined when no inferred preferences exist
-      tutorialContext, // undefined when no tutorial context (server-side limitation)
+      memoryContext,
+      proactiveSurfacing,
+      inferredPreferences,
+      tutorialContext,
+      conversationHistory,
     });
 
     // Create SSE stream
@@ -174,6 +203,14 @@ export async function POST(request: Request): Promise<Response> {
             console.warn(`[Chat] High context utilization: ${utilizationPercent.toFixed(1)}% - consider summarizing conversation`);
             // Could add a hint to the system prompt, but per CONTEXT.md
             // we just log for now - no automatic truncation
+          }
+
+          // Persist user message (fire-and-forget, after history loading)
+          const lastUserMsg = messages[messages.length - 1];
+          if (lastUserMsg?.role === 'user') {
+            saveMessage(sessionId, 'user', lastUserMsg.content).catch(err =>
+              console.error('[Chat] Failed to save user message:', err)
+            );
           }
 
           // Tool execution loop
@@ -301,6 +338,30 @@ export async function POST(request: Request): Promise<Response> {
                 text: block.text,
               });
               controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));
+            }
+          }
+
+          // Persist assistant response (fire-and-forget)
+          const assistantText = finalResponse.content
+            .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+            .map(b => b.text)
+            .join('');
+
+          if (assistantText) {
+            saveMessage(sessionId, 'assistant', assistantText).catch(err =>
+              console.error('[Chat] Failed to save assistant message:', err)
+            );
+
+            // Trigger summarization if session is long (async, don't block)
+            if (config.enableMemoryLoading) {
+              getSessionMessageCount(sessionId).then(msgCount => {
+                if (msgCount >= 20) {
+                  console.log(`[Chat] Session ${msgCount} msgs, triggering summarization`);
+                  triggerSummarization(sessionId).catch(err =>
+                    console.error('[Chat] Summarization failed:', err)
+                  );
+                }
+              }).catch(() => {});
             }
           }
 

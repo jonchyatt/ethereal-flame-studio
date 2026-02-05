@@ -17,6 +17,7 @@ export * from './queries/memoryEntries';
 export * from './queries/sessions';
 export * from './queries/dailyLogs';
 export * from './queries/observations';
+export * from './queries/messages';
 
 // Re-export retrieval functions
 export * from './retrieval';

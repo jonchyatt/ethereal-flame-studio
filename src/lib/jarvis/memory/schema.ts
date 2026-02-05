@@ -77,6 +77,20 @@ export const observations = sqliteTable('observations', {
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
 });
 
+/**
+ * Messages - Conversation history for cross-session continuity
+ *
+ * Stores every user/assistant message for replay in future sessions.
+ * Linked to sessions for scoped retrieval.
+ */
+export const messages = sqliteTable('messages', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  sessionId: integer('session_id').references(() => sessions.id),
+  role: text('role').notNull(), // 'user' | 'assistant'
+  content: text('content').notNull(),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+});
+
 // Type exports for use in queries
 export type MemoryEntry = typeof memoryEntries.$inferSelect;
 export type NewMemoryEntry = typeof memoryEntries.$inferInsert;
@@ -86,3 +100,5 @@ export type DailyLog = typeof dailyLogs.$inferSelect;
 export type NewDailyLog = typeof dailyLogs.$inferInsert;
 export type Observation = typeof observations.$inferSelect;
 export type NewObservation = typeof observations.$inferInsert;
+export type MessageRow = typeof messages.$inferSelect;
+export type NewMessageRow = typeof messages.$inferInsert;

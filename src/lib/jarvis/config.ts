@@ -18,6 +18,10 @@ export interface JarvisConfig {
   explicitDecayMultiplier: number;
   /** Decay threshold above which memories are soft-deleted (default 0.9) */
   decayThreshold: number;
+  /** Maximum tokens for conversation history (default 2000) */
+  historyTokenBudget: number;
+  /** Maximum messages to load from previous session for history (default 5) */
+  maxHistoryMessages: number;
 }
 
 /**
@@ -36,6 +40,8 @@ export function getJarvisConfig(): JarvisConfig {
     decayHalfLifeDays: parseInt(process.env.JARVIS_DECAY_HALF_LIFE || '30', 10),
     explicitDecayMultiplier: parseFloat(process.env.JARVIS_EXPLICIT_DECAY_MULT || '0.5'),
     decayThreshold: parseFloat(process.env.JARVIS_DECAY_THRESHOLD || '0.9'),
+    historyTokenBudget: parseInt(process.env.JARVIS_HISTORY_TOKEN_BUDGET || '2000', 10),
+    maxHistoryMessages: parseInt(process.env.JARVIS_MAX_HISTORY_MESSAGES || '5', 10),
   };
 }
 

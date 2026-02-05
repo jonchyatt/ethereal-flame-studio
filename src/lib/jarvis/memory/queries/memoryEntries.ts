@@ -236,12 +236,52 @@ export async function getDeletedMemories(limit = 50): Promise<MemoryEntry[]> {
 }
 
 /**
- * Find memories matching a natural language query.
+ * Tokenize text for BM25 scoring.
+ * Lowercase, remove punctuation, split on whitespace, filter short tokens.
+ */
+function tokenize(text: string): string[] {
+  return text.toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/).filter(t => t.length > 1);
+}
+
+/**
+ * BM25 Okapi score for a single document against a query.
+ * Standard ranking function: TF saturation + IDF + length normalization.
+ */
+function bm25Score(
+  queryTokens: string[],
+  docTokens: string[],
+  avgDocLen: number,
+  docCount: number,
+  docFreqs: Map<string, number>,
+  k1 = 1.5,
+  b = 0.75
+): number {
+  let score = 0;
+  const docLen = docTokens.length;
+  const termCounts = new Map<string, number>();
+  for (const token of docTokens) {
+    termCounts.set(token, (termCounts.get(token) || 0) + 1);
+  }
+  for (const term of queryTokens) {
+    const tf = termCounts.get(term) || 0;
+    if (tf === 0) continue;
+    const df = docFreqs.get(term) || 1;
+    const idf = Math.log((docCount - df + 0.5) / (df + 0.5) + 1);
+    const numerator = tf * (k1 + 1);
+    const denominator = tf + k1 * (1 - b + b * (docLen / avgDocLen));
+    score += idf * (numerator / denominator);
+  }
+  return score;
+}
+
+/**
+ * Find memories matching a natural language query using BM25 ranking.
  * Used for "forget" requests to find the memory the user wants to delete.
  *
- * Scoring:
- * - +1 for each query word found in normalized content
- * - +bonus for exact substring match
+ * BM25 provides much better ranking than simple word overlap:
+ * - Rare terms score higher (IDF)
+ * - Term frequency saturates (diminishing returns for repeated terms)
+ * - Document length is normalized (short, focused entries aren't penalized)
  *
  * @param query - Natural language search query
  * @param limit - Maximum matches to return (default 5)
@@ -251,39 +291,40 @@ export async function findMemoriesMatching(
   query: string,
   limit = 5
 ): Promise<MemoryEntry[]> {
-  const normalizedQuery = normalizeContent(query);
-  const queryWords = normalizedQuery.split(' ').filter((w) => w.length > 2);
+  const queryTokens = tokenize(normalizeContent(query));
 
-  // If no meaningful words, return empty
-  if (queryWords.length === 0) {
+  if (queryTokens.length === 0) {
     return [];
   }
 
-  // Get all active entries (not deleted)
+  // Get all active entries
   const allEntries = await getMemoryEntries(500);
+  if (allEntries.length === 0) return [];
 
-  // Score each entry by word overlap
-  const scored = allEntries.map((entry) => {
-    const normalizedContent = normalizeContent(entry.content);
-    let score = 0;
+  // Tokenize all documents and compute corpus stats
+  const docTokensList = allEntries.map(entry => tokenize(normalizeContent(entry.content)));
+  const docCount = docTokensList.length;
+  const avgDocLen = docTokensList.reduce((sum, tokens) => sum + tokens.length, 0) / docCount;
 
-    for (const word of queryWords) {
-      if (normalizedContent.includes(word)) {
-        score += 1;
-      }
+  // Compute document frequencies for each query term
+  const docFreqs = new Map<string, number>();
+  for (const term of queryTokens) {
+    let count = 0;
+    for (const docTokens of docTokensList) {
+      if (docTokens.includes(term)) count++;
     }
+    docFreqs.set(term, count);
+  }
 
-    // Boost exact substring match
-    if (normalizedContent.includes(normalizedQuery)) {
-      score += queryWords.length;
-    }
-
-    return { entry, score };
-  });
+  // Score each entry
+  const scored = allEntries.map((entry, i) => ({
+    entry,
+    score: bm25Score(queryTokens, docTokensList[i], avgDocLen, docCount, docFreqs),
+  }));
 
   return scored
-    .filter((s) => s.score > 0)
+    .filter(s => s.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
-    .map((s) => s.entry);
+    .map(s => s.entry);
 }

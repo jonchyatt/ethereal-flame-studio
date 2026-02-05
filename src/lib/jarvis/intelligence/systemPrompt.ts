@@ -23,6 +23,8 @@ export interface SystemPromptContext {
   inferredPreferences?: string[];
   /** Tutorial context - whether user is new or in active tutorial */
   tutorialContext?: string;
+  /** Recent conversation history from previous sessions (Phase 13) */
+  conversationHistory?: string;
 }
 
 /**
@@ -209,6 +211,16 @@ Guidelines:
   // Tutorial section (if applicable)
   if (context.tutorialContext) {
     sections.push(context.tutorialContext);
+  }
+
+  // Cross-session conversation history (Phase 13)
+  if (context.conversationHistory) {
+    sections.push(`CONVERSATION HISTORY:
+You have context from previous conversations that persists across browser sessions.
+
+${context.conversationHistory}
+
+Reference this naturally — don't say "in our previous conversation" or "from my records". Just demonstrate continuity as if you remember.`);
   }
 
   // Capabilities section
