@@ -7,6 +7,7 @@
 
 import { fetchJarvisAPI } from '../api/fetchWithAuth';
 import { useDashboardStore } from '../stores/dashboardStore';
+import { useNotionPanelStore } from '../stores/notionPanelStore';
 
 // Tools that modify data and should trigger a dashboard refresh
 const WRITE_TOOLS = [
@@ -15,6 +16,8 @@ const WRITE_TOOLS = [
   'mark_bill_paid',
   'pause_task',
   'add_project_item',
+  'open_notion_panel',
+  'close_notion_panel',
 ];
 
 export interface ChatMessage {
@@ -123,6 +126,27 @@ export class ClaudeClient {
                 const result = data.result || '';
                 const isWriteTool = WRITE_TOOLS.includes(toolName);
                 const isSuccess = !result.includes('trouble') && !result.includes("couldn't find");
+
+                // Handle panel tools — parse JSON actions
+                if (toolName === 'open_notion_panel' && isSuccess) {
+                  try {
+                    const parsed = JSON.parse(result);
+                    if (parsed.action === 'open_panel') {
+                      console.log('[ClaudeClient] Opening Notion panel:', parsed.label);
+                      useNotionPanelStore.getState().openPanel(
+                        parsed.url,
+                        parsed.label,
+                        parsed.mode || 'view',
+                        parsed.cluster
+                      );
+                    }
+                  } catch {
+                    // Not JSON — tool returned an error string, skip
+                  }
+                } else if (toolName === 'close_notion_panel') {
+                  console.log('[ClaudeClient] Closing Notion panel');
+                  useNotionPanelStore.getState().closePanel();
+                }
 
                 if (isWriteTool && isSuccess) {
                   // Trigger dashboard refresh on client

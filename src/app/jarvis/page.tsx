@@ -14,6 +14,7 @@ import { buildMorningBriefing } from '@/lib/jarvis/executive/BriefingClient';
 import { getNudgeManager, destroyNudgeManager } from '@/lib/jarvis/executive/NudgeManager';
 import { getCheckInManager, destroyCheckInManager } from '@/lib/jarvis/executive/CheckInManager';
 import { NudgeOverlay } from '@/components/jarvis/NudgeOverlay';
+import { NotionPanel } from '@/components/jarvis/NotionPanel';
 import type { ScheduledEvent, BriefingData } from '@/lib/jarvis/executive/types';
 import dynamic from 'next/dynamic';
 
@@ -443,6 +444,9 @@ export default function JarvisPage() {
       {permissionUIState === 'ready' && (
         <DashboardPanel data={dashboardData} loading={dashboardLoading} />
       )}
+
+      {/* Notion panel overlay */}
+      {permissionUIState === 'ready' && <NotionPanel />}
 
       {/* Nudge overlay - subtle indicator above controls */}
       {permissionUIState === 'ready' && <NudgeOverlay />}

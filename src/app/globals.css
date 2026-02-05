@@ -47,6 +47,33 @@ main {
   padding-left: env(safe-area-inset-left, 0);
 }
 
+/* Notion panel slide animations */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-out-right {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out forwards;
+}
+
+.animate-slide-out-right {
+  animation: slide-out-right 0.25s ease-in forwards;
+}
+
 /* PWA standalone mode adjustments */
 @media (display-mode: standalone) {
   html {

@@ -11,9 +11,10 @@ interface TasksListProps {
   overdue: TaskSummary[];
   loading: boolean;
   expanded: boolean;
+  onItemTap?: (taskId: string) => void;
 }
 
-export function TasksList({ tasks, overdue, loading, expanded }: TasksListProps) {
+export function TasksList({ tasks, overdue, loading, expanded, onItemTap }: TasksListProps) {
   const [updatingTasks, setUpdatingTasks] = useState<Set<string>>(new Set());
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
   const [showAll, setShowAll] = useState(false);
@@ -139,15 +140,15 @@ export function TasksList({ tasks, overdue, loading, expanded }: TasksListProps)
           return (
             <li
               key={task.id}
-              className={`flex items-center gap-2 text-sm py-1.5 px-2 -mx-2 rounded-lg transition-all cursor-pointer select-none
+              className={`flex items-center gap-2 text-sm py-1.5 px-2 -mx-2 rounded-lg transition-all select-none
                 ${isUpdating ? 'opacity-50' : 'hover:bg-white/5 active:bg-white/10'}
                 ${isCompleted ? 'opacity-40' : ''}
               `}
-              onClick={() => handleToggleComplete(task)}
             >
-              {/* Checkbox */}
+              {/* Checkbox — toggles completion */}
               <div
-                className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors
+                onClick={() => handleToggleComplete(task)}
+                className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors cursor-pointer
                   ${isCompleted
                     ? 'bg-green-500 border-green-500'
                     : taskIsOverdue
@@ -172,9 +173,10 @@ export function TasksList({ tasks, overdue, loading, expanded }: TasksListProps)
                 <PriorityIndicator type="urgent" />
               )}
 
-              {/* Task title */}
+              {/* Task title — opens in Notion panel if handler provided, otherwise toggles complete */}
               <span
-                className={`flex-1 ${
+                onClick={() => onItemTap ? onItemTap(task.id) : handleToggleComplete(task)}
+                className={`flex-1 cursor-pointer ${
                   isCompleted
                     ? 'line-through text-white/40'
                     : taskIsOverdue

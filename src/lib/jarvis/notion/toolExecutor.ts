@@ -34,6 +34,7 @@ import {
   findProjectByTitle,
   CachedItem,
 } from './recentResults';
+import { findNotionDatabase } from './notionUrls';
 import { useDashboardStore } from '../stores/dashboardStore';
 import { logEvent, type ToolInvocationData } from '../memory/queries/dailyLogs';
 
@@ -437,6 +438,32 @@ async function executeNotionToolInner(
       triggerDashboardRefresh();
 
       return `Added "${item}" to the project.`;
+    }
+
+    // =========================================================================
+    // PANEL OPERATIONS (Phase T1) — return JSON for ClaudeClient to act on
+    // =========================================================================
+
+    case 'open_notion_panel': {
+      const databaseKey = input.database as string;
+      const mode = (input.mode as string) || 'view';
+      const entry = findNotionDatabase(databaseKey);
+
+      if (!entry) {
+        return `I couldn't find a Notion database matching "${databaseKey}". Try a name like "tasks", "budgets", "journal", or "recipes".`;
+      }
+
+      return JSON.stringify({
+        action: 'open_panel',
+        url: entry.notionUrl,
+        label: entry.label,
+        mode,
+        cluster: entry.cluster,
+      });
+    }
+
+    case 'close_notion_panel': {
+      return JSON.stringify({ action: 'close_panel' });
     }
 
     default:

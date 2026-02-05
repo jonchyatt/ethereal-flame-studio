@@ -6,6 +6,7 @@ import { TasksList } from './TasksList';
 import { CalendarEvents } from './CalendarEvents';
 import { HabitProgress } from './HabitProgress';
 import { BillsSummary } from './BillsSummary';
+import { CurriculumCard } from './CurriculumCard';
 import type { BriefingData } from '@/lib/jarvis/executive/types';
 
 interface DashboardPanelProps {
@@ -158,6 +159,12 @@ export function DashboardPanel({ data, loading }: DashboardPanelProps) {
               expanded={sections.bills.expanded}
             />
           )}
+
+          {/* Divider */}
+          {sections.bills.visible && <hr className="border-white/10" />}
+
+          {/* Notion Databases (Curriculum Card) */}
+          <CurriculumCard />
         </div>
       </aside>
     </>

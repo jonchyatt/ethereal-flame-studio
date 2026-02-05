@@ -217,6 +217,36 @@ export const notionTools: ToolDefinition[] = [
       },
       required: ['project_id', 'item']
     }
+  },
+  // =========================================================================
+  // Panel tools (Phase T1) - open/close the Notion overlay panel
+  // =========================================================================
+  {
+    name: 'open_notion_panel',
+    description: 'Open the Notion panel overlay to show a specific database or page. Use when the user says "show me my tasks", "open my budgets", "let me see my goals", or any request to view a Notion database.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        database: {
+          type: 'string',
+          description: 'The database key or label to open (e.g. "tasks", "budgets", "goals", "journal", "recipes")'
+        },
+        mode: {
+          type: 'string',
+          description: 'Panel mode: view (browse), show (guided tour), teach (tutorial)',
+          enum: ['view', 'show', 'teach']
+        }
+      },
+      required: ['database']
+    }
+  },
+  {
+    name: 'close_notion_panel',
+    description: 'Close the Notion panel overlay. Use when the user says "close the panel", "hide that", or wants to dismiss the Notion view.',
+    input_schema: {
+      type: 'object',
+      properties: {}
+    }
   }
 ];
 
