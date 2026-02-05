@@ -7,6 +7,8 @@
 import { getTutorialManager } from './TutorialManager';
 import { TutorialToolResult } from './tutorialTools';
 import { TUTORIAL_SEQUENCE } from './modules';
+import { CURRICULUM_CLUSTERS } from '../notion/notionUrls';
+import { getLessonsForCluster, LESSON_REGISTRY } from '../curriculum/lessonRegistry';
 
 /**
  * Execute a tutorial tool
@@ -196,6 +198,33 @@ export async function executeTutorialTool(
       };
     }
 
+    case 'get_curriculum_status': {
+      const clusterFilter = input.cluster as string | undefined;
+
+      const clusters = clusterFilter
+        ? CURRICULUM_CLUSTERS.filter((c) => c.id === clusterFilter)
+        : CURRICULUM_CLUSTERS;
+
+      const lines: string[] = ['Your Notion Life OS Curriculum:\n'];
+
+      for (const cluster of clusters) {
+        const lessons = getLessonsForCluster(cluster.id);
+        lines.push(`${cluster.icon} ${cluster.label} (${lessons.length} lessons)`);
+        for (const lesson of lessons) {
+          lines.push(`  - ${lesson.title}: ${lesson.description}`);
+        }
+        lines.push('');
+      }
+
+      lines.push(`Total: ${LESSON_REGISTRY.length} lessons across ${CURRICULUM_CLUSTERS.length} clusters.`);
+      lines.push('\nSay "teach me about [topic]" to start any lesson.');
+
+      return {
+        success: true,
+        content: lines.join('\n'),
+      };
+    }
+
     default:
       return {
         success: false,
@@ -214,6 +243,7 @@ export function isTutorialTool(toolName: string): boolean {
     'continue_tutorial',
     'skip_tutorial_module',
     'get_tutorial_progress',
-    'get_quick_reference'
+    'get_quick_reference',
+    'get_curriculum_status',
   ].includes(toolName);
 }

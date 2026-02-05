@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useDashboardStore } from '@/lib/jarvis/stores/dashboardStore';
+import { useCurriculumProgressStore } from '@/lib/jarvis/stores/curriculumProgressStore';
+import type { GapInfo } from '@/lib/jarvis/stores/curriculumProgressStore';
 import { useNotionPanelStore } from '@/lib/jarvis/stores/notionPanelStore';
 import { getNotionPageUrl } from '@/lib/jarvis/notion/notionUrls';
 import type { ClusterName } from '@/lib/jarvis/notion/notionUrls';
@@ -20,12 +22,36 @@ interface DashboardPanelProps {
 export function DashboardPanel({ data, loading }: DashboardPanelProps) {
   const { sections, isVisible } = useDashboardStore();
   const openPanel = useNotionPanelStore((s) => s.openPanel);
+  const setDiscoveredGaps = useCurriculumProgressStore((s) => s.setDiscoveredGaps);
   const [mobileExpanded, setMobileExpanded] = useState(false);
 
   const handleItemTap = (id: string, label: string, cluster: ClusterName) => {
     const url = getNotionPageUrl(id);
     openPanel(url, label, 'view', cluster);
   };
+
+  // Compute gaps from briefing data
+  const gaps: GapInfo[] = useMemo(() => {
+    if (!data) return [];
+    const g: GapInfo[] = [];
+    if (data.habits.active.length === 0) {
+      g.push({ clusterId: 'daily_action', message: 'No habits set up yet', suggestedLessonId: 'habits-intro' });
+    }
+    if (data.goals.active.length === 0) {
+      g.push({ clusterId: 'planning', message: 'No active goals set', suggestedLessonId: 'goals-intro' });
+    }
+    if (data.tasks.today.length === 0 && data.tasks.overdue.length === 0) {
+      g.push({ clusterId: 'daily_action', message: 'No tasks for today', suggestedLessonId: 'tasks-overview' });
+    }
+    return g;
+  }, [data]);
+
+  // Store gaps for voice tool access
+  useEffect(() => {
+    if (gaps.length > 0) {
+      setDiscoveredGaps(gaps);
+    }
+  }, [gaps, setDiscoveredGaps]);
 
   if (!isVisible) return null;
 
@@ -177,7 +203,7 @@ export function DashboardPanel({ data, loading }: DashboardPanelProps) {
           {sections.bills.visible && <hr className="border-white/10" />}
 
           {/* Notion Databases (Curriculum Card) */}
-          <CurriculumCard />
+          <CurriculumCard gaps={gaps} />
         </div>
       </aside>
     </>

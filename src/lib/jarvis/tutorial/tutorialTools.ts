@@ -73,6 +73,20 @@ export const tutorialTools: ToolDefinition[] = [
       type: 'object',
       properties: {}
     }
+  },
+  {
+    name: 'get_curriculum_status',
+    description: 'Get the user\'s Notion Life OS curriculum status — available lessons, clusters, and progress. Use when user says "what can I learn?", "show curriculum", "what tutorials are available?", or "show me what I\'ve learned".',
+    input_schema: {
+      type: 'object',
+      properties: {
+        cluster: {
+          type: 'string',
+          description: 'Optional: filter to a specific cluster',
+          enum: ['daily_action', 'financial', 'knowledge', 'tracking', 'planning', 'business']
+        }
+      }
+    }
   }
 ];
 
