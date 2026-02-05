@@ -67,8 +67,11 @@ export function middleware(request: NextRequest) {
   // Check if this is a Jarvis API request
   const isJarvisApiRequest = pathname.startsWith('/api/jarvis/');
 
-  // Validate authentication for Jarvis API requests
-  if (isJarvisApiRequest) {
+  // Telegram webhook has its own auth (X-Telegram-Bot-Api-Secret-Token) — skip Jarvis auth
+  const isTelegramWebhook = pathname === '/api/jarvis/telegram';
+
+  // Validate authentication for Jarvis API requests (except Telegram webhook)
+  if (isJarvisApiRequest && !isTelegramWebhook) {
     const authError = validateJarvisAuth(request);
     if (authError) {
       return authError;
