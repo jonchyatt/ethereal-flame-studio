@@ -33,6 +33,16 @@ export interface PuppeteerRenderConfig {
   fps?: number;
   /** Template to activate (e.g., 'flame', 'mist') */
   template?: string;
+  /** Full visual configuration from exported config file */
+  visualConfig?: {
+    mode?: 'flame' | 'mist';
+    skyboxPreset?: string;
+    skyboxRotationSpeed?: number;
+    waterEnabled?: boolean;
+    waterColor?: string;
+    waterReflectivity?: number;
+    layers?: any[];
+  };
   /** Use headless mode (default: true) */
   headless?: boolean;
   /** Device scale factor for HiDPI (default: 1) */
@@ -124,10 +134,10 @@ export class PuppeteerRenderer {
 
     this.browser = await puppeteer.launch({
       headless: this.config.headless,
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
       args: [
-        // GPU acceleration flags - using angle for better Windows compatibility
+        // GPU acceleration - use real GPU via ANGLE (D3D11 on Windows, GL on Linux)
         '--use-gl=angle',
-        '--use-angle=swiftshader', // Software WebGL fallback that works headless
         '--enable-webgl',
         '--enable-webgl2',
         '--ignore-gpu-blocklist',
@@ -243,6 +253,23 @@ export class PuppeteerRenderer {
 
     if (!initialized) {
       throw new Error('Failed to initialize render mode');
+    }
+
+    // Apply visual config if provided (from exported config file)
+    if (this.config.visualConfig) {
+      console.log('[PuppeteerRenderer] Applying visual config...');
+      await this.page.evaluate(
+        (config) => {
+          const renderMode = (window as any).__renderMode;
+          if (renderMode?.setVisualConfig) {
+            renderMode.setVisualConfig(config);
+          }
+        },
+        this.config.visualConfig
+      );
+      // Wait for React to process the visual config changes
+      await this.page.evaluate(() => new Promise((r) => setTimeout(r, 500)));
+      console.log('[PuppeteerRenderer] Visual config applied');
     }
 
     console.log('[PuppeteerRenderer] Render mode initialized');

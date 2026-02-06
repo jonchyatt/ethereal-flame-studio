@@ -11,7 +11,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { v4 as uuid } from 'uuid';
 import { ServerJobStore } from '@/lib/queue/ServerJobStore';
-import { addRenderJob } from '@/lib/queue/bullmqQueue';
+// NOTE: bullmqQueue is NOT imported at top level because it creates a Redis
+// connection at import time. On Vercel (no Redis), this hangs the entire route.
+// Instead, we dynamic-import it inside the try-catch where it's used.
 import {
   SubmitRenderRequestSchema,
   ListJobsQuerySchema,
@@ -210,25 +212,103 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRen
       input.fps
     );
 
-    // Add job to BullMQ render queue
-    try {
-      const { jobId: bullmqJobId, batchId } = await addRenderJob(
-        {
-          id: uuid(),
-          path: audioPath,
-          originalName: audioName,
-          duration: audioDuration,
-        },
-        input.renderSettings?.visualMode || 'flame',
-        input.outputFormat,
-        {
-          fps: input.fps,
-          transcribe: input.transcribe,
-          uploadToGDrive: input.upload,
-          priority: input.priority,
+    // -----------------------------------------------------------------------
+    // Modal cloud dispatch (when configured, skips BullMQ entirely)
+    // -----------------------------------------------------------------------
+    if (process.env.MODAL_ENDPOINT_URL) {
+      try {
+        const { submitToModal } = await import('@/lib/render/modalClient');
+
+        // Build render config for the Modal container
+        const modalConfig = {
+          version: '1.0',
+          audio: { path: 'provided-separately' },
+          output: {
+            path: '/tmp/output/render.mp4',
+            format: input.outputFormat,
+            fps: input.fps,
+          },
+          visual: {
+            mode: input.renderSettings?.visualMode || 'flame',
+            skyboxPreset: input.renderSettings?.skyboxPreset || 'nebula',
+            skyboxRotationSpeed: input.renderSettings?.skyboxRotationSpeed || 0,
+            waterEnabled: input.renderSettings?.waterEnabled || false,
+            waterColor: input.renderSettings?.waterColor || '#1a3a5c',
+            waterReflectivity: input.renderSettings?.waterReflectivity || 0.5,
+            layers: input.renderSettings?.particleLayers || [],
+          },
+        };
+
+        const modalResult = await submitToModal({
+          config: modalConfig,
+          jobId: job.id,
+          audioUrl: input.audio.type === 'url' ? input.audio.url : undefined,
+          audioBase64: input.audio.type === 'base64' ? input.audio.data : undefined,
+        });
+
+        // Store modalCallId in job metadata for status polling fallback
+        await ServerJobStore.update(job.id, {
+          workerId: modalResult.gpu ? 'modal-gpu' : 'modal-cpu',
+          status: 'queued',
+          currentStage: `Dispatched to Modal (${modalResult.gpu ? 'GPU' : 'CPU'})`,
+        });
+        // Merge modalCallId into userMetadata on the raw job object
+        const updatedJob = await ServerJobStore.get(job.id);
+        if (updatedJob) {
+          updatedJob.userMetadata = {
+            ...updatedJob.userMetadata,
+            modalCallId: modalResult.call_id,
+          };
         }
+
+        console.log(`[API] Job ${job.id} dispatched to Modal (call_id=${modalResult.call_id}, gpu=${modalResult.gpu})`);
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            jobId: job.id,
+            status: 'pending' as const,
+            audioName: job.audioName,
+            outputFormat: job.outputFormat,
+            targetMachine: modalResult.gpu ? 'modal-gpu' : 'modal-cpu',
+            estimatedDuration,
+            position,
+          },
+        });
+      } catch (modalError) {
+        console.error('[API] Modal dispatch failed, falling back to BullMQ:', modalError);
+        // Fall through to BullMQ below
+      }
+    }
+
+    // Add job to BullMQ render queue (dynamic import to avoid Redis connection at module load).
+    // Uses a 5-second timeout to prevent hanging on Vercel where Redis is unavailable.
+    try {
+      const bullmqPromise = (async () => {
+        const { addRenderJob } = await import('@/lib/queue/bullmqQueue');
+        return addRenderJob(
+          {
+            id: uuid(),
+            path: audioPath,
+            originalName: audioName,
+            duration: audioDuration,
+          },
+          input.renderSettings?.visualMode || 'flame',
+          input.outputFormat,
+          {
+            fps: input.fps,
+            transcribe: input.transcribe,
+            uploadToGDrive: input.upload,
+            priority: input.priority,
+          }
+        );
+      })();
+
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('BullMQ timeout - Redis likely unavailable')), 5000)
       );
 
+      const { jobId: bullmqJobId } = await Promise.race([bullmqPromise, timeout]);
       console.log(`[API] Job ${job.id} submitted to BullMQ as ${bullmqJobId}`);
     } catch (queueError) {
       console.warn('[API] Failed to add job to BullMQ (queue may not be available):', queueError);

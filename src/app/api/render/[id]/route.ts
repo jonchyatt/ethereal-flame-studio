@@ -130,6 +130,73 @@ export async function GET(
       );
     }
 
+    // Modal status fallback: if the job has a modalCallId and is not yet
+    // in a terminal state, poll Modal for the latest status. This is a
+    // belt-and-suspenders approach — the Modal container also PATCHes
+    // the job directly via callback.
+    const modalCallId = (job.userMetadata as Record<string, unknown>)?.modalCallId;
+    if (modalCallId && typeof modalCallId === 'string' && !isTerminalState(job.status)) {
+      try {
+        const { getModalJobStatus } = await import('@/lib/render/modalClient');
+        const modalStatus = await getModalJobStatus(modalCallId);
+
+        if (modalStatus.status === 'completed' && modalStatus.result) {
+          const r2Key = modalStatus.result.r2_key;
+          const r2Url = r2Key
+            ? `https://renders.etherealflame.studio/${r2Key}`
+            : undefined;
+
+          await ServerJobStore.update(id, {
+            status: 'completed',
+            progress: 100,
+            currentStage: 'Complete',
+            completedAt: new Date().toISOString(),
+            ...(r2Url
+              ? {
+                  output: {
+                    format: job.outputFormat,
+                    localPath: r2Url,
+                    fileSizeBytes: 0,
+                    durationSeconds: job.audioDuration || 0,
+                    resolution: { width: 0, height: 0 },
+                    encoding: {
+                      codec: 'h264' as const,
+                      bitrate: 0,
+                      crf: 23,
+                      preset: 'balanced',
+                    },
+                    gdriveUrl: null,
+                    gdriveFileId: null,
+                    renderStartedAt: job.startedAt || new Date().toISOString(),
+                    renderCompletedAt: new Date().toISOString(),
+                    uploadedAt: null,
+                  },
+                }
+              : {}),
+          });
+          // Re-fetch the updated job
+          const refreshed = await ServerJobStore.get(id);
+          if (refreshed) {
+            Object.assign(job, refreshed);
+          }
+        } else if (modalStatus.status === 'failed') {
+          await ServerJobStore.update(id, {
+            status: 'failed',
+            errorMessage: modalStatus.error || 'Modal render failed',
+            currentStage: 'Failed',
+            completedAt: new Date().toISOString(),
+          });
+          const refreshed = await ServerJobStore.get(id);
+          if (refreshed) {
+            Object.assign(job, refreshed);
+          }
+        }
+      } catch (modalErr) {
+        // Non-fatal — just use whatever status we already have
+        console.warn('[API] Modal status poll failed:', modalErr);
+      }
+    }
+
     // Calculate elapsed time
     const elapsedSeconds = calculateElapsedSeconds(job);
 

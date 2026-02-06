@@ -30,3 +30,7 @@ data/*.db-shm
 
 # Keep the data directory structure
 !data/.gitkeep
+.env*.local
+
+# Modal Python cache
+modal_app/__pycache__/
