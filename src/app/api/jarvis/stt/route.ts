@@ -103,6 +103,7 @@ export async function GET(request: Request): Promise<Response> {
         interim_results: true,
         utterance_end_ms: 1000,
         vad_events: true,
+        // Raw PCM audio from browser Web Audio API
         encoding: 'linear16',
         sample_rate: 16000,
       });
@@ -122,6 +123,10 @@ export async function GET(request: Request): Promise<Response> {
         session.isConnected = true;
         const openEvent = `data: ${JSON.stringify({ type: 'open' })}\n\n`;
         controller.enqueue(new TextEncoder().encode(openEvent));
+      });
+
+      connection.on(LiveTranscriptionEvents.Metadata, (metadata) => {
+        console.log(`[STT] Deepgram metadata for session ${sessionId}:`, metadata);
       });
 
       connection.on(LiveTranscriptionEvents.Transcript, (data) => {
@@ -148,22 +153,37 @@ export async function GET(request: Request): Promise<Response> {
         };
 
         const event = `data: ${JSON.stringify(result)}\n\n`;
-        controller.enqueue(new TextEncoder().encode(event));
+        try {
+          controller.enqueue(new TextEncoder().encode(event));
+        } catch {
+          // Controller may be closed if client disconnected
+        }
       });
 
       connection.on(LiveTranscriptionEvents.UtteranceEnd, () => {
         const event = `data: ${JSON.stringify({ type: 'utterance_end' })}\n\n`;
-        controller.enqueue(new TextEncoder().encode(event));
+        try {
+          controller.enqueue(new TextEncoder().encode(event));
+        } catch {
+          // Controller may be closed if client disconnected
+        }
       });
 
       connection.on(LiveTranscriptionEvents.Error, (error) => {
         console.error(`[STT] Deepgram error for session ${sessionId}:`, error);
         const event = `data: ${JSON.stringify({ type: 'error', error: String(error) })}\n\n`;
-        controller.enqueue(new TextEncoder().encode(event));
+        try {
+          controller.enqueue(new TextEncoder().encode(event));
+        } catch {
+          // Controller may be closed if client disconnected
+        }
       });
 
-      connection.on(LiveTranscriptionEvents.Close, () => {
-        console.log(`[STT] Deepgram connection closed for session: ${sessionId}`);
+      connection.on(LiveTranscriptionEvents.Close, (closeEvent) => {
+        // Log close details including code and reason
+        const code = (closeEvent as { code?: number })?.code;
+        const reason = (closeEvent as { reason?: string })?.reason;
+        console.log(`[STT] Deepgram connection closed for session: ${sessionId}, code: ${code}, reason: ${reason}`);
         session.isConnected = false;
         const event = `data: ${JSON.stringify({ type: 'close' })}\n\n`;
         try {
@@ -240,7 +260,14 @@ export async function POST(request: Request): Promise<Response> {
     const audioData = await request.arrayBuffer();
     session.lastActivity = Date.now();
 
-    // Send audio to Deepgram (pass ArrayBuffer directly)
+    if (!session.isConnected) {
+      return new Response(
+        JSON.stringify({ error: 'Deepgram connection not ready' }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Send audio to Deepgram
     session.deepgram.send(audioData);
 
     return new Response(JSON.stringify({ ok: true }), {

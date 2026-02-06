@@ -7,7 +7,7 @@
  * - Write: Create tasks, update status, mark bills paid, pause tasks, add project items
  */
 
-import { queryDatabase, createPage, updatePage } from './NotionClient';
+import { queryDatabase, createPage, updatePage, retrievePage } from './NotionClient';
 import {
   LIFE_OS_DATABASES,
   LIFE_OS_DATABASE_IDS,
@@ -26,12 +26,25 @@ import {
   buildTaskStatusUpdate,
   buildBillPaidUpdate,
   buildTaskPauseUpdate,
+  calculateNextDueDate,
+  TASK_PROPS,
+  // Phase 16: Feature Pack
+  buildRecipeFilter,
+  buildSubscriptionFilter,
+  formatRecipeResults,
+  formatSubscriptionResults,
+  formatMealPlanResults,
+  MEAL_PLAN_PROPS,
+  RECIPE_PROPS,
+  INGREDIENT_PROPS,
+  SHOPPING_LIST_PROPS,
 } from './schemas';
 import {
   cacheResults,
   findTaskByTitle,
   findBillByTitle,
   findProjectByTitle,
+  findRecipeByTitle,
   CachedItem,
 } from './recentResults';
 import { findNotionDatabase } from './notionUrls';
@@ -317,6 +330,15 @@ async function executeNotionToolInner(
           : newStatus === 'in_progress'
             ? 'in progress'
             : 'to do';
+
+      // If task was marked complete, check if it's recurring and create next instance
+      if (newStatus === 'completed') {
+        const nextTaskResponse = await handleRecurringTaskCompletion(taskId);
+        if (nextTaskResponse) {
+          return `Marked task as ${statusLabel}. ${nextTaskResponse}`;
+        }
+      }
+
       return `Marked task as ${statusLabel}.`;
     }
 
@@ -445,6 +467,154 @@ async function executeNotionToolInner(
     }
 
     // =========================================================================
+    // FEATURE PACK: Recipes, Meal Planning, Subscriptions (Phase 16)
+    // =========================================================================
+
+    case 'query_recipes': {
+      const dataSourceId = LIFE_OS_DATABASES.recipes;
+      if (!dataSourceId) {
+        return 'Recipes database is not configured. Please set NOTION_RECIPES_DATA_SOURCE_ID.';
+      }
+
+      const search = input.search as string | undefined;
+      const ingredientIds = await resolveIngredientIds(search);
+
+      const filterOptions = buildRecipeFilter({
+        search,
+        category: input.category as string | undefined,
+        difficulty: input.difficulty as string | undefined,
+        favouritesOnly: input.favourites_only as boolean | undefined,
+        ingredientIds,
+      });
+
+      const result = await queryDatabase(dataSourceId, filterOptions);
+
+      // Cache results for follow-up operations
+      cacheQueryResults(result, 'recipe');
+
+      return formatRecipeResults(result);
+    }
+
+    case 'add_to_meal_plan': {
+      const databaseId = LIFE_OS_DATABASE_IDS.mealPlan;
+      if (!databaseId) {
+        return 'Meal Plan database is not configured. Please set NOTION_MEAL_PLAN_DATABASE_ID.';
+      }
+
+      const dayOfWeek = input.day_of_week as string;
+      const mealType = input.meal_type as string;
+      const recipeName = input.recipe_name as string;
+      const setting = input.setting as string | undefined;
+
+      const recipeId = recipeName ? await resolveRecipeIdByName(recipeName) : null;
+
+      // Build properties for meal plan entry
+      const properties: Record<string, unknown> = {
+        [MEAL_PLAN_PROPS.title]: {
+          title: [{ text: { content: recipeName } }],
+        },
+        [MEAL_PLAN_PROPS.dayOfWeek]: {
+          select: { name: dayOfWeek },
+        },
+        [MEAL_PLAN_PROPS.timeOfDay]: {
+          rich_text: [{ text: { content: mealType } }],
+        },
+      };
+
+      if (recipeId) {
+        properties[MEAL_PLAN_PROPS.recipes] = {
+          relation: [{ id: recipeId }],
+        };
+      }
+
+      if (setting) {
+        properties[MEAL_PLAN_PROPS.setting] = {
+          select: { name: setting },
+        };
+      }
+
+      await createPage(databaseId, properties);
+
+      triggerDashboardRefresh();
+
+      let response = `Added ${mealType} for ${dayOfWeek}: ${recipeName}${setting ? ` (${setting})` : ''}`;
+
+      if (recipeId) {
+        const ingredientNames = await getIngredientNamesForRecipe(recipeId);
+        if (ingredientNames.length > 0) {
+          const shoppingListResult = await addItemsToShoppingList(ingredientNames);
+          response += ` Ingredients: ${ingredientNames.join(', ')}.`;
+          if (shoppingListResult.attempted) {
+            if (shoppingListResult.created > 0) {
+              response += ` Added ${shoppingListResult.created} item${shoppingListResult.created > 1 ? 's' : ''} to your shopping list.`;
+            } else {
+              response += ' Shopping list write attempted but no items were added. Check the database and property names.';
+            }
+          } else {
+            response += ' Set NOTION_SHOPPING_LIST_DATABASE_ID to write this list to Notion.';
+          }
+        }
+      }
+
+      return response;
+    }
+
+    case 'get_subscriptions': {
+      const dataSourceId = LIFE_OS_DATABASES.subscriptions;
+      if (!dataSourceId) {
+        return 'Subscriptions database is not configured. Please set NOTION_SUBSCRIPTIONS_DATA_SOURCE_ID.';
+      }
+
+      const filterOptions = buildSubscriptionFilter({
+        status: (input.status as 'active' | 'cancelled' | 'all') || 'active',
+      });
+
+      const result = await queryDatabase(dataSourceId, filterOptions);
+
+      return formatSubscriptionResults(result);
+    }
+
+    case 'create_recurring_task': {
+      // Create a task with Frequency property set for Jarvis-managed recurrence
+      const databaseId = LIFE_OS_DATABASE_IDS.tasks;
+      if (!databaseId) {
+        return 'Task database is not configured. Please set NOTION_TASKS_DATABASE_ID.';
+      }
+
+      const title = input.title as string;
+      const frequency = input.frequency as 'daily' | 'weekly' | 'monthly';
+      const startDate = input.start_date as string | undefined;
+      const dayOfWeek = input.day_of_week as string | undefined;
+
+      // Map frequency to Notion select value (capitalize first letter)
+      const frequencyValue = frequency.charAt(0).toUpperCase() + frequency.slice(1) as 'Daily' | 'Weekly' | 'Monthly';
+
+      // Calculate due date: use provided start_date or today, adjust for weekly day_of_week
+      let dueDate = startDate || new Date().toISOString().split('T')[0];
+      if (frequency === 'weekly' && dayOfWeek) {
+        dueDate = getNextWeekdayDate(startDate, dayOfWeek);
+      }
+
+      const properties = buildTaskProperties({
+        title,
+        due_date: dueDate,
+        frequency: frequencyValue,
+      });
+
+      await createPage(databaseId, properties);
+
+      triggerDashboardRefresh();
+
+      let response = `Created ${frequency} recurring task: "${title}"`;
+      if (frequency === 'weekly' && dayOfWeek) {
+        response += ` every ${dayOfWeek}`;
+      }
+      response += ` starting ${dueDate}`;
+      response += `. When you complete it, I'll automatically create the next one.`;
+      return response;
+    }
+
+    // =========================================================================
     // PANEL OPERATIONS (Phase T1) — return JSON for ClaudeClient to act on
     // =========================================================================
 
@@ -491,6 +661,7 @@ const TITLE_PROPS: Record<CachedItem['type'], string> = {
   project: 'Project', // Projects database uses 'Project'
   goal: 'Goal',       // Goals database uses 'Goal'
   habit: 'Habit',     // Habits database uses 'Habit'
+  recipe: 'Name',     // Recipes database uses 'Name'
 };
 
 /**
@@ -536,5 +707,285 @@ function cacheQueryResults(
   } catch (error) {
     console.error('[ToolExecutor] Error caching query results:', error);
     // Don't throw - caching is best-effort
+  }
+}
+
+const WEEKDAY_INDEX: Record<string, number> = {
+  Sunday: 0,
+  Monday: 1,
+  Tuesday: 2,
+  Wednesday: 3,
+  Thursday: 4,
+  Friday: 5,
+  Saturday: 6,
+};
+
+const MAX_SHOPPING_LIST_ITEMS = 40;
+
+function getNextWeekdayDate(startDate: string | undefined, dayOfWeek: string): string {
+  const baseDate = parseDateOrToday(startDate);
+  const targetDay = WEEKDAY_INDEX[dayOfWeek];
+
+  if (targetDay === undefined) {
+    return formatDate(baseDate);
+  }
+
+  const currentDay = baseDate.getDay();
+  let offset = targetDay - currentDay;
+  if (offset < 0) {
+    offset += 7;
+  }
+
+  const nextDate = new Date(baseDate);
+  nextDate.setDate(baseDate.getDate() + offset);
+  return formatDate(nextDate);
+}
+
+function parseDateOrToday(dateString?: string): Date {
+  if (dateString) {
+    const parsed = new Date(`${dateString}T00:00:00`);
+    if (!Number.isNaN(parsed.getTime())) {
+      parsed.setHours(0, 0, 0, 0);
+      return parsed;
+    }
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+}
+
+function formatDate(date: Date): string {
+  return date.toISOString().split('T')[0];
+}
+
+async function resolveIngredientIds(search?: string): Promise<string[]> {
+  const searchTerm = search?.trim();
+  if (!searchTerm) return [];
+
+  const dataSourceId = LIFE_OS_DATABASES.ingredients;
+  if (!dataSourceId) return [];
+
+  try {
+    const result = await queryDatabase(dataSourceId, {
+      filter: {
+        property: INGREDIENT_PROPS.title,
+        title: { contains: searchTerm },
+      },
+    });
+
+    const pages = (result as { results?: Array<{ id?: string }> })?.results || [];
+    return pages
+      .map((page) => page.id)
+      .filter((id): id is string => Boolean(id));
+  } catch (error) {
+    console.warn('[ToolExecutor] Ingredient search failed:', error);
+    return [];
+  }
+}
+
+async function resolveRecipeIdByName(recipeName: string): Promise<string | null> {
+  let recipeId = findRecipeByTitle(recipeName);
+  if (recipeId) return recipeId;
+
+  const dataSourceId = LIFE_OS_DATABASES.recipes;
+  if (!dataSourceId) return null;
+
+  try {
+    const result = await queryDatabase(dataSourceId, buildRecipeFilter({ search: recipeName }));
+    cacheQueryResults(result, 'recipe');
+
+    recipeId = findRecipeByTitle(recipeName);
+    if (recipeId) return recipeId;
+
+    const first = (result as { results?: Array<{ id?: string }> })?.results?.[0];
+    return first?.id || null;
+  } catch (error) {
+    console.warn('[ToolExecutor] Recipe lookup failed:', error);
+    return null;
+  }
+}
+
+async function getIngredientNamesForRecipe(recipeId: string): Promise<string[]> {
+  if (!RECIPE_PROPS.ingredients) return [];
+
+  try {
+    const page = await retrievePage(recipeId) as { properties?: Record<string, unknown> };
+    const relationProp = page?.properties?.[RECIPE_PROPS.ingredients] as
+      | { relation?: Array<{ id: string }> }
+      | undefined;
+    const ingredientIds =
+      relationProp?.relation?.map((rel) => rel.id).filter(Boolean) || [];
+
+    if (ingredientIds.length === 0) return [];
+    return await resolveIngredientNames(ingredientIds);
+  } catch (error) {
+    console.warn('[ToolExecutor] Failed to load recipe ingredients:', error);
+    return [];
+  }
+}
+
+async function resolveIngredientNames(ingredientIds: string[]): Promise<string[]> {
+  const uniqueIds = Array.from(new Set(ingredientIds));
+  const pages = await Promise.all(
+    uniqueIds.map(async (id) => {
+      try {
+        return await retrievePage(id);
+      } catch (error) {
+        console.warn('[ToolExecutor] Failed to load ingredient page:', error);
+        return null;
+      }
+    })
+  );
+
+  const names = pages
+    .map((page) =>
+      extractTitleFromProperty(
+        (page as { properties?: Record<string, unknown> })?.properties?.[INGREDIENT_PROPS.title]
+      )
+    )
+    .filter((name): name is string => Boolean(name));
+
+  return dedupeNames(names);
+}
+
+function extractTitleFromProperty(prop: unknown): string | null {
+  const p = prop as { title?: Array<{ plain_text?: string }> };
+  return p?.title?.[0]?.plain_text || null;
+}
+
+function dedupeNames(names: string[]): string[] {
+  const seen = new Map<string, string>();
+  for (const name of names) {
+    const trimmed = name.trim();
+    if (!trimmed) continue;
+    const key = trimmed.toLowerCase();
+    if (!seen.has(key)) {
+      seen.set(key, trimmed);
+    }
+  }
+  return Array.from(seen.values());
+}
+
+async function addItemsToShoppingList(
+  items: string[]
+): Promise<{ attempted: boolean; created: number }> {
+  const databaseId = LIFE_OS_DATABASE_IDS.shoppingList;
+  if (!databaseId) {
+    return { attempted: false, created: 0 };
+  }
+
+  const uniqueItems = dedupeNames(items).slice(0, MAX_SHOPPING_LIST_ITEMS);
+  let created = 0;
+
+  for (const item of uniqueItems) {
+    try {
+      await createPage(databaseId, {
+        [SHOPPING_LIST_PROPS.title]: {
+          title: [{ text: { content: item } }],
+        },
+      });
+      created += 1;
+    } catch (error) {
+      console.warn('[ToolExecutor] Failed to add shopping list item:', { item, error });
+    }
+  }
+
+  return { attempted: true, created };
+}
+
+/**
+ * Handle recurring task completion - auto-create next instance
+ *
+ * When a recurring task (Daily/Weekly/Monthly) is marked complete,
+ * automatically create the next instance with updated due date.
+ *
+ * @param taskId - The completed task's ID
+ * @returns Response message if next task was created, null otherwise
+ */
+async function handleRecurringTaskCompletion(taskId: string): Promise<string | null> {
+  try {
+    // Fetch the completed task's properties
+    const page = await retrievePage(taskId) as {
+      properties: Record<string, unknown>;
+    };
+
+    if (!page?.properties) {
+      console.log('[ToolExecutor] Could not retrieve task properties for recurrence check');
+      return null;
+    }
+
+    // Extract frequency
+    const frequencyProp = page.properties[TASK_PROPS.frequency] as {
+      select?: { name?: string };
+    };
+    const frequency = frequencyProp?.select?.name;
+
+    // If no frequency or One-time, no recurrence needed
+    if (!frequency || frequency === 'One-time') {
+      console.log('[ToolExecutor] Task is not recurring, skipping auto-creation');
+      return null;
+    }
+
+    // Only handle Daily, Weekly, Monthly
+    if (!['Daily', 'Weekly', 'Monthly'].includes(frequency)) {
+      console.log(`[ToolExecutor] Unknown frequency: ${frequency}, skipping`);
+      return null;
+    }
+
+    // Extract title
+    const titleProp = page.properties[TASK_PROPS.title] as {
+      title?: Array<{ plain_text?: string }>;
+    };
+    const title = titleProp?.title?.[0]?.plain_text || 'Recurring Task';
+
+    // Extract current due date
+    const dueDateProp = page.properties[TASK_PROPS.dueDate] as {
+      date?: { start?: string };
+    };
+    const currentDueDate = dueDateProp?.date?.start || null;
+
+    // Calculate next due date
+    const nextDueDate = calculateNextDueDate(
+      currentDueDate,
+      frequency as 'Daily' | 'Weekly' | 'Monthly'
+    );
+
+    // Extract priority (to preserve it)
+    const priorityProp = page.properties[TASK_PROPS.priority] as {
+      select?: { name?: string };
+    };
+    const priority = priorityProp?.select?.name;
+
+    // Extract project relation (to preserve it)
+    const projectProp = page.properties[TASK_PROPS.project] as {
+      relation?: Array<{ id: string }>;
+    };
+    const projectId = projectProp?.relation?.[0]?.id;
+
+    // Create the next instance
+    const databaseId = LIFE_OS_DATABASE_IDS.tasks;
+    if (!databaseId) {
+      console.error('[ToolExecutor] Task database ID not configured');
+      return null;
+    }
+
+    const newProperties = buildTaskProperties({
+      title,
+      due_date: nextDueDate,
+      frequency: frequency as 'Daily' | 'Weekly' | 'Monthly',
+      priority,
+      project_id: projectId,
+    });
+
+    await createPage(databaseId, newProperties);
+
+    console.log(`[ToolExecutor] Created next ${frequency} instance of "${title}" due ${nextDueDate}`);
+
+    return `Created next ${frequency.toLowerCase()} occurrence due ${nextDueDate}.`;
+  } catch (error) {
+    console.error('[ToolExecutor] Error handling recurring task completion:', error);
+    // Don't throw - recurrence creation is best-effort
+    return null;
   }
 }

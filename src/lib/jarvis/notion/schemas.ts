@@ -29,11 +29,18 @@ export const LIFE_OS_DATABASES = {
   projects: process.env.NOTION_PROJECTS_DATA_SOURCE_ID || '',
   goals: process.env.NOTION_GOALS_DATA_SOURCE_ID || '',
   habits: process.env.NOTION_HABITS_DATA_SOURCE_ID || '',
+  // Feature Pack databases (Phase 16)
+  recipes: process.env.NOTION_RECIPES_DATA_SOURCE_ID || '',
+  mealPlan: process.env.NOTION_MEAL_PLAN_DATA_SOURCE_ID || '',
+  subscriptions: process.env.NOTION_SUBSCRIPTIONS_DATA_SOURCE_ID || '',
+  ingredients: process.env.NOTION_INGREDIENTS_DATA_SOURCE_ID || '',
 } as const;
 
 // Database IDs for creates (API-post-page) - different from data_source_id!
 export const LIFE_OS_DATABASE_IDS = {
   tasks: process.env.NOTION_TASKS_DATABASE_ID || '',
+  mealPlan: process.env.NOTION_MEAL_PLAN_DATABASE_ID || '',
+  shoppingList: process.env.NOTION_SHOPPING_LIST_DATABASE_ID || '',
 } as const;
 
 /**
@@ -60,6 +67,7 @@ export const TASK_PROPS = {
   dueDate: 'Do Dates', // Date property (this database uses 'Do Dates' not 'Due Date')
   project: 'Project', // Relation to Projects database
   priority: 'Daily Priority', // Select property (this database uses 'Daily Priority')
+  frequency: 'Frequency', // Select property (One-time, Daily, Weekly, Monthly) for recurring tasks
 } as const;
 
 /**
@@ -108,6 +116,69 @@ export const HABIT_PROPS = {
 } as const;
 
 // =============================================================================
+// Feature Pack: Recipes, Meal Planning, Subscriptions (Phase 16)
+// =============================================================================
+
+/**
+ * Recipe database property names
+ * Data Source ID: 13902093-f0b3-8244-96cd-07f874f9f93d
+ */
+export const RECIPE_PROPS = {
+  title: 'Name',           // Title property
+  category: 'Category',    // Select: Breakfast, Lunch, Dinner, Snack, etc.
+  difficulty: 'Difficulty', // Select: Easy, Medium, Hard
+  rating: 'Rating',        // Select: stars or number
+  prepTime: 'Prep Time (min)', // Number
+  cookTime: 'Cook Time (min)', // Number
+  url: 'Recipe Link',      // URL to external recipe
+  favourite: 'Favourite',  // Checkbox
+  kcal: 'Kcal',           // Number
+  tags: 'Tags',            // Multi-select (optional)
+  ingredients: 'Ingredients', // Relation to Ingredients (optional)
+} as const;
+
+/**
+ * Weekly Meal Plan database property names
+ * Data Source ID: 56102093-f0b3-83d5-a18c-07da9a50e696
+ */
+export const MEAL_PLAN_PROPS = {
+  title: 'Name',           // Title property (meal entry name)
+  dayOfWeek: 'Day of the week', // Select: Monday, Tuesday, etc.
+  recipes: 'Recipes',      // Relation to Recipes database
+  timeOfDay: 'Time of Day', // Rich text (Breakfast, Lunch, Dinner)
+  setting: 'Setting',      // Select (e.g., Home, Dine-Out)
+} as const;
+
+/**
+ * Subscriptions database property names
+ * Data Source ID: 2e802093-f0b3-830e-b600-0711d4fa493f
+ */
+export const SUBSCRIPTION_PROPS = {
+  title: 'Bill',           // Title property (subscription name)
+  fees: 'Fees',            // Number (monthly/yearly cost)
+  frequency: 'Frequency',  // Select: Monthly, Yearly, etc.
+  status: 'Status',        // Status property
+  serviceLink: 'Service Link', // URL to payment portal
+  nextPaymentDate: 'Next Payment Date', // Formula (calculated)
+  category: 'Category',    // Select
+  startDate: 'Start Date', // Date
+} as const;
+
+/**
+ * Ingredient database property names
+ */
+export const INGREDIENT_PROPS = {
+  title: 'Name', // Title property
+} as const;
+
+/**
+ * Shopping List database property names
+ */
+export const SHOPPING_LIST_PROPS = {
+  title: 'Name', // Title property
+} as const;
+
+// =============================================================================
 // Type Definitions
 // =============================================================================
 
@@ -115,11 +186,14 @@ export const HABIT_PROPS = {
  * Notion filter structure for database queries
  */
 export interface NotionFilter {
-  property: string;
+  property?: string;
+  and?: NotionFilter[];
+  or?: NotionFilter[];
   [key: string]:
     | string
     | number
     | boolean
+    | NotionFilter[]
     | { equals?: string | number | boolean }
     | { does_not_equal?: string | number | boolean }
     | { contains?: string }
@@ -138,6 +212,7 @@ export interface TaskProperties {
   dueDate: string | null;
   project: string | null;
   priority: 'Low' | 'Medium' | 'High' | null;
+  frequency: 'One-time' | 'Daily' | 'Weekly' | 'Monthly' | null;
 }
 
 /**
@@ -186,6 +261,46 @@ export interface HabitProperties {
   streak: number;
   lastCompleted: string | null;
   area: string | null;
+}
+
+/**
+ * Recipe properties from Notion (Phase 16)
+ */
+export interface RecipeProperties {
+  id: string;
+  title: string;
+  category: string | null;
+  difficulty: 'Easy' | 'Medium' | 'Hard' | string | null;
+  rating: string | null;
+  prepTime: number | null;
+  cookTime: number | null;
+  url: string | null;
+  favourite: boolean;
+}
+
+/**
+ * Meal Plan entry properties from Notion (Phase 16)
+ */
+export interface MealPlanProperties {
+  id: string;
+  title: string;
+  dayOfWeek: string | null;
+  timeOfDay: string | null;
+  setting: string | null;
+}
+
+/**
+ * Subscription properties from Notion (Phase 16)
+ */
+export interface SubscriptionProperties {
+  id: string;
+  title: string;
+  fees: number | null;
+  frequency: 'Monthly' | 'Yearly' | string | null;
+  status: string | null;
+  serviceLink: string | null;
+  nextPaymentDate: string | null;
+  category: string | null;
 }
 
 // =============================================================================
@@ -687,6 +802,7 @@ export function buildTaskProperties(input: {
   due_date?: string;
   priority?: string;
   project_id?: string;
+  frequency?: 'One-time' | 'Daily' | 'Weekly' | 'Monthly';
 }): Record<string, unknown> {
   const properties: Record<string, unknown> = {
     [TASK_PROPS.title]: {
@@ -720,7 +836,43 @@ export function buildTaskProperties(input: {
     };
   }
 
+  // Add frequency for recurring tasks (default to One-time)
+  if (input.frequency) {
+    properties[TASK_PROPS.frequency] = {
+      select: { name: input.frequency },
+    };
+  }
+
   return properties;
+}
+
+/**
+ * Calculate the next due date based on frequency
+ * @param currentDate - Current due date in YYYY-MM-DD format
+ * @param frequency - Task frequency (Daily, Weekly, Monthly)
+ * @returns Next due date in YYYY-MM-DD format
+ */
+export function calculateNextDueDate(
+  currentDate: string | null,
+  frequency: 'Daily' | 'Weekly' | 'Monthly'
+): string {
+  // If no current date, use today
+  const baseDate = currentDate ? new Date(currentDate + 'T00:00:00') : new Date();
+  baseDate.setHours(0, 0, 0, 0);
+
+  switch (frequency) {
+    case 'Daily':
+      baseDate.setDate(baseDate.getDate() + 1);
+      break;
+    case 'Weekly':
+      baseDate.setDate(baseDate.getDate() + 7);
+      break;
+    case 'Monthly':
+      baseDate.setMonth(baseDate.getMonth() + 1);
+      break;
+  }
+
+  return baseDate.toISOString().split('T')[0];
 }
 
 /**
@@ -766,4 +918,206 @@ export function buildTaskPauseUpdate(
   }
 
   return properties;
+}
+
+// =============================================================================
+// Feature Pack: Query Builders & Formatters (Phase 16)
+// =============================================================================
+
+/**
+ * Build a filter for recipe queries
+ */
+export function buildRecipeFilter(options: {
+  search?: string;
+  category?: string;
+  difficulty?: string;
+  favouritesOnly?: boolean;
+  ingredientIds?: string[];
+}): { filter?: { and: NotionFilter[] } } {
+  const filters: NotionFilter[] = [];
+
+  const searchTerm = options.search?.trim();
+
+  if (options.category) {
+    filters.push({
+      property: RECIPE_PROPS.category,
+      select: { equals: options.category },
+    });
+  }
+
+  if (options.difficulty) {
+    filters.push({
+      property: RECIPE_PROPS.difficulty,
+      select: { equals: options.difficulty },
+    });
+  }
+
+  if (options.favouritesOnly) {
+    filters.push({
+      property: RECIPE_PROPS.favourite,
+      checkbox: { equals: true },
+    });
+  }
+
+  if (searchTerm || (options.ingredientIds && options.ingredientIds.length > 0)) {
+    const orFilters: NotionFilter[] = [];
+
+    if (searchTerm) {
+      orFilters.push({
+        property: RECIPE_PROPS.title,
+        title: { contains: searchTerm },
+      });
+
+      if (RECIPE_PROPS.tags) {
+        orFilters.push({
+          property: RECIPE_PROPS.tags,
+          multi_select: { contains: searchTerm },
+        });
+      }
+    }
+
+    if (RECIPE_PROPS.ingredients && options.ingredientIds) {
+      for (const ingredientId of options.ingredientIds) {
+        orFilters.push({
+          property: RECIPE_PROPS.ingredients,
+          relation: { contains: ingredientId },
+        });
+      }
+    }
+
+    if (orFilters.length > 0) {
+      filters.push({ or: orFilters });
+    }
+  }
+
+  return filters.length > 0 ? { filter: { and: filters } } : {};
+}
+
+/**
+ * Build a filter for subscription queries
+ */
+export function buildSubscriptionFilter(options: {
+  status?: 'active' | 'cancelled' | 'all';
+}): { filter?: { and: NotionFilter[] } } {
+  const filters: NotionFilter[] = [];
+
+  if (options.status === 'active') {
+    // Live subscriptions only
+    filters.push({
+      property: SUBSCRIPTION_PROPS.status,
+      status: { equals: 'Live' },
+    });
+  } else if (options.status === 'cancelled') {
+    filters.push({
+      property: SUBSCRIPTION_PROPS.status,
+      status: { equals: 'Cancelled' },
+    });
+  }
+
+  return filters.length > 0 ? { filter: { and: filters } } : {};
+}
+
+/**
+ * Format recipe query results for speech output
+ */
+export function formatRecipeResults(result: unknown): string {
+  const pages = (result as { results?: unknown[] })?.results || [];
+  if (pages.length === 0) return 'No recipes found.';
+
+  const formatted = pages.map((page: unknown) => {
+    const p = page as { properties: Record<string, unknown>; id: string };
+    const title = extractTitle(p.properties[RECIPE_PROPS.title]);
+    const category = extractSelect(p.properties[RECIPE_PROPS.category]);
+    const difficulty = extractSelect(p.properties[RECIPE_PROPS.difficulty]);
+    const rating = extractSelect(p.properties[RECIPE_PROPS.rating]);
+    const prepTime = extractNumber(p.properties[RECIPE_PROPS.prepTime]);
+    const cookTime = extractNumber(p.properties[RECIPE_PROPS.cookTime]);
+
+    let line = `- ${title}`;
+    if (category && category !== 'Unknown') line += ` (${category})`;
+    if (difficulty && difficulty !== 'Unknown') line += ` - ${difficulty}`;
+    if (rating && rating !== 'Unknown') line += ` ${rating}`;
+    if (prepTime || cookTime) {
+      const totalTime = (prepTime || 0) + (cookTime || 0);
+      if (totalTime > 0) line += ` - ${totalTime} min`;
+    }
+    line += ` [id:${p.id}]`;
+    return line;
+  });
+
+  return formatted.join('\n');
+}
+
+/**
+ * Format subscription query results for speech output
+ * Includes payment links for easy access
+ */
+export function formatSubscriptionResults(result: unknown): string {
+  const pages = (result as { results?: unknown[] })?.results || [];
+  if (pages.length === 0) return 'No subscriptions found.';
+
+  const formatted = pages.map((page: unknown) => {
+    const p = page as { properties: Record<string, unknown>; id: string };
+    const title = extractTitle(p.properties[SUBSCRIPTION_PROPS.title]);
+    const fees = extractNumber(p.properties[SUBSCRIPTION_PROPS.fees]);
+    const frequency = extractSelect(p.properties[SUBSCRIPTION_PROPS.frequency]);
+    const status = extractSelect(p.properties[SUBSCRIPTION_PROPS.status]);
+    const serviceLink = extractUrl(p.properties[SUBSCRIPTION_PROPS.serviceLink]);
+    const nextPayment = extractFormula(p.properties[SUBSCRIPTION_PROPS.nextPaymentDate]);
+
+    let line = `- ${title}`;
+    if (fees) line += `: $${fees.toFixed(2)}`;
+    if (frequency && frequency !== 'Unknown') line += ` ${frequency}`;
+    if (status && status !== 'Unknown') line += ` (${status})`;
+    if (nextPayment) line += ` - Next: ${nextPayment}`;
+    if (serviceLink) line += ` - [Pay here](${serviceLink})`;
+    line += ` [id:${p.id}]`;
+    return line;
+  });
+
+  return formatted.join('\n');
+}
+
+/**
+ * Format meal plan results for speech output
+ */
+export function formatMealPlanResults(result: unknown): string {
+  const pages = (result as { results?: unknown[] })?.results || [];
+  if (pages.length === 0) return 'No meal plan entries found.';
+
+  const formatted = pages.map((page: unknown) => {
+    const p = page as { properties: Record<string, unknown>; id: string };
+    const title = extractTitle(p.properties[MEAL_PLAN_PROPS.title]);
+    const day = extractSelect(p.properties[MEAL_PLAN_PROPS.dayOfWeek]);
+    const timeOfDay = extractRichText(p.properties[MEAL_PLAN_PROPS.timeOfDay]);
+    const setting = extractSelect(p.properties[MEAL_PLAN_PROPS.setting]);
+
+    let line = `- ${day || 'Day'}`;
+    if (timeOfDay) line += ` ${timeOfDay}`;
+    line += `: ${title}`;
+    if (setting && setting !== 'Unknown') line += ` (${setting})`;
+    line += ` [id:${p.id}]`;
+    return line;
+  });
+
+  return formatted.join('\n');
+}
+
+// Helper extractors for new property types
+function extractUrl(prop: unknown): string | null {
+  const p = prop as { url?: string };
+  return p?.url || null;
+}
+
+function extractFormula(prop: unknown): string | null {
+  const p = prop as { formula?: { string?: string; number?: number; date?: { start?: string } } };
+  if (p?.formula?.string) return p.formula.string;
+  if (p?.formula?.number) return String(p.formula.number);
+  if (p?.formula?.date?.start) return p.formula.date.start;
+  return null;
+}
+
+function extractRichText(prop: unknown): string | null {
+  const p = prop as { rich_text?: Array<{ plain_text?: string }> };
+  return p?.rich_text?.[0]?.plain_text || null;
 }

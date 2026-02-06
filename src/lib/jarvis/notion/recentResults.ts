@@ -13,7 +13,7 @@
 export interface CachedItem {
   id: string;
   title: string;
-  type: 'task' | 'bill' | 'project' | 'goal' | 'habit';
+  type: 'task' | 'bill' | 'project' | 'goal' | 'habit' | 'recipe';
   cachedAt: number;
 }
 
@@ -92,6 +92,13 @@ export function findGoalByTitle(searchTerm: string): string | null {
  */
 export function findHabitByTitle(searchTerm: string): string | null {
   return findByTitle(searchTerm, 'habit');
+}
+
+/**
+ * Find a recipe by title using fuzzy matching
+ */
+export function findRecipeByTitle(searchTerm: string): string | null {
+  return findByTitle(searchTerm, 'recipe');
 }
 
 /**

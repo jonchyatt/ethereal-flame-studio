@@ -219,6 +219,107 @@ export const notionTools: ToolDefinition[] = [
     }
   },
   // =========================================================================
+  // Feature Pack: Recipes, Meal Planning, Subscriptions (Phase 16)
+  // =========================================================================
+  {
+    name: 'query_recipes',
+    description: 'Search recipes by name, category, difficulty, tags, or ingredients. Use when user asks about recipes, what to cook, meal ideas, or food suggestions.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        search: {
+          type: 'string',
+          description: 'Recipe name, tag, or ingredient to search for'
+        },
+        category: {
+          type: 'string',
+          description: 'Filter by meal type',
+          enum: ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Dessert']
+        },
+        difficulty: {
+          type: 'string',
+          description: 'Filter by difficulty level',
+          enum: ['Easy', 'Medium', 'Hard']
+        },
+        favourites_only: {
+          type: 'boolean',
+          description: 'Only return favourite recipes'
+        }
+      }
+    }
+  },
+  {
+    name: 'add_to_meal_plan',
+    description: 'Add a meal to the weekly plan. Use when user wants to plan what to eat on a specific day.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        day_of_week: {
+          type: 'string',
+          description: 'Day of the week',
+          enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        },
+        meal_type: {
+          type: 'string',
+          description: 'Which meal of the day',
+          enum: ['Breakfast', 'Lunch', 'Dinner']
+        },
+        recipe_name: {
+          type: 'string',
+          description: 'What to eat (recipe name or description)'
+        },
+        setting: {
+          type: 'string',
+          description: 'Where the meal will be (optional)',
+          enum: ['Home', 'Dine-Out', 'Takeout']
+        }
+      },
+      required: ['day_of_week', 'meal_type', 'recipe_name']
+    }
+  },
+  {
+    name: 'get_subscriptions',
+    description: 'Get active subscriptions with payment links. Use when user asks about bills to pay, subscriptions, recurring payments, or monthly costs.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'string',
+          description: 'Filter by subscription status',
+          enum: ['active', 'cancelled', 'all']
+        }
+      }
+    }
+  },
+  {
+    name: 'create_recurring_task',
+    description: 'Create a task that repeats on a schedule. Use when user wants something done regularly (daily, weekly, monthly).',
+    input_schema: {
+      type: 'object',
+      properties: {
+        title: {
+          type: 'string',
+          description: 'Task name/description'
+        },
+        frequency: {
+          type: 'string',
+          description: 'How often the task repeats',
+          enum: ['daily', 'weekly', 'monthly']
+        },
+        start_date: {
+          type: 'string',
+          description: 'First occurrence date (YYYY-MM-DD). Uses today if not specified.'
+        },
+        day_of_week: {
+          type: 'string',
+          description: 'For weekly tasks: which day (e.g., Monday, Tuesday)',
+          enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        }
+      },
+      required: ['title', 'frequency']
+    }
+  },
+  // =========================================================================
   // Panel tools (Phase T1) - open/close the Notion overlay panel
   // =========================================================================
   {

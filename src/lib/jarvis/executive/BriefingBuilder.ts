@@ -34,6 +34,8 @@ import {
   buildBillFilter,
   buildHabitFilter,
   buildGoalFilter,
+  getTodayInTimezone,
+  getDateInTimezone,
   TASK_PROPS,
   BILL_PROPS,
   HABIT_PROPS,
@@ -79,9 +81,9 @@ function extractNumber(prop: unknown): number {
 /**
  * Extract checkbox value
  */
-function extractCheckbox(prop: unknown): boolean {
+function extractCheckbox(prop: unknown): boolean | null {
   const p = prop as { checkbox?: boolean };
-  return p?.checkbox || false;
+  return typeof p?.checkbox === 'boolean' ? p.checkbox : null;
 }
 
 // =============================================================================
@@ -113,7 +115,11 @@ export async function buildMorningBriefing(timezone?: string): Promise<BriefingD
     const overdueTasks = parseTaskResults(overdueTasksResult, 'pending');
 
     // Parse bill results
-    const bills = parseBillResults(billsResult);
+    const bills = parseBillResults(billsResult, {
+      timeframe: 'this_week',
+      unpaidOnly: true,
+      timezone,
+    });
     const billTotal = bills.reduce((sum, b) => sum + b.amount, 0);
 
     // Parse habit results
@@ -359,17 +365,61 @@ function parseTaskResults(result: unknown, filterStatus?: 'pending' | 'completed
 /**
  * Parse raw Notion bill results into BillSummary[]
  */
-function parseBillResults(result: unknown): BillSummary[] {
+function parseBillResults(
+  result: unknown,
+  options?: {
+    timeframe?: 'this_week' | 'this_month' | 'overdue';
+    unpaidOnly?: boolean;
+    timezone?: string;
+  }
+): BillSummary[] {
   const pages = (result as { results?: unknown[] })?.results || [];
-  return pages.map((page: unknown) => {
+  const today = getTodayInTimezone(options?.timezone);
+  const weekEnd = getDateInTimezone(7, options?.timezone);
+  const monthEnd = getDateInTimezone(30, options?.timezone);
+
+  const bills = pages.map((page: unknown) => {
     const p = page as { properties: Record<string, unknown>; id: string };
+    const dueDateRaw = extractDate(p.properties[BILL_PROPS.dueDate]);
+    const dueDate = dueDateRaw ? dueDateRaw.split('T')[0] : null;
+    const paid = extractCheckbox(p.properties[BILL_PROPS.paid]);
+
     return {
       id: p.id,
       title: extractTitle(p.properties[BILL_PROPS.title]),
       amount: extractNumber(p.properties[BILL_PROPS.amount]),
-      dueDate: extractDate(p.properties[BILL_PROPS.dueDate]),
+      dueDate,
+      paid,
     };
   });
+
+  const filtered = bills.filter((bill) => {
+    if (options?.unpaidOnly !== false && bill.paid === true) {
+      return false;
+    }
+
+    if (options?.timeframe) {
+      if (!bill.dueDate) return false;
+      if (options.timeframe === 'overdue') {
+        return bill.dueDate < today;
+      }
+      if (options.timeframe === 'this_week') {
+        return bill.dueDate <= weekEnd;
+      }
+      if (options.timeframe === 'this_month') {
+        return bill.dueDate <= monthEnd;
+      }
+    }
+
+    return true;
+  });
+
+  return filtered.map((bill) => ({
+    id: bill.id,
+    title: bill.title,
+    amount: bill.amount,
+    dueDate: bill.dueDate,
+  }));
 }
 
 /**
@@ -529,7 +579,11 @@ export async function buildEveningWrapData(timezone?: string): Promise<EveningWr
     const weekSummary = analyzeWeekLoad(weekTasks);
 
     // Parse other results
-    const bills = parseBillResults(billsResult);
+    const bills = parseBillResults(billsResult, {
+      timeframe: 'this_week',
+      unpaidOnly: true,
+      timezone,
+    });
     const billTotal = bills.reduce((sum, b) => sum + b.amount, 0);
     const habits = parseHabitResults(habitsResult);
     const streakSummary = buildStreakSummary(habits);
@@ -744,7 +798,11 @@ export async function buildWeeklyReviewData(timezone?: string): Promise<WeeklyRe
       return dueDate >= sevenDaysAgo && dueDate <= now;
     });
 
-    const allBills = parseBillResults(paidBillsResult);
+    const allBills = parseBillResults(paidBillsResult, {
+      timeframe: 'this_month',
+      unpaidOnly: false,
+      timezone,
+    });
     const paidBills = allBills.filter((b) => {
       // Bills marked as paid typically have a paid date or status
       // For now, count recent bills as potentially paid
@@ -773,7 +831,11 @@ export async function buildWeeklyReviewData(timezone?: string): Promise<WeeklyRe
       (t) => t.priority === 'High' || t.dueTime
     );
 
-    const allUnpaidBills = parseBillResults(horizonBillsResult);
+    const allUnpaidBills = parseBillResults(horizonBillsResult, {
+      timeframe: 'this_month',
+      unpaidOnly: true,
+      timezone,
+    });
     const horizonBills = allUnpaidBills.filter((b) => {
       if (!b.dueDate) return false;
       const dueDate = parseISO(b.dueDate);
