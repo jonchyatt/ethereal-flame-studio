@@ -52,11 +52,11 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
       {/* Left panel: Templates + Advanced */}
-      <div className="absolute inset-y-0 left-0 flex">
+      <div className="absolute top-2 bottom-2 left-0 flex">
         <div
           className={`
-            pointer-events-auto h-full w-[320px] max-w-[90vw]
-            bg-black/70 backdrop-blur-md border-r border-white/10 shadow-lg
+            pointer-events-auto h-full w-[300px] max-w-[85vw]
+            bg-black/80 backdrop-blur-md border border-white/10 rounded-r-xl shadow-xl
             transition-transform duration-300
             ${leftOpen ? 'translate-x-0' : '-translate-x-full'}
           `}
@@ -134,24 +134,27 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
           <button
             onClick={() => setLeftOpen(true)}
             className="
-              pointer-events-auto mt-4 ml-3
-              px-3 py-2
-              bg-black/60 backdrop-blur-md
-              border border-white/10 rounded
-              text-xs text-white/70 hover:text-white
+              pointer-events-auto mt-4 ml-2
+              px-2 py-4
+              bg-black/70 backdrop-blur-md
+              border border-white/15 rounded-r-lg
+              text-xs text-white/80 hover:text-white hover:bg-black/80
+              transition-all
+              writing-mode-vertical
             "
+            style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
           >
-            Show Library
+            Library
           </button>
         )}
       </div>
 
-      {/* Right panel: Core controls */}
-      <div className="absolute inset-y-0 right-0 flex justify-end">
+      {/* Right panel: Core controls — top-16 leaves room for VR button */}
+      <div className="absolute top-16 bottom-2 right-0 flex justify-end">
         <div
           className={`
-            pointer-events-auto h-full w-[320px] max-w-[90vw]
-            bg-black/70 backdrop-blur-md border-l border-white/10 shadow-lg
+            pointer-events-auto h-full w-[300px] max-w-[85vw]
+            bg-black/80 backdrop-blur-md border border-white/10 rounded-l-xl shadow-xl
             transition-transform duration-300
             ${rightOpen ? 'translate-x-0' : 'translate-x-full'}
           `}
@@ -354,14 +357,16 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
           <button
             onClick={() => setRightOpen(true)}
             className="
-              pointer-events-auto mt-4 mr-3
-              px-3 py-2
-              bg-black/60 backdrop-blur-md
-              border border-white/10 rounded
-              text-xs text-white/70 hover:text-white
+              pointer-events-auto mt-4 mr-2
+              px-2 py-4
+              bg-black/70 backdrop-blur-md
+              border border-white/15 rounded-l-lg
+              text-xs text-white/80 hover:text-white hover:bg-black/80
+              transition-all
             "
+            style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
           >
-            Show Controls
+            Controls
           </button>
         )}
       </div>
