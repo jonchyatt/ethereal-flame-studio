@@ -14,27 +14,44 @@ import { redisConnection } from './connection';
 import { RenderJobData, AudioFile } from './types';
 
 /**
- * Main render queue for processing video renders.
+ * Lazy singleton for the render queue.
+ * Created on first access to avoid Redis connection at module import time.
+ * This is critical for Vercel where Redis is not available.
  */
-export const renderQueue = new Queue<RenderJobData>('render-queue', {
-  connection: redisConnection,
-  defaultJobOptions: {
-    removeOnComplete: { count: 100 }, // Keep last 100 completed
-    removeOnFail: { count: 500 },     // Keep failed for debugging
-    attempts: 3,
-    backoff: {
-      type: 'exponential',
-      delay: 10000, // 10s initial, then 20s, 40s
-    },
-  },
-});
+let _renderQueue: Queue<RenderJobData> | null = null;
+
+export function getRenderQueue(): Queue<RenderJobData> {
+  if (!_renderQueue) {
+    _renderQueue = new Queue<RenderJobData>('render-queue', {
+      connection: redisConnection,
+      defaultJobOptions: {
+        removeOnComplete: { count: 100 }, // Keep last 100 completed
+        removeOnFail: { count: 500 },     // Keep failed for debugging
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 10000, // 10s initial, then 20s, 40s
+        },
+      },
+    });
+  }
+  return _renderQueue;
+}
 
 /**
- * Queue events listener for monitoring job progress.
+ * Lazy singleton for queue events listener.
  */
-export const queueEvents = new QueueEvents('render-queue', {
-  connection: redisConnection,
-});
+let _queueEvents: QueueEvents | null = null;
+
+export function getQueueEvents(): QueueEvents {
+  if (!_queueEvents) {
+    _queueEvents = new QueueEvents('render-queue', {
+      connection: redisConnection,
+    });
+  }
+  return _queueEvents;
+}
+
 
 /**
  * Add a batch of render jobs for multiple audio files and formats.
@@ -55,7 +72,7 @@ export async function addBatchJob(
   // Create individual render jobs for each audio/format combination
   for (const audioFile of audioFiles) {
     for (const format of outputFormats) {
-      const job = await renderQueue.add(
+      const job = await getRenderQueue().add(
         'render',
         {
           batchId,
@@ -83,7 +100,7 @@ export async function getJobStatus(jobId: string): Promise<{
   progress: number;
   failedReason?: string;
 } | null> {
-  const job = await renderQueue.getJob(jobId);
+  const job = await getRenderQueue().getJob(jobId);
   if (!job) return null;
 
   return {
@@ -103,7 +120,7 @@ export async function getBatchStatus(batchId: string): Promise<{
   pending: number;
   processing: number;
 }> {
-  const jobs = await renderQueue.getJobs(['waiting', 'active', 'completed', 'failed', 'delayed']);
+  const jobs = await getRenderQueue().getJobs(['waiting', 'active', 'completed', 'failed', 'delayed']);
   const batchJobs = jobs.filter(j => j.data.batchId === batchId);
 
   const states = await Promise.all(batchJobs.map(j => j.getState()));
@@ -139,7 +156,7 @@ export async function addRenderJob(
 ): Promise<{ jobId: string; batchId: string }> {
   const batchId = uuid();
 
-  const job = await renderQueue.add(
+  const job = await getRenderQueue().add(
     'render',
     {
       batchId,
@@ -166,6 +183,8 @@ export async function addRenderJob(
  * Close queue connections gracefully.
  */
 export async function closeQueue(): Promise<void> {
-  await renderQueue.close();
-  await queueEvents.close();
+  if (_renderQueue) await _renderQueue.close();
+  if (_queueEvents) await _queueEvents.close();
+  _renderQueue = null;
+  _queueEvents = null;
 }

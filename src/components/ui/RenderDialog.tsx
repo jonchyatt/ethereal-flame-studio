@@ -14,8 +14,8 @@
  * Phase 4/5 Integration
  */
 
-import { useState, useCallback, useEffect } from 'react';
-import { X, Upload, Cloud, MessageSquare, CheckCircle, AlertCircle, Loader2, Download, Terminal } from 'lucide-react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { X, Upload, MessageSquare, CheckCircle, AlertCircle, Loader2, Download, Terminal } from 'lucide-react';
 import { useVisualStore } from '@/lib/stores/visualStore';
 import { createConfigFromState, type LocalOutputFormat } from '@/lib/render/renderConfig';
 
@@ -87,7 +87,7 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
   const [selectedFormat, setSelectedFormat] = useState<string>('flat-1080p-landscape');
   const [selectedFps, setSelectedFps] = useState<30 | 60>(30);
   const [enableTranscription, setEnableTranscription] = useState(true);
-  const [enableGoogleDrive, setEnableGoogleDrive] = useState(true);
+  const [enableGoogleDrive] = useState(false);
   const [renderState, setRenderState] = useState<RenderState>('idle');
   const [jobStatus, setJobStatus] = useState<JobStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -95,11 +95,16 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
   // Get selected category
   const selectedCategory = OUTPUT_FORMATS.find(f => f.value === selectedFormat)?.category || 'flat';
 
+  // Track consecutive poll failures to detect missing render server
+  const pollFailures = useRef(0);
+
   // Poll job status when rendering
   useEffect(() => {
     if (!jobStatus?.id || renderState === 'complete' || renderState === 'error') {
       return;
     }
+
+    pollFailures.current = 0;
 
     const pollInterval = setInterval(async () => {
       try {
@@ -107,6 +112,7 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
         const data = await response.json();
 
         if (data.success) {
+          pollFailures.current = 0;
           const job = data.data.job;
           setJobStatus({
             id: job.id,
@@ -124,9 +130,27 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
           } else if (['analyzing', 'rendering', 'encoding', 'transcribing', 'uploading'].includes(job.status)) {
             setRenderState('rendering');
           }
+        } else {
+          pollFailures.current++;
+          if (pollFailures.current >= 5) {
+            clearInterval(pollInterval);
+            setJobStatus(prev => prev ? {
+              ...prev,
+              currentStage: 'No render worker connected. Use "Export Config" for local rendering.',
+              status: 'pending',
+            } : prev);
+          }
         }
       } catch {
-        // Ignore poll errors
+        pollFailures.current++;
+        if (pollFailures.current >= 5) {
+          clearInterval(pollInterval);
+          setJobStatus(prev => prev ? {
+            ...prev,
+            currentStage: 'No render worker connected. Use "Export Config" for local rendering.',
+            status: 'pending',
+          } : prev);
+        }
       }
     }, 2000);
 
@@ -483,17 +507,7 @@ pause
               <span className="text-sm text-white/80">Generate description (Whisper)</span>
             </label>
 
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={enableGoogleDrive}
-                onChange={(e) => setEnableGoogleDrive(e.target.checked)}
-                disabled={renderState !== 'idle'}
-                className="w-4 h-4 rounded border-white/20 bg-white/5 text-blue-500 focus:ring-blue-500/50"
-              />
-              <Cloud className="w-4 h-4 text-white/60" />
-              <span className="text-sm text-white/80">Upload to Google Drive</span>
-            </label>
+            {/* Google Drive upload hidden - requires rclone on local render machine */}
           </div>
 
           {/* Progress/Status */}
@@ -507,7 +521,7 @@ pause
                 )}
                 <span className="text-sm text-white/80">
                   {renderState === 'submitting' && 'Submitting job...'}
-                  {renderState === 'queued' && 'Waiting in queue...'}
+                  {renderState === 'queued' && (jobStatus?.currentStage !== 'Queued' ? jobStatus?.currentStage : 'Waiting in queue...')}
                   {renderState === 'rendering' && (jobStatus?.currentStage || 'Rendering...')}
                   {renderState === 'complete' && 'Render complete!'}
                 </span>

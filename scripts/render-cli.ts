@@ -4,6 +4,7 @@
  *
  * Renders videos locally without Redis/queue infrastructure.
  * Takes a config file exported from the web UI.
+ * Auto-starts the dev server if not already running.
  *
  * Usage:
  *   npx tsx scripts/render-cli.ts --config render-job.json
@@ -14,7 +15,10 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { RenderConfigSchema, validateConfig, getResolution, type RenderConfig } from '../src/lib/render/renderConfig';
+import { spawn, ChildProcess } from 'child_process';
+import http from 'http';
+import * as readline from 'readline';
+import { validateConfig, getResolution } from '../src/lib/render/renderConfig';
 import { renderVideo, RenderVideoProgress } from '../src/lib/render/renderVideo';
 import { OutputFormat } from '../src/lib/render/FFmpegEncoder';
 
@@ -31,16 +35,28 @@ const colors = {
 };
 
 // Progress bar characters
-const BAR_FILLED = '█';
-const BAR_EMPTY = '░';
+const BAR_FILLED = '\u2588';
+const BAR_EMPTY = '\u2591';
 const BAR_WIDTH = 30;
+
+// Track child processes for cleanup
+let devServerProcess: ChildProcess | null = null;
+let devServerStartedByUs = false;
 
 /**
  * Parse command line arguments
  */
-function parseArgs(): { configPath?: string; audioPath?: string; outputPath?: string; help: boolean } {
+function parseArgs(): {
+  configPath?: string;
+  audioPath?: string;
+  outputPath?: string;
+  appUrl?: string;
+  noServer?: boolean;
+  preview?: boolean;
+  help: boolean;
+} {
   const args = process.argv.slice(2);
-  const result = { configPath: undefined as string | undefined, audioPath: undefined as string | undefined, outputPath: undefined as string | undefined, help: false };
+  const result: ReturnType<typeof parseArgs> = { help: false };
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -50,6 +66,12 @@ function parseArgs(): { configPath?: string; audioPath?: string; outputPath?: st
       result.audioPath = args[++i];
     } else if (arg === '--output' || arg === '-o') {
       result.outputPath = args[++i];
+    } else if (arg === '--url' || arg === '-u') {
+      result.appUrl = args[++i];
+    } else if (arg === '--no-server') {
+      result.noServer = true;
+    } else if (arg === '--preview' || arg === '-p') {
+      result.preview = true;
     } else if (arg === '--help' || arg === '-h') {
       result.help = true;
     }
@@ -73,6 +95,9 @@ ${colors.cyan}Options:${colors.reset}
   -c, --config <path>   Path to render config JSON file (required)
   -a, --audio <path>    Override audio path from config
   -o, --output <path>   Override output path from config
+  -u, --url <url>       App URL (default: http://localhost:3000)
+  -p, --preview         Open visible browser to verify settings before rendering
+      --no-server       Don't auto-start dev server
   -h, --help            Show this help message
 
 ${colors.cyan}Config File:${colors.reset}
@@ -89,16 +114,26 @@ ${colors.cyan}Config File:${colors.reset}
     "visual": {
       "mode": "flame",
       "skyboxPreset": "DarkWorld1",
-      ...
+      "skyboxRotationSpeed": 0,
+      "waterEnabled": false,
+      "waterColor": "#0a1828",
+      "waterReflectivity": 0.6,
+      "layers": [...]
     }
   }
 
 ${colors.cyan}Examples:${colors.reset}
-  # Basic render
+  # Basic render (auto-starts dev server if needed)
   npx tsx scripts/render-cli.ts -c render-job.json
 
   # Override paths
   npx tsx scripts/render-cli.ts -c render-job.json -a ./song.mp3 -o ./out.mp4
+
+  # Preview settings in visible browser before rendering
+  npx tsx scripts/render-cli.ts -c render-job.json --preview
+
+  # Use a specific app URL (e.g., Vercel preview)
+  npx tsx scripts/render-cli.ts -c render-job.json -u https://my-preview.vercel.app
 `);
 }
 
@@ -107,9 +142,9 @@ ${colors.cyan}Examples:${colors.reset}
  */
 function printHeader(): void {
   console.log(`
-${colors.bright}╔══════════════════════════════════════════════════════╗
-║  ${colors.cyan}Ethereal Flame Renderer${colors.reset}${colors.bright} v1.0                        ║
-╚══════════════════════════════════════════════════════╝${colors.reset}
+${colors.bright}\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557
+\u2551  ${colors.cyan}Ethereal Flame Renderer${colors.reset}${colors.bright} v1.0                        \u2551
+\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d${colors.reset}
 `);
 }
 
@@ -132,25 +167,126 @@ function progressBar(percent: number): string {
 }
 
 /**
+ * Check if a URL is responding
+ */
+function checkServer(url: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const parsedUrl = new URL(url);
+    const req = http.get(
+      {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port || 80,
+        path: '/',
+        timeout: 3000,
+      },
+      (res) => {
+        res.resume(); // Drain the response
+        resolve(res.statusCode !== undefined && res.statusCode < 500);
+      }
+    );
+    req.on('error', () => resolve(false));
+    req.on('timeout', () => {
+      req.destroy();
+      resolve(false);
+    });
+  });
+}
+
+/**
+ * Start the Next.js dev server and wait until it's ready
+ */
+async function startDevServer(appUrl: string): Promise<void> {
+  console.log(`${colors.yellow}[Server]${colors.reset} Dev server not running. Starting...`);
+
+  const projectRoot = path.resolve(__dirname, '..');
+
+  devServerProcess = spawn('npm', ['run', 'dev'], {
+    cwd: projectRoot,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    shell: true,
+    detached: false,
+  });
+
+  devServerStartedByUs = true;
+
+  // Forward server output (dimmed)
+  devServerProcess.stdout?.on('data', (data: Buffer) => {
+    const line = data.toString().trim();
+    if (line) {
+      process.stderr.write(`${colors.dim}  [dev] ${line}${colors.reset}\n`);
+    }
+  });
+
+  devServerProcess.stderr?.on('data', (data: Buffer) => {
+    const line = data.toString().trim();
+    if (line && !line.includes('ExperimentalWarning')) {
+      process.stderr.write(`${colors.dim}  [dev] ${line}${colors.reset}\n`);
+    }
+  });
+
+  devServerProcess.on('error', (err) => {
+    console.error(`${colors.red}Failed to start dev server:${colors.reset}`, err.message);
+  });
+
+  // Poll until server responds
+  const maxWait = 60000; // 60 seconds
+  const pollInterval = 1000;
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < maxWait) {
+    await new Promise((r) => setTimeout(r, pollInterval));
+    const ready = await checkServer(appUrl);
+    if (ready) {
+      console.log(`${colors.green}[Server]${colors.reset} Dev server ready at ${appUrl}`);
+      return;
+    }
+  }
+
+  throw new Error(`Dev server failed to start within ${maxWait / 1000}s`);
+}
+
+/**
+ * Stop the dev server if we started it
+ */
+function stopDevServer(): void {
+  if (devServerProcess && devServerStartedByUs) {
+    console.log(`\n${colors.dim}[Server] Stopping dev server...${colors.reset}`);
+    // On Windows, need to kill the process tree
+    if (process.platform === 'win32') {
+      spawn('taskkill', ['/pid', String(devServerProcess.pid), '/f', '/t'], {
+        stdio: 'ignore',
+      });
+    } else {
+      devServerProcess.kill('SIGTERM');
+    }
+    devServerProcess = null;
+  }
+}
+
+/**
  * Print render progress
  */
 function printProgress(progress: RenderVideoProgress, startTime: number): void {
   const elapsed = (Date.now() - startTime) / 1000;
-  const eta = progress.overallProgress > 0
-    ? (elapsed / progress.overallProgress) * (100 - progress.overallProgress)
-    : 0;
+  const eta =
+    progress.overallProgress > 0
+      ? (elapsed / progress.overallProgress) * (100 - progress.overallProgress)
+      : 0;
 
   // Clear previous line and print new progress
   process.stdout.write('\r\x1b[K');
 
-  const stageIcon = progress.stage === 'complete' ? '✓' : '►';
+  const stageIcon = progress.stage === 'complete' ? '\u2713' : '\u25ba';
   const stageColor = progress.stage === 'complete' ? colors.green : colors.yellow;
 
+  // Truncate message to fit terminal
+  const msg = progress.message.length > 30 ? progress.message.substring(0, 30) + '...' : progress.message;
+
   process.stdout.write(
-    `${stageColor}${stageIcon}${colors.reset} ${progress.message} ` +
-    `${colors.cyan}${progressBar(progress.overallProgress)}${colors.reset} ` +
-    `${Math.round(progress.overallProgress)}% ` +
-    `${colors.dim}(ETA: ${formatDuration(eta)})${colors.reset}`
+    `${stageColor}${stageIcon}${colors.reset} ${msg} ` +
+      `${colors.cyan}${progressBar(progress.overallProgress)}${colors.reset} ` +
+      `${Math.round(progress.overallProgress)}% ` +
+      `${colors.dim}(ETA: ${formatDuration(eta)})${colors.reset}`
   );
 }
 
@@ -173,7 +309,9 @@ async function main(): Promise<void> {
 
   printHeader();
 
-  // Load config file
+  // ========================================================================
+  // LOAD AND VALIDATE CONFIG
+  // ========================================================================
   console.log(`${colors.dim}Loading config: ${args.configPath}${colors.reset}`);
 
   let configJson: unknown;
@@ -181,7 +319,8 @@ async function main(): Promise<void> {
     const configText = await fs.readFile(args.configPath, 'utf-8');
     configJson = JSON.parse(configText);
   } catch (error) {
-    console.error(`${colors.red}Error loading config file:${colors.reset}`, error);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error(`${colors.red}Error loading config file:${colors.reset} ${msg}`);
     process.exit(1);
   }
 
@@ -189,13 +328,15 @@ async function main(): Promise<void> {
   const validation = validateConfig(configJson);
   if (!validation.valid) {
     console.error(`${colors.red}Invalid config file:${colors.reset}`);
-    validation.errors.forEach(err => console.error(`  - ${err}`));
+    validation.errors.forEach((err) => console.error(`  - ${err}`));
     process.exit(1);
   }
 
   const config = validation.config;
 
-  // Apply path overrides
+  // ========================================================================
+  // RESOLVE PATHS
+  // ========================================================================
   const audioPath = args.audioPath || config.audio.path;
   const outputPath = args.outputPath || config.output.path;
 
@@ -216,7 +357,9 @@ async function main(): Promise<void> {
   const outputDir = path.dirname(resolvedOutputPath);
   await fs.mkdir(outputDir, { recursive: true });
 
-  // Print render info
+  // ========================================================================
+  // PRINT RENDER INFO
+  // ========================================================================
   const resolution = getResolution(config.output.format);
   console.log(`
 ${colors.bright}Audio:${colors.reset}   ${path.basename(resolvedAudioPath)}
@@ -224,9 +367,41 @@ ${colors.bright}Output:${colors.reset}  ${resolvedOutputPath}
 ${colors.bright}Format:${colors.reset}  ${config.output.format} (${resolution.width}x${resolution.height})
 ${colors.bright}FPS:${colors.reset}     ${config.output.fps}
 ${colors.bright}Mode:${colors.reset}    Ethereal ${config.visual.mode === 'flame' ? 'Flame' : 'Mist'}
+${colors.bright}Skybox:${colors.reset}  ${config.visual.skyboxPreset}
+${colors.bright}Layers:${colors.reset}  ${config.visual.layers.filter((l) => l.enabled).length} active
 `);
 
-  // Start render
+  // ========================================================================
+  // ENSURE DEV SERVER IS RUNNING
+  // ========================================================================
+  const appUrl = args.appUrl || 'http://localhost:3000';
+
+  if (!args.noServer) {
+    const serverRunning = await checkServer(appUrl);
+    if (!serverRunning) {
+      if (args.appUrl) {
+        // User specified a custom URL that isn't responding
+        console.error(`${colors.red}Server not responding at ${appUrl}${colors.reset}`);
+        process.exit(1);
+      }
+      await startDevServer(appUrl);
+    } else {
+      console.log(`${colors.green}[Server]${colors.reset} Using existing server at ${appUrl}`);
+    }
+  }
+
+  // ========================================================================
+  // PREVIEW MODE - wait for user confirmation
+  // ========================================================================
+  if (args.preview) {
+    console.log(`${colors.yellow}[Preview]${colors.reset} Browser will open with your settings applied.`);
+    console.log(`${colors.yellow}[Preview]${colors.reset} Verify the visuals, then press Enter to start rendering.`);
+    console.log(`${colors.dim}          (The browser stays visible during rendering so you can watch.)${colors.reset}\n`);
+  }
+
+  // ========================================================================
+  // START RENDER
+  // ========================================================================
   console.log(`${colors.cyan}Starting render...${colors.reset}\n`);
   const startTime = Date.now();
 
@@ -235,9 +410,34 @@ ${colors.bright}Mode:${colors.reset}    Ethereal ${config.visual.mode === 'flame
       audioPath: resolvedAudioPath,
       outputPath: resolvedOutputPath,
       template: config.visual.mode,
+      headless: !args.preview,
+      visualConfig: {
+        mode: config.visual.mode,
+        skyboxPreset: config.visual.skyboxPreset,
+        skyboxRotationSpeed: config.visual.skyboxRotationSpeed,
+        waterEnabled: config.visual.waterEnabled,
+        waterColor: config.visual.waterColor,
+        waterReflectivity: config.visual.waterReflectivity,
+        layers: config.visual.layers,
+      },
       format: config.output.format as OutputFormat,
       fps: config.output.fps,
       quality: config.options?.quality || 'balanced',
+      appUrl,
+      onBeforeRender: args.preview
+        ? async () => {
+            console.log(`\n${colors.green}[Preview]${colors.reset} Browser is open with your settings.`);
+            console.log(`${colors.green}[Preview]${colors.reset} Check the visuals, then press ${colors.bright}Enter${colors.reset} to start rendering.\n`);
+            const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+            await new Promise<void>((resolve) => {
+              rl.question('', () => {
+                rl.close();
+                resolve();
+              });
+            });
+            console.log(`${colors.cyan}Rendering...${colors.reset}\n`);
+          }
+        : undefined,
       onProgress: (progress) => {
         printProgress(progress, startTime);
       },
@@ -248,11 +448,16 @@ ${colors.bright}Mode:${colors.reset}    Ethereal ${config.visual.mode === 'flame
 
     if (result.success) {
       const totalTime = (Date.now() - startTime) / 1000;
-      console.log(`${colors.green}✓ Render complete!${colors.reset}`);
+      console.log(`${colors.green}\u2713 Render complete!${colors.reset}`);
       console.log(`${colors.dim}  Output: ${resolvedOutputPath}`);
-      console.log(`  Total time: ${formatDuration(totalTime)}${colors.reset}`);
+      console.log(`  Total time: ${formatDuration(totalTime)}`);
+      if (result.stages.capture.frames > 0) {
+        console.log(`  Frames: ${result.stages.capture.frames}`);
+        console.log(`  Avg capture speed: ${(result.stages.capture.frames / result.stages.capture.duration).toFixed(1)} fps`);
+      }
+      console.log(`${colors.reset}`);
     } else {
-      console.error(`${colors.red}✗ Render failed${colors.reset}`);
+      console.error(`${colors.red}\u2717 Render failed${colors.reset}`);
       if (result.error) {
         console.error(`  ${result.error}`);
       }
@@ -260,8 +465,11 @@ ${colors.bright}Mode:${colors.reset}    Ethereal ${config.visual.mode === 'flame
     }
   } catch (error) {
     console.log('\n');
-    console.error(`${colors.red}✗ Render error:${colors.reset}`, error);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error(`${colors.red}\u2717 Render error:${colors.reset} ${msg}`);
     process.exit(1);
+  } finally {
+    stopDevServer();
   }
 }
 
@@ -269,11 +477,20 @@ ${colors.bright}Mode:${colors.reset}    Ethereal ${config.visual.mode === 'flame
 process.on('SIGINT', () => {
   console.log(`\n\n${colors.yellow}Render interrupted.${colors.reset}`);
   console.log(`${colors.dim}Progress saved - resume with same config file.${colors.reset}`);
+  stopDevServer();
   process.exit(130);
+});
+
+// Handle uncaught errors
+process.on('uncaughtException', (error) => {
+  console.error(`\n${colors.red}Uncaught error:${colors.reset}`, error.message);
+  stopDevServer();
+  process.exit(1);
 });
 
 // Run
 main().catch((error) => {
   console.error('Unexpected error:', error);
+  stopDevServer();
   process.exit(1);
 });

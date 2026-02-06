@@ -2,6 +2,29 @@
 
 import { VisualTemplate } from '@/lib/templates/types';
 
+// Unique gradient per built-in preset, matching their visual theme
+function getPresetGradient(template: VisualTemplate): string {
+  if (!template.isBuiltIn) {
+    return 'bg-gradient-to-br from-slate-800/60 to-slate-900/60';
+  }
+  switch (template.id) {
+    case 'builtin-ethereal-flame':
+      return 'bg-gradient-to-br from-orange-900/70 via-red-900/60 to-yellow-900/50';
+    case 'builtin-ethereal-mist':
+      return 'bg-gradient-to-br from-purple-900/60 via-pink-900/50 to-blue-900/40';
+    case 'builtin-cosmic-void':
+      return 'bg-gradient-to-br from-slate-950/80 via-indigo-950/70 to-blue-950/60';
+    case 'builtin-solar-flare':
+      return 'bg-gradient-to-br from-yellow-800/70 via-orange-700/60 to-red-800/70';
+    case 'builtin-aurora':
+      return 'bg-gradient-to-br from-emerald-900/60 via-teal-800/50 to-blue-900/60';
+    case 'builtin-neon-pulse':
+      return 'bg-gradient-to-br from-fuchsia-900/70 via-cyan-800/50 to-violet-900/60';
+    default:
+      return 'bg-gradient-to-br from-indigo-900/60 to-purple-900/60';
+  }
+}
+
 interface TemplateCardProps {
   template: VisualTemplate;
   isActive: boolean;
@@ -27,7 +50,7 @@ export function TemplateCard({
       `}
       onClick={onSelect}
     >
-      {/* Thumbnail or Gradient Fallback */}
+      {/* Thumbnail or Themed Gradient Fallback */}
       {template.thumbnail ? (
         <img
           src={template.thumbnail}
@@ -35,13 +58,7 @@ export function TemplateCard({
           className="w-full h-full object-cover"
         />
       ) : (
-        <div className={`
-          w-full h-full
-          ${template.isBuiltIn
-            ? 'bg-gradient-to-br from-indigo-900/60 to-purple-900/60'
-            : 'bg-gradient-to-br from-slate-800/60 to-slate-900/60'
-          }
-        `} />
+        <div className={`w-full h-full ${getPresetGradient(template)}`} />
       )}
 
       {/* Built-in Badge */}

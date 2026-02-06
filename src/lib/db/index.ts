@@ -1,37 +1,60 @@
 /**
  * Database connection and query functions for render metadata.
  * Uses better-sqlite3 for synchronous operations - faster and simpler than async.
+ *
+ * NOTE: This module is for LOCAL render worker only, not Vercel deployment.
+ * The import is dynamic to prevent build failures on serverless platforms.
  */
 
-import Database from 'better-sqlite3';
 import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import { SCHEMA, Render, NewRender, RenderUpdate } from './schema';
 
-// Ensure data directory exists
-const DATA_DIR = process.env.DATA_DIR || join(process.cwd(), 'data');
-if (!existsSync(DATA_DIR)) {
-  mkdirSync(DATA_DIR, { recursive: true });
+// Type for better-sqlite3 Database (dynamic import)
+type BetterSqlite3Database = {
+  pragma: (sql: string) => void;
+  exec: (sql: string) => void;
+  prepare: (sql: string) => {
+    run: (...args: unknown[]) => void;
+    get: (...args: unknown[]) => unknown;
+    all: (...args: unknown[]) => unknown[];
+  };
+  close: () => void;
+};
+
+// Ensure data directory exists (only when actually used)
+function ensureDataDir(): string {
+  const DATA_DIR = process.env.DATA_DIR || join(process.cwd(), 'data');
+  if (!existsSync(DATA_DIR)) {
+    mkdirSync(DATA_DIR, { recursive: true });
+  }
+  return DATA_DIR;
 }
 
-const DB_PATH = join(DATA_DIR, 'renders.db');
-
 // Initialize database with lazy loading
-let _db: Database.Database | null = null;
+let _db: BetterSqlite3Database | null = null;
 
-function getDb(): Database.Database {
-  if (!_db) {
-    _db = new Database(DB_PATH);
-
-    // Enable WAL mode for concurrent read safety
-    _db.pragma('journal_mode = WAL');
-
-    // Run schema migration
-    _db.exec(SCHEMA);
-
-    console.log('[DB] Initialized at', DB_PATH);
+function getDb(): BetterSqlite3Database {
+  if (_db) {
+    return _db;
   }
-  return _db;
+
+  // Dynamic import to avoid build-time failure on serverless
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const Database = require('better-sqlite3');
+  const DATA_DIR = ensureDataDir();
+  const DB_PATH = join(DATA_DIR, 'renders.db');
+  const db: BetterSqlite3Database = new Database(DB_PATH);
+
+  // Enable WAL mode for concurrent read safety
+  db.pragma('journal_mode = WAL');
+
+  // Run schema migration
+  db.exec(SCHEMA);
+
+  console.log('[DB] Initialized at', DB_PATH);
+  _db = db;
+  return db;
 }
 
 /**

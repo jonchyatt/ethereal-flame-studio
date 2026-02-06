@@ -6,18 +6,19 @@
  */
 
 import { NextResponse } from 'next/server';
-import { renderQueue } from '@/lib/queue/bullmqQueue';
+import { getRenderQueue } from '@/lib/queue/bullmqQueue';
 
 /**
  * GET: Get overall queue status.
  */
 export async function GET() {
   try {
+    const queue = getRenderQueue();
     const [waiting, active, completed, failed] = await Promise.all([
-      renderQueue.getWaitingCount(),
-      renderQueue.getActiveCount(),
-      renderQueue.getCompletedCount(),
-      renderQueue.getFailedCount(),
+      queue.getWaitingCount(),
+      queue.getActiveCount(),
+      queue.getCompletedCount(),
+      queue.getFailedCount(),
     ]);
 
     return NextResponse.json({

@@ -9,6 +9,8 @@
  */
 
 import { FrameAudioData } from '@/types';
+import { useVisualStore } from '@/lib/stores/visualStore';
+import { STAR_NEST_PRESETS } from '@/components/canvas/StarNestSkybox';
 
 // Types for the render mode API
 export interface RenderConfig {
@@ -115,8 +117,22 @@ export function setCapturedImage(base64: string) {
 // Window API - Exposed to Puppeteer
 // ============================================================================
 
+/**
+ * Visual config shape passed from CLI/Puppeteer to apply user's exported settings
+ */
+interface VisualConfigPayload {
+  mode?: 'flame' | 'mist';
+  skyboxPreset?: string;
+  skyboxRotationSpeed?: number;
+  waterEnabled?: boolean;
+  waterColor?: string;
+  waterReflectivity?: number;
+  layers?: any[];
+}
+
 interface WindowRenderModeAPI {
   init: (config: RenderConfig) => Promise<boolean>;
+  setVisualConfig: (config: VisualConfigPayload) => void;
   setTotalFrames: (frames: number) => void;
   setFrame: (frameNumber: number, audioData: FrameAudioData) => Promise<void>;
   captureFrame: () => Promise<string>;
@@ -157,6 +173,52 @@ const renderModeAPI: WindowRenderModeAPI = {
 
     console.log('[RenderMode] Initialized and ready');
     return true;
+  },
+
+  /**
+   * Apply visual configuration from exported render config.
+   * Maps CLI config format to visualStore state.
+   */
+  setVisualConfig(config: VisualConfigPayload) {
+    console.log('[RenderMode] Applying visual config:', config);
+    const store = useVisualStore;
+
+    // Build settings object for applyTemplateSettings
+    const settings: Record<string, unknown> = {};
+
+    if (config.skyboxRotationSpeed !== undefined) {
+      settings.skyboxRotationSpeed = config.skyboxRotationSpeed;
+    }
+    if (config.waterEnabled !== undefined) {
+      settings.waterEnabled = config.waterEnabled;
+    }
+    if (config.waterColor !== undefined) {
+      settings.waterColor = config.waterColor;
+    }
+    if (config.waterReflectivity !== undefined) {
+      settings.waterReflectivity = config.waterReflectivity;
+    }
+    if (config.layers) {
+      settings.layers = config.layers;
+    }
+
+    // Resolve skybox preset by key
+    if (config.skyboxPreset) {
+      const preset = STAR_NEST_PRESETS.find((p) => p.key === config.skyboxPreset);
+      if (preset) {
+        settings.skyboxPreset = preset;
+      }
+    }
+
+    // Set the mode (without replacing layers, since we set them explicitly)
+    if (config.mode) {
+      const mode = config.mode === 'flame' ? 'etherealFlame' : 'etherealMist';
+      store.setState({ currentMode: mode } as any);
+    }
+
+    // Apply all visual settings
+    store.getState().applyTemplateSettings(settings as any);
+    console.log('[RenderMode] Visual config applied');
   },
 
   /**

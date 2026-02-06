@@ -35,6 +35,16 @@ export interface RenderVideoConfig {
   outputPath: string;
   /** Template to use (e.g., 'flame', 'mist') */
   template?: string;
+  /** Full visual configuration from exported config file */
+  visualConfig?: {
+    mode?: 'flame' | 'mist';
+    skyboxPreset?: string;
+    skyboxRotationSpeed?: number;
+    waterEnabled?: boolean;
+    waterColor?: string;
+    waterReflectivity?: number;
+    layers?: any[];
+  };
   /** Output format */
   format: OutputFormat;
   /** Frames per second (default: 30) */
@@ -43,6 +53,11 @@ export interface RenderVideoConfig {
   quality?: QualityPreset;
   /** App URL (default: http://localhost:3000) */
   appUrl?: string;
+  /** Run browser visibly for preview (default: true) */
+  headless?: boolean;
+  /** Called after visual config is applied but before rendering starts.
+   *  Use for preview confirmation prompts. */
+  onBeforeRender?: () => Promise<void>;
   /** Keep temporary frames after encoding (default: false) */
   keepFrames?: boolean;
   /** Temporary directory for frames (default: system temp) */
@@ -136,10 +151,13 @@ export async function renderVideo(config: RenderVideoConfig): Promise<RenderVide
     audioPath,
     outputPath,
     template,
+    visualConfig,
     format,
     fps = 30,
     quality = 'balanced',
     appUrl = 'http://localhost:3000',
+    headless = true,
+    onBeforeRender,
     keepFrames = false,
     tempDir,
     onProgress,
@@ -277,7 +295,8 @@ export async function renderVideo(config: RenderVideoConfig): Promise<RenderVide
       height: resolution.height,
       fps,
       template,
-      headless: true,
+      visualConfig,
+      headless,
     });
 
     // Launch and initialize
@@ -290,6 +309,11 @@ export async function renderVideo(config: RenderVideoConfig): Promise<RenderVide
       console.warn(
         `[renderVideo] Warning: No GPU detected (${gpu.renderer}), using software rendering`
       );
+    }
+
+    // Allow caller to inspect before rendering (e.g., preview confirmation)
+    if (onBeforeRender) {
+      await onBeforeRender();
     }
 
     // Check for existing checkpoint
