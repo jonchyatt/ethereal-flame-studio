@@ -1,5 +1,17 @@
 # Ethereal Flame Studio
 
+## Claude's Role
+
+**Claude runs everything. The user does NOT manually test.**
+
+- Claude starts servers, runs tests, checks logs, and debugs
+- Claude iteratively tests and fixes until the feature works
+- Claude closes/kills servers when done
+- Never ask the user to "check the terminal" or "test this manually"
+- When debugging, Claude reads server logs directly from background processes
+
+---
+
 ## Testing
 
 **Default testing tool: Vercel MCP**

@@ -108,6 +108,36 @@ Plans:
 
 **Status:** COMPLETE
 
+#### Visual Engine Upgrades (January 31 - February 1, 2026)
+
+**Status:** COMPLETE (documented in `docs/CHANGELOG_VISUALS.md`)
+
+These upgrades extended the visual engine beyond the original Phase 1-2 scope:
+
+**Video Skybox System:**
+- Video file import as 360 background with luma/chroma key masking
+- 4 patch masks (A-D) with click-to-pick center positioning
+- Rect mask with preview modes (split/invert)
+- Pole fade, hole fix, and seam blend shaders
+- Video alignment (yaw/pitch offsets)
+- Pole Logo Overlay for brand coverage
+
+**Camera & Placement:**
+- Orb placement system (viewer-space vs world-space anchoring)
+- Camera Rig with look-at, orbit, and render-only orbit modes
+- Drag-to-look camera for world-anchored mode
+
+**VR & UX:**
+- VR Comfort Mode (freeze skybox rotation)
+- VR debug overlay toggle
+- Docked left/right control panels with hide buttons
+- Template import/export controls
+- Batch render quick link in render dialog
+
+**Multi-pick Patch System:**
+- Multi-pick and cursor tracking for patch selection
+- Crosshair overlay for patch positioning
+
 ---
 
 ### Phase 3: Rendering Pipeline
@@ -130,6 +160,7 @@ Plans:
 - [x] 03-09-PLAN.md — YouTube-optimized encoding presets (codec, bitrate, HDR)
 - [ ] 03-10-PLAN.md — Platform-specific output formats (Shorts, Reels, TikTok) — UI integration pending
 - [ ] 03-11-PLAN.md — Render settings UI (format selector, quality options) — needs verification
+- [x] 03-12-PLAN.md — **Local Render CLI** (portable, no Redis, config file export) — MOSTLY COMPLETE
 
 **Wave Structure:**
 - Wave 1: 03-01 (pre-analysis)
@@ -164,7 +195,7 @@ Plans:
 6. YouTube accepts rendered video without re-encoding warnings
 7. User can select "YouTube Shorts" and get properly formatted vertical video
 
-**Status:** NEARLY COMPLETE (9/11 plans done, UI integration remaining)
+**Status:** NEARLY COMPLETE (10/12 plans done, UI integration remaining)
 
 **Implementation Notes (verified 2026-01-30):**
 - `src/lib/render/` contains full pipeline: FrameCapture, FFmpegEncoder, PuppeteerRenderer
@@ -341,7 +372,7 @@ Plans:
 |-------|------|--------|--------------|-------|
 | 1 | Foundation - Web UI + Visual Engine | Complete | 17 | 8 |
 | 2 | Template System | Complete | 6 | 6 |
-| 3 | Rendering Pipeline | **Nearly Complete** | 13 | 9/11 done |
+| 3 | Rendering Pipeline | **Nearly Complete** | 13 | 10/12 done |
 | 4 | Automation + Multi-Machine | **Mostly Complete** | 14 | 9/14 done |
 | 5 | n8n + Claude Code Integration | **Half Complete** | 10 | 4/8 done |
 | 6 | YouTube + Multi-Platform | Planned | 10 | 6 |
@@ -359,7 +390,7 @@ Phase 1 (Foundation) ✅
 Phase 2 (Templates) ✅
     |
     v
-Phase 3 (Rendering) ✅ (9/11 plans - UI remaining)
+Phase 3 (Rendering) ✅ (10/12 plans - UI remaining)
     |
     v
 Phase 4 (Automation) ✅ (9/14 plans - multi-machine remaining)
@@ -407,4 +438,172 @@ Phase 6 (YouTube + Multi-Platform)
 
 ---
 
-*Last updated: 2026-01-30 (Phase 3 verified as nearly complete)*
+### Phase 7: Blender VFX Production Pipeline
+
+**Goal:** Full VFX production capability with physics simulations, VR compositing, depth-aware rendering, and EDM visual effects
+
+**Dependencies:** Phase 3 (rendering pipeline), existing BLENDER_FIRE_ORB.md and BLENDER_WATER.md research
+
+**Plans:** 12 plans in 5 waves
+
+Plans:
+- [ ] 07-01-PLAN.md — Blender + MCP installation and configuration
+- [ ] 07-02-PLAN.md — Audio analysis expansion (envelope, onset, BPM, spectral)
+- [ ] 07-03-PLAN.md — Mantaflow fire simulation template
+- [ ] 07-04-PLAN.md — Mantaflow water simulation template
+- [ ] 07-05-PLAN.md — Audio-to-keyframe parameter mapping system
+- [ ] 07-06-PLAN.md — VR video import and equirectangular setup
+- [ ] 07-07-PLAN.md — Depth map extraction from 360° footage
+- [ ] 07-08-PLAN.md — Shadow catcher and VR compositing
+- [ ] 07-09-PLAN.md — Video masking and chroma keying
+- [ ] 07-10-PLAN.md — EDM volumetric laser effects
+- [ ] 07-11-PLAN.md — EDM LED grid and strobe effects
+- [ ] 07-12-PLAN.md — Multi-layer compositor and render pipeline
+
+**Wave Structure:**
+- Wave 1: 07-01, 07-02 (infrastructure + audio analysis)
+- Wave 2: 07-03, 07-04, 07-05 (physics simulations + audio mapping)
+- Wave 3: 07-06, 07-07, 07-08, 07-09 (VR compositing suite)
+- Wave 4: 07-10, 07-11 (EDM effects)
+- Wave 5: 07-12 (integration + final pipeline)
+
+**Requirements:**
+
+*Infrastructure*
+- BLND-01: Blender MCP server connected to Claude Desktop
+- BLND-02: Headless Blender render pipeline
+- BLND-03: Audio analysis JSON export with extended features
+
+*Physics Simulations*
+- BLND-04: Mantaflow fire simulation with audio-driven parameters
+- BLND-05: Mantaflow water simulation with audio-driven parameters
+- BLND-06: Fire-over-water combined scene template
+
+*VR Compositing*
+- BLND-07: 360° video import as equirectangular background
+- BLND-08: Monocular depth map extraction from VR footage
+- BLND-09: Shadow catcher for realistic ground shadows
+- BLND-10: Depth-aware occlusion compositing
+- BLND-11: Video masking and chroma keying
+
+*EDM Effects*
+- BLND-12: Volumetric laser beams with audio-reactive rotation
+- BLND-13: LED grid with ripple propagation
+- BLND-14: Beat-synced strobe effects
+- BLND-15: Imported EDM footage integration
+
+*Output*
+- BLND-16: Stereo equirectangular VR output
+- BLND-17: Multi-layer compositor with all effects
+- BLND-18: Quality comparison: Three.js vs Blender
+
+**Success Criteria:**
+1. Claude can create/modify Blender scenes via MCP commands
+2. Fire/water simulations respond meaningfully to audio
+3. Real 360° footage composites with virtual fire/water/effects
+4. Depth maps enable realistic shadow casting
+5. EDM effects (lasers, grids, strobes) sync to beats
+6. Complete pipeline from audio upload to VR video output
+7. Quality visibly superior to current Three.js particle system
+
+**Status:** NOT STARTED
+
+**Research Documents:**
+- `.planning/phases/07-blender-vfx-pipeline/07-RESEARCH.md` - Master research
+- `.planning/phases/07-blender-vfx-pipeline/07-RESEARCH-AUDIO-STYLES.md` - Audio analysis expansion
+- `.planning/phases/07-blender-vfx-pipeline/07-RESEARCH-VR-COMPOSITING.md` - VR compositing techniques
+- `.planning/phases/07-blender-vfx-pipeline/07-RESEARCH-DEPTH-MAPS.md` - Depth extraction methods
+- `.planning/phases/07-blender-vfx-pipeline/07-RESEARCH-EDM-EFFECTS.md` - Light show visual styles
+- `.planning/phases/07-blender-vfx-pipeline/07-RESEARCH-BLENDER-360-STEREO.md` - Blender 360/stereo rendering
+
+**Existing Research (Reused):**
+- `.planning/research/BLENDER_FIRE_ORB.md` - Mantaflow fire, Principled Volume
+- `.planning/research/BLENDER_WATER.md` - Mantaflow fluid, Ocean modifier
+- `.planning/research/THREEJS_360_STEREO_GUIDE.md` - Reference for comparison
+
+---
+
+## Progress
+
+| Phase | Name | Status | Requirements | Plans |
+|-------|------|--------|--------------|-------|
+| 1 | Foundation - Web UI + Visual Engine | Complete | 17 | 8 |
+| 2 | Template System | Complete | 6 | 6 |
+| 3 | Rendering Pipeline | **Nearly Complete** | 13 | 10/12 done |
+| 4 | Automation + Multi-Machine | **Mostly Complete** | 14 | 9/14 done |
+| 5 | n8n + Claude Code Integration | **Half Complete** | 10 | 4/8 done |
+| 6 | YouTube + Multi-Platform | Planned | 10 | 6 |
+| 7 | Blender VFX Pipeline | **Not Started** | 18 | 12 |
+
+**Total:** 75 requirements across 7 phases
+
+---
+
+## Phase Dependencies
+
+```
+Phase 1 (Foundation) ✅
+    |
+    v
+Phase 2 (Templates) ✅
+    |
+    v
+Phase 3 (Rendering) ✅ (10/12 plans - UI remaining)
+    |
+    +--------------------+
+    |                    |
+    v                    v
+Phase 4 (Automation)    Phase 7 (Blender VFX) ← NEW
+    |
+    v
+Phase 5 (n8n + Remote)
+    |
+    v
+Phase 6 (YouTube + Multi-Platform)
+```
+
+---
+
+## Research Flags
+
+| Phase | Flag | Notes |
+|-------|------|-------|
+| Phase 3 | UI INTEGRATION | Platform format UI and render settings UI remaining |
+| Phase 4 | NEEDS RESEARCH | Multi-machine render farm architecture |
+| Phase 5 | NEEDS RESEARCH | n8n MCP + Skills integration for Claude Code |
+| Phase 6 | NEEDS RESEARCH | Thumbnail generation, SEO, multi-platform APIs |
+| Phase 7 | RESEARCH COMPLETE | All research documents created 2026-01-30 |
+
+---
+
+## Key Architecture Decisions
+
+### Multi-Machine Render Farm
+- Each machine runs render server + Cloudflare Tunnel
+- Machine registry stored in config file or database
+- Health check API on each machine
+- User selects machine from dropdown before rendering
+- n8n routes job to selected machine's tunnel URL
+
+### n8n + Claude Code Integration
+- n8n MCP server connects Claude Code to n8n instance
+- n8n Skills teach Claude Code how to build workflows
+- Claude Code can CREATE, EDIT, DEPLOY workflows from conversation
+- Eliminates manual n8n workflow building
+
+### YouTube Optimization
+- FFmpeg encoding presets match YouTube recommendations
+- Avoid re-encoding on upload (proper codec, bitrate, container)
+- Auto-generate thumbnails from key frames
+- SEO templates for titles, descriptions, tags
+
+### Blender VFX Pipeline (Phase 7) - NEW
+- Hybrid approach: Three.js for preview, Blender for cinema quality
+- Blender MCP for Claude-controlled scene setup
+- Audio-to-keyframe system for physics simulation parameters
+- Multi-layer compositor for VR effects
+- Depth map integration for realistic compositing
+
+---
+
+*Last updated: 2026-01-30 (Phase 7 added)*

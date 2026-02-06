@@ -1,13 +1,15 @@
 {
   "mcpServers": {
-    "vercel": {
-      "type": "stdio",
-      "command": "npx",
-      "args": [
-        "-y",
-        "@anthropic-ai/vercel-mcp@latest"
-      ],
-      "env": {}
+    "notion": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@notionhq/notion-mcp-server"],
+      "env": {
+        "NOTION_TOKEN": "ntn_Dj54656632339YveRG6Fk9IrhH9v13zp9sDFnd1br8Kefv"
+      }
+    },
+    "playwright": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@playwright/mcp@latest"]
     }
   }
 }
