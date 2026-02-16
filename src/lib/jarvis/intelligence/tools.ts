@@ -98,7 +98,7 @@ export const notionTools: ToolDefinition[] = [
   },
   {
     name: 'create_bill',
-    description: 'Create a new bill in the user\'s Notion bills tracker. Use this when the user wants to add a bill, payment, or financial obligation to track.',
+    description: 'Create a new bill or subscription in the user\'s Notion subscriptions tracker. Use this when the user wants to add a bill, subscription, payment, or recurring financial obligation.',
     input_schema: {
       type: 'object',
       properties: {
@@ -117,6 +117,11 @@ export const notionTools: ToolDefinition[] = [
         category: {
           type: 'string',
           description: 'Bill category (e.g., "Utilities", "Entertainment", "Insurance")'
+        },
+        frequency: {
+          type: 'string',
+          description: 'Payment frequency',
+          enum: ['Monthly', 'Yearly', 'Weekly', 'Quarterly']
         }
       },
       required: ['title']

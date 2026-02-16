@@ -263,9 +263,9 @@ async function executeNotionToolInner(
     // =========================================================================
 
     case 'create_bill': {
-      const databaseId = LIFE_OS_DATABASE_IDS.bills;
+      const databaseId = LIFE_OS_DATABASE_IDS.subscriptions;
       if (!databaseId) {
-        return 'Bills database is not configured. Please set NOTION_BILLS_DATABASE_ID.';
+        return 'Subscriptions database is not configured. Please set NOTION_SUBSCRIPTIONS_DATABASE_ID.';
       }
 
       const title = input.title as string;
@@ -274,6 +274,7 @@ async function executeNotionToolInner(
         amount: input.amount as number | undefined,
         due_date: input.due_date as string | undefined,
         category: input.category as string | undefined,
+        frequency: input.frequency as string | undefined,
       });
 
       await createPage(databaseId, properties);
