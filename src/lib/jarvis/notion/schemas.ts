@@ -873,9 +873,10 @@ export function buildTaskStatusUpdate(status: string): Record<string, unknown> {
  * Build Notion properties for marking bill as paid
  */
 export function buildBillPaidUpdate(): Record<string, unknown> {
+  // Subscriptions database uses Status property (not a Paid checkbox)
   return {
-    [BILL_PROPS.paid]: {
-      checkbox: true,
+    [SUBSCRIPTION_PROPS.status]: {
+      status: { name: 'Done' },
     },
   };
 }

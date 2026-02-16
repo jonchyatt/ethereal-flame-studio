@@ -378,13 +378,12 @@ async function executeNotionToolInner(
         // First try the cache
         let foundId = findBillByTitle(billId);
 
-        // If not in cache, auto-query bills to populate cache then retry
+        // If not in cache, auto-query subscriptions to populate cache then retry
         if (!foundId) {
-          console.log('[ToolExecutor] Bill not in cache, auto-querying to populate cache');
-          const dataSourceId = LIFE_OS_DATABASES.bills;
+          console.log('[ToolExecutor] Bill not in cache, auto-querying subscriptions to populate cache');
+          const dataSourceId = LIFE_OS_DATABASES.subscriptions;
           if (dataSourceId) {
-            const filterOptions = buildBillFilter({ timeframe: 'this_month', unpaidOnly: true });
-            const result = await queryDatabase(dataSourceId, filterOptions);
+            const result = await queryDatabase(dataSourceId, {});
             cacheQueryResults(result, 'bill');
             foundId = findBillByTitle(billId);
           }
