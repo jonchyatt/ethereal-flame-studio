@@ -479,7 +479,17 @@ export function getNotionUrl(databaseName: string): string {
  * Find a database entry by key or label.
  * Returns undefined if not found.
  */
+// Common aliases for database lookup (e.g., "bills" → "subscriptions")
+const DATABASE_ALIASES: Record<string, string> = {
+  bills: 'subscriptions',
+  subs: 'subscriptions',
+};
+
 export function findNotionDatabase(name: string): NotionDatabaseEntry | undefined {
+  // Check aliases first
+  const aliased = DATABASE_ALIASES[name.toLowerCase()];
+  if (aliased && NOTION_URLS[aliased]) return NOTION_URLS[aliased];
+
   // Exact key match
   if (NOTION_URLS[name]) return NOTION_URLS[name];
 
