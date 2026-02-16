@@ -163,7 +163,14 @@ export class ClaudeClient {
                       useNotionPanelStore.getState().setTeachContent({
                         lessonId: parsed.lessonId,
                         title: parsed.title,
-                        steps: parsed.steps,
+                        intro: parsed.intro || '',
+                        steps: (parsed.steps || []).map((s: { title: string; panelNote?: string }, i: number) => ({
+                          title: s.title,
+                          narration: parsed.narration?.[i] || '',
+                          panelNote: s.panelNote,
+                        })),
+                        outro: parsed.outro || '',
+                        currentStep: -1,
                       });
                     }
                   } catch { /* not JSON */ }

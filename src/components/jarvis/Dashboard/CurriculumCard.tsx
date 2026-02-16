@@ -7,6 +7,7 @@ import {
 } from '@/lib/jarvis/notion/notionUrls';
 import { useNotionPanelStore } from '@/lib/jarvis/stores/notionPanelStore';
 import { getLessonsForCluster } from '@/lib/jarvis/curriculum/lessonRegistry';
+import { getLessonContent } from '@/lib/jarvis/curriculum/lessonContent';
 import { useCurriculumProgressStore } from '@/lib/jarvis/stores/curriculumProgressStore';
 import type { GapInfo } from '@/lib/jarvis/stores/curriculumProgressStore';
 import type { LessonMeta } from '@/lib/jarvis/curriculum/lessonRegistry';
@@ -18,6 +19,7 @@ interface CurriculumCardProps {
 export function CurriculumCard({ gaps }: CurriculumCardProps) {
   const [expandedCluster, setExpandedCluster] = useState<string | null>(null);
   const openPanel = useNotionPanelStore((s) => s.openPanel);
+  const setTeachContent = useNotionPanelStore((s) => s.setTeachContent);
   const completedLessons = useCurriculumProgressStore((s) => s.completedLessons);
 
   const toggleCluster = (id: string) => {
@@ -27,7 +29,27 @@ export function CurriculumCard({ gaps }: CurriculumCardProps) {
   const handleLessonTap = (lesson: LessonMeta) => {
     const entry = NOTION_URLS[lesson.databaseKey];
     if (!entry) return;
-    openPanel(entry.notionUrl, entry.label, 'view', entry.cluster);
+
+    const content = getLessonContent(lesson.id);
+    if (content) {
+      // Open in teach mode with full lesson walkthrough
+      openPanel(entry.notionUrl, lesson.title, 'teach', entry.cluster);
+      setTeachContent({
+        lessonId: lesson.id,
+        title: lesson.title,
+        intro: content.intro,
+        steps: content.steps.map((s) => ({
+          title: s.title,
+          narration: s.narration,
+          panelNote: s.panelNote,
+        })),
+        outro: content.outro,
+        currentStep: -1, // start at intro
+      });
+    } else {
+      // No content yet — fallback to view mode
+      openPanel(entry.notionUrl, entry.label, 'view', entry.cluster);
+    }
   };
 
   const handleGapLearn = (gap: GapInfo) => {

@@ -31,6 +31,16 @@ main {
   animation: fade-in-up 0.3s ease-out;
 }
 
+/* Lesson step fade animation */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
 /* Safe area utilities for PWA/notch handling */
 .safe-area-top {
   padding-top: env(safe-area-inset-top, 0);

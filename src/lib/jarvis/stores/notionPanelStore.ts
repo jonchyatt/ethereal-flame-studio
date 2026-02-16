@@ -19,7 +19,10 @@ interface HistoryEntry {
 export interface TeachContent {
   lessonId: string;
   title: string;
-  steps: Array<{ title: string; panelNote?: string }>;
+  intro: string;
+  steps: Array<{ title: string; narration: string; panelNote?: string }>;
+  outro: string;
+  currentStep: number; // -1 = intro, 0..N-1 = steps, N = outro
 }
 
 interface NotionPanelState {
@@ -39,6 +42,8 @@ interface NotionPanelActions {
   setMode: (mode: NotionPanelMode) => void;
   goBack: () => void;
   setTeachContent: (content: TeachContent | null) => void;
+  advanceStep: () => boolean; // returns true if lesson is now complete
+  prevStep: () => void;
 }
 
 const MAX_HISTORY = 20;
@@ -107,6 +112,27 @@ export const useNotionPanelStore = create<NotionPanelState & NotionPanelActions>
         currentCluster: prev.cluster,
         history: state.history.slice(0, -1),
         historyIndex: state.history.length - 2,
+      });
+    },
+
+    advanceStep: () => {
+      const state = get();
+      if (!state.teachContent) return false;
+      const maxStep = state.teachContent.steps.length; // outro index
+      const next = state.teachContent.currentStep + 1;
+      if (next > maxStep) return true; // already past outro
+      set({
+        teachContent: { ...state.teachContent, currentStep: next },
+      });
+      return next > maxStep;
+    },
+
+    prevStep: () => {
+      const state = get();
+      if (!state.teachContent) return;
+      const prev = Math.max(-1, state.teachContent.currentStep - 1);
+      set({
+        teachContent: { ...state.teachContent, currentStep: prev },
       });
     },
   })
