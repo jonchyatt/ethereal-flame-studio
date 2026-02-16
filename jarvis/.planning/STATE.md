@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 11 - Production Deployment
-Plan: 3 of 4 (11-03 Production Hardening complete)
-Status: In progress
-Last activity: 2026-02-03 - Completed 11-03-PLAN.md (memory dedup, error sanitization, timezone)
+Plan: 4 of 4 (all complete)
+Status: COMPLETE
+Last activity: 2026-02-15 - Completed 11-04-PLAN.md (deploy + verify + create_bill fix)
 
-Progress: [##################--] 90% (18/20 v2.0 plans complete)
+Progress: [####################] 100% (20/20 v2.0 plans complete)
 
 ## Milestone Summary
 
@@ -38,7 +38,7 @@ Progress: [##################--] 90% (18/20 v2.0 plans complete)
 | 8 | Memory Loading & Integration | MEM-06, MEM-07, MEM-11 | Complete (3/3 plans) |
 | 9 | Memory Writing & Tools | MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10 | Complete (4/4 plans) |
 | 10 | Guardrails & Safety | GUARD-01-05, FIX-01-02 | Complete (4/4) |
-| 11 | Production Deployment | PROD-01-04 | In Progress (3/4 plans) |
+| 11 | Production Deployment | PROD-01-04 | Complete (4/4 plans) |
 
 ## Archives
 
@@ -48,8 +48,9 @@ Progress: [##################--] 90% (18/20 v2.0 plans complete)
 
 ## Next Steps
 
-1. Execute Phase 11 - Production Deployment
-2. Install Turso CLI for local database testing (user action)
+1. Complete v2.0 milestone audit (`/gsd:audit-milestone`)
+2. Plan v3.0 milestone - Agent Zero integration, Feature Pack databases, advanced Notion tools
+3. Agent Zero setup at `C:\Users\jonch\Projects\agent-zero-hub` will orchestrate Jarvis + Visopscreen
 
 ## Accumulated Context
 
@@ -105,11 +106,15 @@ Progress: [##################--] 90% (18/20 v2.0 plans complete)
 | Park MCP code for MacBook | NotionClient.mcp.ts preserved for future always-on daemon | 2026-02-02 |
 | Single-user API secret | X-Jarvis-Secret header for API auth, simplest solution | 2026-02-02 |
 | Subdomain-only access | jarvis.whatamiappreciatingnow.com is sole entry point | 2026-02-02 |
-| MacBook for full agent | Browser automation, Telegram, MCP require persistent process | 2026-02-02 |
+| ~~MacBook for full agent~~ | ~~Browser automation, Telegram, MCP require persistent process~~ SUPERSEDED by Agent Zero on Linux | 2026-02-02 |
 | Atomic upsert for memory dedup | onConflictDoUpdate prevents race conditions | 2026-02-03 |
 | Production error sanitization | Return "Internal server error" in prod, details only in dev | 2026-02-03 |
 | Intl.DateTimeFormat for timezone | Client timezone from X-Timezone header determines "today" | 2026-02-03 |
 | Jarvis workspace database IDs | Switched from backup workspace (2f902093-*) to Jarvis Complete Life OS Bundle (26d02093-*, etc) | 2026-02-04 |
+| Agent Zero replaces Atlas/GOTCHA for Phase 16 | Proven open-source, Docker sandbox, secrets mgmt, sub-agents, periodic tasks, community | 2026-02-15 |
+| Any Linux box replaces MacBook requirement | Docker runs natively on Linux — mini PC, old laptop w/ Ubuntu, or VPS all work | 2026-02-15 |
+| Hybrid architecture: Vercel + Linux daemon | Web UI/voice on Vercel, Agent Zero daemon on Linux for always-on tasks | 2026-02-15 |
+| Borrow Agent Zero patterns for Phase 13-14 | Secrets masking, progressive summarization, agentic cron for self-healing | 2026-02-15 |
 
 ### Pending Todos
 
@@ -126,15 +131,15 @@ Progress: [##################--] 90% (18/20 v2.0 plans complete)
 
 ## Session Continuity
 
-Last session: 2026-02-04
-Stopped at: Fixed Notion database connection (switched to Jarvis workspace)
+Last session: 2026-02-15
+Stopped at: Phase 11 COMPLETE - v2.0 milestone done
 Resume file: None
 
-Phase 11 (Production Deployment) in progress:
+Phase 11 (Production Deployment) COMPLETE:
 - 11-01: Direct Notion SDK migration (complete)
 - 11-02: API authentication (complete)
 - 11-03: Production hardening - memory dedup, error sanitization, timezone (complete)
-- 11-04: Final deployment verification (pending)
+- 11-04: Final deployment verification (complete) - includes create_bill fix + Playwright testing
 
 ### Phase 11 Context Summary
 
