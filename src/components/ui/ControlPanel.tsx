@@ -52,10 +52,10 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
       {/* Left panel: Templates + Advanced */}
-      <div className="absolute top-2 bottom-2 left-0 flex">
+      <div className="absolute top-2 bottom-2 left-0">
         <div
           className={`
-            pointer-events-auto h-full w-[300px] max-w-[85vw]
+            pointer-events-auto absolute top-0 bottom-0 left-0 w-[300px] max-w-[85vw]
             bg-black/80 backdrop-blur-md border border-white/10 rounded-r-xl shadow-xl
             transition-transform duration-300
             ${leftOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -134,7 +134,7 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
           <button
             onClick={() => setLeftOpen(true)}
             className="
-              pointer-events-auto mt-4 ml-2
+              pointer-events-auto absolute top-4 left-2
               px-2 py-4
               bg-black/70 backdrop-blur-md
               border border-white/15 rounded-r-lg
