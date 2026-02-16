@@ -3,9 +3,9 @@
  *
  * Defines Claude tool schemas for Notion, Memory, and Tutorial operations.
  *
- * Notion Tools (10 total, via MCP):
+ * Notion Tools (11 total, via SDK):
  * - 5 Read tools: query_tasks, query_bills, query_projects, query_goals, query_habits
- * - 5 Write tools: create_task, update_task_status, mark_bill_paid, pause_task, add_project_item
+ * - 6 Write tools: create_task, create_bill, update_task_status, mark_bill_paid, pause_task, add_project_item
  *
  * Memory Tools (5 total, via local DB):
  * - remember_fact, forget_fact, list_memories, delete_all_memories, restore_memory
@@ -35,7 +35,7 @@ export interface ToolDefinition {
  * Notion tool definitions for Life OS integration
  *
  * 5 Read tools: query_tasks, query_bills, query_projects, query_goals, query_habits
- * 5 Write tools: create_task, update_task_status, mark_bill_paid, pause_task, add_project_item
+ * 6 Write tools: create_task, create_bill, update_task_status, mark_bill_paid, pause_task, add_project_item
  */
 export const notionTools: ToolDefinition[] = [
   {
@@ -94,6 +94,32 @@ export const notionTools: ToolDefinition[] = [
         }
       },
       required: ['timeframe']
+    }
+  },
+  {
+    name: 'create_bill',
+    description: 'Create a new bill in the user\'s Notion bills tracker. Use this when the user wants to add a bill, payment, or financial obligation to track.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        title: {
+          type: 'string',
+          description: 'The bill name (e.g., "Electric bill", "Netflix subscription")'
+        },
+        amount: {
+          type: 'number',
+          description: 'The bill amount in dollars'
+        },
+        due_date: {
+          type: 'string',
+          description: 'Due date in YYYY-MM-DD format'
+        },
+        category: {
+          type: 'string',
+          description: 'Bill category (e.g., "Utilities", "Entertainment", "Insurance")'
+        }
+      },
+      required: ['title']
     }
   },
   {

@@ -39,6 +39,7 @@ export const LIFE_OS_DATABASES = {
 // Database IDs for creates (API-post-page) - different from data_source_id!
 export const LIFE_OS_DATABASE_IDS = {
   tasks: process.env.NOTION_TASKS_DATABASE_ID || '',
+  bills: process.env.NOTION_BILLS_DATABASE_ID || '',
   mealPlan: process.env.NOTION_MEAL_PLAN_DATABASE_ID || '',
   shoppingList: process.env.NOTION_SHOPPING_LIST_DATABASE_ID || '',
 } as const;
@@ -895,6 +896,47 @@ export function buildBillPaidUpdate(): Record<string, unknown> {
       checkbox: true,
     },
   };
+}
+
+/**
+ * Build Notion properties object for bill creation
+ */
+export function buildBillProperties(input: {
+  title: string;
+  amount?: number;
+  due_date?: string;
+  category?: string;
+}): Record<string, unknown> {
+  const properties: Record<string, unknown> = {
+    [BILL_PROPS.title]: {
+      title: [{ text: { content: input.title } }],
+    },
+  };
+
+  if (input.amount !== undefined) {
+    properties[BILL_PROPS.amount] = {
+      number: input.amount,
+    };
+  }
+
+  if (input.due_date) {
+    properties[BILL_PROPS.dueDate] = {
+      date: { start: input.due_date },
+    };
+  }
+
+  if (input.category) {
+    properties[BILL_PROPS.category] = {
+      select: { name: input.category },
+    };
+  }
+
+  // New bills start unpaid
+  properties[BILL_PROPS.paid] = {
+    checkbox: false,
+  };
+
+  return properties;
 }
 
 /**

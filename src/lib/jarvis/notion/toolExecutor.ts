@@ -24,6 +24,7 @@ import {
   isValidUUID,
   buildTaskProperties,
   buildTaskStatusUpdate,
+  buildBillProperties,
   buildBillPaidUpdate,
   buildTaskPauseUpdate,
   calculateNextDueDate,
@@ -137,6 +138,8 @@ function summarizeNotionContext(
   switch (toolName) {
     case 'create_task':
       return `Created task: "${input.title}"`;
+    case 'create_bill':
+      return `Created bill: "${input.title}"`;
     case 'update_task_status':
       return `Updated "${input.task_id}" to ${input.new_status}`;
     case 'mark_bill_paid':
@@ -258,6 +261,34 @@ async function executeNotionToolInner(
     // =========================================================================
     // WRITE OPERATIONS (Phase 04-03)
     // =========================================================================
+
+    case 'create_bill': {
+      const databaseId = LIFE_OS_DATABASE_IDS.bills;
+      if (!databaseId) {
+        return 'Bills database is not configured. Please set NOTION_BILLS_DATABASE_ID.';
+      }
+
+      const title = input.title as string;
+      const properties = buildBillProperties({
+        title,
+        amount: input.amount as number | undefined,
+        due_date: input.due_date as string | undefined,
+        category: input.category as string | undefined,
+      });
+
+      await createPage(databaseId, properties);
+
+      triggerDashboardRefresh();
+
+      let response = `Added bill: "${title}"`;
+      if (input.amount) {
+        response += ` for $${(input.amount as number).toFixed(2)}`;
+      }
+      if (input.due_date) {
+        response += ` due ${input.due_date}`;
+      }
+      return response;
+    }
 
     case 'create_task': {
       // Use database_id (not data_source_id) for creating pages
