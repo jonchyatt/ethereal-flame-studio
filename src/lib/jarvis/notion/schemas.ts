@@ -873,10 +873,11 @@ export function buildTaskStatusUpdate(status: string): Record<string, unknown> {
  * Build Notion properties for marking bill as paid
  */
 export function buildBillPaidUpdate(): Record<string, unknown> {
-  // Subscriptions database uses Status property (not a Paid checkbox)
+  // Subscriptions database uses Status property with options: "Live", "Not Started"
+  // "Not Started" is the closest to "cancelled/paid off" in this template
   return {
     [SUBSCRIPTION_PROPS.status]: {
-      status: { name: 'Done' },
+      status: { name: 'Not Started' },
     },
   };
 }
@@ -921,6 +922,11 @@ export function buildBillProperties(input: {
       select: { name: input.frequency },
     };
   }
+
+  // Set status to "Live" for new subscriptions
+  properties[SUBSCRIPTION_PROPS.status] = {
+    status: { name: 'Live' },
+  };
 
   return properties;
 }
