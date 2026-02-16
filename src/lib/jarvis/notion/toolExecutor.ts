@@ -186,17 +186,13 @@ async function executeNotionToolInner(
     }
 
     case 'query_bills': {
-      const dataSourceId = LIFE_OS_DATABASES.bills;
+      const dataSourceId = LIFE_OS_DATABASES.subscriptions;
       if (!dataSourceId) {
-        return 'Bills database is not configured. Please set NOTION_BILLS_DATA_SOURCE_ID.';
+        return 'Subscriptions database is not configured. Please set NOTION_SUBSCRIPTIONS_DATA_SOURCE_ID.';
       }
 
-      const filterOptions = buildBillFilter({
-        timeframe: input.timeframe as 'this_week' | 'this_month' | 'overdue' | undefined,
-        unpaidOnly: input.unpaidOnly !== false,
-      });
-
-      const result = await queryDatabase(dataSourceId, filterOptions);
+      // Query subscriptions database (bills live here, not in the Budgets database)
+      const result = await queryDatabase(dataSourceId, {});
 
       // Cache results for follow-up operations
       cacheQueryResults(result, 'bill');

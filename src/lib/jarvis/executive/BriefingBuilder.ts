@@ -37,7 +37,7 @@ import {
   getTodayInTimezone,
   getDateInTimezone,
   TASK_PROPS,
-  BILL_PROPS,
+  SUBSCRIPTION_PROPS,
   HABIT_PROPS,
   GOAL_PROPS,
 } from '../notion/schemas';
@@ -252,9 +252,11 @@ async function queryNotionRaw(
   database: 'tasks' | 'bills' | 'habits' | 'goals',
   options: Record<string, unknown>
 ): Promise<unknown> {
-  const databaseId = LIFE_OS_DATABASES[database];
+  // Bills are stored in the Subscriptions database, not the Budgets database
+  const dbKey = database === 'bills' ? 'subscriptions' : database;
+  const databaseId = LIFE_OS_DATABASES[dbKey];
   if (!databaseId) {
-    console.warn(`[BriefingBuilder] Database not configured: ${database}`);
+    console.warn(`[BriefingBuilder] Database not configured: ${dbKey}`);
     return { results: [] };
   }
 
@@ -272,8 +274,8 @@ async function queryNotionRaw(
       });
       break;
     case 'bills':
-      // Don't use any API-level filtering - property names may not match user's database
-      // The "Due Date" property may not exist. Filter client-side instead.
+      // Bills live in the Subscriptions database. Don't use API-level filtering
+      // since property names differ from old BILL_PROPS. Filter client-side.
       filter = {};
       break;
     case 'habits':
@@ -374,43 +376,32 @@ function parseBillResults(
   }
 ): BillSummary[] {
   const pages = (result as { results?: unknown[] })?.results || [];
-  const today = getTodayInTimezone(options?.timezone);
-  const weekEnd = getDateInTimezone(7, options?.timezone);
-  const monthEnd = getDateInTimezone(30, options?.timezone);
 
+  // Bills are stored in the Subscriptions database with SUBSCRIPTION_PROPS
   const bills = pages.map((page: unknown) => {
     const p = page as { properties: Record<string, unknown>; id: string };
-    const dueDateRaw = extractDate(p.properties[BILL_PROPS.dueDate]);
-    const dueDate = dueDateRaw ? dueDateRaw.split('T')[0] : null;
-    const paid = extractCheckbox(p.properties[BILL_PROPS.paid]);
+    const startDateRaw = extractDate(p.properties[SUBSCRIPTION_PROPS.startDate]);
+    const startDate = startDateRaw ? startDateRaw.split('T')[0] : null;
+    const status = extractSelect(p.properties[SUBSCRIPTION_PROPS.status]);
 
     return {
       id: p.id,
-      title: extractTitle(p.properties[BILL_PROPS.title]),
-      amount: extractNumber(p.properties[BILL_PROPS.amount]),
-      dueDate,
-      paid,
+      title: extractTitle(p.properties[SUBSCRIPTION_PROPS.title]),
+      amount: extractNumber(p.properties[SUBSCRIPTION_PROPS.fees]),
+      dueDate: startDate,
+      status,
     };
   });
 
+  // Filter out cancelled/inactive subscriptions when unpaidOnly is requested
   const filtered = bills.filter((bill) => {
-    if (options?.unpaidOnly !== false && bill.paid === true) {
-      return false;
-    }
-
-    if (options?.timeframe) {
-      if (!bill.dueDate) return false;
-      if (options.timeframe === 'overdue') {
-        return bill.dueDate < today;
-      }
-      if (options.timeframe === 'this_week') {
-        return bill.dueDate <= weekEnd;
-      }
-      if (options.timeframe === 'this_month') {
-        return bill.dueDate <= monthEnd;
+    if (options?.unpaidOnly !== false) {
+      // Skip completed/cancelled subscriptions
+      const lowerStatus = bill.status?.toLowerCase() || '';
+      if (lowerStatus === 'done' || lowerStatus === 'cancelled' || lowerStatus === 'canceled') {
+        return false;
       }
     }
-
     return true;
   });
 

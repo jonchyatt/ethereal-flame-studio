@@ -426,37 +426,10 @@ export function buildBillFilter(options: {
   unpaidOnly?: boolean;
   timezone?: string;
 }): { filter?: { and: NotionFilter[] } } {
-  const filters: NotionFilter[] = [];
-  const today = getTodayInTimezone(options.timezone);
-
-  // Default to unpaid only
-  if (options.unpaidOnly !== false) {
-    filters.push({
-      property: BILL_PROPS.paid,
-      checkbox: { equals: false },
-    });
-  }
-
-  if (options.timeframe === 'this_week') {
-    const nextWeek = getDateInTimezone(7, options.timezone);
-    filters.push({
-      property: BILL_PROPS.dueDate,
-      date: { on_or_before: nextWeek },
-    });
-  } else if (options.timeframe === 'this_month') {
-    const nextMonth = getDateInTimezone(30, options.timezone);
-    filters.push({
-      property: BILL_PROPS.dueDate,
-      date: { on_or_before: nextMonth },
-    });
-  } else if (options.timeframe === 'overdue') {
-    filters.push({
-      property: BILL_PROPS.dueDate,
-      date: { before: today },
-    });
-  }
-
-  return filters.length > 0 ? { filter: { and: filters } } : {};
+  // Subscriptions database doesn't have a simple paid/unpaid checkbox or Due Date.
+  // It has Status (status property) and Start Date (date property).
+  // Filter client-side instead to avoid property name mismatch errors.
+  return {};
 }
 
 /**
@@ -598,20 +571,29 @@ export function formatTaskResults(result: unknown): string {
  */
 export function formatBillResults(result: unknown): string {
   const pages = (result as { results?: unknown[] })?.results || [];
-  if (pages.length === 0) return 'No bills due.';
+  if (pages.length === 0) return 'No bills found.';
 
   const formatted = pages.map((page: unknown) => {
     const p = page as { properties: Record<string, unknown>; id: string };
-    const title = extractTitle(p.properties[BILL_PROPS.title]);
-    const amount = extractNumber(p.properties[BILL_PROPS.amount]);
-    const dueDate = extractDate(p.properties[BILL_PROPS.dueDate]);
-    const paid = extractCheckbox(p.properties[BILL_PROPS.paid]);
+    const title = extractTitle(p.properties[SUBSCRIPTION_PROPS.title]);
+    const fees = extractNumber(p.properties[SUBSCRIPTION_PROPS.fees]);
+    const frequency = extractSelect(p.properties[SUBSCRIPTION_PROPS.frequency]);
+    const status = extractSelect(p.properties[SUBSCRIPTION_PROPS.status]);
+    const startDate = extractDate(p.properties[SUBSCRIPTION_PROPS.startDate]);
 
-    let line = `- ${title}: $${amount.toFixed(2)}`;
-    if (dueDate) {
-      line += ` - Due: ${formatDateForSpeech(dueDate)}`;
+    let line = `- ${title}`;
+    if (fees > 0) {
+      line += `: $${fees.toFixed(2)}`;
     }
-    line += paid ? ' (paid)' : ' (unpaid)';
+    if (frequency && frequency !== 'Unknown') {
+      line += ` ${frequency}`;
+    }
+    if (status && status !== 'Unknown') {
+      line += ` (${status})`;
+    }
+    if (startDate) {
+      line += ` - Start: ${formatDateForSpeech(startDate)}`;
+    }
     line += ` [id:${p.id}]`;
     return line;
   });
