@@ -38,11 +38,28 @@ export interface RenderVideoConfig {
   /** Full visual configuration from exported config file */
   visualConfig?: {
     mode?: 'flame' | 'mist';
+    intensity?: number;
     skyboxPreset?: string;
     skyboxRotationSpeed?: number;
+    skyboxAudioReactiveEnabled?: boolean;
+    skyboxAudioReactivity?: number;
+    skyboxDriftSpeed?: number;
     waterEnabled?: boolean;
     waterColor?: string;
     waterReflectivity?: number;
+    cameraOrbitEnabled?: boolean;
+    cameraOrbitRenderOnly?: boolean;
+    cameraOrbitSpeed?: number;
+    cameraOrbitRadius?: number;
+    cameraOrbitHeight?: number;
+    cameraLookAtOrb?: boolean;
+    orbAnchorMode?: 'viewer' | 'world';
+    orbDistance?: number;
+    orbHeight?: number;
+    orbSideOffset?: number;
+    orbWorldX?: number;
+    orbWorldY?: number;
+    orbWorldZ?: number;
     layers?: any[];
   };
   /** Output format */
@@ -309,6 +326,19 @@ export async function renderVideo(config: RenderVideoConfig): Promise<RenderVide
       console.warn(
         `[renderVideo] Warning: No GPU detected (${gpu.renderer}), using software rendering`
       );
+    }
+
+    // Capture a preview screenshot (frame 0) for verification
+    const previewPath = path.join(path.dirname(outputPath), 'preview.png');
+    try {
+      const silentFrame = {
+        amplitude: 0, bass: 0, mid: 0, high: 0,
+        isBeat: false, spectralCentroid: 0, spectralFlux: 0,
+      };
+      await renderer.captureFrame(0, silentFrame as any, previewPath);
+      console.log(`[renderVideo] Preview saved: ${previewPath}`);
+    } catch (previewErr) {
+      console.warn(`[renderVideo] Preview capture failed (non-fatal): ${previewErr}`);
     }
 
     // Allow caller to inspect before rendering (e.g., preview confirmation)

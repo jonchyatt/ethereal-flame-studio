@@ -36,11 +36,28 @@ export interface PuppeteerRenderConfig {
   /** Full visual configuration from exported config file */
   visualConfig?: {
     mode?: 'flame' | 'mist';
+    intensity?: number;
     skyboxPreset?: string;
     skyboxRotationSpeed?: number;
+    skyboxAudioReactiveEnabled?: boolean;
+    skyboxAudioReactivity?: number;
+    skyboxDriftSpeed?: number;
     waterEnabled?: boolean;
     waterColor?: string;
     waterReflectivity?: number;
+    cameraOrbitEnabled?: boolean;
+    cameraOrbitRenderOnly?: boolean;
+    cameraOrbitSpeed?: number;
+    cameraOrbitRadius?: number;
+    cameraOrbitHeight?: number;
+    cameraLookAtOrb?: boolean;
+    orbAnchorMode?: 'viewer' | 'world';
+    orbDistance?: number;
+    orbHeight?: number;
+    orbSideOffset?: number;
+    orbWorldX?: number;
+    orbWorldY?: number;
+    orbWorldZ?: number;
     layers?: any[];
   };
   /** Use headless mode (default: true) */
@@ -216,9 +233,10 @@ export class PuppeteerRenderer {
     console.log(`[PuppeteerRenderer] Navigating to ${this.config.appUrl}...`);
 
     // Navigate to app
+    // Use networkidle2 instead of networkidle0 because dev mode keeps HMR WebSocket open
     await this.page.goto(this.config.appUrl!, {
-      waitUntil: 'networkidle0',
-      timeout: 30000,
+      waitUntil: 'networkidle2',
+      timeout: 60000,
     });
 
     // Wait for app to be ready (Three.js canvas should exist)
@@ -254,6 +272,38 @@ export class PuppeteerRenderer {
     if (!initialized) {
       throw new Error('Failed to initialize render mode');
     }
+
+    // Hide all UI elements — only the Three.js canvas should be visible.
+    // page.tsx already hides most UI when renderMode.isActive, but this CSS
+    // acts as a safety net to catch any stragglers (toasts, overlays, etc.)
+    await this.page.addStyleTag({
+      content: `
+        /* Hide everything in the Next.js root, then re-show the R3F canvas container */
+        body > div > * { visibility: hidden !important; }
+        /* The R3F canvas container (first child div that holds the <Canvas>) */
+        body > div > div:has(> canvas) {
+          visibility: visible !important;
+        }
+        body > div > div:has(> canvas) * {
+          visibility: visible !important;
+        }
+        /* Hide any remaining UI that React didn't catch */
+        button, [role="dialog"], [role="alert"] {
+          display: none !important;
+        }
+        /* Ensure canvas fills the entire viewport */
+        canvas {
+          display: block !important;
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          z-index: 9999 !important;
+        }
+      `,
+    });
+    console.log('[PuppeteerRenderer] UI hidden for clean render');
 
     // Apply visual config if provided (from exported config file)
     if (this.config.visualConfig) {

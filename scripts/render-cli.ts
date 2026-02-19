@@ -193,14 +193,46 @@ function checkServer(url: string): Promise<boolean> {
 }
 
 /**
- * Start the Next.js dev server and wait until it's ready
+ * Build the Next.js production bundle if needed
  */
-async function startDevServer(appUrl: string): Promise<void> {
-  console.log(`${colors.yellow}[Server]${colors.reset} Dev server not running. Starting...`);
+async function ensureProductionBuild(): Promise<void> {
+  const projectRoot = path.resolve(__dirname, '..');
+  const buildIdPath = path.join(projectRoot, '.next', 'BUILD_ID');
 
+  try {
+    await fs.access(buildIdPath);
+    console.log(`${colors.dim}[Build] Using existing production build${colors.reset}`);
+    return;
+  } catch {
+    // No build exists
+  }
+
+  console.log(`${colors.yellow}[Build]${colors.reset} Building production bundle...`);
+  const { execSync } = await import('child_process');
+  try {
+    execSync('npm run build', {
+      cwd: projectRoot,
+      stdio: 'inherit',
+    });
+    console.log(`${colors.green}[Build]${colors.reset} Production build complete`);
+  } catch {
+    throw new Error('Production build failed. Fix build errors before rendering.');
+  }
+}
+
+/**
+ * Start the Next.js production server and wait until it's ready
+ */
+async function startServer(appUrl: string): Promise<void> {
   const projectRoot = path.resolve(__dirname, '..');
 
-  devServerProcess = spawn('npm', ['run', 'dev'], {
+  // Build first if needed
+  await ensureProductionBuild();
+
+  const port = new URL(appUrl).port || '3000';
+  console.log(`${colors.yellow}[Server]${colors.reset} Starting production server on port ${port}...`);
+
+  devServerProcess = spawn('npx', ['next', 'start', '-p', port], {
     cwd: projectRoot,
     stdio: ['ignore', 'pipe', 'pipe'],
     shell: true,
@@ -213,44 +245,44 @@ async function startDevServer(appUrl: string): Promise<void> {
   devServerProcess.stdout?.on('data', (data: Buffer) => {
     const line = data.toString().trim();
     if (line) {
-      process.stderr.write(`${colors.dim}  [dev] ${line}${colors.reset}\n`);
+      process.stderr.write(`${colors.dim}  [server] ${line}${colors.reset}\n`);
     }
   });
 
   devServerProcess.stderr?.on('data', (data: Buffer) => {
     const line = data.toString().trim();
     if (line && !line.includes('ExperimentalWarning')) {
-      process.stderr.write(`${colors.dim}  [dev] ${line}${colors.reset}\n`);
+      process.stderr.write(`${colors.dim}  [server] ${line}${colors.reset}\n`);
     }
   });
 
   devServerProcess.on('error', (err) => {
-    console.error(`${colors.red}Failed to start dev server:${colors.reset}`, err.message);
+    console.error(`${colors.red}Failed to start server:${colors.reset}`, err.message);
   });
 
   // Poll until server responds
-  const maxWait = 60000; // 60 seconds
-  const pollInterval = 1000;
+  const maxWait = 30000; // 30 seconds (production server starts faster)
+  const pollInterval = 500;
   const startTime = Date.now();
 
   while (Date.now() - startTime < maxWait) {
     await new Promise((r) => setTimeout(r, pollInterval));
     const ready = await checkServer(appUrl);
     if (ready) {
-      console.log(`${colors.green}[Server]${colors.reset} Dev server ready at ${appUrl}`);
+      console.log(`${colors.green}[Server]${colors.reset} Production server ready at ${appUrl}`);
       return;
     }
   }
 
-  throw new Error(`Dev server failed to start within ${maxWait / 1000}s`);
+  throw new Error(`Server failed to start within ${maxWait / 1000}s`);
 }
 
 /**
- * Stop the dev server if we started it
+ * Stop the server if we started it
  */
-function stopDevServer(): void {
+function stopServer(): void {
   if (devServerProcess && devServerStartedByUs) {
-    console.log(`\n${colors.dim}[Server] Stopping dev server...${colors.reset}`);
+    console.log(`\n${colors.dim}[Server] Stopping server...${colors.reset}`);
     // On Windows, need to kill the process tree
     if (process.platform === 'win32') {
       spawn('taskkill', ['/pid', String(devServerProcess.pid), '/f', '/t'], {
@@ -379,12 +411,7 @@ ${colors.bright}Layers:${colors.reset}  ${config.visual.layers.filter((l) => l.e
   if (!args.noServer) {
     const serverRunning = await checkServer(appUrl);
     if (!serverRunning) {
-      if (args.appUrl) {
-        // User specified a custom URL that isn't responding
-        console.error(`${colors.red}Server not responding at ${appUrl}${colors.reset}`);
-        process.exit(1);
-      }
-      await startDevServer(appUrl);
+      await startServer(appUrl);
     } else {
       console.log(`${colors.green}[Server]${colors.reset} Using existing server at ${appUrl}`);
     }
@@ -413,11 +440,28 @@ ${colors.bright}Layers:${colors.reset}  ${config.visual.layers.filter((l) => l.e
       headless: !args.preview,
       visualConfig: {
         mode: config.visual.mode,
+        intensity: config.visual.intensity,
         skyboxPreset: config.visual.skyboxPreset,
         skyboxRotationSpeed: config.visual.skyboxRotationSpeed,
+        skyboxAudioReactiveEnabled: config.visual.skyboxAudioReactiveEnabled,
+        skyboxAudioReactivity: config.visual.skyboxAudioReactivity,
+        skyboxDriftSpeed: config.visual.skyboxDriftSpeed,
         waterEnabled: config.visual.waterEnabled,
         waterColor: config.visual.waterColor,
         waterReflectivity: config.visual.waterReflectivity,
+        cameraOrbitEnabled: config.visual.cameraOrbitEnabled,
+        cameraOrbitRenderOnly: config.visual.cameraOrbitRenderOnly,
+        cameraOrbitSpeed: config.visual.cameraOrbitSpeed,
+        cameraOrbitRadius: config.visual.cameraOrbitRadius,
+        cameraOrbitHeight: config.visual.cameraOrbitHeight,
+        cameraLookAtOrb: config.visual.cameraLookAtOrb,
+        orbAnchorMode: config.visual.orbAnchorMode,
+        orbDistance: config.visual.orbDistance,
+        orbHeight: config.visual.orbHeight,
+        orbSideOffset: config.visual.orbSideOffset,
+        orbWorldX: config.visual.orbWorldX,
+        orbWorldY: config.visual.orbWorldY,
+        orbWorldZ: config.visual.orbWorldZ,
         layers: config.visual.layers,
       },
       format: config.output.format as OutputFormat,
@@ -469,7 +513,7 @@ ${colors.bright}Layers:${colors.reset}  ${config.visual.layers.filter((l) => l.e
     console.error(`${colors.red}\u2717 Render error:${colors.reset} ${msg}`);
     process.exit(1);
   } finally {
-    stopDevServer();
+    stopServer();
   }
 }
 
@@ -477,20 +521,20 @@ ${colors.bright}Layers:${colors.reset}  ${config.visual.layers.filter((l) => l.e
 process.on('SIGINT', () => {
   console.log(`\n\n${colors.yellow}Render interrupted.${colors.reset}`);
   console.log(`${colors.dim}Progress saved - resume with same config file.${colors.reset}`);
-  stopDevServer();
+  stopServer();
   process.exit(130);
 });
 
 // Handle uncaught errors
 process.on('uncaughtException', (error) => {
   console.error(`\n${colors.red}Uncaught error:${colors.reset}`, error.message);
-  stopDevServer();
+  stopServer();
   process.exit(1);
 });
 
 // Run
 main().catch((error) => {
   console.error('Unexpected error:', error);
-  stopDevServer();
+  stopServer();
   process.exit(1);
 });

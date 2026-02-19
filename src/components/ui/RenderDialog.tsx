@@ -15,9 +15,20 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { X, Upload, MessageSquare, CheckCircle, AlertCircle, Loader2, Download, Terminal } from 'lucide-react';
+import { X, Upload, MessageSquare, CheckCircle, AlertCircle, Loader2, Download, Terminal, Monitor } from 'lucide-react';
 import { useVisualStore } from '@/lib/stores/visualStore';
 import { createConfigFromState, type LocalOutputFormat } from '@/lib/render/renderConfig';
+
+// Local render job shape (mirrors server LocalRenderJob)
+interface LocalRenderJobStatus {
+  id: string;
+  status: string;
+  progress: number;
+  stage: string;
+  message: string;
+  outputPath: string | null;
+  error: string | null;
+}
 
 // =============================================================================
 // TYPES
@@ -95,6 +106,14 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
   // Get selected category
   const selectedCategory = OUTPUT_FORMATS.find(f => f.value === selectedFormat)?.category || 'flat';
 
+  // Local render state
+  const [localRenderState, setLocalRenderState] = useState<'idle' | 'submitting' | 'active' | 'complete' | 'failed'>('idle');
+  const [localJob, setLocalJob] = useState<LocalRenderJobStatus | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  // Get visual state for export and local render
+  const visualState = useVisualStore();
+
   // Track consecutive poll failures to detect missing render server
   const pollFailures = useRef(0);
 
@@ -156,6 +175,160 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
 
     return () => clearInterval(pollInterval);
   }, [jobStatus?.id, renderState]);
+
+  // Poll local render job status
+  useEffect(() => {
+    if (!localJob?.id || localRenderState === 'complete' || localRenderState === 'failed') {
+      return;
+    }
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/render/local/${localJob.id}`);
+        const data = await response.json();
+
+        if (data.success) {
+          const job = data.data.job;
+          setLocalJob(job);
+
+          if (job.status === 'complete') {
+            setLocalRenderState('complete');
+          } else if (job.status === 'failed' || job.status === 'cancelled') {
+            setLocalRenderState('failed');
+            setLocalError(job.error || 'Render failed');
+          }
+        }
+      } catch {
+        // Ignore poll failures for local render
+      }
+    }, 1500);
+
+    return () => clearInterval(pollInterval);
+  }, [localJob?.id, localRenderState]);
+
+  // Start local render
+  const handleLocalRender = useCallback(async () => {
+    if (!audioFile) {
+      setLocalError('No audio file loaded');
+      return;
+    }
+
+    setLocalRenderState('submitting');
+    setLocalError(null);
+
+    try {
+      // Convert audio file to base64
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          const commaIdx = result.indexOf(',');
+          if (commaIdx === -1) { reject(new Error('Invalid data')); return; }
+          resolve(result.substring(commaIdx + 1));
+        };
+        reader.onerror = () => reject(new Error('Failed to read audio file'));
+        reader.readAsDataURL(audioFile);
+      });
+
+      // Build visual config from current state
+      const vs = visualState;
+      const visualConfig = {
+        mode: vs.currentMode === 'etherealMist' ? 'mist' as const : 'flame' as const,
+        intensity: vs.intensity,
+        skyboxPreset: vs.skyboxPreset.key,
+        skyboxRotationSpeed: vs.skyboxRotationSpeed,
+        skyboxAudioReactiveEnabled: vs.skyboxAudioReactiveEnabled,
+        skyboxAudioReactivity: vs.skyboxAudioReactivity,
+        skyboxDriftSpeed: vs.skyboxDriftSpeed,
+        waterEnabled: vs.waterEnabled,
+        waterColor: vs.waterColor,
+        waterReflectivity: vs.waterReflectivity,
+        cameraOrbitEnabled: vs.cameraOrbitEnabled,
+        cameraOrbitRenderOnly: vs.cameraOrbitRenderOnly,
+        cameraOrbitSpeed: vs.cameraOrbitSpeed,
+        cameraOrbitRadius: vs.cameraOrbitRadius,
+        cameraOrbitHeight: vs.cameraOrbitHeight,
+        cameraLookAtOrb: vs.cameraLookAtOrb,
+        orbAnchorMode: vs.orbAnchorMode,
+        orbDistance: vs.orbDistance,
+        orbHeight: vs.orbHeight,
+        orbSideOffset: vs.orbSideOffset,
+        orbWorldX: vs.orbWorldX,
+        orbWorldY: vs.orbWorldY,
+        orbWorldZ: vs.orbWorldZ,
+        layers: vs.layers.map((l: { id: string; name: string; enabled: boolean; particleCount: number; baseSize: number; spawnRadius: number; maxSpeed: number; lifetime: number; audioReactivity: number; frequencyBand: string; sizeAtBirth: number; sizeAtPeak: number; sizeAtDeath: number; peakLifetime: number; colorStart?: [number, number, number]; colorEnd?: [number, number, number] }) => ({
+          id: l.id,
+          name: l.name,
+          enabled: l.enabled,
+          particleCount: l.particleCount,
+          baseSize: l.baseSize,
+          spawnRadius: l.spawnRadius,
+          maxSpeed: l.maxSpeed,
+          lifetime: l.lifetime,
+          audioReactivity: l.audioReactivity,
+          frequencyBand: l.frequencyBand,
+          sizeAtBirth: l.sizeAtBirth,
+          sizeAtPeak: l.sizeAtPeak,
+          sizeAtDeath: l.sizeAtDeath,
+          peakLifetime: l.peakLifetime,
+          colorStart: l.colorStart,
+          colorEnd: l.colorEnd,
+        })),
+      };
+
+      const response = await fetch('/api/render/local', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          audioBase64: base64,
+          audioFilename: audioFile.name,
+          format: selectedFormat,
+          fps: selectedFps,
+          visualConfig,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setLocalJob({
+          id: data.data.jobId,
+          status: 'preparing',
+          progress: 0,
+          stage: 'Preparing...',
+          message: 'Starting local render...',
+          outputPath: null,
+          error: null,
+        });
+        setLocalRenderState('active');
+      } else {
+        setLocalError(data.error || 'Failed to start local render');
+        setLocalRenderState('failed');
+      }
+    } catch (err) {
+      setLocalError(err instanceof Error ? err.message : 'Failed to start local render');
+      setLocalRenderState('failed');
+    }
+  }, [audioFile, selectedFormat, selectedFps, visualState]);
+
+  // Cancel local render
+  const handleCancelLocal = useCallback(async () => {
+    if (localJob?.id) {
+      try {
+        await fetch(`/api/render/local/${localJob.id}`, { method: 'DELETE' });
+      } catch { /* ignore */ }
+    }
+    setLocalRenderState('idle');
+    setLocalJob(null);
+    setLocalError(null);
+  }, [localJob?.id]);
+
+  // Reset local render state
+  const handleResetLocal = useCallback(() => {
+    setLocalRenderState('idle');
+    setLocalJob(null);
+    setLocalError(null);
+  }, []);
 
   // Convert File to base64
   const fileToBase64 = useCallback((file: File): Promise<string> => {
@@ -281,9 +454,6 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
     setError(null);
   }, []);
 
-  // Get visual state for export
-  const visualState = useVisualStore();
-
   // State for exported config info
   const [exportedConfig, setExportedConfig] = useState<{ filename: string; command: string } | null>(null);
 
@@ -302,11 +472,28 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
       selectedFps,
       {
         currentMode: template === 'etherealMist' ? 'etherealMist' : 'etherealFlame',
+        intensity: visualState.intensity,
         skyboxPreset: visualState.skyboxPreset,
         skyboxRotationSpeed: visualState.skyboxRotationSpeed,
+        skyboxAudioReactiveEnabled: visualState.skyboxAudioReactiveEnabled,
+        skyboxAudioReactivity: visualState.skyboxAudioReactivity,
+        skyboxDriftSpeed: visualState.skyboxDriftSpeed,
         waterEnabled: visualState.waterEnabled,
         waterColor: visualState.waterColor,
         waterReflectivity: visualState.waterReflectivity,
+        cameraOrbitEnabled: visualState.cameraOrbitEnabled,
+        cameraOrbitRenderOnly: visualState.cameraOrbitRenderOnly,
+        cameraOrbitSpeed: visualState.cameraOrbitSpeed,
+        cameraOrbitRadius: visualState.cameraOrbitRadius,
+        cameraOrbitHeight: visualState.cameraOrbitHeight,
+        cameraLookAtOrb: visualState.cameraLookAtOrb,
+        orbAnchorMode: visualState.orbAnchorMode,
+        orbDistance: visualState.orbDistance,
+        orbHeight: visualState.orbHeight,
+        orbSideOffset: visualState.orbSideOffset,
+        orbWorldX: visualState.orbWorldX,
+        orbWorldY: visualState.orbWorldY,
+        orbWorldZ: visualState.orbWorldZ,
         layers: visualState.layers,
       }
     );
@@ -571,12 +758,84 @@ pause
               </button>
             </div>
           )}
+
+          {/* Local Render Progress */}
+          {localRenderState !== 'idle' && localRenderState !== 'failed' && localJob && (
+            <div className="p-4 bg-white/5 rounded-lg space-y-3">
+              <div className="flex items-center gap-2">
+                {localRenderState === 'complete' ? (
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                ) : (
+                  <Loader2 className="w-5 h-5 text-orange-400 animate-spin" />
+                )}
+                <span className="text-sm text-white/80">
+                  {localRenderState === 'submitting' && 'Starting local render...'}
+                  {localRenderState === 'active' && (localJob.stage || 'Rendering...')}
+                  {localRenderState === 'complete' && 'Local render complete!'}
+                </span>
+              </div>
+
+              {localRenderState === 'active' && (
+                <div>
+                  <div className="flex justify-between text-xs text-white/50 mb-1">
+                    <span>{localJob.message}</span>
+                    <span>{localJob.progress}%</span>
+                  </div>
+                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-orange-500 transition-all duration-300"
+                      style={{ width: `${localJob.progress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {localRenderState === 'complete' && localJob.outputPath && (
+                <div className="text-xs text-white/50">
+                  Output: <span className="text-green-300 font-mono">{localJob.outputPath}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Local Render Error */}
+          {localError && (
+            <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="text-sm text-red-300">{localError}</span>
+                <button
+                  onClick={handleResetLocal}
+                  className="block mt-1 text-xs text-red-400/60 hover:text-red-300"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
         <div className="p-4 border-t border-white/10 flex flex-col gap-3">
-          {renderState === 'idle' || renderState === 'error' ? (
+          {/* Idle / Error state — show action buttons */}
+          {(renderState === 'idle' || renderState === 'error') && localRenderState === 'idle' ? (
             <>
+              {/* Render Locally — primary action */}
+              <button
+                onClick={handleLocalRender}
+                disabled={!audioFile}
+                className={`
+                  w-full py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2
+                  ${audioFile
+                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-white shadow-lg shadow-orange-500/20'
+                    : 'bg-white/10 text-white/40 cursor-not-allowed'
+                  }
+                `}
+              >
+                <Monitor className="w-5 h-5" />
+                Render Locally
+              </button>
+
               <div className="flex gap-3">
                 <button
                   onClick={onClose}
@@ -595,7 +854,7 @@ pause
                     }
                   `}
                 >
-                  Start Render
+                  Cloud Render
                 </button>
               </div>
               {/* Export Config for Local CLI */}
@@ -605,15 +864,53 @@ pause
                 className={`
                   w-full py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2
                   ${audioFile || audioPath
-                    ? 'bg-white/5 border border-white/20 text-white/70 hover:bg-white/10 hover:text-white'
-                    : 'bg-white/5 border border-white/10 text-white/30 cursor-not-allowed'
+                    ? 'bg-white/5 border border-white/10 text-white/40 hover:bg-white/10 hover:text-white/60'
+                    : 'bg-white/5 border border-white/10 text-white/20 cursor-not-allowed'
                   }
+                  text-xs
                 `}
               >
-                <Terminal className="w-4 h-4" />
-                Export Config (Local CLI)
+                <Terminal className="w-3 h-3" />
+                Export Config (CLI)
               </button>
             </>
+          ) : localRenderState === 'active' || localRenderState === 'submitting' ? (
+            <button
+              onClick={handleCancelLocal}
+              className="w-full py-2 rounded-lg font-medium bg-red-500/30 border border-red-500/40 text-red-300 hover:bg-red-500/40 transition-colors"
+            >
+              Cancel Local Render
+            </button>
+          ) : localRenderState === 'complete' ? (
+            <div className="flex gap-3">
+              <button
+                onClick={handleResetLocal}
+                className="flex-1 py-2 rounded-lg font-medium bg-white/10 text-white/80 hover:bg-white/20 transition-colors"
+              >
+                Render Another
+              </button>
+              <button
+                onClick={onClose}
+                className="flex-1 py-2 rounded-lg font-medium bg-green-500 hover:bg-green-600 text-white transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          ) : localRenderState === 'failed' ? (
+            <div className="flex gap-3">
+              <button
+                onClick={handleResetLocal}
+                className="flex-1 py-2 rounded-lg font-medium bg-white/10 text-white/80 hover:bg-white/20 transition-colors"
+              >
+                Try Again
+              </button>
+              <button
+                onClick={onClose}
+                className="flex-1 py-2 rounded-lg font-medium bg-white/10 text-white/80 hover:bg-white/20 transition-colors"
+              >
+                Close
+              </button>
+            </div>
           ) : renderState === 'complete' ? (
             <>
               <button

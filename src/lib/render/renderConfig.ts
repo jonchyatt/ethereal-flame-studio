@@ -37,11 +37,30 @@ export const RenderConfigSchema = z.object({
 
   visual: z.object({
     mode: z.enum(['flame', 'mist'] as const),
+    intensity: z.number().optional(),
     skyboxPreset: z.string(),
     skyboxRotationSpeed: z.number().min(0).max(2),
+    skyboxAudioReactiveEnabled: z.boolean().optional(),
+    skyboxAudioReactivity: z.number().optional(),
+    skyboxDriftSpeed: z.number().optional(),
     waterEnabled: z.boolean(),
     waterColor: z.string(),
     waterReflectivity: z.number().min(0).max(1),
+    // Camera orbit
+    cameraOrbitEnabled: z.boolean().optional(),
+    cameraOrbitRenderOnly: z.boolean().optional(),
+    cameraOrbitSpeed: z.number().optional(),
+    cameraOrbitRadius: z.number().optional(),
+    cameraOrbitHeight: z.number().optional(),
+    cameraLookAtOrb: z.boolean().optional(),
+    // Orb placement
+    orbAnchorMode: z.enum(['viewer', 'world']).optional(),
+    orbDistance: z.number().optional(),
+    orbHeight: z.number().optional(),
+    orbSideOffset: z.number().optional(),
+    orbWorldX: z.number().optional(),
+    orbWorldY: z.number().optional(),
+    orbWorldZ: z.number().optional(),
     layers: z.array(z.object({
       id: z.string(),
       name: z.string(),
@@ -98,11 +117,28 @@ export function createConfigFromState(
   fps: 30 | 60,
   visualState: {
     currentMode: VisualMode;
+    intensity: number;
     skyboxPreset: { key: string };
     skyboxRotationSpeed: number;
+    skyboxAudioReactiveEnabled: boolean;
+    skyboxAudioReactivity: number;
+    skyboxDriftSpeed: number;
     waterEnabled: boolean;
     waterColor: string;
     waterReflectivity: number;
+    cameraOrbitEnabled: boolean;
+    cameraOrbitRenderOnly: boolean;
+    cameraOrbitSpeed: number;
+    cameraOrbitRadius: number;
+    cameraOrbitHeight: number;
+    cameraLookAtOrb: boolean;
+    orbAnchorMode: 'viewer' | 'world';
+    orbDistance: number;
+    orbHeight: number;
+    orbSideOffset: number;
+    orbWorldX: number;
+    orbWorldY: number;
+    orbWorldZ: number;
     layers: ParticleLayerConfig[];
   }
 ): RenderConfig {
@@ -112,11 +148,28 @@ export function createConfigFromState(
     output: { path: outputPath, format, fps },
     visual: {
       mode: visualState.currentMode === 'etherealFlame' ? 'flame' : 'mist',
+      intensity: visualState.intensity,
       skyboxPreset: visualState.skyboxPreset.key,
       skyboxRotationSpeed: visualState.skyboxRotationSpeed,
+      skyboxAudioReactiveEnabled: visualState.skyboxAudioReactiveEnabled,
+      skyboxAudioReactivity: visualState.skyboxAudioReactivity,
+      skyboxDriftSpeed: visualState.skyboxDriftSpeed,
       waterEnabled: visualState.waterEnabled,
       waterColor: visualState.waterColor,
       waterReflectivity: visualState.waterReflectivity,
+      cameraOrbitEnabled: visualState.cameraOrbitEnabled,
+      cameraOrbitRenderOnly: visualState.cameraOrbitRenderOnly,
+      cameraOrbitSpeed: visualState.cameraOrbitSpeed,
+      cameraOrbitRadius: visualState.cameraOrbitRadius,
+      cameraOrbitHeight: visualState.cameraOrbitHeight,
+      cameraLookAtOrb: visualState.cameraLookAtOrb,
+      orbAnchorMode: visualState.orbAnchorMode,
+      orbDistance: visualState.orbDistance,
+      orbHeight: visualState.orbHeight,
+      orbSideOffset: visualState.orbSideOffset,
+      orbWorldX: visualState.orbWorldX,
+      orbWorldY: visualState.orbWorldY,
+      orbWorldZ: visualState.orbWorldZ,
       layers: visualState.layers.map(layer => ({
         id: layer.id,
         name: layer.name,

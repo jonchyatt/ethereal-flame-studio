@@ -10,6 +10,7 @@
 
 import { FrameAudioData } from '@/types';
 import { useVisualStore } from '@/lib/stores/visualStore';
+import { useAudioStore } from '@/lib/stores/audioStore';
 import { STAR_NEST_PRESETS } from '@/components/canvas/StarNestSkybox';
 
 // Types for the render mode API
@@ -62,7 +63,10 @@ type StateListener = (state: RenderModeState) => void;
 const listeners: Set<StateListener> = new Set();
 
 function notifyListeners() {
-  listeners.forEach((listener) => listener(renderModeState));
+  // Spread to create a new object reference so React's useState detects the change
+  // (React uses Object.is() which compares references — same ref = skip re-render)
+  const snapshot = { ...renderModeState };
+  listeners.forEach((listener) => listener(snapshot));
 }
 
 /**
@@ -122,11 +126,28 @@ export function setCapturedImage(base64: string) {
  */
 interface VisualConfigPayload {
   mode?: 'flame' | 'mist';
+  intensity?: number;
   skyboxPreset?: string;
   skyboxRotationSpeed?: number;
+  skyboxAudioReactiveEnabled?: boolean;
+  skyboxAudioReactivity?: number;
+  skyboxDriftSpeed?: number;
   waterEnabled?: boolean;
   waterColor?: string;
   waterReflectivity?: number;
+  cameraOrbitEnabled?: boolean;
+  cameraOrbitRenderOnly?: boolean;
+  cameraOrbitSpeed?: number;
+  cameraOrbitRadius?: number;
+  cameraOrbitHeight?: number;
+  cameraLookAtOrb?: boolean;
+  orbAnchorMode?: 'viewer' | 'world';
+  orbDistance?: number;
+  orbHeight?: number;
+  orbSideOffset?: number;
+  orbWorldX?: number;
+  orbWorldY?: number;
+  orbWorldZ?: number;
   layers?: any[];
 }
 
@@ -186,21 +207,32 @@ const renderModeAPI: WindowRenderModeAPI = {
     // Build settings object for applyTemplateSettings
     const settings: Record<string, unknown> = {};
 
-    if (config.skyboxRotationSpeed !== undefined) {
-      settings.skyboxRotationSpeed = config.skyboxRotationSpeed;
-    }
-    if (config.waterEnabled !== undefined) {
-      settings.waterEnabled = config.waterEnabled;
-    }
-    if (config.waterColor !== undefined) {
-      settings.waterColor = config.waterColor;
-    }
-    if (config.waterReflectivity !== undefined) {
-      settings.waterReflectivity = config.waterReflectivity;
-    }
-    if (config.layers) {
-      settings.layers = config.layers;
-    }
+    if (config.intensity !== undefined) settings.intensity = config.intensity;
+    if (config.skyboxRotationSpeed !== undefined) settings.skyboxRotationSpeed = config.skyboxRotationSpeed;
+    if (config.skyboxAudioReactiveEnabled !== undefined) settings.skyboxAudioReactiveEnabled = config.skyboxAudioReactiveEnabled;
+    if (config.skyboxAudioReactivity !== undefined) settings.skyboxAudioReactivity = config.skyboxAudioReactivity;
+    if (config.skyboxDriftSpeed !== undefined) settings.skyboxDriftSpeed = config.skyboxDriftSpeed;
+    if (config.waterEnabled !== undefined) settings.waterEnabled = config.waterEnabled;
+    if (config.waterColor !== undefined) settings.waterColor = config.waterColor;
+    if (config.waterReflectivity !== undefined) settings.waterReflectivity = config.waterReflectivity;
+    if (config.layers) settings.layers = config.layers;
+
+    // Camera orbit
+    if (config.cameraOrbitEnabled !== undefined) settings.cameraOrbitEnabled = config.cameraOrbitEnabled;
+    if (config.cameraOrbitRenderOnly !== undefined) settings.cameraOrbitRenderOnly = config.cameraOrbitRenderOnly;
+    if (config.cameraOrbitSpeed !== undefined) settings.cameraOrbitSpeed = config.cameraOrbitSpeed;
+    if (config.cameraOrbitRadius !== undefined) settings.cameraOrbitRadius = config.cameraOrbitRadius;
+    if (config.cameraOrbitHeight !== undefined) settings.cameraOrbitHeight = config.cameraOrbitHeight;
+    if (config.cameraLookAtOrb !== undefined) settings.cameraLookAtOrb = config.cameraLookAtOrb;
+
+    // Orb placement
+    if (config.orbAnchorMode !== undefined) settings.orbAnchorMode = config.orbAnchorMode;
+    if (config.orbDistance !== undefined) settings.orbDistance = config.orbDistance;
+    if (config.orbHeight !== undefined) settings.orbHeight = config.orbHeight;
+    if (config.orbSideOffset !== undefined) settings.orbSideOffset = config.orbSideOffset;
+    if (config.orbWorldX !== undefined) settings.orbWorldX = config.orbWorldX;
+    if (config.orbWorldY !== undefined) settings.orbWorldY = config.orbWorldY;
+    if (config.orbWorldZ !== undefined) settings.orbWorldZ = config.orbWorldZ;
 
     // Resolve skybox preset by key
     if (config.skyboxPreset) {
@@ -246,6 +278,17 @@ const renderModeAPI: WindowRenderModeAPI = {
     renderModeState.audioData = audioData;
     renderModeState.status.state = 'rendering';
     renderModeState.status.currentFrame = frameNumber;
+
+    // Bridge audio data into audioStore so ALL visual components
+    // (ParticleSystem, StarNestSkybox, etc.) see the injected levels
+    useAudioStore.getState().setLevels({
+      amplitude: audioData.amplitude,
+      bass: audioData.bass,
+      mid: audioData.mid,
+      high: audioData.high,
+      isBeat: audioData.isBeat,
+      currentScale: 1.0 + audioData.amplitude * 0.5,
+    });
 
     notifyListeners();
 
