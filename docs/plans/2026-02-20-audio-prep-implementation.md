@@ -12,6 +12,21 @@
 
 ---
 
+## Revision Log (from Codex review)
+
+| # | Severity | Issue | Fix Applied |
+|---|----------|-------|-------------|
+| 1 | Critical | In-memory job Map not durable across restarts | Task 10: JobManager now uses SQLite via better-sqlite3 (already a dep) |
+| 2 | Critical | Local render only accepts base64, not asset path | Task 14: localRenderManager updated to accept `audioPath` param |
+| 3 | High | Cancel endpoint doesn't signal abort to spawn/fetch | Tasks 5/11: AbortSignal threaded through yt-dlp, ffmpeg, and fetch |
+| 4 | High | Filename path traversal, URL memory buffering, no SSRF DNS check | Task 11: sanitizeFilename(), streaming download with size cap |
+| 5 | High | loudnorm in filter graph AND 2-pass = double normalization | Task 8/9: `includeNormalize` flag, only 1-pass in preview graph |
+| 6 | High | Modal cloud dispatch doesn't forward asset audio | Task 14: reads prepared.wav → base64 for Modal |
+| 7 | Medium | Quota/TTL/reference-aware delete claimed but not coded | Task 13: deleteAssetSafe(), checkQuota(), getDiskUsage() |
+| 8 | Medium | Jest not in package.json devDependencies | Task 1: `npm install --save-dev jest ts-jest @types/jest` |
+
+---
+
 ## Phase 1: Backend Infrastructure
 
 ### Task 1: Install Dependencies & Create Directory Structure
@@ -20,11 +35,15 @@
 - Modify: `package.json`
 - Create: `src/lib/audio-prep/` directory structure
 
-**Step 1: Install wavesurfer.js**
+**Step 1: Install dependencies**
 
 ```bash
 npm install wavesurfer.js
+npm install --save-dev jest ts-jest @types/jest
 ```
+
+> **Note:** `jest.config.js` already exists in the repo but `jest` and `ts-jest` are
+> missing from `devDependencies`. This step adds them.
 
 **Step 2: Create service directory structure**
 
@@ -778,6 +797,7 @@ interface YtDlpOptions {
   maxFileSizeMB?: number;
   cookieFilePath?: string;
   onProgress?: (percent: number) => void;
+  signal?: AbortSignal; // Thread through for cancellation
 }
 
 interface YtDlpResult {
@@ -826,7 +846,7 @@ export async function extractYouTubeAudio(
   outputDir: string,
   options: YtDlpOptions = {}
 ): Promise<YtDlpResult> {
-  const { timeoutMs = 300000, maxFileSizeMB = 100, cookieFilePath, onProgress } = options;
+  const { timeoutMs = 300000, maxFileSizeMB = 100, cookieFilePath, onProgress, signal } = options;
 
   if (!validateYouTubeUrl(url)) {
     throw new Error(`Invalid or disallowed YouTube URL: ${url}`);
@@ -853,7 +873,7 @@ export async function extractYouTubeAudio(
 
   args.push(url);
 
-  const result = await runYtDlp(args, timeoutMs, onProgress);
+  const result = await runYtDlp(args, timeoutMs, onProgress, signal);
   const info = JSON.parse(result);
 
   // Find the downloaded file
@@ -875,12 +895,21 @@ export async function extractYouTubeAudio(
 function runYtDlp(
   args: string[],
   timeoutMs: number,
-  onProgress?: (percent: number) => void
+  onProgress?: (percent: number) => void,
+  signal?: AbortSignal
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const proc = spawn('yt-dlp', args);
     let stdout = '';
     let stderr = '';
+
+    // Thread AbortSignal to kill the yt-dlp process on cancel
+    if (signal) {
+      signal.addEventListener('abort', () => {
+        proc.kill('SIGTERM');
+        reject(new Error('yt-dlp cancelled'));
+      }, { once: true });
+    }
 
     const timer = setTimeout(() => {
       proc.kill('SIGTERM');
@@ -1334,9 +1363,15 @@ interface FilterComplexResult {
   outputLabel: string;
 }
 
+interface BuildOptions {
+  /** Include 1-pass loudnorm in filter graph (preview only). Save uses 2-pass post-render. */
+  includeNormalize?: boolean;
+}
+
 export function buildFilterComplex(
   recipe: EditRecipe,
-  assetPaths: Record<string, string>
+  assetPaths: Record<string, string>,
+  options?: BuildOptions
 ): FilterComplexResult {
   // Deduplicate input files
   const uniqueAssetIds = [...new Set(recipe.clips.map((c) => c.sourceAssetId))];
@@ -1397,8 +1432,10 @@ export function buildFilterComplex(
     finalOutput = concatLabel;
   }
 
-  // Normalize (1-pass for preview, caller handles 2-pass for save)
-  if (recipe.normalize) {
+  // Normalize: only add 1-pass loudnorm in filter graph for PREVIEW mode.
+  // For SAVE mode, caller runs 2-pass loudnorm AFTER this render (not both).
+  // The `includeNormalize` flag is set by the caller to control this.
+  if (recipe.normalize && options?.includeNormalize) {
     const normLabel = '[norm]';
     filters.push(`${finalOutput}loudnorm${normLabel}`);
     finalOutput = normLabel;
@@ -1550,7 +1587,11 @@ export async function renderRecipe(
 ): Promise<void> {
   const { preview = false, twoPassNormalize = false, signal } = options;
 
-  const { inputs, filterComplex, outputLabel } = buildFilterComplex(recipe, assetPaths);
+  // Preview: include 1-pass loudnorm in filter graph.
+  // Save: skip loudnorm in graph; 2-pass loudnorm runs after render (avoids double normalization).
+  const { inputs, filterComplex, outputLabel } = buildFilterComplex(recipe, assetPaths, {
+    includeNormalize: preview, // Only for preview
+  });
 
   const args: string[] = ['-y']; // Overwrite output
 
@@ -1658,7 +1699,12 @@ git commit -m "feat(audio-prep): add audio renderer with filter_complex executio
 
 ---
 
-### Task 10: Job Manager (Async Job Tracking)
+### Task 10: Job Manager (Durable SQLite-Backed Job Tracking)
+
+> **CRITICAL FIX:** Jobs are backed by SQLite (better-sqlite3, already a project dependency),
+> not an in-memory Map. This survives process restarts and serverless cold starts.
+> In-flight AbortControllers are tracked in a separate runtime Map for cancellation
+> but are not persisted (re-cancellation after restart is a no-op on completed jobs).
 
 **Files:**
 - Create: `src/lib/audio-prep/JobManager.ts`
@@ -1670,12 +1716,22 @@ Create `src/lib/audio-prep/__tests__/JobManager.test.ts`:
 
 ```typescript
 import { AudioPrepJobManager } from '../JobManager';
+import path from 'path';
+import os from 'os';
+import { promises as fs } from 'fs';
 
 describe('AudioPrepJobManager', () => {
   let manager: AudioPrepJobManager;
+  let dbPath: string;
 
   beforeEach(() => {
-    manager = new AudioPrepJobManager();
+    dbPath = path.join(os.tmpdir(), `audio-prep-jobs-${Date.now()}.db`);
+    manager = new AudioPrepJobManager(dbPath);
+  });
+
+  afterEach(async () => {
+    manager.close();
+    await fs.unlink(dbPath).catch(() => {});
   });
 
   test('creates and retrieves a job', () => {
@@ -1686,6 +1742,19 @@ describe('AudioPrepJobManager', () => {
     const retrieved = manager.get(job.jobId);
     expect(retrieved).toBeDefined();
     expect(retrieved!.jobId).toBe(job.jobId);
+  });
+
+  test('persists across new manager instances', () => {
+    const job = manager.create('ingest', {});
+    manager.complete(job.jobId, { assetId: 'abc-123' });
+    manager.close();
+
+    // New manager instance reads same DB
+    const manager2 = new AudioPrepJobManager(dbPath);
+    const retrieved = manager2.get(job.jobId);
+    expect(retrieved!.status).toBe('complete');
+    expect(retrieved!.result).toEqual({ assetId: 'abc-123' });
+    manager2.close();
   });
 
   test('updates job status and progress', () => {
@@ -1715,21 +1784,26 @@ describe('AudioPrepJobManager', () => {
     expect(failed!.error).toBe('Download timeout');
   });
 
-  test('cancels a job', () => {
+  test('cancels a job and signals abort', () => {
     const job = manager.create('ingest', {});
+    const signal = manager.getSignal(job.jobId);
+    expect(signal?.aborted).toBe(false);
+
     manager.cancel(job.jobId);
 
+    expect(signal?.aborted).toBe(true);
     const cancelled = manager.get(job.jobId);
     expect(cancelled!.status).toBe('cancelled');
   });
 });
 ```
 
-**Step 2: Implement JobManager**
+**Step 2: Implement JobManager with SQLite**
 
 Create `src/lib/audio-prep/JobManager.ts`:
 
 ```typescript
+import Database from 'better-sqlite3';
 import { v4 as uuid } from 'uuid';
 
 export interface AudioPrepJob {
@@ -1740,56 +1814,101 @@ export interface AudioPrepJob {
   metadata: Record<string, unknown>;
   result?: Record<string, unknown>;
   error?: string;
-  abortController?: AbortController;
   createdAt: string;
   updatedAt: string;
 }
 
 export class AudioPrepJobManager {
-  private jobs = new Map<string, AudioPrepJob>();
+  private db: Database.Database;
+  // Runtime-only: AbortControllers for in-flight jobs (not persisted)
+  private controllers = new Map<string, AbortController>();
+
+  constructor(dbPath = './audio-prep-jobs.db') {
+    this.db = new Database(dbPath);
+    this.db.pragma('journal_mode = WAL');
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS audio_prep_jobs (
+        jobId TEXT PRIMARY KEY,
+        type TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        progress REAL NOT NULL DEFAULT 0,
+        metadata TEXT NOT NULL DEFAULT '{}',
+        result TEXT,
+        error TEXT,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+      )
+    `);
+  }
 
   create(type: AudioPrepJob['type'], metadata: Record<string, unknown>): AudioPrepJob {
     const now = new Date().toISOString();
-    const job: AudioPrepJob = {
-      jobId: uuid(),
-      type,
-      status: 'pending',
-      progress: 0,
-      metadata,
-      createdAt: now,
-      updatedAt: now,
-      abortController: new AbortController(),
-    };
-    this.jobs.set(job.jobId, job);
-    return job;
+    const jobId = uuid();
+
+    this.db.prepare(`
+      INSERT INTO audio_prep_jobs (jobId, type, status, progress, metadata, createdAt, updatedAt)
+      VALUES (?, ?, 'pending', 0, ?, ?, ?)
+    `).run(jobId, type, JSON.stringify(metadata), now, now);
+
+    const controller = new AbortController();
+    this.controllers.set(jobId, controller);
+
+    return { jobId, type, status: 'pending', progress: 0, metadata, createdAt: now, updatedAt: now };
   }
 
   get(jobId: string): AudioPrepJob | undefined {
-    return this.jobs.get(jobId);
+    const row = this.db.prepare('SELECT * FROM audio_prep_jobs WHERE jobId = ?').get(jobId) as any;
+    if (!row) return undefined;
+    return {
+      ...row,
+      metadata: JSON.parse(row.metadata),
+      result: row.result ? JSON.parse(row.result) : undefined,
+    };
   }
 
   update(jobId: string, updates: Partial<Pick<AudioPrepJob, 'status' | 'progress' | 'result' | 'error'>>): void {
-    const job = this.jobs.get(jobId);
-    if (!job) throw new Error(`Job ${jobId} not found`);
-    Object.assign(job, updates, { updatedAt: new Date().toISOString() });
+    const sets: string[] = ['updatedAt = ?'];
+    const values: unknown[] = [new Date().toISOString()];
+
+    if (updates.status !== undefined) { sets.push('status = ?'); values.push(updates.status); }
+    if (updates.progress !== undefined) { sets.push('progress = ?'); values.push(updates.progress); }
+    if (updates.result !== undefined) { sets.push('result = ?'); values.push(JSON.stringify(updates.result)); }
+    if (updates.error !== undefined) { sets.push('error = ?'); values.push(updates.error); }
+
+    values.push(jobId);
+    const result = this.db.prepare(`UPDATE audio_prep_jobs SET ${sets.join(', ')} WHERE jobId = ?`).run(...values);
+    if (result.changes === 0) throw new Error(`Job ${jobId} not found`);
   }
 
   complete(jobId: string, result: Record<string, unknown>): void {
     this.update(jobId, { status: 'complete', progress: 100, result });
+    this.controllers.delete(jobId);
   }
 
   fail(jobId: string, error: string): void {
     this.update(jobId, { status: 'failed', error });
+    this.controllers.delete(jobId);
   }
 
   cancel(jobId: string): void {
-    const job = this.jobs.get(jobId);
-    if (job?.abortController) job.abortController.abort();
+    const controller = this.controllers.get(jobId);
+    if (controller) controller.abort();
+    this.controllers.delete(jobId);
     this.update(jobId, { status: 'cancelled' });
   }
 
+  /** Get the AbortSignal for an in-flight job (runtime only). */
+  getSignal(jobId: string): AbortSignal | undefined {
+    return this.controllers.get(jobId)?.signal;
+  }
+
   list(): AudioPrepJob[] {
-    return [...this.jobs.values()];
+    const rows = this.db.prepare('SELECT * FROM audio_prep_jobs ORDER BY createdAt DESC').all() as any[];
+    return rows.map((r) => ({ ...r, metadata: JSON.parse(r.metadata), result: r.result ? JSON.parse(r.result) : undefined }));
+  }
+
+  close(): void {
+    this.db.close();
   }
 }
 
@@ -1807,7 +1926,7 @@ npx jest src/lib/audio-prep/__tests__/JobManager.test.ts --verbose
 
 ```bash
 git add src/lib/audio-prep/JobManager.ts src/lib/audio-prep/__tests__/JobManager.test.ts
-git commit -m "feat(audio-prep): add async job manager for ingest/edit operations"
+git commit -m "feat(audio-prep): add SQLite-backed durable job manager"
 ```
 
 ---
@@ -1894,8 +2013,16 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Sanitize filename: strip path separators and null bytes to prevent path traversal
+function sanitizeFilename(filename: string): string {
+  return filename.replace(/[/\\:\0]/g, '_').replace(/^\.+/, '_');
+}
+
+// Max URL download size: 100MB streamed with abort support
+const MAX_URL_DOWNLOAD_BYTES = 100 * 1024 * 1024;
+
 async function processIngest(jobId: string, source: z.infer<typeof IngestRequestSchema>) {
-  const job = audioPrepJobs.get(jobId)!;
+  const signal = audioPrepJobs.getSignal(jobId); // AbortSignal threaded to all operations
   audioPrepJobs.update(jobId, { status: 'processing', progress: 10 });
 
   const tempDir = path.join(os.tmpdir(), `audio-ingest-${jobId}`);
@@ -1914,6 +2041,7 @@ async function processIngest(jobId: string, source: z.infer<typeof IngestRequest
 
         const result = await extractYouTubeAudio(source.url, tempDir, {
           onProgress: (p) => audioPrepJobs.update(jobId, { progress: 20 + p * 0.4 }),
+          signal, // Pass AbortSignal to yt-dlp wrapper
         });
         audioFilePath = result.filePath;
         provenance = {
@@ -1926,20 +2054,21 @@ async function processIngest(jobId: string, source: z.infer<typeof IngestRequest
       }
 
       case 'video_file': {
-        // Write base64 to temp, extract audio
-        const videoPath = path.join(tempDir, source.filename);
+        // Sanitize filename to prevent path traversal
+        const safeName = sanitizeFilename(source.filename);
+        const videoPath = path.join(tempDir, safeName);
         await fs.writeFile(videoPath, Buffer.from(source.base64, 'base64'));
         audioPrepJobs.update(jobId, { progress: 30 });
 
-        // Extract audio from video
         audioFilePath = path.join(tempDir, 'extracted.wav');
-        await extractAudioFromVideo(videoPath, audioFilePath);
+        await extractAudioFromVideo(videoPath, audioFilePath, signal);
         provenance.originalFilename = source.filename;
         break;
       }
 
       case 'audio_file': {
-        audioFilePath = path.join(tempDir, source.filename);
+        const safeName = sanitizeFilename(source.filename);
+        audioFilePath = path.join(tempDir, safeName);
         await fs.writeFile(audioFilePath, Buffer.from(source.base64, 'base64'));
         provenance.originalFilename = source.filename;
         break;
@@ -1949,8 +2078,15 @@ async function processIngest(jobId: string, source: z.infer<typeof IngestRequest
         validateUrl(source.url);
         audioPrepJobs.update(jobId, { progress: 20 });
 
-        const response = await fetch(source.url);
+        // Streaming download with size guard and abort support
+        const response = await fetch(source.url, { signal });
         if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
+
+        // Check Content-Length header first (fast reject)
+        const contentLength = parseInt(response.headers.get('content-length') ?? '0', 10);
+        if (contentLength > MAX_URL_DOWNLOAD_BYTES) {
+          throw new Error(`File too large: ${(contentLength / 1024 / 1024).toFixed(1)}MB exceeds 100MB limit`);
+        }
 
         const contentType = response.headers.get('content-type') ?? '';
         const ext = contentType.includes('wav') ? '.wav' :
@@ -1958,8 +2094,27 @@ async function processIngest(jobId: string, source: z.infer<typeof IngestRequest
                     contentType.includes('ogg') ? '.ogg' : '.audio';
 
         audioFilePath = path.join(tempDir, `download${ext}`);
-        const buffer = Buffer.from(await response.arrayBuffer());
-        await fs.writeFile(audioFilePath, buffer);
+
+        // Stream to disk instead of buffering in memory
+        const { createWriteStream } = await import('fs');
+        const fileStream = createWriteStream(audioFilePath);
+        let bytesWritten = 0;
+        const reader = response.body!.getReader();
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          bytesWritten += value.byteLength;
+          if (bytesWritten > MAX_URL_DOWNLOAD_BYTES) {
+            reader.cancel();
+            fileStream.destroy();
+            throw new Error(`Download exceeded 100MB limit`);
+          }
+          fileStream.write(Buffer.from(value));
+        }
+        fileStream.end();
+        await new Promise((resolve) => fileStream.on('finish', resolve));
+
         provenance.sourceUrl = source.url;
         break;
       }
@@ -2001,11 +2156,12 @@ async function processIngest(jobId: string, source: z.infer<typeof IngestRequest
   }
 }
 
-async function extractAudioFromVideo(videoPath: string, outputPath: string): Promise<void> {
+async function extractAudioFromVideo(videoPath: string, outputPath: string, signal?: AbortSignal): Promise<void> {
   const { spawn } = await import('child_process');
   return new Promise((resolve, reject) => {
     const proc = spawn('ffmpeg', ['-y', '-i', videoPath, '-vn', '-ar', '44100', '-ac', '1', '-sample_fmt', 's16', outputPath]);
     let stderr = '';
+    if (signal) signal.addEventListener('abort', () => proc.kill('SIGTERM'), { once: true });
     proc.stderr.on('data', (c) => { stderr += c; });
     proc.on('close', (code) => code === 0 ? resolve() : reject(new Error(`ffmpeg: ${stderr.slice(-300)}`)));
     proc.on('error', (err) => reject(err));
@@ -2117,19 +2273,72 @@ git commit -m "feat(audio-prep): add edit preview and save API routes with recip
 - Create: `src/app/api/audio/assets/route.ts`
 - Create: `src/app/api/audio/assets/[id]/route.ts`
 
-**Step 1: Create list/get/delete routes**
+**Step 1: Implement lifecycle enforcement in AudioAssetService**
 
-`GET /api/audio/assets` - calls `assetService.listAssets()`
+Add these methods to `AudioAssetService.ts`:
+
+```typescript
+/** Check if any saved recipe references this asset as a source */
+async isReferenced(assetId: string): Promise<boolean> {
+  const allAssets = await this.listAssets();
+  for (const asset of allAssets) {
+    if (asset.assetId === assetId) continue;
+    const editsPath = path.join(this.config.assetsDir, asset.assetId, 'edits.json');
+    try {
+      const raw = await fs.readFile(editsPath, 'utf-8');
+      const recipe = JSON.parse(raw);
+      if (recipe.clips?.some((c: any) => c.sourceAssetId === assetId)) return true;
+    } catch { /* no edits file */ }
+  }
+  return false;
+}
+
+/** Delete asset with reference check. Throws if referenced unless force=true. */
+async deleteAssetSafe(assetId: string, force = false): Promise<void> {
+  if (!force && await this.isReferenced(assetId)) {
+    throw new Error(`Asset ${assetId} is referenced by other recipes. Use force=true to delete anyway.`);
+  }
+  await this.deleteAsset(assetId);
+}
+
+/** Get total disk usage of all assets in bytes */
+async getDiskUsage(): Promise<number> {
+  let total = 0;
+  const entries = await fs.readdir(this.config.assetsDir, { withFileTypes: true }).catch(() => []);
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const files = await fs.readdir(path.join(this.config.assetsDir, entry.name));
+    for (const file of files) {
+      const stat = await fs.stat(path.join(this.config.assetsDir, entry.name, file));
+      total += stat.size;
+    }
+  }
+  return total;
+}
+
+/** Enforce disk quota. Returns true if under quota. */
+async checkQuota(): Promise<boolean> {
+  const usage = await this.getDiskUsage();
+  return usage < this.config.diskQuotaGB * 1024 * 1024 * 1024;
+}
+```
+
+**Step 2: Create list/get/delete routes**
+
+`GET /api/audio/assets` - calls `assetService.listAssets()`, includes disk usage
 `GET /api/audio/assets/[id]` - calls `assetService.getAsset(id)`, includes peaks URL
-`DELETE /api/audio/assets/[id]` - reference-aware delete via `assetService.deleteAsset(id)`
+`DELETE /api/audio/assets/[id]` - calls `assetService.deleteAssetSafe(id, force)` with optional `?force=true` query param
+
+Ingest route (Task 11) must call `checkQuota()` before creating new assets and reject with
+`413 Payload Too Large` if quota exceeded.
 
 Follows the same response format pattern as existing render API routes.
 
-**Step 2: Commit**
+**Step 3: Commit**
 
 ```bash
-git add src/app/api/audio/assets/
-git commit -m "feat(audio-prep): add asset CRUD API routes"
+git add src/lib/audio-prep/AudioAssetService.ts src/app/api/audio/assets/
+git commit -m "feat(audio-prep): add asset CRUD routes with reference-aware delete and quota enforcement"
 ```
 
 ---
@@ -2166,20 +2375,97 @@ case 'asset': {
 }
 ```
 
-**Step 3: Update local render route**
+**Step 3: Update localRenderManager to accept audioPath (CRITICAL)**
 
-In `src/app/api/render/local/route.ts`, accept `assetId` alongside `audioBase64`:
+> `localRenderManager.startLocalRender()` at line 44 currently ONLY accepts
+> `audioBase64: string`. It decodes base64 → writes to temp file → passes path to
+> `renderVideo({ audioPath })`. We must add `audioPath` as an alternative input so
+> asset-based render skips the unnecessary base64 encode/decode round-trip.
+
+In `src/lib/render/localRenderManager.ts`, update the params interface (line 44-51):
+
+```typescript
+export async function startLocalRender(params: {
+  audioBase64?: string;     // CHANGED: optional (one of audioBase64 or audioPath required)
+  audioPath?: string;       // NEW: direct path to prepared asset
+  audioFilename: string;
+  format: string;
+  fps: number;
+  visualConfig: Record<string, unknown>;
+  appUrl?: string;
+}): Promise<string>
+```
+
+Update the audio handling logic (around line 61-64):
+
+```typescript
+let resolvedAudioPath: string;
+if (params.audioPath) {
+  // Asset-based: use path directly, skip base64 decode
+  resolvedAudioPath = params.audioPath;
+} else if (params.audioBase64) {
+  // Legacy: decode base64 to temp file
+  const audioBuffer = Buffer.from(params.audioBase64, 'base64');
+  resolvedAudioPath = path.join(tempDir, params.audioFilename);
+  await fs.writeFile(resolvedAudioPath, audioBuffer);
+} else {
+  throw new Error('Either audioBase64 or audioPath is required');
+}
+```
+
+**Step 4: Update local render route**
+
+In `src/app/api/render/local/route.ts` (line 9-10), accept `assetId`:
 
 ```typescript
 const { audioBase64, audioFilename, assetId, format, fps, visualConfig } = body;
 
 if (assetId) {
+  const { AudioAssetService } = await import('@/lib/audio-prep/AudioAssetService');
   const assetService = new AudioAssetService();
   const audioPath = await assetService.resolveAssetPath(assetId);
-  // Pass resolved path to startLocalRender
+  const jobId = await startLocalRender({
+    audioPath,                    // Direct path, no base64
+    audioFilename: `asset-${assetId}.wav`,
+    format: format || 'flat-1080p-landscape',
+    fps: fps || 30,
+    visualConfig: visualConfig || {},
+    appUrl,
+  });
+  // ... return jobId
 } else if (audioBase64) {
-  // Existing base64 handling
+  // Existing base64 path (unchanged)
 }
+```
+
+**Step 5: Update Modal cloud dispatch (route.ts ~line 242-247)**
+
+> Modal dispatch currently only forwards `audioUrl` and `audioBase64`. For asset-based
+> render, read the prepared.wav and send as base64 (Modal has no access to local disk).
+
+In `src/app/api/render/route.ts`, update the Modal dispatch block:
+
+```typescript
+let audioUrl: string | undefined;
+let audioBase64: string | undefined;
+
+if (input.audio.type === 'url') {
+  audioUrl = input.audio.url;
+} else if (input.audio.type === 'base64') {
+  audioBase64 = input.audio.data;
+} else if (input.audio.type === 'asset') {
+  // Asset: read prepared file and send as base64 to Modal
+  const { promises: fsPromises } = await import('fs');
+  const fileBuffer = await fsPromises.readFile(audioPath);
+  audioBase64 = fileBuffer.toString('base64');
+}
+
+const modalResult = await submitToModal({
+  config: modalConfig,
+  jobId: job.id,
+  audioUrl,
+  audioBase64,
+});
 ```
 
 **Step 4: Run existing tests to verify backward compatibility**
