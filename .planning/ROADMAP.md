@@ -320,7 +320,16 @@ Plans:
   2. All asset artifacts (original, metadata JSON, waveform peaks, preview MP3, prepared WAV) survive a worker restart because they live in R2
   3. User can download any asset or rendered video via a time-limited signed URL without exposing the raw R2 bucket
   4. Existing local development workflow continues to work unchanged (npm run dev still uses filesystem)
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
+
+Plans:
+- [ ] 12-01-PLAN.md -- StorageAdapter interface + LocalStorageAdapter + R2StorageAdapter implementations
+- [ ] 12-02-PLAN.md -- Refactor AudioAssetService and API routes to use StorageAdapter
+- [ ] 12-03-PLAN.md -- Presigned upload/download API routes and R2 CORS configuration
+
+**Wave Structure:**
+- Wave 1: 12-01 (storage adapter foundation)
+- Wave 2: 12-02, 12-03 (wiring + URL routes, parallel)
 
 ---
 
@@ -392,7 +401,7 @@ Plans:
 | 5. n8n Integration | v1.0 | 4/8 | Half Complete | - |
 | 6. YouTube + Multi-Platform | v1.0 | 0/6 | Planned | - |
 | 7. Blender VFX | v1.0 | 0/12 | Not Started | - |
-| 12. Cloud Storage Adapter | v2.0 | 0/? | Not started | - |
+| 12. Cloud Storage Adapter | v2.0 | 0/3 | Planned | - |
 | 13. Job State + Worker Infra | v2.0 | 0/? | Not started | - |
 | 14. API + Worker Processing | v2.0 | 0/? | Not started | - |
 | 15. Modal Render Dispatch | v2.0 | 0/? | Not started | - |
