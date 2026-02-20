@@ -18,6 +18,10 @@ export interface LocalRenderJob {
   stage: string;
   message: string;
   outputPath: string | null;
+  /** Storage key for the uploaded render output (e.g., "renders/{jobId}/filename.mp4") */
+  storageKey: string | null;
+  /** Signed download URL for the rendered video */
+  downloadUrl: string | null;
   error: string | null;
   createdAt: number;
   completedAt: number | null;
@@ -42,7 +46,8 @@ function stripAnsi(text: string): string {
  * Start a local render job
  */
 export async function startLocalRender(params: {
-  audioBase64: string;
+  audioBase64?: string;
+  audioPath?: string;
   audioFilename: string;
   format: string;
   fps: number;
@@ -57,11 +62,20 @@ export async function startLocalRender(params: {
   await fs.mkdir(tempDir, { recursive: true });
   await fs.mkdir(outputDir, { recursive: true });
 
-  // Write audio file
+  // Resolve audio file path
+  let audioPath: string;
   const audioExt = path.extname(params.audioFilename) || '.mp3';
-  const audioPath = path.join(tempDir, `audio${audioExt}`);
-  const audioBuffer = Buffer.from(params.audioBase64, 'base64');
-  await fs.writeFile(audioPath, audioBuffer);
+  if (params.audioPath) {
+    // Asset-based: use path directly, skip base64 decode
+    audioPath = params.audioPath;
+  } else if (params.audioBase64) {
+    // Legacy: decode base64 to temp file
+    audioPath = path.join(tempDir, `audio${audioExt}`);
+    const audioBuffer = Buffer.from(params.audioBase64, 'base64');
+    await fs.writeFile(audioPath, audioBuffer);
+  } else {
+    throw new Error('Either audioBase64 or audioPath is required');
+  }
 
   // Build config
   const baseName = path.basename(params.audioFilename, audioExt);
@@ -89,6 +103,8 @@ export async function startLocalRender(params: {
     stage: 'Preparing...',
     message: 'Starting local render...',
     outputPath,
+    storageKey: null,
+    downloadUrl: null,
     error: null,
     createdAt: Date.now(),
     completedAt: null,
@@ -190,15 +206,34 @@ export async function startLocalRender(params: {
       job.completedAt = Date.now();
     }
 
-    // Cleanup temp dir after a delay (60s to allow inspection on failure)
-    const cleanupDelay = job.status === 'failed' ? 60000 : 5000;
-    setTimeout(async () => {
-      try {
-        await fs.rm(tempDir, { recursive: true, force: true });
-      } catch {
-        // Ignore cleanup errors
-      }
-    }, cleanupDelay);
+    // Upload rendered output to storage (STOR-03) then cleanup
+    if (job.status === 'complete' && outputPath) {
+      uploadRenderToStorage(jobId, outputPath, job).then(() => {
+        // Cleanup temp dir after successful upload
+        setTimeout(async () => {
+          try {
+            await fs.rm(tempDir, { recursive: true, force: true });
+          } catch { /* Ignore cleanup errors */ }
+        }, 5000);
+      }).catch((err) => {
+        console.warn(`[LocalRender] Failed to upload render ${jobId} to storage:`, err);
+        // Don't fail the job -- the local file still exists
+        // Cleanup temp dir after a delay
+        setTimeout(async () => {
+          try {
+            await fs.rm(tempDir, { recursive: true, force: true });
+          } catch { /* Ignore cleanup errors */ }
+        }, 5000);
+      });
+    } else {
+      // Cleanup temp dir after a delay (60s to allow inspection on failure)
+      const cleanupDelay = job.status === 'failed' ? 60000 : 5000;
+      setTimeout(async () => {
+        try {
+          await fs.rm(tempDir, { recursive: true, force: true });
+        } catch { /* Ignore cleanup errors */ }
+      }, cleanupDelay);
+    }
   });
 
   child.on('error', (err) => {
@@ -210,6 +245,30 @@ export async function startLocalRender(params: {
   });
 
   return jobId;
+}
+
+/**
+ * Upload the finished render output to storage (STOR-03).
+ * Updates the job record with storageKey and downloadUrl.
+ * Deletes the local output file after successful upload to avoid disk buildup.
+ */
+async function uploadRenderToStorage(jobId: string, outputPath: string, job: LocalRenderJob): Promise<void> {
+  const { getStorageAdapter } = await import('@/lib/storage');
+  const storage = getStorageAdapter();
+
+  const renderBuffer = await fs.readFile(outputPath);
+  const storageKey = `renders/${jobId}/${path.basename(outputPath)}`;
+
+  await storage.put(storageKey, renderBuffer, { contentType: 'video/mp4' });
+  job.storageKey = storageKey;
+
+  // Generate a signed download URL for client access
+  const downloadUrl = await storage.getSignedUrl(storageKey);
+  job.downloadUrl = downloadUrl;
+
+  // Clean up local output file after successful upload
+  await fs.unlink(outputPath).catch(() => {});
+  console.log(`[LocalRender] Uploaded render ${jobId} to storage: ${storageKey}`);
 }
 
 /** Get a job's current status */
