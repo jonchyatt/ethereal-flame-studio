@@ -170,6 +170,9 @@ export class AudioAssetService {
     for (const asset of assets) {
       const lastUsed = new Date(asset.updatedAt).getTime();
       if (lastUsed < cutoff) {
+        if (await this.isReferenced(asset.assetId)) {
+          continue;
+        }
         await this.deleteAsset(asset.assetId);
         deleted++;
       }

@@ -18,7 +18,7 @@ export const AssetProvenanceSchema = z.object({
   sourceUrl: z.string().optional(),
   sourceVideoId: z.string().optional(),
   rightsAttestedAt: z.string().optional(),
-  ingestToolVersions: z.record(z.string()).optional(),
+  ingestToolVersions: z.record(z.string(), z.string()).optional(),
 });
 
 export type AssetProvenance = z.infer<typeof AssetProvenanceSchema>;

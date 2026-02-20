@@ -17,16 +17,20 @@ export async function probeAudio(filePath: string): Promise<AudioMetadata> {
   const stream = data.streams?.[0];
   const format = data.format;
 
-  if (!stream && !format) {
+  if (!stream) {
     throw new Error(`No audio stream found in ${filePath}`);
   }
 
+  const duration = parseFloat(format?.duration ?? stream?.duration ?? '0');
+  const sampleRate = parseInt(stream?.sample_rate ?? '0', 10);
+  const bitrate = parseInt(format?.bit_rate ?? stream?.bit_rate ?? '0', 10);
+
   return {
-    duration: parseFloat(format?.duration ?? stream?.duration ?? '0'),
-    sampleRate: parseInt(stream?.sample_rate ?? '0', 10),
+    duration: Number.isFinite(duration) ? duration : 0,
+    sampleRate: Number.isFinite(sampleRate) ? sampleRate : 0,
     channels: stream?.channels ?? 0,
     codec: stream?.codec_name ?? 'unknown',
-    bitrate: parseInt(format?.bit_rate ?? stream?.bit_rate ?? '0', 10),
+    bitrate: Number.isFinite(bitrate) ? bitrate : 0,
     format: format?.format_name ?? 'unknown',
   };
 }

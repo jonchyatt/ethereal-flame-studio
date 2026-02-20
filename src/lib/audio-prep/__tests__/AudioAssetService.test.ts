@@ -167,4 +167,34 @@ describe('AudioAssetService', () => {
     expect(deleted).toBe(1);
     expect(await shortTtlService.getAsset(created.assetId)).toBeNull();
   });
+
+  test('cleanupExpired skips stale assets that are still referenced', async () => {
+    const shortTtlService = new AudioAssetService({ assetsDir: testDir, ttlDays: 0 });
+
+    const source = await shortTtlService.createAsset(Buffer.from('src'), 'src.wav', {
+      sourceType: 'audio_file',
+    });
+    const consumer = await shortTtlService.createAsset(Buffer.from('dst'), 'dst.wav', {
+      sourceType: 'audio_file',
+    });
+
+    const editsPath = path.join(testDir, consumer.assetId, 'edits.json');
+    await fs.writeFile(editsPath, JSON.stringify({
+      clips: [{ sourceAssetId: source.assetId, startTime: 0, endTime: 1 }],
+    }));
+
+    const sourceMetadataPath = path.join(testDir, source.assetId, 'metadata.json');
+    const sourceMeta = JSON.parse(await fs.readFile(sourceMetadataPath, 'utf-8'));
+    sourceMeta.updatedAt = '2020-01-01T00:00:00.000Z';
+    await fs.writeFile(sourceMetadataPath, JSON.stringify(sourceMeta));
+
+    const consumerMetadataPath = path.join(testDir, consumer.assetId, 'metadata.json');
+    const consumerMeta = JSON.parse(await fs.readFile(consumerMetadataPath, 'utf-8'));
+    consumerMeta.updatedAt = '2999-01-01T00:00:00.000Z';
+    await fs.writeFile(consumerMetadataPath, JSON.stringify(consumerMeta));
+
+    const deleted = await shortTtlService.cleanupExpired();
+    expect(deleted).toBe(0);
+    expect(await shortTtlService.getAsset(source.assetId)).not.toBeNull();
+  });
 });

@@ -43,6 +43,58 @@ export const RenderConfigSchema = z.object({
     skyboxAudioReactiveEnabled: z.boolean().optional(),
     skyboxAudioReactivity: z.number().optional(),
     skyboxDriftSpeed: z.number().optional(),
+    skyboxMode: z.enum(['shader', 'video'] as const).optional(),
+    skyboxVideoUrl: z.string().nullable().optional(),
+    skyboxVideoYaw: z.number().optional(),
+    skyboxVideoPitch: z.number().optional(),
+    skyboxMaskMode: z.enum(['none', 'luma', 'chroma'] as const).optional(),
+    skyboxMaskThreshold: z.number().optional(),
+    skyboxMaskSoftness: z.number().optional(),
+    skyboxMaskColor: z.string().optional(),
+    skyboxMaskPreviewMode: z.enum(['tint', 'matte'] as const).optional(),
+    skyboxMaskInvert: z.boolean().optional(),
+    skyboxRectMaskEnabled: z.boolean().optional(),
+    skyboxRectMaskU: z.number().optional(),
+    skyboxRectMaskV: z.number().optional(),
+    skyboxRectMaskWidth: z.number().optional(),
+    skyboxRectMaskHeight: z.number().optional(),
+    skyboxRectMaskSoftness: z.number().optional(),
+    skyboxRectMaskInvert: z.boolean().optional(),
+    skyboxSeamBlendEnabled: z.boolean().optional(),
+    skyboxSeamBlendWidth: z.number().optional(),
+    skyboxHoleFixEnabled: z.boolean().optional(),
+    skyboxHoleFixThreshold: z.number().optional(),
+    skyboxHoleFixSoftness: z.number().optional(),
+    skyboxPoleFadeEnabled: z.boolean().optional(),
+    skyboxPoleFadeStart: z.number().optional(),
+    skyboxPoleFadeSoftness: z.number().optional(),
+    skyboxPatchEnabled: z.boolean().optional(),
+    skyboxPatchU: z.number().optional(),
+    skyboxPatchV: z.number().optional(),
+    skyboxPatchRadius: z.number().optional(),
+    skyboxPatchSoftness: z.number().optional(),
+    skyboxPatch2Enabled: z.boolean().optional(),
+    skyboxPatch2U: z.number().optional(),
+    skyboxPatch2V: z.number().optional(),
+    skyboxPatch2Radius: z.number().optional(),
+    skyboxPatch2Softness: z.number().optional(),
+    skyboxPatch3Enabled: z.boolean().optional(),
+    skyboxPatch3U: z.number().optional(),
+    skyboxPatch3V: z.number().optional(),
+    skyboxPatch3Radius: z.number().optional(),
+    skyboxPatch3Softness: z.number().optional(),
+    skyboxPatch4Enabled: z.boolean().optional(),
+    skyboxPatch4U: z.number().optional(),
+    skyboxPatch4V: z.number().optional(),
+    skyboxPatch4Radius: z.number().optional(),
+    skyboxPatch4Softness: z.number().optional(),
+    skyboxPoleLogoEnabled: z.boolean().optional(),
+    skyboxPoleLogoUrl: z.string().nullable().optional(),
+    skyboxPoleLogoSize: z.number().optional(),
+    skyboxPoleLogoOpacity: z.number().optional(),
+    skyboxPoleLogoAutoScale: z.boolean().optional(),
+    vrComfortMode: z.boolean().optional(),
+    vrDebugOverlayEnabled: z.boolean().optional(),
     waterEnabled: z.boolean(),
     waterColor: z.string(),
     waterReflectivity: z.number().min(0).max(1),
@@ -71,7 +123,10 @@ export const RenderConfigSchema = z.object({
       maxSpeed: z.number(),
       lifetime: z.number(),
       audioReactivity: z.number(),
-      frequencyBand: z.enum(['bass', 'mids', 'treble', 'all']),
+      // Accept legacy aliases while normalizing to canonical store values.
+      frequencyBand: z
+        .enum(['bass', 'mids', 'treble', 'mid', 'high', 'all'])
+        .transform((band) => (band === 'mid' ? 'mids' : band === 'high' ? 'treble' : band)),
       sizeAtBirth: z.number(),
       sizeAtPeak: z.number(),
       sizeAtDeath: z.number(),
@@ -89,6 +144,185 @@ export const RenderConfigSchema = z.object({
 });
 
 export type RenderConfig = z.infer<typeof RenderConfigSchema>;
+
+export interface RenderConfigVisualState {
+  currentMode: VisualMode;
+  intensity: number;
+  skyboxPreset: { key: string };
+  skyboxRotationSpeed: number;
+  skyboxAudioReactiveEnabled: boolean;
+  skyboxAudioReactivity: number;
+  skyboxDriftSpeed: number;
+  skyboxMode: 'shader' | 'video';
+  skyboxVideoUrl: string | null;
+  skyboxVideoYaw: number;
+  skyboxVideoPitch: number;
+  skyboxMaskMode: 'none' | 'luma' | 'chroma';
+  skyboxMaskThreshold: number;
+  skyboxMaskSoftness: number;
+  skyboxMaskColor: string;
+  skyboxMaskPreviewMode: 'tint' | 'matte';
+  skyboxMaskInvert: boolean;
+  skyboxRectMaskEnabled: boolean;
+  skyboxRectMaskU: number;
+  skyboxRectMaskV: number;
+  skyboxRectMaskWidth: number;
+  skyboxRectMaskHeight: number;
+  skyboxRectMaskSoftness: number;
+  skyboxRectMaskInvert: boolean;
+  skyboxSeamBlendEnabled: boolean;
+  skyboxSeamBlendWidth: number;
+  skyboxHoleFixEnabled: boolean;
+  skyboxHoleFixThreshold: number;
+  skyboxHoleFixSoftness: number;
+  skyboxPoleFadeEnabled: boolean;
+  skyboxPoleFadeStart: number;
+  skyboxPoleFadeSoftness: number;
+  skyboxPatchEnabled: boolean;
+  skyboxPatchU: number;
+  skyboxPatchV: number;
+  skyboxPatchRadius: number;
+  skyboxPatchSoftness: number;
+  skyboxPatch2Enabled: boolean;
+  skyboxPatch2U: number;
+  skyboxPatch2V: number;
+  skyboxPatch2Radius: number;
+  skyboxPatch2Softness: number;
+  skyboxPatch3Enabled: boolean;
+  skyboxPatch3U: number;
+  skyboxPatch3V: number;
+  skyboxPatch3Radius: number;
+  skyboxPatch3Softness: number;
+  skyboxPatch4Enabled: boolean;
+  skyboxPatch4U: number;
+  skyboxPatch4V: number;
+  skyboxPatch4Radius: number;
+  skyboxPatch4Softness: number;
+  skyboxPoleLogoEnabled: boolean;
+  skyboxPoleLogoUrl: string | null;
+  skyboxPoleLogoSize: number;
+  skyboxPoleLogoOpacity: number;
+  skyboxPoleLogoAutoScale: boolean;
+  vrComfortMode: boolean;
+  vrDebugOverlayEnabled: boolean;
+  waterEnabled: boolean;
+  waterColor: string;
+  waterReflectivity: number;
+  cameraOrbitEnabled: boolean;
+  cameraOrbitRenderOnly: boolean;
+  cameraOrbitSpeed: number;
+  cameraOrbitRadius: number;
+  cameraOrbitHeight: number;
+  cameraLookAtOrb: boolean;
+  orbAnchorMode: 'viewer' | 'world';
+  orbDistance: number;
+  orbHeight: number;
+  orbSideOffset: number;
+  orbWorldX: number;
+  orbWorldY: number;
+  orbWorldZ: number;
+  layers: ParticleLayerConfig[];
+}
+
+export function buildVisualConfigFromState(visualState: RenderConfigVisualState): RenderConfig['visual'] {
+  const config: RenderConfig['visual'] = {
+    mode: visualState.currentMode === 'etherealFlame' ? 'flame' : 'mist',
+    intensity: visualState.intensity,
+    skyboxPreset: visualState.skyboxPreset.key,
+    skyboxRotationSpeed: visualState.skyboxRotationSpeed,
+    skyboxAudioReactiveEnabled: visualState.skyboxAudioReactiveEnabled,
+    skyboxAudioReactivity: visualState.skyboxAudioReactivity,
+    skyboxDriftSpeed: visualState.skyboxDriftSpeed,
+    skyboxMode: visualState.skyboxMode,
+    skyboxVideoUrl: visualState.skyboxVideoUrl,
+    skyboxVideoYaw: visualState.skyboxVideoYaw,
+    skyboxVideoPitch: visualState.skyboxVideoPitch,
+    skyboxMaskMode: visualState.skyboxMaskMode,
+    skyboxMaskThreshold: visualState.skyboxMaskThreshold,
+    skyboxMaskSoftness: visualState.skyboxMaskSoftness,
+    skyboxMaskColor: visualState.skyboxMaskColor,
+    skyboxMaskPreviewMode: visualState.skyboxMaskPreviewMode,
+    skyboxMaskInvert: visualState.skyboxMaskInvert,
+    skyboxRectMaskEnabled: visualState.skyboxRectMaskEnabled,
+    skyboxRectMaskU: visualState.skyboxRectMaskU,
+    skyboxRectMaskV: visualState.skyboxRectMaskV,
+    skyboxRectMaskWidth: visualState.skyboxRectMaskWidth,
+    skyboxRectMaskHeight: visualState.skyboxRectMaskHeight,
+    skyboxRectMaskSoftness: visualState.skyboxRectMaskSoftness,
+    skyboxRectMaskInvert: visualState.skyboxRectMaskInvert,
+    skyboxSeamBlendEnabled: visualState.skyboxSeamBlendEnabled,
+    skyboxSeamBlendWidth: visualState.skyboxSeamBlendWidth,
+    skyboxHoleFixEnabled: visualState.skyboxHoleFixEnabled,
+    skyboxHoleFixThreshold: visualState.skyboxHoleFixThreshold,
+    skyboxHoleFixSoftness: visualState.skyboxHoleFixSoftness,
+    skyboxPoleFadeEnabled: visualState.skyboxPoleFadeEnabled,
+    skyboxPoleFadeStart: visualState.skyboxPoleFadeStart,
+    skyboxPoleFadeSoftness: visualState.skyboxPoleFadeSoftness,
+    skyboxPatchEnabled: visualState.skyboxPatchEnabled,
+    skyboxPatchU: visualState.skyboxPatchU,
+    skyboxPatchV: visualState.skyboxPatchV,
+    skyboxPatchRadius: visualState.skyboxPatchRadius,
+    skyboxPatchSoftness: visualState.skyboxPatchSoftness,
+    skyboxPatch2Enabled: visualState.skyboxPatch2Enabled,
+    skyboxPatch2U: visualState.skyboxPatch2U,
+    skyboxPatch2V: visualState.skyboxPatch2V,
+    skyboxPatch2Radius: visualState.skyboxPatch2Radius,
+    skyboxPatch2Softness: visualState.skyboxPatch2Softness,
+    skyboxPatch3Enabled: visualState.skyboxPatch3Enabled,
+    skyboxPatch3U: visualState.skyboxPatch3U,
+    skyboxPatch3V: visualState.skyboxPatch3V,
+    skyboxPatch3Radius: visualState.skyboxPatch3Radius,
+    skyboxPatch3Softness: visualState.skyboxPatch3Softness,
+    skyboxPatch4Enabled: visualState.skyboxPatch4Enabled,
+    skyboxPatch4U: visualState.skyboxPatch4U,
+    skyboxPatch4V: visualState.skyboxPatch4V,
+    skyboxPatch4Radius: visualState.skyboxPatch4Radius,
+    skyboxPatch4Softness: visualState.skyboxPatch4Softness,
+    skyboxPoleLogoEnabled: visualState.skyboxPoleLogoEnabled,
+    skyboxPoleLogoUrl: visualState.skyboxPoleLogoUrl,
+    skyboxPoleLogoSize: visualState.skyboxPoleLogoSize,
+    skyboxPoleLogoOpacity: visualState.skyboxPoleLogoOpacity,
+    skyboxPoleLogoAutoScale: visualState.skyboxPoleLogoAutoScale,
+    vrComfortMode: visualState.vrComfortMode,
+    vrDebugOverlayEnabled: visualState.vrDebugOverlayEnabled,
+    waterEnabled: visualState.waterEnabled,
+    waterColor: visualState.waterColor,
+    waterReflectivity: visualState.waterReflectivity,
+    cameraOrbitEnabled: visualState.cameraOrbitEnabled,
+    cameraOrbitRenderOnly: visualState.cameraOrbitRenderOnly,
+    cameraOrbitSpeed: visualState.cameraOrbitSpeed,
+    cameraOrbitRadius: visualState.cameraOrbitRadius,
+    cameraOrbitHeight: visualState.cameraOrbitHeight,
+    cameraLookAtOrb: visualState.cameraLookAtOrb,
+    orbAnchorMode: visualState.orbAnchorMode,
+    orbDistance: visualState.orbDistance,
+    orbHeight: visualState.orbHeight,
+    orbSideOffset: visualState.orbSideOffset,
+    orbWorldX: visualState.orbWorldX,
+    orbWorldY: visualState.orbWorldY,
+    orbWorldZ: visualState.orbWorldZ,
+    layers: visualState.layers.map(layer => ({
+      id: layer.id,
+      name: layer.name,
+      enabled: layer.enabled,
+      particleCount: layer.particleCount,
+      baseSize: layer.baseSize,
+      spawnRadius: layer.spawnRadius,
+      maxSpeed: layer.maxSpeed,
+      lifetime: layer.lifetime,
+      audioReactivity: layer.audioReactivity,
+      frequencyBand: layer.frequencyBand,
+      sizeAtBirth: layer.sizeAtBirth,
+      sizeAtPeak: layer.sizeAtPeak,
+      sizeAtDeath: layer.sizeAtDeath,
+      peakLifetime: layer.peakLifetime,
+      colorStart: layer.colorStart,
+      colorEnd: layer.colorEnd,
+    })),
+  };
+
+  return config;
+}
 
 /**
  * Validate a config object
@@ -115,80 +349,13 @@ export function createConfigFromState(
   outputPath: string,
   format: LocalOutputFormat,
   fps: 30 | 60,
-  visualState: {
-    currentMode: VisualMode;
-    intensity: number;
-    skyboxPreset: { key: string };
-    skyboxRotationSpeed: number;
-    skyboxAudioReactiveEnabled: boolean;
-    skyboxAudioReactivity: number;
-    skyboxDriftSpeed: number;
-    waterEnabled: boolean;
-    waterColor: string;
-    waterReflectivity: number;
-    cameraOrbitEnabled: boolean;
-    cameraOrbitRenderOnly: boolean;
-    cameraOrbitSpeed: number;
-    cameraOrbitRadius: number;
-    cameraOrbitHeight: number;
-    cameraLookAtOrb: boolean;
-    orbAnchorMode: 'viewer' | 'world';
-    orbDistance: number;
-    orbHeight: number;
-    orbSideOffset: number;
-    orbWorldX: number;
-    orbWorldY: number;
-    orbWorldZ: number;
-    layers: ParticleLayerConfig[];
-  }
+  visualState: RenderConfigVisualState
 ): RenderConfig {
   return {
     version: '1.0',
     audio: { path: audioPath },
     output: { path: outputPath, format, fps },
-    visual: {
-      mode: visualState.currentMode === 'etherealFlame' ? 'flame' : 'mist',
-      intensity: visualState.intensity,
-      skyboxPreset: visualState.skyboxPreset.key,
-      skyboxRotationSpeed: visualState.skyboxRotationSpeed,
-      skyboxAudioReactiveEnabled: visualState.skyboxAudioReactiveEnabled,
-      skyboxAudioReactivity: visualState.skyboxAudioReactivity,
-      skyboxDriftSpeed: visualState.skyboxDriftSpeed,
-      waterEnabled: visualState.waterEnabled,
-      waterColor: visualState.waterColor,
-      waterReflectivity: visualState.waterReflectivity,
-      cameraOrbitEnabled: visualState.cameraOrbitEnabled,
-      cameraOrbitRenderOnly: visualState.cameraOrbitRenderOnly,
-      cameraOrbitSpeed: visualState.cameraOrbitSpeed,
-      cameraOrbitRadius: visualState.cameraOrbitRadius,
-      cameraOrbitHeight: visualState.cameraOrbitHeight,
-      cameraLookAtOrb: visualState.cameraLookAtOrb,
-      orbAnchorMode: visualState.orbAnchorMode,
-      orbDistance: visualState.orbDistance,
-      orbHeight: visualState.orbHeight,
-      orbSideOffset: visualState.orbSideOffset,
-      orbWorldX: visualState.orbWorldX,
-      orbWorldY: visualState.orbWorldY,
-      orbWorldZ: visualState.orbWorldZ,
-      layers: visualState.layers.map(layer => ({
-        id: layer.id,
-        name: layer.name,
-        enabled: layer.enabled,
-        particleCount: layer.particleCount,
-        baseSize: layer.baseSize,
-        spawnRadius: layer.spawnRadius,
-        maxSpeed: layer.maxSpeed,
-        lifetime: layer.lifetime,
-        audioReactivity: layer.audioReactivity,
-        frequencyBand: layer.frequencyBand,
-        sizeAtBirth: layer.sizeAtBirth,
-        sizeAtPeak: layer.sizeAtPeak,
-        sizeAtDeath: layer.sizeAtDeath,
-        peakLifetime: layer.peakLifetime,
-        colorStart: layer.colorStart,
-        colorEnd: layer.colorEnd,
-      })),
-    },
+    visual: buildVisualConfigFromState(visualState),
   };
 }
 
