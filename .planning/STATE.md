@@ -18,11 +18,11 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 12 of 16 (Cloud Storage Adapter)
-Plan: 0 of ? in current phase (not yet planned)
-Status: Ready to plan
-Last activity: 2026-02-20 -- v2.0 roadmap created with 5 phases (12-16)
+Plan: 1 of 3 in current phase
+Status: Executing
+Last activity: 2026-02-20 -- Completed 12-01 (StorageAdapter interface + implementations)
 
-Progress: [##########..........] 50% (v1.0 complete, v2.0 starting)
+Progress: [##########..........] 52% (v2.0 phase 12: 1/3 plans complete)
 
 ---
 
@@ -34,8 +34,12 @@ Progress: [##########..........] 50% (v1.0 complete, v2.0 starting)
 - Audio Prep MVP shipped on feature branch
 
 **v2.0:**
-- Plans completed: 0
+- Plans completed: 1
 - Phases remaining: 5 (12-16)
+
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 12    | 01   | 7min     | 2     | 6     |
 
 ---
 
@@ -48,10 +52,14 @@ Progress: [##########..........] 50% (v1.0 complete, v2.0 starting)
 - Turso polling (not Redis/BullMQ) -- simpler, $0 cost, sufficient at launch
 - Cloudflare R2 for storage -- free egress, S3-compatible
 - Storage adapter pattern -- local dev continues unchanged
+- Dynamic require() for conditional SDK loading -- keeps @aws-sdk out of local dev bundle
+- Singleton factory with resetStorageAdapter() for test isolation
+- R2 presigned URLs: 7-day download, 1-hour upload defaults
 
 ### Technical Context
 
-- AudioAssetService uses filesystem (`./audio-assets/{assetId}/`) -- needs R2 adapter
+- StorageAdapter interface implemented at `src/lib/storage/` with Local + R2 backends
+- AudioAssetService uses filesystem (`./audio-assets/{assetId}/`) -- needs R2 adapter (plan 12-02)
 - JobManager uses better-sqlite3 with WAL -- needs Turso adapter
 - Render pipeline partially wired to Modal (gated behind env var)
 - Drizzle ORM already in project for Turso/libsql
@@ -66,9 +74,9 @@ Progress: [##########..........] 50% (v1.0 complete, v2.0 starting)
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Phase 12 context gathered
-Resume file: .planning/phases/12-cloud-storage-adapter/12-CONTEXT.md
+Stopped at: Completed 12-01-PLAN.md (StorageAdapter interface + implementations)
+Resume file: .planning/phases/12-cloud-storage-adapter/12-01-SUMMARY.md
 
 ---
 
-*Last updated: 2026-02-20 -- Phase 12 context gathered*
+*Last updated: 2026-02-20 -- Phase 12 plan 01 complete*
