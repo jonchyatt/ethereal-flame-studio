@@ -34,3 +34,6 @@ data/*.db-shm
 
 # Modal Python cache
 modal_app/__pycache__/
+
+# Audio prep assets (local storage)
+audio-assets/
