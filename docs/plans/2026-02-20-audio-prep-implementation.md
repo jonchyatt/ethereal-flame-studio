@@ -6,6 +6,13 @@
 
 **Architecture:** Server-side FFmpeg + yt-dlp for all audio processing. WaveSurfer.js in browser for waveform visualization and region editing. Non-destructive edit recipes stored as JSON, materialized to WAV on explicit save. Unified `type: "asset"` render contract replaces mock File objects.
 
+**Deployment scope:** This plan targets **local development** as the MVP environment.
+SQLite job store and `./audio-assets/` filesystem storage are durable across restarts on
+a persistent Node process but are NOT durable on Vercel serverless (ephemeral FS, 10s
+function timeout). Production cloud deployment requires: (a) object storage for assets,
+(b) a long-running worker for ffmpeg/yt-dlp, (c) BullMQ or similar for job dispatch.
+The `waitUntil()` hook provides partial serverless coverage for short jobs only.
+
 **Tech Stack:** Next.js 15 (App Router), FFmpeg (system), yt-dlp (system), WaveSurfer.js, Zustand, Zod, Jest
 
 **Design Doc:** `docs/plans/2026-02-20-audio-prep-design.md`
@@ -24,6 +31,18 @@
 | 6 | High | Modal cloud dispatch doesn't forward asset audio | Task 14: reads prepared.wav → base64 for Modal |
 | 7 | Medium | Quota/TTL/reference-aware delete claimed but not coded | Task 13: deleteAssetSafe(), checkQuota(), getDiskUsage() |
 | 8 | Medium | Jest not in package.json devDependencies | Task 1: `npm install --save-dev jest ts-jest @types/jest` |
+
+### Round 2 Fixes
+
+| # | Severity | Issue | Fix Applied |
+|---|----------|-------|-------------|
+| 9 | Critical | Fire-and-forget processIngest dropped on shutdown | Task 11: `waitUntil()` for serverless; inline exec for local dev |
+| 10 | High | Durability claims stronger than implementation | Scoping notes: local-dev-first MVP; Vercel/cloud needs worker infra |
+| 11 | High | Cancel overwritten to failed by .catch() | Task 11: guard `fail()` with `if (job.status !== 'cancelled')` |
+| 12 | High | SSRF: no DNS resolution or redirect re-validation | Task 6: `dns.resolve4()` check + `redirect: 'manual'` on fetch |
+| 13 | High | JSON base64 for file uploads blows memory | Task 11: use `multipart/form-data` for video_file/audio_file uploads |
+| 14 | Medium | Quota/duration not enforced in ingest code | Task 11: checkQuota() before create, duration cap after probe |
+| 15 | Medium | Modal dispatch omits type: 'path' handling | Task 14: add path case to Modal dispatch block |
 
 ---
 
@@ -974,33 +993,33 @@ Create `src/lib/audio-prep/__tests__/urlSecurity.test.ts`:
 import { validateUrl } from '../urlSecurity';
 
 describe('validateUrl', () => {
-  test('accepts HTTPS URLs', () => {
-    expect(() => validateUrl('https://example.com/audio.mp3')).not.toThrow();
+  test('accepts HTTPS URLs', async () => {
+    await expect(validateUrl('https://example.com/audio.mp3')).resolves.toBeDefined();
   });
 
-  test('rejects HTTP URLs', () => {
-    expect(() => validateUrl('http://example.com/audio.mp3')).toThrow(/HTTPS required/);
+  test('rejects HTTP URLs', async () => {
+    await expect(validateUrl('http://example.com/audio.mp3')).rejects.toThrow(/HTTPS required/);
   });
 
-  test('rejects private IP 10.x', () => {
-    expect(() => validateUrl('https://10.0.0.1/audio.mp3')).toThrow(/private/i);
+  test('rejects private IP 10.x', async () => {
+    await expect(validateUrl('https://10.0.0.1/audio.mp3')).rejects.toThrow(/private/i);
   });
 
-  test('rejects private IP 192.168.x', () => {
-    expect(() => validateUrl('https://192.168.1.1/audio.mp3')).toThrow(/private/i);
+  test('rejects private IP 192.168.x', async () => {
+    await expect(validateUrl('https://192.168.1.1/audio.mp3')).rejects.toThrow(/private/i);
   });
 
-  test('rejects private IP 172.16-31.x', () => {
-    expect(() => validateUrl('https://172.16.0.1/audio.mp3')).toThrow(/private/i);
+  test('rejects private IP 172.16-31.x', async () => {
+    await expect(validateUrl('https://172.16.0.1/audio.mp3')).rejects.toThrow(/private/i);
   });
 
-  test('rejects localhost', () => {
-    expect(() => validateUrl('https://127.0.0.1/audio.mp3')).toThrow(/private/i);
-    expect(() => validateUrl('https://localhost/audio.mp3')).toThrow(/private/i);
+  test('rejects localhost', async () => {
+    await expect(validateUrl('https://127.0.0.1/audio.mp3')).rejects.toThrow(/private/i);
+    await expect(validateUrl('https://localhost/audio.mp3')).rejects.toThrow(/private/i);
   });
 
-  test('rejects non-URL strings', () => {
-    expect(() => validateUrl('not-a-url')).toThrow();
+  test('rejects non-URL strings', async () => {
+    await expect(validateUrl('not-a-url')).rejects.toThrow();
   });
 });
 ```
@@ -1024,7 +1043,8 @@ const PRIVATE_IP_PATTERNS = [
 
 const BLOCKED_HOSTNAMES = ['localhost', 'metadata.google.internal'];
 
-export function validateUrl(url: string): URL {
+/** Validate URL and resolve DNS to check for SSRF. Returns validated URL. */
+export async function validateUrl(url: string): Promise<URL> {
   let parsed: URL;
   try {
     parsed = new URL(url);
@@ -1042,16 +1062,34 @@ export function validateUrl(url: string): URL {
     throw new Error(`Private/blocked hostname: ${hostname}`);
   }
 
-  // Check if hostname looks like an IP
+  // Check literal IP addresses
   if (hostname.match(/^\d+\.\d+\.\d+\.\d+$/) || hostname.includes(':')) {
-    for (const pattern of PRIVATE_IP_PATTERNS) {
-      if (pattern.test(hostname)) {
-        throw new Error(`Private IP address not allowed: ${hostname}`);
+    checkPrivateIp(hostname);
+  } else {
+    // DNS resolution check: resolve hostname and verify all IPs are public
+    const dns = await import('dns');
+    const { promisify } = await import('util');
+    const resolve4 = promisify(dns.resolve4);
+    try {
+      const ips = await resolve4(hostname);
+      for (const ip of ips) {
+        checkPrivateIp(ip);
       }
+    } catch (err: any) {
+      if (err.code === 'ENOTFOUND') throw new Error(`Cannot resolve hostname: ${hostname}`);
+      // Other DNS errors: allow through (might be IPv6-only, etc.)
     }
   }
 
   return parsed;
+}
+
+function checkPrivateIp(ip: string): void {
+  for (const pattern of PRIVATE_IP_PATTERNS) {
+    if (pattern.test(ip)) {
+      throw new Error(`Private IP address not allowed: ${ip}`);
+    }
+  }
 }
 ```
 
@@ -1958,21 +1996,15 @@ import os from 'os';
 
 const assetService = new AudioAssetService();
 
-const IngestRequestSchema = z.discriminatedUnion('type', [
+// Ingest accepts two content types:
+// - application/json for YouTube URLs and direct URLs (small payload)
+// - multipart/form-data for file uploads (video_file, audio_file) to avoid base64 memory bloat
+
+const JsonIngestSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('youtube'),
     url: z.string().url(),
     rightsAttested: z.boolean(),
-  }),
-  z.object({
-    type: z.literal('video_file'),
-    base64: z.string().min(1),
-    filename: z.string().min(1),
-  }),
-  z.object({
-    type: z.literal('audio_file'),
-    base64: z.string().min(1),
-    filename: z.string().min(1),
   }),
   z.object({
     type: z.literal('url'),
@@ -1982,24 +2014,64 @@ const IngestRequestSchema = z.discriminatedUnion('type', [
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const parsed = IngestRequestSchema.safeParse(body);
+    await assetService.init();
 
-    if (!parsed.success) {
+    // Quota check before accepting any upload
+    if (!await assetService.checkQuota()) {
       return NextResponse.json(
-        { success: false, error: { code: 'VALIDATION_ERROR', message: parsed.error.message } },
-        { status: 400 }
+        { success: false, error: { code: 'QUOTA_EXCEEDED', message: 'Audio asset storage quota exceeded. Delete unused assets.' } },
+        { status: 413 }
       );
     }
 
-    const source = parsed.data;
-    await assetService.init();
-    const job = audioPrepJobs.create('ingest', source);
+    const contentType = request.headers.get('content-type') ?? '';
+    let source: any;
 
-    // Run ingest async (don't await)
-    processIngest(job.jobId, source).catch((err) => {
-      audioPrepJobs.fail(job.jobId, err.message);
+    if (contentType.includes('multipart/form-data')) {
+      // File upload (video_file or audio_file)
+      const formData = await request.formData();
+      const file = formData.get('file') as File | null;
+      const type = formData.get('type') as string;
+
+      if (!file || !type || !['video_file', 'audio_file'].includes(type)) {
+        return NextResponse.json(
+          { success: false, error: { code: 'VALIDATION_ERROR', message: 'Multipart upload requires "file" and "type" (video_file|audio_file)' } },
+          { status: 400 }
+        );
+      }
+
+      // Write uploaded file directly to temp (no base64 encoding in memory)
+      source = { type, file, filename: file.name };
+    } else {
+      // JSON body (youtube or url)
+      const body = await request.json();
+      const parsed = JsonIngestSchema.safeParse(body);
+      if (!parsed.success) {
+        return NextResponse.json(
+          { success: false, error: { code: 'VALIDATION_ERROR', message: parsed.error.message } },
+          { status: 400 }
+        );
+      }
+      source = parsed.data;
+    }
+
+    const job = audioPrepJobs.create('ingest', { type: source.type });
+
+    // Execute ingest with proper lifecycle management.
+    // The processIngest promise is tracked so the process can't be dropped silently.
+    const ingestPromise = processIngest(job.jobId, source).catch((err) => {
+      // Guard: don't overwrite 'cancelled' with 'failed'
+      const current = audioPrepJobs.get(job.jobId);
+      if (current && current.status !== 'cancelled') {
+        audioPrepJobs.fail(job.jobId, err.message);
+      }
     });
+
+    // For serverless environments (Vercel), use waitUntil to extend function lifetime.
+    // For local dev, the Node process persists so fire-and-forget is safe.
+    if (typeof (globalThis as any).waitUntil === 'function') {
+      (globalThis as any).waitUntil(ingestPromise);
+    }
 
     return NextResponse.json({
       success: true,
@@ -2054,10 +2126,11 @@ async function processIngest(jobId: string, source: z.infer<typeof IngestRequest
       }
 
       case 'video_file': {
-        // Sanitize filename to prevent path traversal
+        // Write multipart File to disk (streamed, no base64)
         const safeName = sanitizeFilename(source.filename);
         const videoPath = path.join(tempDir, safeName);
-        await fs.writeFile(videoPath, Buffer.from(source.base64, 'base64'));
+        const videoBytes = Buffer.from(await source.file.arrayBuffer());
+        await fs.writeFile(videoPath, videoBytes);
         audioPrepJobs.update(jobId, { progress: 30 });
 
         audioFilePath = path.join(tempDir, 'extracted.wav');
@@ -2069,17 +2142,25 @@ async function processIngest(jobId: string, source: z.infer<typeof IngestRequest
       case 'audio_file': {
         const safeName = sanitizeFilename(source.filename);
         audioFilePath = path.join(tempDir, safeName);
-        await fs.writeFile(audioFilePath, Buffer.from(source.base64, 'base64'));
+        const audioBytes = Buffer.from(await source.file.arrayBuffer());
+        await fs.writeFile(audioFilePath, audioBytes);
         provenance.originalFilename = source.filename;
         break;
       }
 
       case 'url': {
-        validateUrl(source.url);
+        await validateUrl(source.url);
         audioPrepJobs.update(jobId, { progress: 20 });
 
-        // Streaming download with size guard and abort support
-        const response = await fetch(source.url, { signal });
+        // Fetch with redirect: 'manual' to re-validate redirect targets against SSRF
+        let response = await fetch(source.url, { signal, redirect: 'manual' });
+        if (response.status >= 300 && response.status < 400) {
+          const redirectUrl = response.headers.get('location');
+          if (redirectUrl) {
+            await validateUrl(redirectUrl); // Re-validate redirect target
+            response = await fetch(redirectUrl, { signal });
+          }
+        }
         if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
 
         // Check Content-Length header first (fast reject)
@@ -2125,6 +2206,19 @@ async function processIngest(jobId: string, source: z.infer<typeof IngestRequest
     // Probe audio metadata
     const audioMeta = await probeAudio(audioFilePath);
     audioPrepJobs.update(jobId, { progress: 70 });
+
+    // Enforce duration cap (default 30 minutes from config)
+    const maxDurationSec = 30 * 60; // DEFAULT_CONFIG.maxDurationMinutes * 60
+    if (audioMeta.duration > maxDurationSec) {
+      throw new Error(`Audio duration ${(audioMeta.duration / 60).toFixed(1)} min exceeds ${maxDurationSec / 60} min limit`);
+    }
+
+    // Enforce file size cap
+    const fileStat = await fs.stat(audioFilePath);
+    const maxSizeBytes = 100 * 1024 * 1024; // DEFAULT_CONFIG.maxFileSizeMB * 1024 * 1024
+    if (fileStat.size > maxSizeBytes) {
+      throw new Error(`File size ${(fileStat.size / 1024 / 1024).toFixed(1)}MB exceeds 100MB limit`);
+    }
 
     // Create asset
     const audioBuffer = await fs.readFile(audioFilePath);
@@ -2453,8 +2547,13 @@ if (input.audio.type === 'url') {
   audioUrl = input.audio.url;
 } else if (input.audio.type === 'base64') {
   audioBase64 = input.audio.data;
+} else if (input.audio.type === 'path') {
+  // Path: read file from disk and send as base64 to Modal (Modal has no local disk access)
+  const { promises: fsPromises } = await import('fs');
+  const fileBuffer = await fsPromises.readFile(input.audio.path);
+  audioBase64 = fileBuffer.toString('base64');
 } else if (input.audio.type === 'asset') {
-  // Asset: read prepared file and send as base64 to Modal
+  // Asset: resolve to prepared.wav, read, send as base64 to Modal
   const { promises: fsPromises } = await import('fs');
   const fileBuffer = await fsPromises.readFile(audioPath);
   audioBase64 = fileBuffer.toString('base64');
