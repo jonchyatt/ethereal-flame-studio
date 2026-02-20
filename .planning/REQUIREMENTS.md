@@ -16,7 +16,7 @@ All v1.0 requirements shipped in Phases 1-5. See MILESTONES.md for details.
 
 ## v2.0 Requirements
 
-Requirements for cloud production deployment. Each maps to roadmap phases.
+Requirements for cloud production deployment. Each maps to roadmap phases 12-16.
 
 ### Storage
 
@@ -76,8 +76,8 @@ Requirements for cloud production deployment. Each maps to roadmap phases.
 | Postgres migration | Turso is SQLite-compatible, no rewrites needed |
 | Multi-user auth system | Single creator workflow for v2.0 |
 | Render.com web service | Vercel handles web/API natively |
-| SSRF protection | Single-user, low risk — deferred to v2.1 |
-| TTL asset cleanup | Manual cleanup sufficient at launch — deferred to v2.1 |
+| SSRF protection | Single-user, low risk -- deferred to v2.1 |
+| TTL asset cleanup | Manual cleanup sufficient at launch -- deferred to v2.1 |
 
 ## Traceability
 
@@ -85,36 +85,36 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| STOR-01 | TBD | Pending |
-| STOR-02 | TBD | Pending |
-| STOR-03 | TBD | Pending |
-| STOR-04 | TBD | Pending |
-| JOB-01 | TBD | Pending |
-| JOB-02 | TBD | Pending |
-| JOB-03 | TBD | Pending |
-| JOB-04 | TBD | Pending |
-| JOB-05 | TBD | Pending |
-| WORK-01 | TBD | Pending |
-| WORK-02 | TBD | Pending |
-| WORK-03 | TBD | Pending |
-| WORK-04 | TBD | Pending |
-| WORK-05 | TBD | Pending |
-| API-01 | TBD | Pending |
-| API-02 | TBD | Pending |
-| API-03 | TBD | Pending |
-| API-04 | TBD | Pending |
-| DEPLOY-01 | TBD | Pending |
-| DEPLOY-02 | TBD | Pending |
-| DEPLOY-03 | TBD | Pending |
-| DEPLOY-04 | TBD | Pending |
-| SEC-01 | TBD | Pending |
-| SEC-02 | TBD | Pending |
+| STOR-01 | Phase 12 | Pending |
+| STOR-02 | Phase 12 | Pending |
+| STOR-03 | Phase 12 | Pending |
+| STOR-04 | Phase 12 | Pending |
+| JOB-01 | Phase 13 | Pending |
+| JOB-02 | Phase 13 | Pending |
+| JOB-03 | Phase 13 | Pending |
+| JOB-04 | Phase 13 | Pending |
+| JOB-05 | Phase 13 | Pending |
+| WORK-01 | Phase 13 | Pending |
+| WORK-02 | Phase 14 | Pending |
+| WORK-03 | Phase 14 | Pending |
+| WORK-04 | Phase 15 | Pending |
+| WORK-05 | Phase 15 | Pending |
+| API-01 | Phase 14 | Pending |
+| API-02 | Phase 14 | Pending |
+| API-03 | Phase 14 | Pending |
+| API-04 | Phase 14 | Pending |
+| DEPLOY-01 | Phase 16 | Pending |
+| DEPLOY-02 | Phase 16 | Pending |
+| DEPLOY-03 | Phase 16 | Pending |
+| DEPLOY-04 | Phase 16 | Pending |
+| SEC-01 | Phase 14 | Pending |
+| SEC-02 | Phase 14 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 24 total
-- Mapped to phases: 0
-- Unmapped: 24
+- Mapped to phases: 24
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-20*
-*Last updated: 2026-02-20 after v2.0 milestone definition*
+*Last updated: 2026-02-20 -- traceability updated with phase assignments*

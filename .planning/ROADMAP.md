@@ -1,11 +1,21 @@
 # Roadmap: Ethereal Flame Studio
 
 **Created:** 2026-01-26
-**Updated:** 2026-01-28
+**Updated:** 2026-02-20
 **Depth:** Comprehensive
-**Coverage:** 57 requirements across 6 phases
+**Coverage:** 57 v1.0 requirements (Phases 1-7) + 24 v2.0 requirements (Phases 12-16)
 
 ---
+
+## Milestones
+
+- ✅ **v1.0 Local Production Pipeline** - Phases 1-7 (shipped 2026-02-03, Phase 7 research only)
+- 🚧 **v2.0 Cloud Production** - Phases 12-16 (in progress)
+
+---
+
+<details>
+<summary>v1.0 Local Production Pipeline (Phases 1-7) - SHIPPED 2026-02-03</summary>
 
 ## Overview
 
@@ -86,12 +96,6 @@ Plans:
 - [x] 02-05-PLAN.md — Advanced parameter editor (TPL-04)
 - [x] 02-06-PLAN.md — Phase 2 verification checkpoint
 
-**Wave Structure:**
-- Wave 1: 02-01, 02-02 (foundation + presets - parallel)
-- Wave 2: 02-03 (gallery UI)
-- Wave 3: 02-04, 02-05 (save dialog + advanced editor - parallel)
-- Wave 4: 02-06 (verification checkpoint)
-
 **Requirements:**
 - TPL-01: Save all visual settings as named template (JSON)
 - TPL-02: Load templates from library
@@ -108,36 +112,6 @@ Plans:
 
 **Status:** COMPLETE
 
-#### Visual Engine Upgrades (January 31 - February 1, 2026)
-
-**Status:** COMPLETE (documented in `docs/CHANGELOG_VISUALS.md`)
-
-These upgrades extended the visual engine beyond the original Phase 1-2 scope:
-
-**Video Skybox System:**
-- Video file import as 360 background with luma/chroma key masking
-- 4 patch masks (A-D) with click-to-pick center positioning
-- Rect mask with preview modes (split/invert)
-- Pole fade, hole fix, and seam blend shaders
-- Video alignment (yaw/pitch offsets)
-- Pole Logo Overlay for brand coverage
-
-**Camera & Placement:**
-- Orb placement system (viewer-space vs world-space anchoring)
-- Camera Rig with look-at, orbit, and render-only orbit modes
-- Drag-to-look camera for world-anchored mode
-
-**VR & UX:**
-- VR Comfort Mode (freeze skybox rotation)
-- VR debug overlay toggle
-- Docked left/right control panels with hide buttons
-- Template import/export controls
-- Batch render quick link in render dialog
-
-**Multi-pick Patch System:**
-- Multi-pick and cursor tracking for patch selection
-- Crosshair overlay for patch positioning
-
 ---
 
 ### Phase 3: Rendering Pipeline
@@ -146,7 +120,7 @@ These upgrades extended the visual engine beyond the original Phase 1-2 scope:
 
 **Dependencies:** Phase 1 (visual engine), Phase 2 (templates define what to render)
 
-**Plans:** 11 plans in 7 waves
+**Plans:** 12 plans in 7 waves
 
 Plans:
 - [x] 03-01-PLAN.md — Pre-analysis for offline rendering (amplitude-per-frame)
@@ -160,31 +134,10 @@ Plans:
 - [x] 03-09-PLAN.md — YouTube-optimized encoding presets (codec, bitrate, HDR)
 - [ ] 03-10-PLAN.md — Platform-specific output formats (Shorts, Reels, TikTok) — UI integration pending
 - [ ] 03-11-PLAN.md — Render settings UI (format selector, quality options) — needs verification
-- [x] 03-12-PLAN.md — **Local Render CLI** (portable, no Redis, config file export) — MOSTLY COMPLETE
-
-**Wave Structure:**
-- Wave 1: 03-01 (pre-analysis)
-- Wave 2: 03-02 (frame capture)
-- Wave 3: 03-03, 03-04 (flat + 360 mono - parallel)
-- Wave 4: 03-05 (stereoscopic)
-- Wave 5: 03-06 (encoding + metadata)
-- Wave 6: 03-07, 03-08 (headless + queue - parallel)
-- Wave 7: 03-09, 03-10, 03-11 (YouTube optimization + platform formats - parallel)
+- [x] 03-12-PLAN.md — Local Render CLI (portable, no Redis, config file export) — MOSTLY COMPLETE
 
 **Requirements:**
-- AUD-03: Pre-analysis for offline rendering (amplitude-per-frame data)
-- RND-01: 1080p flat export (16:9 landscape)
-- RND-02: 1080p flat export (9:16 vertical)
-- RND-03: 4K flat export (16:9 and 9:16)
-- RND-04: 360 monoscopic equirectangular export (up to 8K)
-- RND-05: 360 stereoscopic export (Top/Bottom, 8K)
-- RND-06: VR spatial metadata injection (Spherical Video V2)
-- RND-07: Headless rendering mode (command line, no GUI)
-- RND-08: Render queue with job persistence (survives browser close)
-- RND-09: YouTube-optimized H.264/VP9 encoding (12-45 Mbps based on resolution)
-- RND-10: YouTube Shorts format (9:16, 1080x1920, max 60s)
-- RND-11: Instagram Reels format (9:16, 1080x1920, max 90s)
-- RND-12: TikTok format (9:16, 1080x1920, max 10min)
+- AUD-03, RND-01 through RND-12
 
 **Success Criteria:**
 1. User clicks "Render 1080p" and receives downloadable MP4 matching preview
@@ -196,14 +149,6 @@ Plans:
 7. User can select "YouTube Shorts" and get properly formatted vertical video
 
 **Status:** NEARLY COMPLETE (10/12 plans done, UI integration remaining)
-
-**Implementation Notes (verified 2026-01-30):**
-- `src/lib/render/` contains full pipeline: FrameCapture, FFmpegEncoder, PuppeteerRenderer
-- 360 pipeline: CubemapCapture → EquirectangularConverter → StereoStacker
-- VR metadata: SpatialMetadataInjector (Python spatial-media wrapper)
-- Queue: BullMQ + Redis in renderWorker.ts
-- API: /api/render routes for job submission
-- Deterministic rendering: SceneStepper with seeded RNG and checkpoints
 
 ---
 
@@ -231,29 +176,8 @@ Plans:
 - [ ] 04-13-PLAN.md — Machine selector UI component
 - [ ] 04-14-PLAN.md — Render job routing to selected machine
 
-**Wave Structure:**
-- Wave 1: 04-01, 04-02 (database + queue foundation - parallel)
-- Wave 2: 04-03, 04-04 (workers - parallel)
-- Wave 3: 04-05, 04-06, 04-07 (integrations - parallel)
-- Wave 4: 04-08, 04-09 (UI + export - parallel)
-- Wave 5: 04-10, 04-11 (multi-machine infrastructure - parallel)
-- Wave 6: 04-12, 04-13, 04-14 (metadata + routing - parallel)
-
 **Requirements:**
-- AUD-05: Whisper transcription for auto-generating video descriptions
-- AUT-01: Batch queue for processing multiple audio files
-- AUT-02: Google Drive output folder integration
-- AUT-03: Naming convention enforcement ([Date]_[AudioName]_[Format].mp4)
-- AUT-04: Metadata database (Google Sheets or local CSV)
-- INF-03: Job status notifications (push or polling)
-- FARM-01: Machine registry (list of render machines with specs)
-- FARM-02: Per-machine Cloudflare Tunnel configuration
-- FARM-03: Health check endpoint on each render machine
-- FARM-04: Machine selector dropdown in web UI
-- FARM-05: Render job routing to user-selected machine
-- META-01: Title template with variable substitution
-- META-02: Description template with Whisper transcript insertion
-- META-03: Tag suggestions based on audio content/filename
+- AUD-05, AUT-01 through AUT-04, INF-03, FARM-01 through FARM-05, META-01 through META-03
 
 **Success Criteria:**
 1. User uploads 5 audio files, selects template, all render overnight with proper names
@@ -265,16 +189,6 @@ Plans:
 7. If selected machine is offline, user sees error before submitting
 
 **Status:** MOSTLY COMPLETE (9/14 plans done, multi-machine remaining)
-
-**Implementation Notes (verified 2026-01-30):**
-- `src/lib/db/schema.ts` - SQLite schema with renders table
-- `src/lib/queue/` - BullMQ queue, renderWorker, transcriptionWorker
-- `src/lib/services/whisperClient.ts` - Whisper transcription client
-- `src/lib/services/googleDrive.ts` - rclone-based Google Drive sync
-- `src/lib/services/googleSheets.ts` - Google Sheets export
-- `src/lib/services/notifications.ts` - Push notifications
-- `src/app/batch/page.tsx` - Batch upload UI
-- Multi-machine render farm (04-10 through 04-14) still needs implementation
 
 ---
 
@@ -296,23 +210,8 @@ Plans:
 - [ ] 05-07-PLAN.md — Render job status polling and progress display
 - [ ] 05-08-PLAN.md — Multi-platform posting workflow (Blotato integration)
 
-**Wave Structure:**
-- Wave 1: 05-01, 05-02 (infrastructure - parallel)
-- Wave 2: 05-03, 05-05 (webhook + n8n MCP - parallel)
-- Wave 3: 05-04, 05-06 (YouTube workflow + web app - parallel)
-- Wave 4: 05-07, 05-08 (status + multi-platform - parallel)
-
 **Requirements:**
-- AUT-05: n8n webhook trigger on render complete
-- AUT-06: n8n workflow for auto-posting to YouTube, social platforms
-- INF-02: Remote access to home render server (Cloudflare Tunnel)
-- N8N-01: n8n MCP server connected to Claude Code project
-- N8N-02: n8n Skills installed for workflow generation
-- N8N-03: Claude Code can create/edit/deploy n8n workflows
-- WEBAPP-01: "Render" button in preview UI sends job to n8n
-- WEBAPP-02: Machine selector dropdown in render dialog
-- WEBAPP-03: Format selector (YouTube 1080p, 4K, Shorts, VR, etc.)
-- WEBAPP-04: Job progress indicator (submitted → rendering → encoding → uploading)
+- AUT-05, AUT-06, INF-02, N8N-01 through N8N-03, WEBAPP-01 through WEBAPP-04
 
 **Success Criteria:**
 1. User triggers render from phone while away from home
@@ -340,22 +239,8 @@ Plans:
 - [ ] 06-05-PLAN.md — Instagram Reels posting workflow
 - [ ] 06-06-PLAN.md — Analytics dashboard (track views, engagement across platforms)
 
-**Wave Structure:**
-- Wave 1: 06-01, 06-02 (thumbnail + SEO - parallel)
-- Wave 2: 06-03 (scheduling)
-- Wave 3: 06-04, 06-05, 06-06 (multi-platform + analytics - parallel)
-
 **Requirements:**
-- YT-01: Auto-generate thumbnail from video frame with text overlay
-- YT-02: Title templates with SEO keywords
-- YT-03: Description templates with timestamps, links, hashtags
-- YT-04: Tag generation based on content category
-- YT-05: Scheduled publishing (upload private, publish at set time)
-- MULTI-01: TikTok posting (9:16 format, captions, sounds)
-- MULTI-02: Instagram Reels posting (9:16, hashtags)
-- MULTI-03: Cross-platform status tracking in Google Sheets
-- ANALYTICS-01: View count tracking per platform
-- ANALYTICS-02: Engagement metrics (likes, comments, shares)
+- YT-01 through YT-05, MULTI-01 through MULTI-03, ANALYTICS-01, ANALYTICS-02
 
 **Success Criteria:**
 1. Every video gets auto-generated thumbnail matching channel branding
@@ -363,78 +248,6 @@ Plans:
 3. Videos publish at scheduled times without manual intervention
 4. Same content posts to YouTube, TikTok, Instagram with platform-specific formatting
 5. User can see performance metrics in a single dashboard
-
----
-
-## Progress
-
-| Phase | Name | Status | Requirements | Plans |
-|-------|------|--------|--------------|-------|
-| 1 | Foundation - Web UI + Visual Engine | Complete | 17 | 8 |
-| 2 | Template System | Complete | 6 | 6 |
-| 3 | Rendering Pipeline | **Nearly Complete** | 13 | 10/12 done |
-| 4 | Automation + Multi-Machine | **Mostly Complete** | 14 | 9/14 done |
-| 5 | n8n + Claude Code Integration | **Half Complete** | 10 | 4/8 done |
-| 6 | YouTube + Multi-Platform | Planned | 10 | 6 |
-
-**Total:** 57 requirements across 6 phases (70 total requirements including Phase 1-2)
-
----
-
-## Phase Dependencies
-
-```
-Phase 1 (Foundation) ✅
-    |
-    v
-Phase 2 (Templates) ✅
-    |
-    v
-Phase 3 (Rendering) ✅ (10/12 plans - UI remaining)
-    |
-    v
-Phase 4 (Automation) ✅ (9/14 plans - multi-machine remaining)
-    |
-    v
-Phase 5 (n8n + Remote) 🔄 (4/8 plans - tunnel, n8n, webhook, YouTube done)
-    |
-    v
-Phase 6 (YouTube + Multi-Platform)
-```
-
----
-
-## Research Flags
-
-| Phase | Flag | Notes |
-|-------|------|-------|
-| Phase 3 | UI INTEGRATION | Platform format UI and render settings UI remaining |
-| Phase 4 | NEEDS RESEARCH | Multi-machine render farm architecture |
-| Phase 5 | NEEDS RESEARCH | n8n MCP + Skills integration for Claude Code |
-| Phase 6 | NEEDS RESEARCH | Thumbnail generation, SEO, multi-platform APIs |
-
----
-
-## Key Architecture Decisions
-
-### Multi-Machine Render Farm
-- Each machine runs render server + Cloudflare Tunnel
-- Machine registry stored in config file or database
-- Health check API on each machine
-- User selects machine from dropdown before rendering
-- n8n routes job to selected machine's tunnel URL
-
-### n8n + Claude Code Integration
-- n8n MCP server connects Claude Code to n8n instance
-- n8n Skills teach Claude Code how to build workflows
-- Claude Code can CREATE, EDIT, DEPLOY workflows from conversation
-- Eliminates manual n8n workflow building
-
-### YouTube Optimization
-- FFmpeg encoding presets match YouTube recommendations
-- Avoid re-encoding on upload (proper codec, bitrate, container)
-- Auto-generate thumbnails from key frames
-- SEO templates for titles, descriptions, tags
 
 ---
 
@@ -453,54 +266,20 @@ Plans:
 - [ ] 07-04-PLAN.md — Mantaflow water simulation template
 - [ ] 07-05-PLAN.md — Audio-to-keyframe parameter mapping system
 - [ ] 07-06-PLAN.md — VR video import and equirectangular setup
-- [ ] 07-07-PLAN.md — Depth map extraction from 360° footage
+- [ ] 07-07-PLAN.md — Depth map extraction from 360 footage
 - [ ] 07-08-PLAN.md — Shadow catcher and VR compositing
 - [ ] 07-09-PLAN.md — Video masking and chroma keying
 - [ ] 07-10-PLAN.md — EDM volumetric laser effects
 - [ ] 07-11-PLAN.md — EDM LED grid and strobe effects
 - [ ] 07-12-PLAN.md — Multi-layer compositor and render pipeline
 
-**Wave Structure:**
-- Wave 1: 07-01, 07-02 (infrastructure + audio analysis)
-- Wave 2: 07-03, 07-04, 07-05 (physics simulations + audio mapping)
-- Wave 3: 07-06, 07-07, 07-08, 07-09 (VR compositing suite)
-- Wave 4: 07-10, 07-11 (EDM effects)
-- Wave 5: 07-12 (integration + final pipeline)
-
 **Requirements:**
-
-*Infrastructure*
-- BLND-01: Blender MCP server connected to Claude Desktop
-- BLND-02: Headless Blender render pipeline
-- BLND-03: Audio analysis JSON export with extended features
-
-*Physics Simulations*
-- BLND-04: Mantaflow fire simulation with audio-driven parameters
-- BLND-05: Mantaflow water simulation with audio-driven parameters
-- BLND-06: Fire-over-water combined scene template
-
-*VR Compositing*
-- BLND-07: 360° video import as equirectangular background
-- BLND-08: Monocular depth map extraction from VR footage
-- BLND-09: Shadow catcher for realistic ground shadows
-- BLND-10: Depth-aware occlusion compositing
-- BLND-11: Video masking and chroma keying
-
-*EDM Effects*
-- BLND-12: Volumetric laser beams with audio-reactive rotation
-- BLND-13: LED grid with ripple propagation
-- BLND-14: Beat-synced strobe effects
-- BLND-15: Imported EDM footage integration
-
-*Output*
-- BLND-16: Stereo equirectangular VR output
-- BLND-17: Multi-layer compositor with all effects
-- BLND-18: Quality comparison: Three.js vs Blender
+- BLND-01 through BLND-18
 
 **Success Criteria:**
 1. Claude can create/modify Blender scenes via MCP commands
 2. Fire/water simulations respond meaningfully to audio
-3. Real 360° footage composites with virtual fire/water/effects
+3. Real 360 footage composites with virtual fire/water/effects
 4. Depth maps enable realistic shadow casting
 5. EDM effects (lasers, grids, strobes) sync to beats
 6. Complete pipeline from audio upload to VR video output
@@ -508,102 +287,165 @@ Plans:
 
 **Status:** NOT STARTED
 
-**Research Documents:**
-- `.planning/phases/07-blender-vfx-pipeline/07-RESEARCH.md` - Master research
-- `.planning/phases/07-blender-vfx-pipeline/07-RESEARCH-AUDIO-STYLES.md` - Audio analysis expansion
-- `.planning/phases/07-blender-vfx-pipeline/07-RESEARCH-VR-COMPOSITING.md` - VR compositing techniques
-- `.planning/phases/07-blender-vfx-pipeline/07-RESEARCH-DEPTH-MAPS.md` - Depth extraction methods
-- `.planning/phases/07-blender-vfx-pipeline/07-RESEARCH-EDM-EFFECTS.md` - Light show visual styles
-- `.planning/phases/07-blender-vfx-pipeline/07-RESEARCH-BLENDER-360-STEREO.md` - Blender 360/stereo rendering
+---
 
-**Existing Research (Reused):**
-- `.planning/research/BLENDER_FIRE_ORB.md` - Mantaflow fire, Principled Volume
-- `.planning/research/BLENDER_WATER.md` - Mantaflow fluid, Ocean modifier
-- `.planning/research/THREEJS_360_STEREO_GUIDE.md` - Reference for comparison
+</details>
+
+---
+
+## Milestone v2.0: Cloud Production
+
+**Milestone Goal:** Move the entire pipeline to production cloud infrastructure so the app works from any device with no local machine dependencies.
+
+**Architecture:** Vercel (web/API) + Render.com (CPU worker) + Turso (state) + Cloudflare R2 (storage) + Modal (GPU render)
+
+**Phases:** 12-16 (5 phases, 24 requirements)
+
+## Phases
+
+- [ ] **Phase 12: Cloud Storage Adapter** - Unified storage interface with R2 for production and local filesystem for development
+- [ ] **Phase 13: Job State + Worker Infrastructure** - Turso-backed job queue with Render.com CPU worker service
+- [ ] **Phase 14: API + Worker Processing Pipeline** - Async API routes wired to worker for ingest, edit, and save operations
+- [ ] **Phase 15: Modal Render Dispatch** - GPU render jobs dispatched to Modal via R2, with webhook completion
+- [ ] **Phase 16: Production Deploy + CI/CD** - Environment config, deploy checklist, and automated deployment pipeline
+
+## Phase Details
+
+### Phase 12: Cloud Storage Adapter
+**Goal**: User's audio assets and rendered videos are stored in the cloud and accessible from any device
+**Depends on**: Nothing (v2.0 foundational phase; builds on existing audio-prep code)
+**Requirements**: STOR-01, STOR-02, STOR-03, STOR-04
+**Success Criteria** (what must be TRUE):
+  1. User uploads an audio file and it is persisted in R2 (production) or local filesystem (development) via the same code path
+  2. All asset artifacts (original, metadata JSON, waveform peaks, preview MP3, prepared WAV) survive a worker restart because they live in R2
+  3. User can download any asset or rendered video via a time-limited signed URL without exposing the raw R2 bucket
+  4. Existing local development workflow continues to work unchanged (npm run dev still uses filesystem)
+**Plans**: TBD
+
+---
+
+### Phase 13: Job State + Worker Infrastructure
+**Goal**: All job tracking lives in Turso and a Render.com worker can pick up and process jobs independently of the web server
+**Depends on**: Phase 12 (worker reads/writes assets via storage adapter)
+**Requirements**: JOB-01, JOB-02, JOB-03, JOB-04, JOB-05, WORK-01
+**Success Criteria** (what must be TRUE):
+  1. Job and asset metadata rows exist in Turso cloud database, not local SQLite, and are readable from both the Vercel app and the Render worker
+  2. The Render.com worker process starts, connects to Turso, and polls for pending jobs every 3-5 seconds
+  3. User can see job progress (percentage, current stage like "downloading" or "normalizing") by hitting the poll endpoint
+  4. User cancels a job and the worker stops processing it within one poll cycle (no orphaned ffmpeg processes)
+  5. A job stuck in "processing" for longer than the configured timeout is automatically marked as failed
+**Plans**: TBD
+
+---
+
+### Phase 14: API + Worker Processing Pipeline
+**Goal**: User can ingest, edit, preview, and save audio entirely through async API calls processed by the cloud worker
+**Depends on**: Phase 13 (job queue and worker must exist)
+**Requirements**: API-01, API-02, API-03, API-04, WORK-02, WORK-03, SEC-01, SEC-02
+**Success Criteria** (what must be TRUE):
+  1. All ingest/edit/save API routes return a jobId immediately (no request blocks longer than 2 seconds)
+  2. Poll endpoint returns job status, progress percentage, and on completion an R2 download URL for the result
+  3. Audio streaming endpoint serves audio from R2 in production and from local filesystem in development, transparently
+  4. Worker successfully ingests audio from YouTube URLs, direct URLs, and file uploads (via R2 presigned upload)
+  5. Worker executes edit recipes (trim, split, join, fade, volume, normalize) using the existing filter_complex pipeline and writes results to R2
+  6. Cloud ingest rejects files over 100MB and audio over 30 minutes duration
+  7. Webhook endpoint rejects requests missing a valid INTERNAL_WEBHOOK_SECRET header
+**Plans**: TBD
+
+---
+
+### Phase 15: Modal Render Dispatch
+**Goal**: User can trigger a GPU video render that runs on Modal and delivers the finished video to R2
+**Depends on**: Phase 14 (API routes and worker infrastructure must handle job dispatch)
+**Requirements**: WORK-04, WORK-05
+**Success Criteria** (what must be TRUE):
+  1. Worker uploads the prepared audio to R2, generates a signed URL, and dispatches a render job to Modal with that URL
+  2. Modal calls the secure webhook on render completion, providing the R2 key of the output video
+  3. User polls the render job and receives a download URL for the finished video once Modal reports completion
+**Plans**: TBD
+
+---
+
+### Phase 16: Production Deploy + CI/CD
+**Goal**: The full cloud stack is deployed, documented, and automatically updated on push
+**Depends on**: Phase 15 (all application functionality must work before go-live)
+**Requirements**: DEPLOY-01, DEPLOY-02, DEPLOY-03, DEPLOY-04
+**Success Criteria** (what must be TRUE):
+  1. Application runs in production mode when DEPLOY_ENV=production is set, using R2 + Turso + Render worker, with no code changes
+  2. .env.example lists every required production variable with descriptions
+  3. docs/DEPLOY_PROD_CHECKLIST.md walks through provisioning R2 bucket, Turso database, Render worker, Modal endpoint, and Vercel project from scratch
+  4. Pushing to main triggers GitHub Actions that deploy web to Vercel and worker to Render automatically
+**Plans**: TBD
 
 ---
 
 ## Progress
 
-| Phase | Name | Status | Requirements | Plans |
-|-------|------|--------|--------------|-------|
-| 1 | Foundation - Web UI + Visual Engine | Complete | 17 | 8 |
-| 2 | Template System | Complete | 6 | 6 |
-| 3 | Rendering Pipeline | **Nearly Complete** | 13 | 10/12 done |
-| 4 | Automation + Multi-Machine | **Mostly Complete** | 14 | 9/14 done |
-| 5 | n8n + Claude Code Integration | **Half Complete** | 10 | 4/8 done |
-| 6 | YouTube + Multi-Platform | Planned | 10 | 6 |
-| 7 | Blender VFX Pipeline | **Not Started** | 18 | 12 |
+**Execution Order:** 12 -> 13 -> 14 -> 15 -> 16
 
-**Total:** 75 requirements across 7 phases
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Foundation | v1.0 | 8/8 | Complete | 2026-01-28 |
+| 2. Templates | v1.0 | 6/6 | Complete | 2026-01-29 |
+| 3. Rendering | v1.0 | 10/12 | Nearly Complete | - |
+| 4. Automation | v1.0 | 9/14 | Mostly Complete | - |
+| 5. n8n Integration | v1.0 | 4/8 | Half Complete | - |
+| 6. YouTube + Multi-Platform | v1.0 | 0/6 | Planned | - |
+| 7. Blender VFX | v1.0 | 0/12 | Not Started | - |
+| 12. Cloud Storage Adapter | v2.0 | 0/? | Not started | - |
+| 13. Job State + Worker Infra | v2.0 | 0/? | Not started | - |
+| 14. API + Worker Processing | v2.0 | 0/? | Not started | - |
+| 15. Modal Render Dispatch | v2.0 | 0/? | Not started | - |
+| 16. Production Deploy + CI/CD | v2.0 | 0/? | Not started | - |
 
 ---
 
-## Phase Dependencies
+## Phase Dependencies (v2.0)
 
 ```
-Phase 1 (Foundation) ✅
+Phase 12 (Cloud Storage Adapter)
     |
     v
-Phase 2 (Templates) ✅
+Phase 13 (Job State + Worker Infra)
     |
     v
-Phase 3 (Rendering) ✅ (10/12 plans - UI remaining)
-    |
-    +--------------------+
-    |                    |
-    v                    v
-Phase 4 (Automation)    Phase 7 (Blender VFX) ← NEW
+Phase 14 (API + Worker Processing)
     |
     v
-Phase 5 (n8n + Remote)
+Phase 15 (Modal Render Dispatch)
     |
     v
-Phase 6 (YouTube + Multi-Platform)
+Phase 16 (Production Deploy + CI/CD)
 ```
 
 ---
 
-## Research Flags
+## Key Architecture Decisions (v2.0)
 
-| Phase | Flag | Notes |
-|-------|------|-------|
-| Phase 3 | UI INTEGRATION | Platform format UI and render settings UI remaining |
-| Phase 4 | NEEDS RESEARCH | Multi-machine render farm architecture |
-| Phase 5 | NEEDS RESEARCH | n8n MCP + Skills integration for Claude Code |
-| Phase 6 | NEEDS RESEARCH | Thumbnail generation, SEO, multi-platform APIs |
-| Phase 7 | RESEARCH COMPLETE | All research documents created 2026-01-30 |
+### Storage Adapter Pattern
+- `StorageAdapter` interface with `LocalStorageAdapter` and `R2StorageAdapter` implementations
+- Environment variable switches between them (no code changes)
+- R2 uses S3-compatible SDK (@aws-sdk/client-s3)
+- Signed URLs for all downloads (no public bucket)
 
----
+### Turso Job Queue (No Redis)
+- Turso replaces local better-sqlite3 for all job/asset state
+- Worker polls Turso every 3-5 seconds for pending jobs
+- libsql client works identically to better-sqlite3 queries
+- Drizzle ORM already in project, reuse for schema
 
-## Key Architecture Decisions
+### Render.com CPU Worker
+- Background worker ($7/mo) with Node.js + ffmpeg + yt-dlp
+- No web service on Render (Vercel handles all HTTP)
+- Worker pulls jobs from Turso, not pushed via HTTP
+- Health monitored via Turso heartbeat row
 
-### Multi-Machine Render Farm
-- Each machine runs render server + Cloudflare Tunnel
-- Machine registry stored in config file or database
-- Health check API on each machine
-- User selects machine from dropdown before rendering
-- n8n routes job to selected machine's tunnel URL
-
-### n8n + Claude Code Integration
-- n8n MCP server connects Claude Code to n8n instance
-- n8n Skills teach Claude Code how to build workflows
-- Claude Code can CREATE, EDIT, DEPLOY workflows from conversation
-- Eliminates manual n8n workflow building
-
-### YouTube Optimization
-- FFmpeg encoding presets match YouTube recommendations
-- Avoid re-encoding on upload (proper codec, bitrate, container)
-- Auto-generate thumbnails from key frames
-- SEO templates for titles, descriptions, tags
-
-### Blender VFX Pipeline (Phase 7) - NEW
-- Hybrid approach: Three.js for preview, Blender for cinema quality
-- Blender MCP for Claude-controlled scene setup
-- Audio-to-keyframe system for physics simulation parameters
-- Multi-layer compositor for VR effects
-- Depth map integration for realistic compositing
+### Modal GPU Dispatch via R2
+- Worker uploads audio to R2, passes signed URL to Modal
+- Modal writes rendered video to R2, calls webhook with key
+- Webhook validates INTERNAL_WEBHOOK_SECRET before processing
+- Decoupled: worker and Modal never talk directly
 
 ---
 
-*Last updated: 2026-01-30 (Phase 7 added)*
+*Last updated: 2026-02-20 (v2.0 Cloud Production roadmap added)*
