@@ -55,6 +55,15 @@ The `waitUntil()` hook provides partial serverless coverage for short jobs only.
 | 20 | Medium | Task ordering: `checkQuota()` called in Task 11 before defined in Task 13 | Moved lifecycle methods (`checkQuota`, `getDiskUsage`, `deleteAssetSafe`, `isReferenced`, `cleanupExpired`) to Task 2 |
 | 21 | Medium | TTL lifecycle unimplemented despite `ttlDays` in config | Task 2: `cleanupExpired()` method; Task 13: cleanup API route |
 
+### Round 4 Fixes
+
+| # | Severity | Issue | Fix Applied |
+|---|----------|-------|-------------|
+| 22 | Medium | Shared types.ts has base64 file ingest but Task 11 uses multipart File | Aligned `IngestSource` in types.ts to use `File` objects; removed duplicate in Task 11 |
+| 23 | Medium | `request.formData()` may buffer large bodies in some runtimes | Added known-limitation comment; bounded by maxFileSizeMB (100MB) for MVP |
+| 24 | Medium | `streamFileToDisk` lacks abort/backpressure handling | Added AbortSignal check, drain-based backpressure, cleanup on error |
+| 25 | Low | Duration/file-size limits hardcoded instead of using config | Changed to `assetService.config.maxDurationMinutes` / `.maxFileSizeMB`; config made `readonly` |
+
 ---
 
 ## Phase 1: Backend Infrastructure
@@ -176,10 +185,13 @@ export type EditRecipe = z.infer<typeof EditRecipeSchema>;
 
 // --- Ingest Job ---
 
+// IngestSource variants match how data actually arrives:
+// - youtube/url: parsed from JSON body
+// - video_file/audio_file: multipart form-data (File object from request.formData())
 export type IngestSource =
   | { type: 'youtube'; url: string; rightsAttested: boolean }
-  | { type: 'video_file'; base64: string; filename: string }
-  | { type: 'audio_file'; base64: string; filename: string }
+  | { type: 'video_file'; file: File; filename: string }
+  | { type: 'audio_file'; file: File; filename: string }
   | { type: 'url'; url: string };
 
 export type JobStatus = 'pending' | 'processing' | 'complete' | 'failed' | 'cancelled';
@@ -429,7 +441,7 @@ import type { AssetMetadata, AssetProvenance, AudioPrepConfig } from './types';
 import { DEFAULT_CONFIG } from './types';
 
 export class AudioAssetService {
-  private config: AudioPrepConfig;
+  readonly config: AudioPrepConfig;
 
   constructor(config: Partial<AudioPrepConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -2190,6 +2202,10 @@ export async function POST(request: NextRequest) {
 
     if (contentType.includes('multipart/form-data')) {
       // File upload (video_file or audio_file)
+      // Known limitation: request.formData() may buffer the full body in memory
+      // depending on the runtime. For MVP (local Node), this is acceptable since
+      // maxFileSizeMB (100MB) is bounded. For production, consider a streaming
+      // multipart parser (e.g. busboy) if memory pressure becomes an issue.
       const formData = await request.formData();
       const file = formData.get('file') as File | null;
       const type = formData.get('type') as string;
@@ -2254,12 +2270,7 @@ function sanitizeFilename(filename: string): string {
 // Max URL download size: 100MB streamed with abort support
 const MAX_URL_DOWNLOAD_BYTES = 100 * 1024 * 1024;
 
-// IngestSource covers both JSON-parsed sources and multipart file uploads
-type IngestSource =
-  | { type: 'youtube'; url: string; rightsAttested: boolean }
-  | { type: 'url'; url: string }
-  | { type: 'video_file'; file: File; filename: string }
-  | { type: 'audio_file'; file: File; filename: string };
+// IngestSource imported from '../../../lib/audio-prep/types' (shared definition)
 
 async function processIngest(jobId: string, source: IngestSource) {
   const signal = audioPrepJobs.getSignal(jobId); // AbortSignal threaded to all operations
@@ -2297,7 +2308,7 @@ async function processIngest(jobId: string, source: IngestSource) {
         // Stream multipart File to disk (avoid full arrayBuffer() memory spike)
         const safeName = sanitizeFilename(source.filename);
         const videoPath = path.join(tempDir, safeName);
-        await streamFileToDisk(source.file, videoPath);
+        await streamFileToDisk(source.file, videoPath, signal);
         audioPrepJobs.update(jobId, { progress: 30 });
 
         audioFilePath = path.join(tempDir, 'extracted.wav');
@@ -2309,7 +2320,7 @@ async function processIngest(jobId: string, source: IngestSource) {
       case 'audio_file': {
         const safeName = sanitizeFilename(source.filename);
         audioFilePath = path.join(tempDir, safeName);
-        await streamFileToDisk(source.file, audioFilePath);
+        await streamFileToDisk(source.file, audioFilePath, signal);
         provenance.originalFilename = source.filename;
         break;
       }
@@ -2381,17 +2392,17 @@ async function processIngest(jobId: string, source: IngestSource) {
     const audioMeta = await probeAudio(audioFilePath);
     audioPrepJobs.update(jobId, { progress: 70 });
 
-    // Enforce duration cap (default 30 minutes from config)
-    const maxDurationSec = 30 * 60; // DEFAULT_CONFIG.maxDurationMinutes * 60
+    // Enforce duration cap from config
+    const maxDurationSec = assetService.config.maxDurationMinutes * 60;
     if (audioMeta.duration > maxDurationSec) {
-      throw new Error(`Audio duration ${(audioMeta.duration / 60).toFixed(1)} min exceeds ${maxDurationSec / 60} min limit`);
+      throw new Error(`Audio duration ${(audioMeta.duration / 60).toFixed(1)} min exceeds ${assetService.config.maxDurationMinutes} min limit`);
     }
 
-    // Enforce file size cap
+    // Enforce file size cap from config
     const fileStat = await fs.stat(audioFilePath);
-    const maxSizeBytes = 100 * 1024 * 1024; // DEFAULT_CONFIG.maxFileSizeMB * 1024 * 1024
+    const maxSizeBytes = assetService.config.maxFileSizeMB * 1024 * 1024;
     if (fileStat.size > maxSizeBytes) {
-      throw new Error(`File size ${(fileStat.size / 1024 / 1024).toFixed(1)}MB exceeds 100MB limit`);
+      throw new Error(`File size ${(fileStat.size / 1024 / 1024).toFixed(1)}MB exceeds ${assetService.config.maxFileSizeMB}MB limit`);
     }
 
     // Create asset
@@ -2424,16 +2435,35 @@ async function processIngest(jobId: string, source: IngestSource) {
   }
 }
 
-/** Stream a Web API File to disk in chunks instead of loading into memory */
-async function streamFileToDisk(file: File, destPath: string): Promise<void> {
+/** Stream a Web API File to disk in chunks instead of loading into memory.
+ *  Handles backpressure (waits for drain) and respects AbortSignal. */
+async function streamFileToDisk(file: File, destPath: string, signal?: AbortSignal): Promise<void> {
   const { createWriteStream } = await import('fs');
   const ws = createWriteStream(destPath);
   const reader = file.stream().getReader();
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    ws.write(Buffer.from(value));
+
+  try {
+    while (true) {
+      if (signal?.aborted) {
+        reader.cancel();
+        ws.destroy();
+        throw new Error('Upload aborted');
+      }
+
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const canContinue = ws.write(Buffer.from(value));
+      if (!canContinue) {
+        // Backpressure: wait for the writable stream to drain before reading more
+        await new Promise<void>((resolve) => ws.once('drain', resolve));
+      }
+    }
+  } catch (err) {
+    ws.destroy();
+    throw err;
   }
+
   ws.end();
   await new Promise<void>((resolve, reject) => {
     ws.on('finish', resolve);
