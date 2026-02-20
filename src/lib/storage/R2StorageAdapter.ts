@@ -1,3 +1,18 @@
+/*
+ * R2 CORS Configuration (apply via Cloudflare Dashboard -> R2 -> {bucket} -> Settings -> CORS Policy):
+ *
+ * [
+ *   {
+ *     "AllowedOrigins": ["http://localhost:3000", "https://your-vercel-domain.vercel.app"],
+ *     "AllowedMethods": ["GET", "PUT", "HEAD"],
+ *     "AllowedHeaders": ["Content-Type", "Content-Length"],
+ *     "MaxAgeSeconds": 86400
+ *   }
+ * ]
+ *
+ * Update AllowedOrigins with your actual production domain before deploying.
+ */
+
 import {
   S3Client,
   PutObjectCommand,
