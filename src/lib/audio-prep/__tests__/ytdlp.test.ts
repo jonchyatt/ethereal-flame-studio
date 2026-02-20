@@ -1,4 +1,4 @@
-import { validateYouTubeUrl } from '../ytdlp';
+import { extractYouTubeAudio, validateYouTubeUrl } from '../ytdlp';
 
 describe('validateYouTubeUrl', () => {
   test('accepts youtube.com watch URLs', () => {
@@ -23,5 +23,22 @@ describe('validateYouTubeUrl', () => {
 
   test('accepts m.youtube.com URLs', () => {
     expect(validateYouTubeUrl('https://m.youtube.com/watch?v=dQw4w9WgXcQ')).toBe(true);
+  });
+
+  test('rejects non-HTTPS YouTube URLs', () => {
+    expect(validateYouTubeUrl('http://www.youtube.com/watch?v=dQw4w9WgXcQ')).toBe(false);
+  });
+});
+
+describe('extractYouTubeAudio', () => {
+  test('rejects immediately when AbortSignal is already aborted', async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(
+      extractYouTubeAudio('https://www.youtube.com/watch?v=dQw4w9WgXcQ', process.cwd(), {
+        signal: controller.signal,
+      })
+    ).rejects.toThrow(/cancelled/i);
   });
 });

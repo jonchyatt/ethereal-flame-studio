@@ -26,6 +26,14 @@ describe('validateUrl', () => {
     await expect(validateUrl('https://localhost/audio.mp3')).rejects.toThrow(/private/i);
   });
 
+  test('rejects IPv6 ULA fd00::/8', async () => {
+    await expect(validateUrl('https://[fd00::1]/audio.mp3')).rejects.toThrow(/private/i);
+  });
+
+  test('rejects IPv4-mapped loopback', async () => {
+    await expect(validateUrl('https://[::ffff:127.0.0.1]/audio.mp3')).rejects.toThrow(/private/i);
+  });
+
   test('rejects non-URL strings', async () => {
     await expect(validateUrl('not-a-url')).rejects.toThrow();
   });

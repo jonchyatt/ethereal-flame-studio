@@ -28,6 +28,10 @@ export async function generatePeaks(
 }
 
 async function generateSingleLevel(filePath: string, pixelsPerSecond: number): Promise<number[]> {
+  if (!Number.isFinite(pixelsPerSecond) || pixelsPerSecond <= 0) {
+    throw new Error(`pixelsPerSecond must be > 0. Received: ${pixelsPerSecond}`);
+  }
+
   // Decode to raw 16-bit PCM mono at target sample rate
   const sampleRate = pixelsPerSecond * 256; // 256 samples per pixel bucket
   const args = [
@@ -44,7 +48,7 @@ async function generateSingleLevel(filePath: string, pixelsPerSecond: number): P
 
   // Compute actual samples per pixel
   const actualSampleRate = Math.min(sampleRate, 44100);
-  const samplesPerPixel = Math.floor(actualSampleRate / pixelsPerSecond);
+  const samplesPerPixel = Math.max(1, Math.floor(actualSampleRate / pixelsPerSecond));
   const peaks: number[] = [];
 
   for (let i = 0; i < samples.length; i += samplesPerPixel) {

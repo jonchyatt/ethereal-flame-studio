@@ -5,9 +5,9 @@ const PRIVATE_IP_PATTERNS = [
   /^127\./,
   /^0\./,
   /^169\.254\./,
-  /^::1$/,
-  /^fc00:/,
-  /^fe80:/,
+  /^::1$/i,
+  /^(fc|fd)[0-9a-f]{2}:/i, // ULA: fc00::/7
+  /^fe80:/i, // link-local
 ];
 
 const BLOCKED_HOSTNAMES = ['localhost', 'metadata.google.internal'];
@@ -72,9 +72,42 @@ export async function validateUrl(url: string): Promise<URL> {
 }
 
 function checkPrivateIp(ip: string): void {
+  const normalized = ip.toLowerCase().replace(/^\[|\]$/g, '');
+
+  // IPv4-mapped IPv6 (e.g. ::ffff:127.0.0.1)
+  if (normalized.startsWith('::ffff:')) {
+    const mapped = normalized.slice('::ffff:'.length);
+    const mappedIpv4 = decodeMappedIpv4(mapped);
+    if (mappedIpv4) {
+      checkPrivateIp(mappedIpv4);
+      return;
+    }
+  }
+
   for (const pattern of PRIVATE_IP_PATTERNS) {
-    if (pattern.test(ip)) {
+    if (pattern.test(normalized)) {
       throw new Error(`Private IP address not allowed: ${ip}`);
     }
   }
+}
+
+function decodeMappedIpv4(mapped: string): string | null {
+  // Dotted form: ::ffff:127.0.0.1
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(mapped)) {
+    return mapped;
+  }
+
+  // Hex form: ::ffff:7f00:1
+  const hexMatch = mapped.match(/^([0-9a-f]{1,4}):([0-9a-f]{1,4})$/i);
+  if (!hexMatch) return null;
+
+  const high = parseInt(hexMatch[1], 16);
+  const low = parseInt(hexMatch[2], 16);
+  if (!Number.isFinite(high) || !Number.isFinite(low)) return null;
+
+  const a = (high >> 8) & 0xff;
+  const b = high & 0xff;
+  const c = (low >> 8) & 0xff;
+  const d = low & 0xff;
+  return `${a}.${b}.${c}.${d}`;
 }

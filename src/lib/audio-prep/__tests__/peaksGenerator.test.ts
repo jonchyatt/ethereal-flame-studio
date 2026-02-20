@@ -75,4 +75,9 @@ describeIfFfmpeg('generatePeaks', () => {
     // Higher zoom = more peaks
     expect(result['100'].length).toBeGreaterThan(result['25'].length);
   });
+
+  test('handles very high pixelsPerSecond without infinite loop', async () => {
+    const peaks = await generatePeaks(fixturePath, { pixelsPerSecond: 100000 });
+    expect(peaks.length).toBeGreaterThan(0);
+  });
 });
