@@ -1,11 +1,11 @@
 import { spawn } from 'child_process';
+import path from 'path';
 import { buildFilterComplex } from './filterComplexBuilder';
 import type { EditRecipe } from './types';
 
 interface RenderOptions {
   preview?: boolean;
   twoPassNormalize?: boolean;
-  onProgress?: (percent: number) => void;
   signal?: AbortSignal;
 }
 
@@ -58,6 +58,17 @@ export async function renderRecipe(
   }
 }
 
+function codecForExtension(filePath: string): string[] {
+  const ext = path.extname(filePath).toLowerCase();
+  switch (ext) {
+    case '.wav': return ['-codec:a', 'pcm_s16le'];
+    case '.aac':
+    case '.m4a': return ['-codec:a', 'aac', '-b:a', '384k'];
+    case '.mp3': return ['-codec:a', 'libmp3lame', '-b:a', '320k'];
+    default:     return ['-codec:a', 'pcm_s16le'];
+  }
+}
+
 async function twoPassLoudnorm(filePath: string, signal?: AbortSignal): Promise<void> {
   // Pass 1: Measure loudness
   const measureArgs = [
@@ -75,12 +86,12 @@ async function twoPassLoudnorm(filePath: string, signal?: AbortSignal): Promise<
 
   const stats = JSON.parse(jsonMatch[0]);
 
-  // Pass 2: Apply measured loudness
+  // Pass 2: Apply measured loudness (match original format)
   const tempPath = filePath.replace(/(\.\w+)$/, '_normalized$1');
   const normalizeArgs = [
     '-y', '-i', filePath,
     '-af', `loudnorm=measured_I=${stats.input_i}:measured_TP=${stats.input_tp}:measured_LRA=${stats.input_lra}:measured_thresh=${stats.input_thresh}:linear=true`,
-    '-codec:a', 'pcm_s16le',
+    ...codecForExtension(filePath),
     tempPath,
   ];
 

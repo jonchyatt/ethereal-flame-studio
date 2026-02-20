@@ -1,12 +1,25 @@
 import { renderRecipe } from '../audioRenderer';
 import type { EditRecipe } from '../types';
+import { execSync } from 'child_process';
 import path from 'path';
 import os from 'os';
 import { promises as fs } from 'fs';
 
-describe('renderRecipe', () => {
-  const testAudio = path.resolve('audio/SirAnthony.mp3');
+const testAudio = path.resolve('audio/SirAnthony.mp3');
 
+function hasFFmpeg(): boolean {
+  try { execSync('ffmpeg -version', { stdio: 'ignore' }); return true; } catch { return false; }
+}
+
+function hasFixture(): boolean {
+  try { require('fs').accessSync(testAudio); return true; } catch { return false; }
+}
+
+const canRun = hasFFmpeg() && hasFixture();
+
+const describeIfReady = canRun ? describe : describe.skip;
+
+describeIfReady('renderRecipe', () => {
   test('renders a trim recipe to WAV file', async () => {
     const outputDir = path.join(os.tmpdir(), `render-test-${Date.now()}`);
     await fs.mkdir(outputDir, { recursive: true });

@@ -1,4 +1,5 @@
-import type { EditRecipe } from './types';
+import type { EditRecipe, AudioPrepConfig } from './types';
+import { DEFAULT_CONFIG } from './types';
 
 export class RecipeValidationError extends Error {
   constructor(message: string, public clipId?: string) {
@@ -14,10 +15,11 @@ interface ValidationResult {
 
 export function validateRecipe(
   recipe: EditRecipe,
-  sourceDurations: Record<string, number>
+  sourceDurations: Record<string, number>,
+  config: Pick<AudioPrepConfig, 'maxClipsPerRecipe' | 'maxDurationMinutes'> = DEFAULT_CONFIG
 ): ValidationResult {
-  if (recipe.clips.length > 50) {
-    throw new RecipeValidationError('Maximum 50 clips per recipe');
+  if (recipe.clips.length > config.maxClipsPerRecipe) {
+    throw new RecipeValidationError(`Maximum ${config.maxClipsPerRecipe} clips per recipe`);
   }
 
   if (recipe.clips.length === 0) {
@@ -84,9 +86,10 @@ export function validateRecipe(
     totalDuration += clipDuration;
   }
 
-  if (totalDuration > 30 * 60) {
+  const maxDurationSec = config.maxDurationMinutes * 60;
+  if (totalDuration > maxDurationSec) {
     throw new RecipeValidationError(
-      `Total output duration (${(totalDuration / 60).toFixed(1)} min) exceeds 30 minute limit`
+      `Total output duration (${(totalDuration / 60).toFixed(1)} min) exceeds ${config.maxDurationMinutes} minute limit`
     );
   }
 
