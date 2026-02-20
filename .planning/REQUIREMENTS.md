@@ -1,98 +1,83 @@
 # Requirements: Ethereal Flame Studio
 
-**Defined:** 2026-01-26
+**Defined:** 2026-01-26 (v1.0), Updated: 2026-02-20 (v2.0)
 **Core Value:** Phone to published video without touching a computer
 
-## v1 Requirements
+## v1.0 Requirements (Validated)
 
-Requirements for initial release. Each maps to roadmap phases.
+All v1.0 requirements shipped in Phases 1-5. See MILESTONES.md for details.
 
-### Visual Engine
+- ✓ VIS-01 through VIS-12: Visual engine (Phase 1)
+- ✓ TPL-01 through TPL-06: Template system (Phase 2)
+- ✓ AUD-01 through AUD-05: Audio processing (Phases 1, 3, 4)
+- ✓ RND-01 through RND-08: Rendering pipeline (Phase 3)
+- ✓ AUT-01 through AUT-06: Automation (Phases 4, 5)
+- ✓ INF-01 through INF-03: Infrastructure (Phases 1, 4, 5)
 
-- [ ] **VIS-01**: Real-time WebGL preview of visuals in browser
-- [ ] **VIS-02**: Ethereal Mist mode - soft cloud-like particle effect (from breathing orb)
-- [ ] **VIS-03**: Ethereal Flame mode - organic upward drift, warm colors, wispy tendrils
-- [ ] **VIS-04**: Particle lifetime system - spawn/live/die cycle for all particles
-- [ ] **VIS-05**: Dual-layer particle system - inner glow (tight spawn) + outer halo (wide spawn) running together
-- [ ] **VIS-05b**: Scalable particle count - default ~2000 total, slider to increase up to 50,000+ if needed
-- [ ] **VIS-06**: Star Nest skybox - procedural volumetric background with multiple presets
-- [ ] **VIS-07**: Automatic skybox rotation during playback (subtle background movement)
-- [ ] **VIS-08**: Audio FFT analysis driving particle behavior (spawn rate, velocity, size, emission)
-- [ ] **VIS-09**: Frequency band separation (bass, mids, treble) for per-layer reactivity
-- [ ] **VIS-10**: Size-over-lifetime curve (37% birth to 100% at 20% life to 50% death) from Unity reference
-- [ ] **VIS-11**: Threshold-crossing beat detection with minimum interval (from Unity AudioSyncer)
-- [ ] **VIS-12**: Smooth lerp transitions for all reactive properties (never snap)
+## v2.0 Requirements
 
-### Template System
+Requirements for cloud production deployment. Each maps to roadmap phases.
 
-- [ ] **TPL-01**: Save all visual settings as named template (JSON)
-- [ ] **TPL-02**: Load templates from library
-- [ ] **TPL-03**: 4-6 built-in curated presets (Ethereal Mist, Ethereal Flame, Deep Space, etc.)
-- [ ] **TPL-04**: Advanced parameter editor with full slider access
-- [ ] **TPL-05**: Template persistence across browser sessions
-- [ ] **TPL-06**: Template selection UI (thumbnail previews)
+### Storage
 
-### Audio Processing
+- [ ] **STOR-01**: User can upload/download audio assets via cloud storage (R2) in production and local filesystem in development, using a unified adapter interface
+- [ ] **STOR-02**: Audio assets (originals, metadata, peaks, previews, prepared audio) are persisted in R2 and survive worker restarts
+- [ ] **STOR-03**: Rendered videos are uploaded to R2 after Modal GPU completion and accessible via download
+- [ ] **STOR-04**: User can download assets and videos via time-limited signed URLs served through Cloudflare CDN
 
-- [ ] **AUD-01**: Audio file upload (MP3, WAV, OGG)
-- [ ] **AUD-02**: Real-time FFT analysis for preview
-- [ ] **AUD-03**: Pre-analysis for offline rendering (amplitude-per-frame data)
-- [ ] **AUD-04**: Beat detection for pulse effects
-- [ ] **AUD-05**: Whisper transcription for auto-generating video descriptions
+### Jobs
 
-### Rendering Pipeline
+- [ ] **JOB-01**: All job and asset metadata is persisted in Turso cloud database (replacing local better-sqlite3)
+- [ ] **JOB-02**: CPU worker polls Turso for pending jobs at 3-5 second intervals
+- [ ] **JOB-03**: User can see job progress (percentage, stage) by polling the API
+- [ ] **JOB-04**: User can cancel a running job, and the worker stops processing within one poll cycle
+- [ ] **JOB-05**: Jobs stuck in "processing" for longer than a configurable timeout are automatically marked failed
 
-- [ ] **RND-01**: 1080p flat export (16:9 landscape)
-- [ ] **RND-02**: 1080p flat export (9:16 vertical/portrait)
-- [ ] **RND-03**: 4K flat export (16:9 and 9:16)
-- [ ] **RND-04**: 360 monoscopic equirectangular export (up to 8K)
-- [ ] **RND-05**: 360 stereoscopic export (Top/Bottom, 8K)
-- [ ] **RND-06**: VR spatial metadata injection (Spherical Video V2)
-- [ ] **RND-07**: Headless rendering mode (command line, no GUI)
-- [ ] **RND-08**: Render queue with job persistence (survives browser close)
+### Workers
 
-### Automation
+- [ ] **WORK-01**: A Render.com background worker runs Node.js with ffmpeg and yt-dlp for CPU-intensive audio jobs
+- [ ] **WORK-02**: Worker can ingest audio from YouTube URLs, direct URLs, and file uploads (via R2 presigned upload)
+- [ ] **WORK-03**: Worker can execute audio edit previews and save operations using the existing recipe/filter_complex pipeline
+- [ ] **WORK-04**: Worker dispatches GPU render jobs to Modal by uploading audio to R2 and passing signed URL
+- [ ] **WORK-05**: Modal calls a secure webhook on render completion with the R2 key of the output video
 
-- [ ] **AUT-01**: Batch queue for processing multiple audio files
-- [ ] **AUT-02**: Google Drive output folder integration
-- [ ] **AUT-03**: Naming convention enforcement ([Date]_[AudioName]_[Format].mp4)
-- [ ] **AUT-04**: Metadata database (Google Sheets or local CSV)
-- [ ] **AUT-05**: n8n webhook trigger on render complete
-- [ ] **AUT-06**: n8n workflow for auto-posting to YouTube, social platforms
+### API
 
-### Infrastructure
+- [ ] **API-01**: All ingest/edit/save/render API routes return a jobId immediately without blocking
+- [ ] **API-02**: Poll endpoint returns current job status, progress percentage, and result (including R2 download URL on completion)
+- [ ] **API-03**: Asset streaming endpoint serves audio from R2 in production and local filesystem in development
+- [ ] **API-04**: Webhook endpoint validates INTERNAL_WEBHOOK_SECRET header before processing callbacks
 
-- [ ] **INF-01**: Mobile-friendly web UI (works on phone)
-- [ ] **INF-02**: Remote access to home render server (Cloudflare Tunnel)
-- [ ] **INF-03**: Job status notifications (push or polling)
+### Config & Deploy
 
-## v2 Requirements
+- [ ] **DEPLOY-01**: Application switches between local and production mode based on environment variables (no code changes)
+- [ ] **DEPLOY-02**: .env.example documents all required production environment variables
+- [ ] **DEPLOY-03**: Deploy checklist (docs/DEPLOY_PROD_CHECKLIST.md) covers provisioning R2, Turso, Render, Modal, and Vercel
+- [ ] **DEPLOY-04**: GitHub Actions workflow auto-deploys web to Vercel and worker to Render on push
 
-Deferred to future release. Tracked but not in current roadmap.
+### Security
 
-### Advanced Features
+- [ ] **SEC-01**: Modal webhook callback requires valid INTERNAL_WEBHOOK_SECRET in request header
+- [ ] **SEC-02**: Cloud ingest path enforces file size (100MB) and duration (30min) limits
 
-- **TPL-ADV-01**: Template export/import (JSON files for sharing)
-- **VIS-ADV-01**: Custom 360 background video support (8K equirectangular)
-- **VIS-ADV-02**: Water reflection plane
-- **RND-ADV-01**: Cloud GPU rendering option (Vast.ai, RunPod)
-- **AUT-ADV-01**: Scheduled batch processing (render overnight)
-- **AUT-ADV-02**: Multi-platform n8n workflows (TikTok, Instagram, Facebook)
+## v2.1 Requirements (Deferred)
+
+- **SEC-03**: SSRF protection on URL ingest (block private IPs)
+- **SEC-04**: TTL cleanup job for R2 assets older than configurable threshold
+- **SEC-05**: Per-user storage quota enforcement
+- **MON-01**: Error tracking via Sentry
+- **MON-02**: Uptime monitoring and alerting
 
 ## Out of Scope
 
-Explicitly excluded. Documented to prevent scope creep.
-
 | Feature | Reason |
 |---------|--------|
-| Real-time streaming | Batch rendering only for v1 - streaming adds latency/complexity |
-| Mobile native app | Web-first approach; PWA if needed |
-| Multi-user accounts | Single creator workflow initially |
-| Custom shader editor | Too complex; use preset system instead |
-| In-browser 8K rendering | WebGL has 4K limit; must use server-side |
-| Video editing timeline | Defeats mobile simplicity - full video is generated |
-| Thousands of generic presets | Quality over quantity; 4-6 curated presets |
-| Streaming service audio input | API restrictions make it unreliable |
+| Redis/BullMQ for audio-prep queue | Turso polling sufficient at current volume |
+| Postgres migration | Turso is SQLite-compatible, no rewrites needed |
+| Multi-user auth system | Single creator workflow for v2.0 |
+| Render.com web service | Vercel handles web/API natively |
+| SSRF protection | Single-user, low risk — deferred to v2.1 |
+| TTL asset cleanup | Manual cleanup sufficient at launch — deferred to v2.1 |
 
 ## Traceability
 
@@ -100,53 +85,36 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| VIS-01 | Phase 1 | Pending |
-| VIS-02 | Phase 1 | Pending |
-| VIS-03 | Phase 1 | Pending |
-| VIS-04 | Phase 1 | Pending |
-| VIS-05 | Phase 1 | Pending |
-| VIS-05b | Phase 1 | Pending |
-| VIS-06 | Phase 1 | Pending |
-| VIS-07 | Phase 1 | Pending |
-| VIS-08 | Phase 1 | Pending |
-| VIS-09 | Phase 1 | Pending |
-| VIS-10 | Phase 1 | Pending |
-| VIS-11 | Phase 1 | Pending |
-| VIS-12 | Phase 1 | Pending |
-| AUD-01 | Phase 1 | Pending |
-| AUD-02 | Phase 1 | Pending |
-| AUD-04 | Phase 1 | Pending |
-| INF-01 | Phase 1 | Pending |
-| TPL-01 | Phase 2 | Pending |
-| TPL-02 | Phase 2 | Pending |
-| TPL-03 | Phase 2 | Pending |
-| TPL-04 | Phase 2 | Pending |
-| TPL-05 | Phase 2 | Pending |
-| TPL-06 | Phase 2 | Pending |
-| AUD-03 | Phase 3 | Pending |
-| RND-01 | Phase 3 | Pending |
-| RND-02 | Phase 3 | Pending |
-| RND-03 | Phase 3 | Pending |
-| RND-04 | Phase 3 | Pending |
-| RND-05 | Phase 3 | Pending |
-| RND-06 | Phase 3 | Pending |
-| RND-07 | Phase 3 | Pending |
-| RND-08 | Phase 3 | Pending |
-| AUD-05 | Phase 4 | Pending |
-| AUT-01 | Phase 4 | Pending |
-| AUT-02 | Phase 4 | Pending |
-| AUT-03 | Phase 4 | Pending |
-| AUT-04 | Phase 4 | Pending |
-| INF-03 | Phase 4 | Pending |
-| AUT-05 | Phase 5 | Pending |
-| AUT-06 | Phase 5 | Pending |
-| INF-02 | Phase 5 | Pending |
+| STOR-01 | TBD | Pending |
+| STOR-02 | TBD | Pending |
+| STOR-03 | TBD | Pending |
+| STOR-04 | TBD | Pending |
+| JOB-01 | TBD | Pending |
+| JOB-02 | TBD | Pending |
+| JOB-03 | TBD | Pending |
+| JOB-04 | TBD | Pending |
+| JOB-05 | TBD | Pending |
+| WORK-01 | TBD | Pending |
+| WORK-02 | TBD | Pending |
+| WORK-03 | TBD | Pending |
+| WORK-04 | TBD | Pending |
+| WORK-05 | TBD | Pending |
+| API-01 | TBD | Pending |
+| API-02 | TBD | Pending |
+| API-03 | TBD | Pending |
+| API-04 | TBD | Pending |
+| DEPLOY-01 | TBD | Pending |
+| DEPLOY-02 | TBD | Pending |
+| DEPLOY-03 | TBD | Pending |
+| DEPLOY-04 | TBD | Pending |
+| SEC-01 | TBD | Pending |
+| SEC-02 | TBD | Pending |
 
 **Coverage:**
-- v1 requirements: 41 total
-- Mapped to phases: 41
-- Unmapped: 0
+- v2.0 requirements: 24 total
+- Mapped to phases: 0
+- Unmapped: 24
 
 ---
-*Requirements defined: 2026-01-26*
-*Traceability updated: 2026-01-26 after roadmap creation*
+*Requirements defined: 2026-02-20*
+*Last updated: 2026-02-20 after v2.0 milestone definition*
