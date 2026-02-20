@@ -2,82 +2,109 @@
 
 ## What This Is
 
-An audio-reactive video generation engine that transforms audio files (meditation, music) into high-fidelity 360° VR and flat social media videos. Users upload audio, select a visual template, and the system renders publication-ready videos with auto-generated descriptions, then hands off to n8n for automated social media posting.
+An audio-reactive video generation engine that transforms audio files (meditation, music) into high-fidelity 360° VR and flat social media videos. Users upload audio, select a visual template, and the system renders publication-ready videos with auto-generated descriptions, then hands off to n8n for automated social media posting. Now moving to a full cloud production stack so the entire workflow runs on the web.
 
 ## Core Value
 
 **Phone to published video without touching a computer.** A creator should be able to upload audio from their phone, pick a preset, and have a finished video posted to YouTube/social media — fully automated.
 
+## Current Milestone: v2.0 Cloud Production
+
+**Goal:** Move the entire app to production cloud infrastructure — no local machine dependencies for end users.
+
+**Target features:**
+- Storage adapter abstraction (local dev + Cloudflare R2 production)
+- All audio assets and rendered videos stored in R2
+- All job/asset state in Turso (cloud SQLite, zero migration from existing better-sqlite3)
+- CPU worker service on Render.com for audio prep (ffmpeg, yt-dlp)
+- GPU render dispatch to Modal with R2-based input/output
+- All API routes async: enqueue work, return jobId, poll for status
+- Environment-driven config switching local vs production
+- Secure webhook callbacks for Modal render completion
+
+**Architecture (approved):**
+- Vercel for web/API (existing deployment)
+- Render.com worker ($7/mo) for CPU-intensive audio jobs
+- Turso for all state (existing, SQLite-compatible)
+- Cloudflare R2 for object storage (free egress)
+- Modal for GPU rendering (existing integration)
+- No Redis — Turso polling for job dispatch
+
 ## Requirements
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ Visual engine with Flame + Mist modes — v1.0/Phase 1
+- ✓ Dual-layer particle system with lifetime curves — v1.0/Phase 1
+- ✓ Star Nest skybox with 20+ presets — v1.0/Phase 1
+- ✓ Audio FFT analysis with frequency band separation — v1.0/Phase 1
+- ✓ Template system with 6 presets + save/load — v1.0/Phase 2
+- ✓ Rendering pipeline (1080p, 4K, 360 mono/stereo) — v1.0/Phase 3
+- ✓ Headless CLI rendering with Puppeteer + FFmpeg — v1.0/Phase 3
+- ✓ VR spatial metadata injection — v1.0/Phase 3
+- ✓ Batch queue with BullMQ + Redis + SQLite — v1.0/Phase 4
+- ✓ Whisper transcription microservice — v1.0/Phase 4
+- ✓ Google Drive sync + Sheets export + ntfy — v1.0/Phase 4
+- ✓ Cloudflare Tunnel remote access — v1.0/Phase 5
+- ✓ n8n YouTube auto-upload workflow — v1.0/Phase 5
+- ✓ Audio prep pipeline (ingest, edit, preview, save) — v1.0/Audio Prep MVP
 
 ### Active
 
-- [ ] Visual engine combining breathing orb aesthetics with audio reactivity
-- [ ] Particle systems with proper lifetime (spawn → live → die cycle)
-- [ ] Two visual modes: Ethereal Mist (soft/cloud) and Ethereal Flame (upward drift, warm, wispy)
-- [ ] Audio FFT analysis driving particle behavior (spawn rate, velocity, size, emission)
-- [ ] Skybox layer supporting procedural starfields, video projection, and 360° equirectangular
-- [ ] Automatic skybox rotation during playback
-- [ ] Template system with simple presets + advanced parameter access
-- [ ] Template save/load functionality
-- [ ] Batch queue for processing multiple audio files
-- [ ] Multiple output formats: Stereo 360° (8K), Mono 360°, flat 16:9/9:16
-- [ ] Whisper AI integration for auto-generating video descriptions
-- [ ] Rendering architecture optimized for phone → web → render workflow
-- [ ] File organization with proper naming conventions
-- [ ] Metadata database (Google Sheets or local CSV)
-- [ ] n8n automation handoff for social media posting
+- [ ] Cloud storage adapter (local + R2) for all audio/video assets
+- [ ] Turso-backed job and asset state (replace local SQLite)
+- [ ] Render.com CPU worker for audio prep processing
+- [ ] R2-integrated render dispatch to Modal GPU
+- [ ] Async API routes with consistent jobId polling
+- [ ] Environment-driven local/production configuration
+- [ ] Secure Modal webhook callbacks
+- [ ] Production deployment on Vercel + Render + R2
 
 ### Out of Scope
 
-- Real-time live streaming — batch rendering only for v1
+- Real-time live streaming — batch rendering only
 - Mobile native app — web-based, mobile-friendly
 - Multi-user accounts — single creator workflow initially
-- Custom skybox upload in v1 — use pre-built presets first
+- Redis/BullMQ for audio prep — Turso polling is sufficient at current volume
+- Full Postgres migration — Turso is SQLite-compatible, no query rewrites needed
+- Render.com web service — Vercel handles web/API, Render only for worker
 
 ## Context
 
-**Reference Code:** The reset-biology-website project contains:
-- Breathing orb component with good ethereal mist aesthetics (but static particles)
-- Audio reactive orb with functional FFT analysis (but poor visuals)
-- Working skybox system (no rotation yet)
+**v1.0 Complete:** Phases 1-5 shipped the full local pipeline (phone → render → YouTube). The visual engine, template system, rendering pipeline, batch automation, and n8n workflows all work locally.
 
-**User Environment:**
-- Has home computers with GPU rendering capability
-- Rarely has direct access (at work most of the time)
-- Can remotely access home machines sometimes
-- Wants to be able to trigger renders from phone
+**Audio Prep MVP:** Feature branch `feature/audio-prep-mvp` has ingest (YouTube, URL, file upload), edit (trim/split/join/fade/volume/normalize), preview, and save — all working locally with SQLite + filesystem.
 
-**Target Output Examples:**
-- Deep Space Starfield: Black void, white starlight, particles pulse with audio
-- Ethereal Nebula: Blue/gold gradients, volumetric fog, dreamy atmosphere
-- Both in 360° stereo and mono variants
+**Current infrastructure:**
+- Vercel deployment for web UI
+- Local SQLite for audio-prep job tracking (better-sqlite3)
+- Local filesystem for audio assets (`./audio-assets/{assetId}/`)
+- Modal partially integrated (gated behind `MODAL_ENDPOINT_URL`)
+- Turso already set up for Jarvis memory (libsql)
+- Drizzle ORM already in use
 
-**Automation Pipeline:**
-- Render completes → files to watch folder (Google Drive sync)
-- Metadata to Google Sheet with Whisper-generated descriptions
-- n8n watches folder → posts to YouTube, social platforms with proper metadata
+**Cost target:** $7-10/mo fixed (Render worker only) + variable R2/Modal usage.
 
 ## Constraints
 
-- **Tech Stack**: Next.js + Three.js — consistent with existing code, web-based for accessibility
-- **Resolution**: Must support up to 8K (7680x3840) for VR master output
-- **Rendering**: Must work with available home GPU resources OR cloud fallback
-- **Headless Ready**: Core rendering must be extractable for CLI/server deployment
+- **Tech Stack**: Next.js + Three.js — consistent with existing code
+- **Budget**: Minimize fixed monthly cost (target $7-10/mo base)
+- **Zero breaking changes**: Local dev workflow must continue to work
+- **SQLite compatibility**: Turso uses libsql (SQLite wire-compatible)
+- **No Redis for audio-prep**: Polling pattern is sufficient at launch volume
+- **Resolution**: Must support up to 8K for VR master output
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Next.js + Three.js stack | Same as reference code, web-accessible, proven for 3D | — Pending |
-| Two visual modes (Mist + Flame) | Different aesthetic needs for different content | — Pending |
-| Particle lifetime system | Current static particles lack organic, living feel | — Pending |
-| Research rendering architecture | Critical for phone-to-publish workflow, multiple options | — Pending |
-| n8n for automation | User has experience, powerful workflow tool | — Pending |
+| Next.js + Three.js stack | Same as reference code, web-accessible, proven for 3D | ✓ Good |
+| Two visual modes (Mist + Flame) | Different aesthetic needs for different content | ✓ Good |
+| Vercel for web + Render for worker | Each platform's strength, no hosting migration | — Pending |
+| Turso over Postgres | SQLite-compatible (zero migration), already set up, serverless | — Pending |
+| R2 over Vercel Blob | Free egress, cheaper storage, S3-compatible | — Pending |
+| Turso polling over Redis queue | Simpler, cheaper ($0 vs $10/mo), sufficient at launch volume | — Pending |
+| Storage adapter pattern | Keep local dev working, swap to R2 in production | — Pending |
 
 ---
-*Last updated: 2026-01-26 after initialization*
+*Last updated: 2026-02-20 after v2.0 milestone start*
