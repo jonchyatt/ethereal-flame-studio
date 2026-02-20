@@ -29,7 +29,7 @@ The `waitUntil()` hook provides partial serverless coverage for short jobs only.
 | 4 | High | Filename path traversal, URL memory buffering, no SSRF DNS check | Task 11: sanitizeFilename(), streaming download with size cap |
 | 5 | High | loudnorm in filter graph AND 2-pass = double normalization | Task 8/9: `includeNormalize` flag, only 1-pass in preview graph |
 | 6 | High | Modal cloud dispatch doesn't forward asset audio | Task 14: reads prepared.wav → base64 for Modal |
-| 7 | Medium | Quota/TTL/reference-aware delete claimed but not coded | Task 13: deleteAssetSafe(), checkQuota(), getDiskUsage() |
+| 7 | Medium | Quota/TTL/reference-aware delete claimed but not coded | Task 2: lifecycle methods in AudioAssetService; Task 13: API routes |
 | 8 | Medium | Jest not in package.json devDependencies | Task 1: `npm install --save-dev jest ts-jest @types/jest` |
 
 ### Round 2 Fixes
@@ -43,6 +43,17 @@ The `waitUntil()` hook provides partial serverless coverage for short jobs only.
 | 13 | High | JSON base64 for file uploads blows memory | Task 11: use `multipart/form-data` for video_file/audio_file uploads |
 | 14 | Medium | Quota/duration not enforced in ingest code | Task 11: checkQuota() before create, duration cap after probe |
 | 15 | Medium | Modal dispatch omits type: 'path' handling | Task 14: add path case to Modal dispatch block |
+
+### Round 3 Fixes
+
+| # | Severity | Issue | Fix Applied |
+|---|----------|-------|-------------|
+| 16 | Critical | `z.infer<typeof IngestRequestSchema>` reference broken after multipart switch | Task 11: replaced with `IngestSource` type union |
+| 17 | High | Multipart `arrayBuffer()` loads full file into memory | Task 11: `streamFileToDisk()` helper writes chunks to disk |
+| 18 | High | SSRF redirect validation incomplete (no chaining, no relative URLs) | Task 6: chained manual redirects (max 5 hops) with `new URL(location, currentUrl)` |
+| 19 | High | DNS validation only checks IPv4, misses IPv6 private ranges | Task 6: `resolve6()` added; reject when both lookups return nothing |
+| 20 | Medium | Task ordering: `checkQuota()` called in Task 11 before defined in Task 13 | Moved lifecycle methods (`checkQuota`, `getDiskUsage`, `deleteAssetSafe`, `isReferenced`, `cleanupExpired`) to Task 2 |
+| 21 | Medium | TTL lifecycle unimplemented despite `ttlDays` in config | Task 2: `cleanupExpired()` method; Task 13: cleanup API route |
 
 ---
 
@@ -327,6 +338,74 @@ describe('AudioAssetService', () => {
       /prepared asset not found/i
     );
   });
+
+  // --- Lifecycle & Quota Tests ---
+
+  test('checkQuota returns true when under quota', async () => {
+    await service.createAsset(Buffer.from('small'), 'a.wav', { sourceType: 'audio_file' });
+    const underQuota = await service.checkQuota();
+    expect(underQuota).toBe(true);
+  });
+
+  test('getDiskUsage returns total bytes across all assets', async () => {
+    await service.createAsset(Buffer.from('12345'), 'a.wav', { sourceType: 'audio_file' });
+    const usage = await service.getDiskUsage();
+    expect(usage).toBeGreaterThan(0);
+  });
+
+  test('deleteAssetSafe throws when asset is referenced', async () => {
+    const source = await service.createAsset(Buffer.from('src'), 'src.wav', {
+      sourceType: 'audio_file',
+    });
+    const consumer = await service.createAsset(Buffer.from('dst'), 'dst.wav', {
+      sourceType: 'audio_file',
+    });
+
+    // Write an edits.json that references the source asset
+    const editsPath = path.join(testDir, consumer.assetId, 'edits.json');
+    await fs.writeFile(editsPath, JSON.stringify({
+      clips: [{ sourceAssetId: source.assetId, startTime: 0, endTime: 1 }]
+    }));
+
+    await expect(service.deleteAssetSafe(source.assetId)).rejects.toThrow(/referenced/i);
+  });
+
+  test('deleteAssetSafe with force=true deletes even when referenced', async () => {
+    const source = await service.createAsset(Buffer.from('src'), 'src.wav', {
+      sourceType: 'audio_file',
+    });
+    const consumer = await service.createAsset(Buffer.from('dst'), 'dst.wav', {
+      sourceType: 'audio_file',
+    });
+
+    const editsPath = path.join(testDir, consumer.assetId, 'edits.json');
+    await fs.writeFile(editsPath, JSON.stringify({
+      clips: [{ sourceAssetId: source.assetId, startTime: 0, endTime: 1 }]
+    }));
+
+    await service.deleteAssetSafe(source.assetId, true);
+    const result = await service.getAsset(source.assetId);
+    expect(result).toBeNull();
+  });
+
+  test('cleanupExpired removes stale assets', async () => {
+    // Create a service with a very short TTL for testing
+    const shortTtlService = new AudioAssetService({ assetsDir: testDir, ttlDays: 0 });
+
+    const created = await shortTtlService.createAsset(Buffer.from('old'), 'old.wav', {
+      sourceType: 'audio_file',
+    });
+
+    // Backdate the metadata so it's "expired"
+    const metadataPath = path.join(testDir, created.assetId, 'metadata.json');
+    const meta = JSON.parse(await fs.readFile(metadataPath, 'utf-8'));
+    meta.updatedAt = '2020-01-01T00:00:00.000Z';
+    await fs.writeFile(metadataPath, JSON.stringify(meta));
+
+    const deleted = await shortTtlService.cleanupExpired();
+    expect(deleted).toBe(1);
+    expect(await shortTtlService.getAsset(created.assetId)).toBeNull();
+  });
 });
 ```
 
@@ -460,6 +539,67 @@ export class AudioAssetService {
   getAssetDir(assetId: string): string {
     return path.join(this.config.assetsDir, assetId);
   }
+
+  // --- Lifecycle & Quota Methods ---
+
+  /** Check if any saved recipe references this asset as a source */
+  async isReferenced(assetId: string): Promise<boolean> {
+    const allAssets = await this.listAssets();
+    for (const asset of allAssets) {
+      if (asset.assetId === assetId) continue;
+      const editsPath = path.join(this.config.assetsDir, asset.assetId, 'edits.json');
+      try {
+        const raw = await fs.readFile(editsPath, 'utf-8');
+        const recipe = JSON.parse(raw);
+        if (recipe.clips?.some((c: any) => c.sourceAssetId === assetId)) return true;
+      } catch { /* no edits file */ }
+    }
+    return false;
+  }
+
+  /** Delete asset with reference check. Throws if referenced unless force=true. */
+  async deleteAssetSafe(assetId: string, force = false): Promise<void> {
+    if (!force && await this.isReferenced(assetId)) {
+      throw new Error(`Asset ${assetId} is referenced by other recipes. Use force=true to delete anyway.`);
+    }
+    await this.deleteAsset(assetId);
+  }
+
+  /** Get total disk usage of all assets in bytes */
+  async getDiskUsage(): Promise<number> {
+    let total = 0;
+    const entries = await fs.readdir(this.config.assetsDir, { withFileTypes: true }).catch(() => []);
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      const files = await fs.readdir(path.join(this.config.assetsDir, entry.name));
+      for (const file of files) {
+        const stat = await fs.stat(path.join(this.config.assetsDir, entry.name, file));
+        total += stat.size;
+      }
+    }
+    return total;
+  }
+
+  /** Enforce disk quota. Returns true if under quota. */
+  async checkQuota(): Promise<boolean> {
+    const usage = await this.getDiskUsage();
+    return usage < this.config.diskQuotaGB * 1024 * 1024 * 1024;
+  }
+
+  /** Delete assets whose updatedAt is older than ttlDays. Returns count of deleted assets. */
+  async cleanupExpired(): Promise<number> {
+    const cutoff = Date.now() - this.config.ttlDays * 24 * 60 * 60 * 1000;
+    const assets = await this.listAssets();
+    let deleted = 0;
+    for (const asset of assets) {
+      const lastUsed = new Date(asset.updatedAt).getTime();
+      if (lastUsed < cutoff) {
+        await this.deleteAsset(asset.assetId);
+        deleted++;
+      }
+    }
+    return deleted;
+  }
 }
 ```
 
@@ -469,7 +609,7 @@ export class AudioAssetService {
 npx jest src/lib/audio-prep/__tests__/AudioAssetService.test.ts --verbose
 ```
 
-Expected: All 7 tests PASS
+Expected: All 13 tests PASS
 
 **Step 6: Commit**
 
@@ -1066,18 +1206,39 @@ export async function validateUrl(url: string): Promise<URL> {
   if (hostname.match(/^\d+\.\d+\.\d+\.\d+$/) || hostname.includes(':')) {
     checkPrivateIp(hostname);
   } else {
-    // DNS resolution check: resolve hostname and verify all IPs are public
+    // DNS resolution check: resolve hostname (both IPv4 and IPv6) and verify all IPs are public
     const dns = await import('dns');
     const { promisify } = await import('util');
     const resolve4 = promisify(dns.resolve4);
+    const resolve6 = promisify(dns.resolve6);
+
+    let allIps: string[] = [];
+    let dnsErrors = 0;
+
     try {
-      const ips = await resolve4(hostname);
-      for (const ip of ips) {
-        checkPrivateIp(ip);
-      }
+      const ipv4s = await resolve4(hostname);
+      allIps.push(...ipv4s);
     } catch (err: any) {
+      dnsErrors++;
       if (err.code === 'ENOTFOUND') throw new Error(`Cannot resolve hostname: ${hostname}`);
-      // Other DNS errors: allow through (might be IPv6-only, etc.)
+      // ENODATA = no A records, might have AAAA only
+    }
+
+    try {
+      const ipv6s = await resolve6(hostname);
+      allIps.push(...ipv6s);
+    } catch {
+      dnsErrors++;
+      // ENODATA = no AAAA records
+    }
+
+    // If both lookups failed, reject
+    if (allIps.length === 0) {
+      throw new Error(`Cannot resolve hostname to any IP: ${hostname}`);
+    }
+
+    for (const ip of allIps) {
+      checkPrivateIp(ip);
     }
   }
 
@@ -2093,7 +2254,14 @@ function sanitizeFilename(filename: string): string {
 // Max URL download size: 100MB streamed with abort support
 const MAX_URL_DOWNLOAD_BYTES = 100 * 1024 * 1024;
 
-async function processIngest(jobId: string, source: z.infer<typeof IngestRequestSchema>) {
+// IngestSource covers both JSON-parsed sources and multipart file uploads
+type IngestSource =
+  | { type: 'youtube'; url: string; rightsAttested: boolean }
+  | { type: 'url'; url: string }
+  | { type: 'video_file'; file: File; filename: string }
+  | { type: 'audio_file'; file: File; filename: string };
+
+async function processIngest(jobId: string, source: IngestSource) {
   const signal = audioPrepJobs.getSignal(jobId); // AbortSignal threaded to all operations
   audioPrepJobs.update(jobId, { status: 'processing', progress: 10 });
 
@@ -2126,11 +2294,10 @@ async function processIngest(jobId: string, source: z.infer<typeof IngestRequest
       }
 
       case 'video_file': {
-        // Write multipart File to disk (streamed, no base64)
+        // Stream multipart File to disk (avoid full arrayBuffer() memory spike)
         const safeName = sanitizeFilename(source.filename);
         const videoPath = path.join(tempDir, safeName);
-        const videoBytes = Buffer.from(await source.file.arrayBuffer());
-        await fs.writeFile(videoPath, videoBytes);
+        await streamFileToDisk(source.file, videoPath);
         audioPrepJobs.update(jobId, { progress: 30 });
 
         audioFilePath = path.join(tempDir, 'extracted.wav');
@@ -2142,8 +2309,7 @@ async function processIngest(jobId: string, source: z.infer<typeof IngestRequest
       case 'audio_file': {
         const safeName = sanitizeFilename(source.filename);
         audioFilePath = path.join(tempDir, safeName);
-        const audioBytes = Buffer.from(await source.file.arrayBuffer());
-        await fs.writeFile(audioFilePath, audioBytes);
+        await streamFileToDisk(source.file, audioFilePath);
         provenance.originalFilename = source.filename;
         break;
       }
@@ -2152,13 +2318,21 @@ async function processIngest(jobId: string, source: z.infer<typeof IngestRequest
         await validateUrl(source.url);
         audioPrepJobs.update(jobId, { progress: 20 });
 
-        // Fetch with redirect: 'manual' to re-validate redirect targets against SSRF
-        let response = await fetch(source.url, { signal, redirect: 'manual' });
-        if (response.status >= 300 && response.status < 400) {
-          const redirectUrl = response.headers.get('location');
-          if (redirectUrl) {
-            await validateUrl(redirectUrl); // Re-validate redirect target
-            response = await fetch(redirectUrl, { signal });
+        // Fetch with redirect: 'manual' at every hop to re-validate each target against SSRF.
+        // Max 5 redirects to prevent infinite loops.
+        let currentUrl = source.url;
+        let response: Response | undefined;
+        for (let redirects = 0; redirects < 5; redirects++) {
+          response = await fetch(currentUrl, { signal, redirect: 'manual' });
+          if (response.status >= 300 && response.status < 400) {
+            const location = response.headers.get('location');
+            if (!location) break;
+            // Resolve relative Location against current URL
+            const resolvedUrl = new URL(location, currentUrl).href;
+            await validateUrl(resolvedUrl); // Re-validate every redirect hop
+            currentUrl = resolvedUrl;
+          } else {
+            break;
           }
         }
         if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
@@ -2248,6 +2422,23 @@ async function processIngest(jobId: string, source: z.infer<typeof IngestRequest
     // Cleanup temp directory
     await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
   }
+}
+
+/** Stream a Web API File to disk in chunks instead of loading into memory */
+async function streamFileToDisk(file: File, destPath: string): Promise<void> {
+  const { createWriteStream } = await import('fs');
+  const ws = createWriteStream(destPath);
+  const reader = file.stream().getReader();
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    ws.write(Buffer.from(value));
+  }
+  ws.end();
+  await new Promise<void>((resolve, reject) => {
+    ws.on('finish', resolve);
+    ws.on('error', reject);
+  });
 }
 
 async function extractAudioFromVideo(videoPath: string, outputPath: string, signal?: AbortSignal): Promise<void> {
@@ -2367,72 +2558,30 @@ git commit -m "feat(audio-prep): add edit preview and save API routes with recip
 - Create: `src/app/api/audio/assets/route.ts`
 - Create: `src/app/api/audio/assets/[id]/route.ts`
 
-**Step 1: Implement lifecycle enforcement in AudioAssetService**
+**Step 1: Create list/get/delete routes**
 
-Add these methods to `AudioAssetService.ts`:
-
-```typescript
-/** Check if any saved recipe references this asset as a source */
-async isReferenced(assetId: string): Promise<boolean> {
-  const allAssets = await this.listAssets();
-  for (const asset of allAssets) {
-    if (asset.assetId === assetId) continue;
-    const editsPath = path.join(this.config.assetsDir, asset.assetId, 'edits.json');
-    try {
-      const raw = await fs.readFile(editsPath, 'utf-8');
-      const recipe = JSON.parse(raw);
-      if (recipe.clips?.some((c: any) => c.sourceAssetId === assetId)) return true;
-    } catch { /* no edits file */ }
-  }
-  return false;
-}
-
-/** Delete asset with reference check. Throws if referenced unless force=true. */
-async deleteAssetSafe(assetId: string, force = false): Promise<void> {
-  if (!force && await this.isReferenced(assetId)) {
-    throw new Error(`Asset ${assetId} is referenced by other recipes. Use force=true to delete anyway.`);
-  }
-  await this.deleteAsset(assetId);
-}
-
-/** Get total disk usage of all assets in bytes */
-async getDiskUsage(): Promise<number> {
-  let total = 0;
-  const entries = await fs.readdir(this.config.assetsDir, { withFileTypes: true }).catch(() => []);
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    const files = await fs.readdir(path.join(this.config.assetsDir, entry.name));
-    for (const file of files) {
-      const stat = await fs.stat(path.join(this.config.assetsDir, entry.name, file));
-      total += stat.size;
-    }
-  }
-  return total;
-}
-
-/** Enforce disk quota. Returns true if under quota. */
-async checkQuota(): Promise<boolean> {
-  const usage = await this.getDiskUsage();
-  return usage < this.config.diskQuotaGB * 1024 * 1024 * 1024;
-}
-```
-
-**Step 2: Create list/get/delete routes**
+> **Note:** `isReferenced()`, `deleteAssetSafe()`, `getDiskUsage()`, `checkQuota()`, and
+> `cleanupExpired()` are already defined in `AudioAssetService` (Task 2). This task only
+> creates the API routes that call them.
 
 `GET /api/audio/assets` - calls `assetService.listAssets()`, includes disk usage
 `GET /api/audio/assets/[id]` - calls `assetService.getAsset(id)`, includes peaks URL
 `DELETE /api/audio/assets/[id]` - calls `assetService.deleteAssetSafe(id, force)` with optional `?force=true` query param
 
-Ingest route (Task 11) must call `checkQuota()` before creating new assets and reject with
-`413 Payload Too Large` if quota exceeded.
+Ingest route (Task 11) already calls `checkQuota()` before creating new assets and rejects
+with `413 Payload Too Large` if quota exceeded.
+
+Add a `POST /api/audio/assets/cleanup` route that calls `assetService.cleanupExpired()` to
+purge assets older than `ttlDays`. This can be triggered manually or wired to a cron-like
+interval in the dev server startup (out of scope for MVP — manual trigger is sufficient).
 
 Follows the same response format pattern as existing render API routes.
 
-**Step 3: Commit**
+**Step 2: Commit**
 
 ```bash
-git add src/lib/audio-prep/AudioAssetService.ts src/app/api/audio/assets/
-git commit -m "feat(audio-prep): add asset CRUD routes with reference-aware delete and quota enforcement"
+git add src/app/api/audio/assets/
+git commit -m "feat(audio-prep): add asset CRUD routes with reference-aware delete and TTL cleanup"
 ```
 
 ---
