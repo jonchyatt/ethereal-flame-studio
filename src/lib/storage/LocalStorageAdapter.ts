@@ -124,10 +124,19 @@ export class LocalStorageAdapter implements StorageAdapter {
   // Helpers
   // ---------------------------------------------------------------------------
 
-  /** Resolve a storage key to an absolute filesystem path. */
-  private resolve(key: string): string {
+  /**
+   * Resolve a storage key to an absolute filesystem path.
+   * Public so that callers (e.g. AudioAssetService) can derive local paths
+   * from storage keys when they need filesystem access (ffmpeg, etc.).
+   */
+  resolveKey(key: string): string {
     // Normalise forward-slash keys to OS-native paths
     return path.join(this.basePath, ...key.split('/'));
+  }
+
+  /** @internal Alias kept for backward-compat within this class. */
+  private resolve(key: string): string {
+    return this.resolveKey(key);
   }
 
   /** Remove empty directories walking upward, stopping at basePath. */

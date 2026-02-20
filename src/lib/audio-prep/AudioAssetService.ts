@@ -1,18 +1,28 @@
-import { promises as fs } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import os from 'os';
+import { promises as fs } from 'fs';
 import type { AssetMetadata, AssetProvenance, AudioPrepConfig } from './types';
 import { DEFAULT_CONFIG } from './types';
+import type { StorageAdapter } from '@/lib/storage';
+import { getStorageAdapter } from '@/lib/storage';
 
 export class AudioAssetService {
   readonly config: AudioPrepConfig;
+  private readonly storage: StorageAdapter;
 
-  constructor(config: Partial<AudioPrepConfig> = {}) {
+  constructor(config: Partial<AudioPrepConfig> = {}, storage?: StorageAdapter) {
     this.config = { ...DEFAULT_CONFIG, ...config };
+    this.storage = storage ?? getStorageAdapter();
   }
 
+  /**
+   * No-op for storage adapter (adapter handles directory creation on put).
+   * Kept for backward compatibility with existing callers.
+   */
   async init(): Promise<void> {
-    await fs.mkdir(this.config.assetsDir, { recursive: true });
+    // StorageAdapter.put() creates parent directories as needed.
+    // No initialization required.
   }
 
   async createAsset(
@@ -22,10 +32,8 @@ export class AudioAssetService {
   ): Promise<AssetMetadata> {
     const assetId = crypto.randomUUID();
     const ext = path.extname(filename) || '.wav';
-    const assetDir = path.join(this.config.assetsDir, assetId);
 
-    await fs.mkdir(assetDir, { recursive: true });
-    await fs.writeFile(path.join(assetDir, `original${ext}`), audioBuffer);
+    await this.storage.put(`assets/${assetId}/original${ext}`, audioBuffer);
 
     const now = new Date().toISOString();
     const metadata: AssetMetadata = {
@@ -47,19 +55,19 @@ export class AudioAssetService {
       originalFilename: filename,
     };
 
-    await fs.writeFile(
-      path.join(assetDir, 'metadata.json'),
-      JSON.stringify(metadata, null, 2)
+    await this.storage.put(
+      `assets/${assetId}/metadata.json`,
+      Buffer.from(JSON.stringify(metadata, null, 2))
     );
 
     return metadata;
   }
 
   async getAsset(assetId: string): Promise<AssetMetadata | null> {
-    const metadataPath = path.join(this.config.assetsDir, assetId, 'metadata.json');
     try {
-      const raw = await fs.readFile(metadataPath, 'utf-8');
-      return JSON.parse(raw) as AssetMetadata;
+      const data = await this.storage.get(`assets/${assetId}/metadata.json`);
+      if (!data) return null;
+      return JSON.parse(data.toString('utf-8')) as AssetMetadata;
     } catch {
       return null;
     }
@@ -67,13 +75,21 @@ export class AudioAssetService {
 
   async listAssets(): Promise<AssetMetadata[]> {
     try {
-      const entries = await fs.readdir(this.config.assetsDir, { withFileTypes: true });
-      const assets: AssetMetadata[] = [];
-      for (const entry of entries) {
-        if (entry.isDirectory()) {
-          const asset = await this.getAsset(entry.name);
-          if (asset) assets.push(asset);
+      const keys = await this.storage.list('assets/');
+      // Extract unique assetId segments from keys like "assets/{assetId}/metadata.json"
+      const assetIds = new Set<string>();
+      for (const key of keys) {
+        const parts = key.split('/');
+        // key format: assets/{assetId}/{filename}
+        if (parts.length >= 3 && parts[0] === 'assets') {
+          assetIds.add(parts[1]);
         }
+      }
+
+      const assets: AssetMetadata[] = [];
+      for (const assetId of assetIds) {
+        const asset = await this.getAsset(assetId);
+        if (asset) assets.push(asset);
       }
       return assets;
     } catch {
@@ -82,18 +98,63 @@ export class AudioAssetService {
   }
 
   async deleteAsset(assetId: string): Promise<void> {
-    const assetDir = path.join(this.config.assetsDir, assetId);
-    await fs.rm(assetDir, { recursive: true, force: true });
+    await this.storage.deletePrefix(`assets/${assetId}/`);
   }
 
+  /**
+   * Resolve the path to a prepared asset file.
+   *
+   * For LocalStorageAdapter: returns a direct filesystem path via `resolveKey()`.
+   * For cloud storage: falls back to `resolveAssetToTempFile()` which downloads
+   * to a local temp file suitable for ffmpeg processing.
+   */
   async resolveAssetPath(assetId: string): Promise<string> {
-    const preparedPath = path.join(this.config.assetsDir, assetId, 'prepared.wav');
-    try {
-      await fs.access(preparedPath);
-      return preparedPath;
-    } catch {
+    const keys = await this.storage.list(`assets/${assetId}/`);
+    const preparedKey = keys.find(k => {
+      const filename = k.split('/').pop() || '';
+      return filename.startsWith('prepared.');
+    });
+    if (!preparedKey) {
       throw new Error(`Prepared asset not found for ${assetId}. Save edits first.`);
     }
+
+    // If the adapter exposes resolveKey (LocalStorageAdapter), use it for a direct path
+    if ('resolveKey' in this.storage && typeof (this.storage as any).resolveKey === 'function') {
+      return (this.storage as any).resolveKey(preparedKey) as string;
+    }
+
+    // For cloud adapters, download to temp file
+    return this.resolveAssetToTempFile(assetId);
+  }
+
+  /**
+   * Download a prepared asset to a local temp file and return the temp file path.
+   * This is the cloud-compatible approach for operations that need filesystem paths
+   * (e.g., ffmpeg processing).
+   *
+   * **Callers are responsible for cleaning up the temp file when done.**
+   *
+   * @transitional Phase 14 worker will handle temp file lifecycle.
+   */
+  async resolveAssetToTempFile(assetId: string): Promise<string> {
+    const keys = await this.storage.list(`assets/${assetId}/`);
+    const preparedKey = keys.find(k => {
+      const filename = k.split('/').pop() || '';
+      return filename.startsWith('prepared.');
+    });
+    if (!preparedKey) {
+      throw new Error(`Prepared asset not found for ${assetId}. Save edits first.`);
+    }
+
+    const data = await this.storage.get(preparedKey);
+    if (!data) {
+      throw new Error(`Failed to read prepared asset for ${assetId}`);
+    }
+
+    const ext = path.extname(preparedKey) || '.wav';
+    const tempPath = path.join(os.tmpdir(), `asset-${assetId}-prepared${ext}`);
+    await fs.writeFile(tempPath, data);
+    return tempPath;
   }
 
   async updateMetadata(assetId: string, updates: Partial<AssetMetadata>): Promise<AssetMetadata> {
@@ -107,13 +168,42 @@ export class AudioAssetService {
       updatedAt: new Date().toISOString(),
     };
 
-    const metadataPath = path.join(this.config.assetsDir, assetId, 'metadata.json');
-    await fs.writeFile(metadataPath, JSON.stringify(updated, null, 2));
+    await this.storage.put(
+      `assets/${assetId}/metadata.json`,
+      Buffer.from(JSON.stringify(updated, null, 2))
+    );
     return updated;
   }
 
+  /**
+   * @deprecated Use `getAssetPrefix(assetId)` for storage key-based access.
+   * This method returns a filesystem path and only works with LocalStorageAdapter.
+   * Kept for backward compatibility during the transition period.
+   */
   getAssetDir(assetId: string): string {
-    return path.join(this.config.assetsDir, assetId);
+    // If the adapter exposes resolveKey (LocalStorageAdapter), derive path from it
+    if ('resolveKey' in this.storage && typeof (this.storage as any).resolveKey === 'function') {
+      return (this.storage as any).resolveKey(`assets/${assetId}`) as string;
+    }
+    // Fallback for non-local adapters (shouldn't be called, but provides a sensible default)
+    const storageBasePath = process.env.STORAGE_LOCAL_PATH || './storage';
+    return path.resolve(storageBasePath, 'assets', assetId);
+  }
+
+  /**
+   * Returns the storage key prefix for an asset. Use this with the StorageAdapter
+   * for key-based access instead of the deprecated `getAssetDir()`.
+   */
+  getAssetPrefix(assetId: string): string {
+    return `assets/${assetId}/`;
+  }
+
+  /**
+   * Get a reference to the underlying storage adapter.
+   * Useful for routes that need direct adapter access for put/get operations.
+   */
+  getStorage(): StorageAdapter {
+    return this.storage;
   }
 
   // --- Lifecycle & Quota Methods ---
@@ -123,10 +213,10 @@ export class AudioAssetService {
     const allAssets = await this.listAssets();
     for (const asset of allAssets) {
       if (asset.assetId === assetId) continue;
-      const editsPath = path.join(this.config.assetsDir, asset.assetId, 'edits.json');
       try {
-        const raw = await fs.readFile(editsPath, 'utf-8');
-        const recipe = JSON.parse(raw);
+        const data = await this.storage.get(`assets/${asset.assetId}/edits.json`);
+        if (!data) continue;
+        const recipe = JSON.parse(data.toString('utf-8'));
         if (recipe.clips?.some((c: any) => c.sourceAssetId === assetId)) return true;
       } catch { /* no edits file */ }
     }
@@ -144,15 +234,13 @@ export class AudioAssetService {
   /** Get total disk usage of all assets in bytes */
   async getDiskUsage(): Promise<number> {
     let total = 0;
-    const entries = await fs.readdir(this.config.assetsDir, { withFileTypes: true }).catch(() => []);
-    for (const entry of entries) {
-      if (!entry.isDirectory()) continue;
-      const files = await fs.readdir(path.join(this.config.assetsDir, entry.name));
-      for (const file of files) {
-        const stat = await fs.stat(path.join(this.config.assetsDir, entry.name, file));
-        total += stat.size;
+    try {
+      const keys = await this.storage.list('assets/');
+      for (const key of keys) {
+        const stat = await this.storage.stat(key);
+        if (stat) total += stat.size;
       }
-    }
+    } catch { /* empty storage */ }
     return total;
   }
 

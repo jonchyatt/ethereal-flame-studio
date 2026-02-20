@@ -1,4 +1,5 @@
 import { AudioAssetService } from '../AudioAssetService';
+import { LocalStorageAdapter } from '@/lib/storage/LocalStorageAdapter';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
@@ -6,10 +7,12 @@ import os from 'os';
 describe('AudioAssetService', () => {
   let service: AudioAssetService;
   let testDir: string;
+  let storage: LocalStorageAdapter;
 
   beforeEach(async () => {
     testDir = path.join(os.tmpdir(), `audio-prep-test-${Date.now()}`);
-    service = new AudioAssetService({ assetsDir: testDir });
+    storage = new LocalStorageAdapter(testDir, 'http://localhost:3000');
+    service = new AudioAssetService({}, storage);
     await service.init();
   });
 
@@ -17,9 +20,9 @@ describe('AudioAssetService', () => {
     await fs.rm(testDir, { recursive: true, force: true });
   });
 
-  test('init creates assets directory', async () => {
-    const stat = await fs.stat(testDir);
-    expect(stat.isDirectory()).toBe(true);
+  test('init is a no-op (adapter handles directory creation)', async () => {
+    // init() should not throw
+    await service.init();
   });
 
   test('createAsset stores file and returns metadata', async () => {
@@ -33,7 +36,8 @@ describe('AudioAssetService', () => {
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
     );
 
-    const assetDir = path.join(testDir, result.assetId);
+    // Verify file stored via storage adapter at assets/{assetId}/original.wav
+    const assetDir = path.join(testDir, 'assets', result.assetId);
     const stat = await fs.stat(assetDir);
     expect(stat.isDirectory()).toBe(true);
 
@@ -57,7 +61,7 @@ describe('AudioAssetService', () => {
     expect(result).toBeNull();
   });
 
-  test('deleteAsset removes asset directory', async () => {
+  test('deleteAsset removes asset data', async () => {
     const audioBuffer = Buffer.from('fake-audio-data');
     const created = await service.createAsset(audioBuffer, 'test.wav', {
       sourceType: 'audio_file',
@@ -82,12 +86,13 @@ describe('AudioAssetService', () => {
       sourceType: 'audio_file',
     });
 
-    // Write a fake prepared.wav
-    const preparedPath = path.join(testDir, created.assetId, 'prepared.wav');
-    await fs.writeFile(preparedPath, 'prepared-audio');
+    // Write a fake prepared.wav via storage adapter
+    await storage.put(`assets/${created.assetId}/prepared.wav`, Buffer.from('prepared-audio'));
 
     const resolved = await service.resolveAssetPath(created.assetId);
-    expect(resolved).toBe(preparedPath);
+    const expectedPath = path.resolve(testDir, 'assets', created.assetId, 'prepared.wav');
+    // Normalize both paths for cross-platform comparison
+    expect(path.resolve(resolved)).toBe(expectedPath);
   });
 
   test('resolveAssetPath throws when prepared.wav missing', async () => {
@@ -98,6 +103,27 @@ describe('AudioAssetService', () => {
     await expect(service.resolveAssetPath(created.assetId)).rejects.toThrow(
       /prepared asset not found/i
     );
+  });
+
+  test('resolveAssetToTempFile downloads prepared file to temp dir', async () => {
+    const created = await service.createAsset(Buffer.from('a'), 'a.wav', {
+      sourceType: 'audio_file',
+    });
+
+    await storage.put(`assets/${created.assetId}/prepared.wav`, Buffer.from('prepared-audio'));
+
+    const tempPath = await service.resolveAssetToTempFile(created.assetId);
+    expect(tempPath).toContain(os.tmpdir());
+    const content = await fs.readFile(tempPath, 'utf-8');
+    expect(content).toBe('prepared-audio');
+
+    // Cleanup
+    await fs.unlink(tempPath).catch(() => {});
+  });
+
+  test('getAssetPrefix returns storage key prefix', () => {
+    const prefix = service.getAssetPrefix('test-id');
+    expect(prefix).toBe('assets/test-id/');
   });
 
   // --- Lifecycle & Quota Tests ---
@@ -122,11 +148,13 @@ describe('AudioAssetService', () => {
       sourceType: 'audio_file',
     });
 
-    // Write an edits.json that references the source asset
-    const editsPath = path.join(testDir, consumer.assetId, 'edits.json');
-    await fs.writeFile(editsPath, JSON.stringify({
-      clips: [{ sourceAssetId: source.assetId, startTime: 0, endTime: 1 }]
-    }));
+    // Write an edits.json that references the source asset via storage adapter
+    await storage.put(
+      `assets/${consumer.assetId}/edits.json`,
+      Buffer.from(JSON.stringify({
+        clips: [{ sourceAssetId: source.assetId, startTime: 0, endTime: 1 }]
+      }))
+    );
 
     await expect(service.deleteAssetSafe(source.assetId)).rejects.toThrow(/referenced/i);
   });
@@ -139,10 +167,12 @@ describe('AudioAssetService', () => {
       sourceType: 'audio_file',
     });
 
-    const editsPath = path.join(testDir, consumer.assetId, 'edits.json');
-    await fs.writeFile(editsPath, JSON.stringify({
-      clips: [{ sourceAssetId: source.assetId, startTime: 0, endTime: 1 }]
-    }));
+    await storage.put(
+      `assets/${consumer.assetId}/edits.json`,
+      Buffer.from(JSON.stringify({
+        clips: [{ sourceAssetId: source.assetId, startTime: 0, endTime: 1 }]
+      }))
+    );
 
     await service.deleteAssetSafe(source.assetId, true);
     const result = await service.getAsset(source.assetId);
@@ -151,17 +181,18 @@ describe('AudioAssetService', () => {
 
   test('cleanupExpired removes stale assets', async () => {
     // Create a service with a very short TTL for testing
-    const shortTtlService = new AudioAssetService({ assetsDir: testDir, ttlDays: 0 });
+    const shortTtlService = new AudioAssetService({ ttlDays: 0 }, storage);
 
     const created = await shortTtlService.createAsset(Buffer.from('old'), 'old.wav', {
       sourceType: 'audio_file',
     });
 
-    // Backdate the metadata so it's "expired"
-    const metadataPath = path.join(testDir, created.assetId, 'metadata.json');
-    const meta = JSON.parse(await fs.readFile(metadataPath, 'utf-8'));
+    // Backdate the metadata so it's "expired" via storage adapter
+    const metaKey = `assets/${created.assetId}/metadata.json`;
+    const metaData = await storage.get(metaKey);
+    const meta = JSON.parse(metaData!.toString('utf-8'));
     meta.updatedAt = '2020-01-01T00:00:00.000Z';
-    await fs.writeFile(metadataPath, JSON.stringify(meta));
+    await storage.put(metaKey, Buffer.from(JSON.stringify(meta)));
 
     const deleted = await shortTtlService.cleanupExpired();
     expect(deleted).toBe(1);
@@ -169,7 +200,7 @@ describe('AudioAssetService', () => {
   });
 
   test('cleanupExpired skips stale assets that are still referenced', async () => {
-    const shortTtlService = new AudioAssetService({ assetsDir: testDir, ttlDays: 0 });
+    const shortTtlService = new AudioAssetService({ ttlDays: 0 }, storage);
 
     const source = await shortTtlService.createAsset(Buffer.from('src'), 'src.wav', {
       sourceType: 'audio_file',
@@ -178,20 +209,26 @@ describe('AudioAssetService', () => {
       sourceType: 'audio_file',
     });
 
-    const editsPath = path.join(testDir, consumer.assetId, 'edits.json');
-    await fs.writeFile(editsPath, JSON.stringify({
-      clips: [{ sourceAssetId: source.assetId, startTime: 0, endTime: 1 }],
-    }));
+    await storage.put(
+      `assets/${consumer.assetId}/edits.json`,
+      Buffer.from(JSON.stringify({
+        clips: [{ sourceAssetId: source.assetId, startTime: 0, endTime: 1 }],
+      }))
+    );
 
-    const sourceMetadataPath = path.join(testDir, source.assetId, 'metadata.json');
-    const sourceMeta = JSON.parse(await fs.readFile(sourceMetadataPath, 'utf-8'));
+    // Backdate source metadata
+    const sourceMetaKey = `assets/${source.assetId}/metadata.json`;
+    const sourceMetaData = await storage.get(sourceMetaKey);
+    const sourceMeta = JSON.parse(sourceMetaData!.toString('utf-8'));
     sourceMeta.updatedAt = '2020-01-01T00:00:00.000Z';
-    await fs.writeFile(sourceMetadataPath, JSON.stringify(sourceMeta));
+    await storage.put(sourceMetaKey, Buffer.from(JSON.stringify(sourceMeta)));
 
-    const consumerMetadataPath = path.join(testDir, consumer.assetId, 'metadata.json');
-    const consumerMeta = JSON.parse(await fs.readFile(consumerMetadataPath, 'utf-8'));
+    // Keep consumer fresh
+    const consumerMetaKey = `assets/${consumer.assetId}/metadata.json`;
+    const consumerMetaData = await storage.get(consumerMetaKey);
+    const consumerMeta = JSON.parse(consumerMetaData!.toString('utf-8'));
     consumerMeta.updatedAt = '2999-01-01T00:00:00.000Z';
-    await fs.writeFile(consumerMetadataPath, JSON.stringify(consumerMeta));
+    await storage.put(consumerMetaKey, Buffer.from(JSON.stringify(consumerMeta)));
 
     const deleted = await shortTtlService.cleanupExpired();
     expect(deleted).toBe(0);
