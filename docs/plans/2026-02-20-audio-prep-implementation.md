@@ -64,6 +64,14 @@ The `waitUntil()` hook provides partial serverless coverage for short jobs only.
 | 24 | Medium | `streamFileToDisk` lacks abort/backpressure handling | Added AbortSignal check, drain-based backpressure, cleanup on error |
 | 25 | Low | Duration/file-size limits hardcoded instead of using config | Changed to `assetService.config.maxDurationMinutes` / `.maxFileSizeMB`; config made `readonly` |
 
+### Round 5 Fixes
+
+| # | Severity | Issue | Fix Applied |
+|---|----------|-------|-------------|
+| 26 | High | SQLite durability claim says "survives serverless cold starts" — contradicts scope | Changed to "local Node process restarts only"; added explicit Vercel caveat |
+| 27 | High | URL download stream lacks backpressure, abort, error handling, and assumes response.body exists | Added null check, AbortSignal, drain-based backpressure, try/catch with destroy |
+| 28 | Medium | `MAX_URL_DOWNLOAD_BYTES` hardcoded at 100MB instead of using config | Removed constant; Content-Length check and stream loop both use `assetService.config.maxFileSizeMB` |
+
 ---
 
 ## Phase 1: Backend Infrastructure
@@ -1913,7 +1921,8 @@ git commit -m "feat(audio-prep): add audio renderer with filter_complex executio
 ### Task 10: Job Manager (Durable SQLite-Backed Job Tracking)
 
 > **CRITICAL FIX:** Jobs are backed by SQLite (better-sqlite3, already a project dependency),
-> not an in-memory Map. This survives process restarts and serverless cold starts.
+> not an in-memory Map. This survives **local Node process restarts** only.
+> SQLite is NOT durable on Vercel serverless (ephemeral filesystem).
 > In-flight AbortControllers are tracked in a separate runtime Map for cancellation
 > but are not persisted (re-cancellation after restart is a no-op on completed jobs).
 
@@ -2267,9 +2276,6 @@ function sanitizeFilename(filename: string): string {
   return filename.replace(/[/\\:\0]/g, '_').replace(/^\.+/, '_');
 }
 
-// Max URL download size: 100MB streamed with abort support
-const MAX_URL_DOWNLOAD_BYTES = 100 * 1024 * 1024;
-
 // IngestSource imported from '../../../lib/audio-prep/types' (shared definition)
 
 async function processIngest(jobId: string, source: IngestSource) {
@@ -2349,9 +2355,10 @@ async function processIngest(jobId: string, source: IngestSource) {
         if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
 
         // Check Content-Length header first (fast reject)
+        const maxBytes = assetService.config.maxFileSizeMB * 1024 * 1024;
         const contentLength = parseInt(response.headers.get('content-length') ?? '0', 10);
-        if (contentLength > MAX_URL_DOWNLOAD_BYTES) {
-          throw new Error(`File too large: ${(contentLength / 1024 / 1024).toFixed(1)}MB exceeds 100MB limit`);
+        if (contentLength > maxBytes) {
+          throw new Error(`File too large: ${(contentLength / 1024 / 1024).toFixed(1)}MB exceeds ${assetService.config.maxFileSizeMB}MB limit`);
         }
 
         const contentType = response.headers.get('content-type') ?? '';
@@ -2361,25 +2368,47 @@ async function processIngest(jobId: string, source: IngestSource) {
 
         audioFilePath = path.join(tempDir, `download${ext}`);
 
-        // Stream to disk instead of buffering in memory
+        if (!response.body) {
+          throw new Error('URL response has no body');
+        }
+
+        // Stream to disk with backpressure + abort support
         const { createWriteStream } = await import('fs');
         const fileStream = createWriteStream(audioFilePath);
         let bytesWritten = 0;
-        const reader = response.body!.getReader();
+        const reader = response.body.getReader();
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          bytesWritten += value.byteLength;
-          if (bytesWritten > MAX_URL_DOWNLOAD_BYTES) {
-            reader.cancel();
-            fileStream.destroy();
-            throw new Error(`Download exceeded 100MB limit`);
+        try {
+          while (true) {
+            if (signal?.aborted) {
+              reader.cancel();
+              fileStream.destroy();
+              throw new Error('Download aborted');
+            }
+
+            const { done, value } = await reader.read();
+            if (done) break;
+            bytesWritten += value.byteLength;
+            if (bytesWritten > maxBytes) {
+              reader.cancel();
+              fileStream.destroy();
+              throw new Error(`Download exceeded ${assetService.config.maxFileSizeMB}MB limit`);
+            }
+            const canContinue = fileStream.write(Buffer.from(value));
+            if (!canContinue) {
+              await new Promise<void>((resolve) => fileStream.once('drain', resolve));
+            }
           }
-          fileStream.write(Buffer.from(value));
+        } catch (err) {
+          fileStream.destroy();
+          throw err;
         }
+
         fileStream.end();
-        await new Promise((resolve) => fileStream.on('finish', resolve));
+        await new Promise<void>((resolve, reject) => {
+          fileStream.on('finish', resolve);
+          fileStream.on('error', reject);
+        });
 
         provenance.sourceUrl = source.url;
         break;
