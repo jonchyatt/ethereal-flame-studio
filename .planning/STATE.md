@@ -18,11 +18,11 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 12 of 16 (Cloud Storage Adapter)
-Plan: 1 of 3 in current phase
+Plan: 3 of 3 in current phase
 Status: Executing
-Last activity: 2026-02-20 -- Completed 12-01 (StorageAdapter interface + implementations)
+Last activity: 2026-02-20 -- Completed 12-03 (Upload/Download API routes + progress hook)
 
-Progress: [##########..........] 52% (v2.0 phase 12: 1/3 plans complete)
+Progress: [####################] 100% (v2.0 phase 12: 3/3 plans complete)
 
 ---
 
@@ -34,12 +34,13 @@ Progress: [##########..........] 52% (v2.0 phase 12: 1/3 plans complete)
 - Audio Prep MVP shipped on feature branch
 
 **v2.0:**
-- Plans completed: 1
+- Plans completed: 3
 - Phases remaining: 5 (12-16)
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 12    | 01   | 7min     | 2     | 6     |
+| 12    | 03   | 6min     | 3     | 5     |
 
 ---
 
@@ -55,10 +56,15 @@ Progress: [##########..........] 52% (v2.0 phase 12: 1/3 plans complete)
 - Dynamic require() for conditional SDK loading -- keeps @aws-sdk out of local dev bundle
 - Singleton factory with resetStorageAdapter() for test isolation
 - R2 presigned URLs: 7-day download, 1-hour upload defaults
+- XHR for upload progress (fetch lacks upload progress events)
+- JSON response for download route in R2 mode (not redirect, avoids CORS)
+- Backward-compatible fallback to FormData ingest in AudioPrepEditor
 
 ### Technical Context
 
 - StorageAdapter interface implemented at `src/lib/storage/` with Local + R2 backends
+- Upload/download API routes at `/api/storage/upload` and `/api/storage/download`
+- useStorageUpload hook at `src/lib/hooks/useStorageUpload.ts` for progress-tracked uploads
 - AudioAssetService uses filesystem (`./audio-assets/{assetId}/`) -- needs R2 adapter (plan 12-02)
 - JobManager uses better-sqlite3 with WAL -- needs Turso adapter
 - Render pipeline partially wired to Modal (gated behind env var)
@@ -74,9 +80,9 @@ Progress: [##########..........] 52% (v2.0 phase 12: 1/3 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 12-01-PLAN.md (StorageAdapter interface + implementations)
-Resume file: .planning/phases/12-cloud-storage-adapter/12-01-SUMMARY.md
+Stopped at: Completed 12-03-PLAN.md (Upload/Download API routes + progress hook)
+Resume file: .planning/phases/12-cloud-storage-adapter/12-03-SUMMARY.md
 
 ---
 
-*Last updated: 2026-02-20 -- Phase 12 plan 01 complete*
+*Last updated: 2026-02-20 -- Phase 12 plan 03 complete*

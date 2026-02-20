@@ -23,7 +23,7 @@ Requirements for cloud production deployment. Each maps to roadmap phases 12-16.
 - [x] **STOR-01**: User can upload/download audio assets via cloud storage (R2) in production and local filesystem in development, using a unified adapter interface
 - [x] **STOR-02**: Audio assets (originals, metadata, peaks, previews, prepared audio) are persisted in R2 and survive worker restarts
 - [x] **STOR-03**: Rendered videos are uploaded to R2 after Modal GPU completion and accessible via download
-- [ ] **STOR-04**: User can download assets and videos via time-limited signed URLs served through Cloudflare CDN
+- [x] **STOR-04**: User can download assets and videos via time-limited signed URLs served through Cloudflare CDN
 
 ### Jobs
 
@@ -88,7 +88,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STOR-01 | Phase 12 | Complete |
 | STOR-02 | Phase 12 | Complete |
 | STOR-03 | Phase 12 | Complete |
-| STOR-04 | Phase 12 | Pending |
+| STOR-04 | Phase 12 | Complete |
 | JOB-01 | Phase 13 | Pending |
 | JOB-02 | Phase 13 | Pending |
 | JOB-03 | Phase 13 | Pending |
