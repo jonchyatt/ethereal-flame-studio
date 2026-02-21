@@ -18,11 +18,11 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 15 of 16 (Modal Render Dispatch)
-Plan: 1 of 2 in current phase
-Status: In Progress
-Last activity: 2026-02-21 -- Completed 15-01 (Render job dispatch through JobStore/Worker/Modal)
+Plan: 2 of 2 in current phase
+Status: Phase Complete
+Last activity: 2026-02-21 -- Completed 15-02 (Modal render completion with R2 upload and webhook callback)
 
-Progress: [##########..........] 50% (v2.0 phase 15: 1/2 plans complete)
+Progress: [####################] 100% (v2.0 phase 15: 2/2 plans complete)
 
 ---
 
@@ -34,8 +34,8 @@ Progress: [##########..........] 50% (v2.0 phase 15: 1/2 plans complete)
 - Audio Prep MVP shipped on feature branch
 
 **v2.0:**
-- Plans completed: 10
-- Phases remaining: 2 (15-16)
+- Plans completed: 11
+- Phases remaining: 1 (16)
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -49,6 +49,7 @@ Progress: [##########..........] 50% (v2.0 phase 15: 1/2 plans complete)
 | 14    | 02   | 4min     | 2     | 5     |
 | 14    | 03   | 5min     | 2     | 2     |
 | 15    | 01   | 5min     | 2     | 7     |
+| 15    | 02   | 3min     | 2     | 3     |
 
 ---
 
@@ -96,6 +97,11 @@ Progress: [##########..........] 50% (v2.0 phase 15: 1/2 plans complete)
 - Early return in processJob for render case skips implicit completion path
 - Worker tsconfig extended to include modalClient.ts for direct import from render pipeline
 - R2 signed URL (1-hour expiry) as audio handoff mechanism to Modal
+- Standalone uploadToR2() in Modal entry (not StorageAdapter) -- minimal container env
+- PATCH for progress, webhook only for final complete/failed status (backward compat)
+- videoKey checked first in poll endpoint storage key resolution (before previewKey, preparedKey)
+- 7-day signed URL expiry for video downloads (large files, users return later)
+- Auto-derive R2 upload key as renders/{jobId}/output.mp4 when not explicit
 
 ### Technical Context
 
@@ -124,6 +130,10 @@ Progress: [##########..........] 50% (v2.0 phase 15: 1/2 plans complete)
 - Render job type added to AudioPrepJob union; render jobs flow through JobStore -> Worker -> Modal
 - modalClient.ts supports audioSignedUrl, webhookUrl, webhookSecret for v2.0 dispatch
 - Render storage key pattern: `renders/{jobId}/audio.{ext}`
+- Modal entry point supports R2 I/O: download audio from signed URL, upload video to R2, webhook callback
+- Webhook logs render-specific completions with videoKey
+- Poll endpoint resolves videoKey -> signed download URL (7-day expiry) for completed render jobs
+- Complete render flow: API -> JobStore -> Worker -> Modal -> R2 upload -> Webhook -> Poll with download URL
 
 ### Blockers
 
@@ -134,9 +144,9 @@ Progress: [##########..........] 50% (v2.0 phase 15: 1/2 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 15-01-PLAN.md (Render job dispatch through JobStore/Worker/Modal)
-Resume file: .planning/phases/15-modal-render-dispatch/15-01-SUMMARY.md
+Stopped at: Completed 15-02-PLAN.md (Modal render completion with R2 upload and webhook callback)
+Resume file: .planning/phases/15-modal-render-dispatch/15-02-SUMMARY.md
 
 ---
 
-*Last updated: 2026-02-21 -- Phase 15 in progress (1/2 plans done)*
+*Last updated: 2026-02-21 -- Phase 15 complete (2/2 plans done)*

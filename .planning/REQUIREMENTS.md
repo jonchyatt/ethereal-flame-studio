@@ -39,7 +39,7 @@ Requirements for cloud production deployment. Each maps to roadmap phases 12-16.
 - [x] **WORK-02**: Worker can ingest audio from YouTube URLs, direct URLs, and file uploads (via R2 presigned upload)
 - [x] **WORK-03**: Worker can execute audio edit previews and save operations using the existing recipe/filter_complex pipeline
 - [x] **WORK-04**: Worker dispatches GPU render jobs to Modal by uploading audio to R2 and passing signed URL
-- [ ] **WORK-05**: Modal calls a secure webhook on render completion with the R2 key of the output video
+- [x] **WORK-05**: Modal calls a secure webhook on render completion with the R2 key of the output video
 
 ### API
 
@@ -98,7 +98,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WORK-02 | Phase 14 | Complete |
 | WORK-03 | Phase 14 | Complete |
 | WORK-04 | Phase 15 | Complete |
-| WORK-05 | Phase 15 | Pending |
+| WORK-05 | Phase 15 | Complete |
 | API-01 | Phase 14 | Complete |
 | API-02 | Phase 14 | Complete |
 | API-03 | Phase 14 | Complete |
