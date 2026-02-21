@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Milestone v2.0 Cloud Production -- Phase 16: Production Deploy & CI/CD (env config complete)
+**Current focus:** Milestone v2.0 Cloud Production -- Phase 16: Production Deploy & CI/CD (COMPLETE)
 
 **Key Files:**
 - `.planning/PROJECT.md` - Project definition
@@ -18,11 +18,11 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 16 of 16 (Production Deploy & CI/CD)
-Plan: 2 of 3 in current phase
-Status: In Progress
-Last activity: 2026-02-21 -- Completed 16-02 (Production deployment checklist)
+Plan: 3 of 3 in current phase
+Status: Complete
+Last activity: 2026-02-21 -- Completed 16-03 (GitHub Actions CI/CD workflow)
 
-Progress: [#############.......] 67% (v2.0 phase 16: 2/3 plans complete)
+Progress: [####################] 100% (v2.0 phase 16: 3/3 plans complete)
 
 ---
 
@@ -34,8 +34,8 @@ Progress: [#############.......] 67% (v2.0 phase 16: 2/3 plans complete)
 - Audio Prep MVP shipped on feature branch
 
 **v2.0:**
-- Plans completed: 12
-- Phases remaining: 1 (16 - in progress)
+- Plans completed: 13
+- Phases remaining: 0 (all v2.0 phases complete)
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -52,6 +52,7 @@ Progress: [#############.......] 67% (v2.0 phase 16: 2/3 plans complete)
 | 15    | 02   | 3min     | 2     | 3     |
 | 16    | 01   | 7min     | 2     | 3     |
 | 16    | 02   | 2min     | 1     | 1     |
+| 16    | 03   | 2min     | 2     | 2     |
 
 ---
 
@@ -108,6 +109,9 @@ Progress: [#############.......] 67% (v2.0 phase 16: 2/3 plans complete)
 - Worker needs explicit STORAGE_BACKEND=r2 (not DEPLOY_ENV) since it's standalone Node.js
 - DEPLOY_ENV=production as convenience fallback -- explicit STORAGE_BACKEND/JOB_STORE_BACKEND always takes precedence
 - Legacy v1.0 variables preserved in .env.example under separate section
+- Parallel CI/CD deploy jobs (no dependency between web and worker deploys)
+- Concurrency group with cancel-in-progress: false (let deploys finish, don't cancel mid-deploy)
+- Render deploy via curl to deploy hook URL (simplest integration, no Render API needed)
 
 ### Technical Context
 
@@ -143,6 +147,8 @@ Progress: [#############.......] 67% (v2.0 phase 16: 2/3 plans complete)
 - Production deployment checklist at docs/DEPLOY_PROD_CHECKLIST.md covers all 5 cloud services
 - DEPLOY_ENV=production activates R2 storage + Turso job store without individual backend vars
 - .env.example fully rewritten with 7 sections covering all v2.0 production variables
+- GitHub Actions CI/CD at .github/workflows/deploy.yml: push to main triggers parallel Vercel + Render deploys
+- Deploy checklist section 8 documents 4 required GitHub Secrets (VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID, RENDER_DEPLOY_HOOK_URL)
 
 ### Blockers
 
@@ -153,9 +159,9 @@ Progress: [#############.......] 67% (v2.0 phase 16: 2/3 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 16-01-PLAN.md (Environment config: DEPLOY_ENV + .env.example)
-Resume file: .planning/phases/16-production-deploy-ci-cd/16-01-SUMMARY.md
+Stopped at: Completed 16-03-PLAN.md (GitHub Actions CI/CD workflow) -- Phase 16 COMPLETE
+Resume file: .planning/phases/16-production-deploy-ci-cd/16-03-SUMMARY.md
 
 ---
 
-*Last updated: 2026-02-21 -- Phase 16 in progress (16-01 + 16-02 complete, 16-03 remaining)*
+*Last updated: 2026-02-21 -- Phase 16 complete (all 3 plans: env config, deploy checklist, CI/CD workflow)*

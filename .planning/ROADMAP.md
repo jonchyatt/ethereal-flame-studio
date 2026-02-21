@@ -307,7 +307,7 @@ Plans:
 - [x] **Phase 13: Job State + Worker Infrastructure** - Turso-backed job queue with Render.com CPU worker service (completed 2026-02-21)
 - [x] **Phase 14: API + Worker Processing Pipeline** - Async API routes wired to worker for ingest, edit, and save operations (completed 2026-02-21)
 - [x] **Phase 15: Modal Render Dispatch** - GPU render jobs dispatched to Modal via R2, with webhook completion (completed 2026-02-21)
-- [ ] **Phase 16: Production Deploy + CI/CD** - Environment config, deploy checklist, and automated deployment pipeline
+- [x] **Phase 16: Production Deploy + CI/CD** - Environment config, deploy checklist, and automated deployment pipeline (completed 2026-02-21)
 
 ## Phase Details
 
@@ -439,7 +439,7 @@ Plans:
 | 13. Job State + Worker Infra | 3/3 | Complete    | 2026-02-21 | - |
 | 14. API + Worker Processing | 3/3 | Complete    | 2026-02-21 | - |
 | 15. Modal Render Dispatch | 2/2 | Complete    | 2026-02-21 | - |
-| 16. Production Deploy + CI/CD | 2/3 | In Progress|  | - |
+| 16. Production Deploy + CI/CD | 3/3 | Complete   | 2026-02-21 | - |
 
 ---
 
