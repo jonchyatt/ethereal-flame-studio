@@ -18,11 +18,11 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 14 of 16 (API + Worker Processing Pipeline)
-Plan: 1 of 3 in current phase
+Plan: 3 of 3 in current phase
 Status: In Progress
-Last activity: 2026-02-21 -- Completed 14-01 (API routes to async JobStore dispatch)
+Last activity: 2026-02-21 -- Completed 14-03 (Webhook callback + audio stream hardening)
 
-Progress: [######..............] 33% (v2.0 phase 14: 1/3 plans complete)
+Progress: [#############.......] 66% (v2.0 phase 14: 2/3 plans complete)
 
 ---
 
@@ -34,7 +34,7 @@ Progress: [######..............] 33% (v2.0 phase 14: 1/3 plans complete)
 - Audio Prep MVP shipped on feature branch
 
 **v2.0:**
-- Plans completed: 7
+- Plans completed: 8
 - Phases remaining: 3 (14-16)
 
 | Phase | Plan | Duration | Tasks | Files |
@@ -46,6 +46,7 @@ Progress: [######..............] 33% (v2.0 phase 14: 1/3 plans complete)
 | 13    | 02   | 3min     | 2     | 2     |
 | 13    | 03   | 4min     | 2     | 6     |
 | 14    | 01   | 4min     | 2     | 5     |
+| 14    | 03   | 5min     | 2     | 2     |
 
 ---
 
@@ -80,6 +81,10 @@ Progress: [######..............] 33% (v2.0 phase 14: 1/3 plans complete)
 - File uploads buffered to storage before job creation so worker can access via storage key
 - downloadUrl generation in poll endpoint is non-fatal -- still returns result if signing fails
 - Preview audio route returns JSON with signedUrl for R2 (consistent with download route pattern)
+- Bearer token auth for webhook (not custom header) -- standard HTTP pattern
+- Constant-time comparison via crypto.timingSafeEqual to prevent timing-based secret enumeration
+- Variant query parameter (not separate routes) for original vs prepared audio streaming
+- Cache-Control 1h on stream redirect -- safe because signed URL handles access control
 
 ### Technical Context
 
@@ -97,6 +102,8 @@ Progress: [######..............] 33% (v2.0 phase 14: 1/3 plans complete)
 - All audio API POST routes (ingest, preview, save) dispatch to JobStore and return immediately (no inline processing)
 - Poll endpoint at `/api/audio/jobs/[jobId]` enriches completed jobs with signed downloadUrl from storage adapter
 - Preview audio route at `/api/audio/edit/preview/[jobId]/audio` serves from storage adapter (not filesystem)
+- Webhook endpoint at `/api/webhooks/worker` validates INTERNAL_WEBHOOK_SECRET via Bearer token before processing job callbacks
+- Audio streaming endpoint at `/api/audio/assets/[id]/stream` supports ?variant=original|prepared query parameter
 - Render pipeline partially wired to Modal (gated behind env var)
 - Drizzle ORM already in project for Turso/libsql
 - Audio prep MVP on `feature/audio-prep-mvp` branch
@@ -110,9 +117,9 @@ Progress: [######..............] 33% (v2.0 phase 14: 1/3 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 14-01-PLAN.md (API routes to async JobStore dispatch)
-Resume file: .planning/phases/14-api-worker-processing-pipeline/14-01-SUMMARY.md
+Stopped at: Completed 14-03-PLAN.md (Webhook callback + audio stream hardening)
+Resume file: .planning/phases/14-api-worker-processing-pipeline/14-03-SUMMARY.md
 
 ---
 
-*Last updated: 2026-02-21 -- Phase 14 in progress (1/3 plans done)*
+*Last updated: 2026-02-21 -- Phase 14 in progress (2/3 plans done)*

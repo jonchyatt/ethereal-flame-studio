@@ -45,8 +45,8 @@ Requirements for cloud production deployment. Each maps to roadmap phases 12-16.
 
 - [x] **API-01**: All ingest/edit/save/render API routes return a jobId immediately without blocking
 - [x] **API-02**: Poll endpoint returns current job status, progress percentage, and result (including R2 download URL on completion)
-- [ ] **API-03**: Asset streaming endpoint serves audio from R2 in production and local filesystem in development
-- [ ] **API-04**: Webhook endpoint validates INTERNAL_WEBHOOK_SECRET header before processing callbacks
+- [x] **API-03**: Asset streaming endpoint serves audio from R2 in production and local filesystem in development
+- [x] **API-04**: Webhook endpoint validates INTERNAL_WEBHOOK_SECRET header before processing callbacks
 
 ### Config & Deploy
 
@@ -57,7 +57,7 @@ Requirements for cloud production deployment. Each maps to roadmap phases 12-16.
 
 ### Security
 
-- [ ] **SEC-01**: Modal webhook callback requires valid INTERNAL_WEBHOOK_SECRET in request header
+- [x] **SEC-01**: Modal webhook callback requires valid INTERNAL_WEBHOOK_SECRET in request header
 - [ ] **SEC-02**: Cloud ingest path enforces file size (100MB) and duration (30min) limits
 
 ## v2.1 Requirements (Deferred)
@@ -101,13 +101,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WORK-05 | Phase 15 | Pending |
 | API-01 | Phase 14 | Complete |
 | API-02 | Phase 14 | Complete |
-| API-03 | Phase 14 | Pending |
-| API-04 | Phase 14 | Pending |
+| API-03 | Phase 14 | Complete |
+| API-04 | Phase 14 | Complete |
 | DEPLOY-01 | Phase 16 | Pending |
 | DEPLOY-02 | Phase 16 | Pending |
 | DEPLOY-03 | Phase 16 | Pending |
 | DEPLOY-04 | Phase 16 | Pending |
-| SEC-01 | Phase 14 | Pending |
+| SEC-01 | Phase 14 | Complete |
 | SEC-02 | Phase 14 | Pending |
 
 **Coverage:**
