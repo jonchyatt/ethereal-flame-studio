@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getJobStore } from '@/lib/jobs';
+import { getStorageAdapter } from '@/lib/storage';
 
 /**
  * Job poll response shape.
@@ -17,6 +18,7 @@ export interface JobPollResponse {
   queuePosition: number | null; // only set when status='pending'
   result?: Record<string, unknown>; // only set when status='complete'
   error?: string; // only set when status='failed'
+  downloadUrl?: string; // signed URL when job complete with storage key in result
   createdAt: string;
   updatedAt: string;
 }
@@ -57,6 +59,22 @@ export async function GET(
     // Result only present on completed jobs
     if (job.status === 'complete' && job.result) {
       response.result = job.result;
+
+      // Generate a signed download URL if the result contains a storage key.
+      // Workers store results with keys like previewKey, preparedKey, or assetId.
+      const storageKey =
+        (job.result.previewKey as string | undefined) ||
+        (job.result.preparedKey as string | undefined);
+
+      if (storageKey) {
+        try {
+          const storage = getStorageAdapter();
+          response.downloadUrl = await storage.getSignedUrl(storageKey);
+        } catch {
+          // Non-fatal: downloadUrl is optional. If signing fails (e.g. key
+          // deleted), the poll response still returns the result object.
+        }
+      }
     }
 
     // Error only present on failed jobs
