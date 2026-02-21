@@ -43,8 +43,8 @@ Requirements for cloud production deployment. Each maps to roadmap phases 12-16.
 
 ### API
 
-- [ ] **API-01**: All ingest/edit/save/render API routes return a jobId immediately without blocking
-- [ ] **API-02**: Poll endpoint returns current job status, progress percentage, and result (including R2 download URL on completion)
+- [x] **API-01**: All ingest/edit/save/render API routes return a jobId immediately without blocking
+- [x] **API-02**: Poll endpoint returns current job status, progress percentage, and result (including R2 download URL on completion)
 - [ ] **API-03**: Asset streaming endpoint serves audio from R2 in production and local filesystem in development
 - [ ] **API-04**: Webhook endpoint validates INTERNAL_WEBHOOK_SECRET header before processing callbacks
 
@@ -99,8 +99,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WORK-03 | Phase 14 | Pending |
 | WORK-04 | Phase 15 | Pending |
 | WORK-05 | Phase 15 | Pending |
-| API-01 | Phase 14 | Pending |
-| API-02 | Phase 14 | Pending |
+| API-01 | Phase 14 | Complete |
+| API-02 | Phase 14 | Complete |
 | API-03 | Phase 14 | Pending |
 | API-04 | Phase 14 | Pending |
 | DEPLOY-01 | Phase 16 | Pending |

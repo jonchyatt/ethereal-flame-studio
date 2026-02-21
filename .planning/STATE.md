@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Milestone v2.0 Cloud Production -- Phase 13: Job State + Worker Infrastructure
+**Current focus:** Milestone v2.0 Cloud Production -- Phase 14: API + Worker Processing Pipeline
 
 **Key Files:**
 - `.planning/PROJECT.md` - Project definition
@@ -17,12 +17,12 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 ## Current Position
 
-Phase: 13 of 16 (Job State + Worker Infrastructure)
-Plan: 3 of 3 in current phase
-Status: Phase Complete
-Last activity: 2026-02-21 -- Completed 13-03 (Render.com background worker)
+Phase: 14 of 16 (API + Worker Processing Pipeline)
+Plan: 1 of 3 in current phase
+Status: In Progress
+Last activity: 2026-02-21 -- Completed 14-01 (API routes to async JobStore dispatch)
 
-Progress: [####################] 100% (v2.0 phase 13: 3/3 plans complete)
+Progress: [######..............] 33% (v2.0 phase 14: 1/3 plans complete)
 
 ---
 
@@ -34,7 +34,7 @@ Progress: [####################] 100% (v2.0 phase 13: 3/3 plans complete)
 - Audio Prep MVP shipped on feature branch
 
 **v2.0:**
-- Plans completed: 6
+- Plans completed: 7
 - Phases remaining: 3 (14-16)
 
 | Phase | Plan | Duration | Tasks | Files |
@@ -45,6 +45,7 @@ Progress: [####################] 100% (v2.0 phase 13: 3/3 plans complete)
 | 13    | 01   | 5min     | 2     | 6     |
 | 13    | 02   | 3min     | 2     | 2     |
 | 13    | 03   | 4min     | 2     | 6     |
+| 14    | 01   | 4min     | 2     | 5     |
 
 ---
 
@@ -76,6 +77,9 @@ Progress: [####################] 100% (v2.0 phase 13: 3/3 plans complete)
 - Placeholder pipelines for Phase 13 worker; actual dispatch wired in Phase 14
 - Single default timeout for reaper (10 min); per-type timeouts deferred to Phase 14
 - childRef pattern in processJob for Phase 14 pipeline child process exposure
+- File uploads buffered to storage before job creation so worker can access via storage key
+- downloadUrl generation in poll endpoint is non-fatal -- still returns result if signing fails
+- Preview audio route returns JSON with signedUrl for R2 (consistent with download route pattern)
 
 ### Technical Context
 
@@ -89,7 +93,10 @@ Progress: [####################] 100% (v2.0 phase 13: 3/3 plans complete)
 - Job cancel endpoint at `/api/audio/jobs/[jobId]/cancel` transitions non-terminal jobs to cancelled (409 for terminal)
 - Standalone worker at `worker/` with poll loop, heartbeat, graceful shutdown, cancellation detection, and reaper
 - Worker Dockerfile includes ffmpeg + yt-dlp for Render.com deployment
-- Original JobManager at `src/lib/audio-prep/JobManager.ts` still exists -- replaced by worker + API routes
+- Original JobManager at `src/lib/audio-prep/JobManager.ts` still exists -- API routes now use JobStore, JobManager deprecated
+- All audio API POST routes (ingest, preview, save) dispatch to JobStore and return immediately (no inline processing)
+- Poll endpoint at `/api/audio/jobs/[jobId]` enriches completed jobs with signed downloadUrl from storage adapter
+- Preview audio route at `/api/audio/edit/preview/[jobId]/audio` serves from storage adapter (not filesystem)
 - Render pipeline partially wired to Modal (gated behind env var)
 - Drizzle ORM already in project for Turso/libsql
 - Audio prep MVP on `feature/audio-prep-mvp` branch
@@ -103,9 +110,9 @@ Progress: [####################] 100% (v2.0 phase 13: 3/3 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 13-03-PLAN.md (Render.com background worker -- Phase 13 complete)
-Resume file: .planning/phases/13-job-state-worker-infra/13-03-SUMMARY.md
+Stopped at: Completed 14-01-PLAN.md (API routes to async JobStore dispatch)
+Resume file: .planning/phases/14-api-worker-processing-pipeline/14-01-SUMMARY.md
 
 ---
 
-*Last updated: 2026-02-21 -- Phase 13 complete (3/3 plans done)*
+*Last updated: 2026-02-21 -- Phase 14 in progress (1/3 plans done)*
