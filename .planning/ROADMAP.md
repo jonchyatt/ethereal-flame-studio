@@ -429,7 +429,7 @@ Plans:
 | 12. Cloud Storage Adapter | 3/3 | Complete    | 2026-02-21 | - |
 | 13. Job State + Worker Infra | 3/3 | Complete    | 2026-02-21 | - |
 | 14. API + Worker Processing | 3/3 | Complete    | 2026-02-21 | - |
-| 15. Modal Render Dispatch | 2/2 | Complete   | 2026-02-21 | - |
+| 15. Modal Render Dispatch | 2/2 | Complete    | 2026-02-21 | - |
 | 16. Production Deploy + CI/CD | v2.0 | 0/? | Not started | - |
 
 ---
