@@ -407,7 +407,7 @@ In the Render service settings, add:
 
 Click **Create Background Worker** or trigger a manual deploy.
 
-> **Note:** After initial manual setup, subsequent deploys to Render are automated via GitHub Actions (see Section 8). Pushing to `main` triggers the worker deploy automatically.
+> **Note:** After initial manual setup, subsequent deploys to Render are automated via GitHub Actions (see Section 8). Pushing to `master` triggers the worker deploy automatically.
 
 ### Verification
 
@@ -471,7 +471,7 @@ After all services are provisioned, run this smoke test to confirm everything wo
 
 ## 8. GitHub Actions CI/CD
 
-After completing the manual setup above, configure GitHub Actions to automate future deployments. Pushing to `main` will automatically deploy both the web app (Vercel) and the worker (Render.com).
+After completing the manual setup above, configure GitHub Actions to automate future deployments. Pushing to `master` will automatically deploy both the web app (Vercel) and the worker (Render.com).
 
 ### 8.1 Required GitHub Secrets
 
@@ -486,7 +486,7 @@ Add these secrets in your GitHub repository: **Settings** > **Secrets and variab
 
 ### 8.2 How It Works
 
-The workflow at `.github/workflows/deploy.yml` runs on every push to `main`:
+The workflow at `.github/workflows/deploy.yml` runs on every push to `master`:
 
 - **deploy-web** (Vercel): Checks out code, installs Vercel CLI, pulls production environment, builds, and deploys with `vercel deploy --prebuilt --prod`
 - **deploy-worker** (Render.com): Sends a POST request to the Render deploy hook URL, triggering a Docker rebuild from `worker/Dockerfile`
@@ -495,7 +495,7 @@ Both jobs run **in parallel** -- the web app and worker deploy simultaneously. A
 
 ### 8.3 Verify
 
-1. Push a commit to the `main` branch
+1. Push a commit to the `master` branch
 2. Go to **GitHub** > **Actions** tab -- confirm the "Deploy" workflow starts
 3. Both jobs (deploy-web, deploy-worker) should show green checkmarks
 4. Verify in **Vercel Dashboard** that a new production deployment appears
@@ -503,7 +503,7 @@ Both jobs run **in parallel** -- the web app and worker deploy simultaneously. A
 
 ### Troubleshooting CI/CD
 
-- **Workflow not triggering:** Ensure you are pushing to the `main` branch (not `master` or a feature branch)
+- **Workflow not triggering:** Ensure you are pushing to the `master` branch (not a feature branch)
 - **Vercel deploy fails:** Check that `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` are set correctly in GitHub Secrets
 - **Render deploy not starting:** Verify `RENDER_DEPLOY_HOOK_URL` is a valid URL -- test it manually with `curl -X POST "<url>"`
 
