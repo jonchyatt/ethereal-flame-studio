@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Milestone v2.0 Cloud Production -- Phase 15: Modal Render Dispatch
+**Current focus:** Milestone v2.0 Cloud Production -- Phase 16: Production Deploy & CI/CD
 
 **Key Files:**
 - `.planning/PROJECT.md` - Project definition
@@ -17,12 +17,12 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 ## Current Position
 
-Phase: 15 of 16 (Modal Render Dispatch)
-Plan: 2 of 2 in current phase
-Status: Phase Complete
-Last activity: 2026-02-21 -- Completed 15-02 (Modal render completion with R2 upload and webhook callback)
+Phase: 16 of 16 (Production Deploy & CI/CD)
+Plan: 2 of 3 in current phase
+Status: In Progress
+Last activity: 2026-02-21 -- Completed 16-02 (Production deployment checklist)
 
-Progress: [####################] 100% (v2.0 phase 15: 2/2 plans complete)
+Progress: [#############.......] 67% (v2.0 phase 16: 2/3 plans complete)
 
 ---
 
@@ -34,8 +34,8 @@ Progress: [####################] 100% (v2.0 phase 15: 2/2 plans complete)
 - Audio Prep MVP shipped on feature branch
 
 **v2.0:**
-- Plans completed: 11
-- Phases remaining: 1 (16)
+- Plans completed: 12
+- Phases remaining: 1 (16 - in progress)
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -50,6 +50,7 @@ Progress: [####################] 100% (v2.0 phase 15: 2/2 plans complete)
 | 14    | 03   | 5min     | 2     | 2     |
 | 15    | 01   | 5min     | 2     | 7     |
 | 15    | 02   | 3min     | 2     | 3     |
+| 16    | 02   | 2min     | 1     | 1     |
 
 ---
 
@@ -102,6 +103,8 @@ Progress: [####################] 100% (v2.0 phase 15: 2/2 plans complete)
 - videoKey checked first in poll endpoint storage key resolution (before previewKey, preparedKey)
 - 7-day signed URL expiry for video downloads (large files, users return later)
 - Auto-derive R2 upload key as renders/{jobId}/output.mp4 when not explicit
+- Deployment checklist sections ordered by dependency: R2 -> Turso -> Modal -> webhook -> Vercel -> Render
+- Worker needs explicit STORAGE_BACKEND=r2 (not DEPLOY_ENV) since it's standalone Node.js
 
 ### Technical Context
 
@@ -134,6 +137,7 @@ Progress: [####################] 100% (v2.0 phase 15: 2/2 plans complete)
 - Webhook logs render-specific completions with videoKey
 - Poll endpoint resolves videoKey -> signed download URL (7-day expiry) for completed render jobs
 - Complete render flow: API -> JobStore -> Worker -> Modal -> R2 upload -> Webhook -> Poll with download URL
+- Production deployment checklist at docs/DEPLOY_PROD_CHECKLIST.md covers all 5 cloud services
 
 ### Blockers
 
@@ -144,9 +148,9 @@ Progress: [####################] 100% (v2.0 phase 15: 2/2 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 15-02-PLAN.md (Modal render completion with R2 upload and webhook callback)
-Resume file: .planning/phases/15-modal-render-dispatch/15-02-SUMMARY.md
+Stopped at: Completed 16-02-PLAN.md (Production deployment checklist)
+Resume file: .planning/phases/16-production-deploy-ci-cd/16-02-SUMMARY.md
 
 ---
 
-*Last updated: 2026-02-21 -- Phase 15 complete (2/2 plans done)*
+*Last updated: 2026-02-21 -- Phase 16 in progress (2/3 plans done)*
