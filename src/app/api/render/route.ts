@@ -9,11 +9,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { v4 as uuid } from 'uuid';
 import { ServerJobStore } from '@/lib/queue/ServerJobStore';
-// NOTE: bullmqQueue is NOT imported at top level because it creates a Redis
-// connection at import time. On Vercel (no Redis), this hangs the entire route.
-// Instead, we dynamic-import it inside the try-catch where it's used.
+import { getJobStore } from '@/lib/jobs';
+import { getStorageAdapter } from '@/lib/storage';
 import {
   SubmitRenderRequestSchema,
   ListJobsQuerySchema,
@@ -120,55 +118,44 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRen
     }
 
     const input = parseResult.data;
+    const storage = getStorageAdapter();
+    const jobStore = getJobStore();
 
-    // Extract audio information based on input type
+    // Generate a temporary jobId for storage key construction
+    // (The real jobId is created by jobStore.create, but we need a key prefix
+    //  before that — use a UUID then rename if needed. Actually, we create the
+    //  job first and use its ID for the storage key.)
+    //
+    // Strategy: Create the job first (to get jobId), then upload audio to
+    // storage keyed by that jobId, then update the job metadata with the
+    // storage key. This avoids orphaned uploads.
+
+    // -- Resolve audio input and prepare metadata for the render job -----------
+
     let audioName: string;
-    let audioPath: string;
-    let audioDuration: number | undefined;
+    let audioStorageKey: string | undefined;
+    let audioUrl: string | undefined;
+
+    // We need the jobId before uploading, so we create the job first with
+    // placeholder metadata, then update after upload.
+    const ext = resolveAudioExtension(input);
 
     switch (input.audio.type) {
       case 'base64':
         audioName = input.audio.filename;
-        // Decode base64 and save to temp file
-        try {
-          const uploadDir = process.env.JOBS_DIR || './jobs';
-          const fs = await import('fs/promises');
-          const path = await import('path');
-
-          // Ensure upload directory exists
-          await fs.mkdir(path.join(uploadDir, 'uploads'), { recursive: true });
-
-          // Generate unique filename
-          audioPath = path.join(uploadDir, 'uploads', `${Date.now()}_${audioName}`);
-
-          // Decode base64 and write to file
-          const audioBuffer = Buffer.from(input.audio.data, 'base64');
-          await fs.writeFile(audioPath, audioBuffer);
-
-          console.log(`[API] Saved audio file: ${audioPath} (${audioBuffer.length} bytes)`);
-        } catch (fsError) {
-          console.error('[API] Failed to save audio file:', fsError);
-          return NextResponse.json(
-            {
-              success: false,
-              error: {
-                code: 'FILE_SAVE_ERROR',
-                message: 'Failed to save audio file',
-              },
-            },
-            { status: 500 }
-          );
-        }
         break;
 
       case 'url':
         audioName = input.audio.filename || extractFilenameFromUrl(input.audio.url);
-        audioPath = input.audio.url;
+        audioUrl = input.audio.url;
         break;
 
       case 'path':
-        audioPath = input.audio.path;
         audioName = extractFilenameFromPath(input.audio.path);
+        break;
+
+      case 'asset':
+        audioName = `asset-${input.audio.assetId}`;
         break;
 
       default:
@@ -184,145 +171,119 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRen
         );
     }
 
-    // Create the job
-    const job = await ServerJobStore.create({
+    // Build visual config for worker pipeline
+    const visualConfig = {
+      mode: input.renderSettings?.visualMode || 'flame',
+      skyboxPreset: input.renderSettings?.skyboxPreset || 'nebula',
+      skyboxRotationSpeed: input.renderSettings?.skyboxRotationSpeed || 0,
+      waterEnabled: input.renderSettings?.waterEnabled || false,
+      waterColor: input.renderSettings?.waterColor || '#1a3a5c',
+      waterReflectivity: input.renderSettings?.waterReflectivity || 0.5,
+      layers: input.renderSettings?.particleLayers || [],
+    };
+
+    // Derive callback URL for worker to pass to Modal
+    const callbackUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined) ||
+      'http://localhost:3000';
+
+    // Create the render job in JobStore (pending state, worker will pick it up)
+    const renderJob = await jobStore.create('render', {
       audioName,
-      audioPath,
-      audioDuration,
       outputFormat: input.outputFormat,
       fps: input.fps,
-      renderSettings: input.renderSettings,
-      priority: input.priority,
-      userMetadata: {
-        ...input.metadata,
-        transcribe: input.transcribe,
-        upload: input.upload,
-        driveFolderId: input.driveFolderId,
-        notifications: input.notifications,
-      },
+      quality: input.priority,
+      visualConfig,
+      callbackUrl,
+      // These will be set after upload:
+      audioStorageKey: undefined,
+      audioUrl: audioUrl,
     });
 
-    // Get queue position
-    const position = await ServerJobStore.getQueuePosition(job.id);
+    // -- Upload audio to storage for non-URL input types ----------------------
 
-    // Estimate duration
-    const estimatedDuration = ServerJobStore.estimateDuration(
-      input.outputFormat,
-      job.audioDuration || 180, // Default to 3 minutes if unknown
-      input.fps
-    );
+    if (input.audio.type !== 'url') {
+      const storageKey = `renders/${renderJob.jobId}/audio.${ext}`;
 
-    // -----------------------------------------------------------------------
-    // Modal cloud dispatch (when configured, skips BullMQ entirely)
-    // -----------------------------------------------------------------------
-    if (process.env.MODAL_ENDPOINT_URL) {
       try {
-        const { submitToModal } = await import('@/lib/render/modalClient');
+        let audioBuffer: Buffer;
 
-        // Build render config for the Modal container
-        const modalConfig = {
-          version: '1.0',
-          audio: { path: 'provided-separately' },
-          output: {
-            path: '/tmp/output/render.mp4',
-            format: input.outputFormat,
-            fps: input.fps,
-          },
-          visual: {
-            mode: input.renderSettings?.visualMode || 'flame',
-            skyboxPreset: input.renderSettings?.skyboxPreset || 'nebula',
-            skyboxRotationSpeed: input.renderSettings?.skyboxRotationSpeed || 0,
-            waterEnabled: input.renderSettings?.waterEnabled || false,
-            waterColor: input.renderSettings?.waterColor || '#1a3a5c',
-            waterReflectivity: input.renderSettings?.waterReflectivity || 0.5,
-            layers: input.renderSettings?.particleLayers || [],
-          },
-        };
+        switch (input.audio.type) {
+          case 'base64':
+            audioBuffer = Buffer.from(input.audio.data, 'base64');
+            break;
 
-        const modalResult = await submitToModal({
-          config: modalConfig,
-          jobId: job.id,
-          audioUrl: input.audio.type === 'url' ? input.audio.url : undefined,
-          audioBase64: input.audio.type === 'base64' ? input.audio.data : undefined,
-        });
+          case 'path': {
+            const { promises: fsPromises } = await import('fs');
+            audioBuffer = await fsPromises.readFile(input.audio.path);
+            break;
+          }
 
-        // Store modalCallId in job metadata for status polling fallback
-        await ServerJobStore.update(job.id, {
-          workerId: modalResult.gpu ? 'modal-gpu' : 'modal-cpu',
-          status: 'queued',
-          currentStage: `Dispatched to Modal (${modalResult.gpu ? 'GPU' : 'CPU'})`,
-        });
-        // Merge modalCallId into userMetadata on the raw job object
-        const updatedJob = await ServerJobStore.get(job.id);
-        if (updatedJob) {
-          updatedJob.userMetadata = {
-            ...updatedJob.userMetadata,
-            modalCallId: modalResult.call_id,
-          };
+          case 'asset': {
+            const { AudioAssetService } = await import('@/lib/audio-prep/AudioAssetService');
+            const assetService = new AudioAssetService({}, storage);
+            const assetPath = await assetService.resolveAssetPath(input.audio.assetId);
+            const { promises: fsPromises } = await import('fs');
+            audioBuffer = await fsPromises.readFile(assetPath);
+            break;
+          }
+
+          default:
+            throw new Error(`Unexpected audio type: ${(input.audio as { type: string }).type}`);
         }
 
-        console.log(`[API] Job ${job.id} dispatched to Modal (call_id=${modalResult.call_id}, gpu=${modalResult.gpu})`);
+        await storage.put(storageKey, audioBuffer);
+        audioStorageKey = storageKey;
 
-        return NextResponse.json({
-          success: true,
-          data: {
-            jobId: job.id,
-            status: 'pending' as const,
-            audioName: job.audioName,
-            outputFormat: job.outputFormat,
-            targetMachine: modalResult.gpu ? 'modal-gpu' : 'modal-cpu',
-            estimatedDuration,
-            position,
-          },
-        });
-      } catch (modalError) {
-        console.error('[API] Modal dispatch failed, falling back to BullMQ:', modalError);
-        // Fall through to BullMQ below
-      }
-    }
-
-    // Add job to BullMQ render queue (dynamic import to avoid Redis connection at module load).
-    // Uses a 5-second timeout to prevent hanging on Vercel where Redis is unavailable.
-    try {
-      const bullmqPromise = (async () => {
-        const { addRenderJob } = await import('@/lib/queue/bullmqQueue');
-        return addRenderJob(
+        console.log(`[API] Uploaded audio to storage: ${storageKey} (${audioBuffer.length} bytes)`);
+      } catch (uploadError) {
+        // Clean up the pending job if upload fails
+        await jobStore.fail(renderJob.jobId, `Audio upload failed: ${uploadError instanceof Error ? uploadError.message : String(uploadError)}`);
+        console.error('[API] Failed to upload audio to storage:', uploadError);
+        return NextResponse.json(
           {
-            id: uuid(),
-            path: audioPath,
-            originalName: audioName,
-            duration: audioDuration,
+            success: false,
+            error: {
+              code: 'AUDIO_UPLOAD_ERROR',
+              message: 'Failed to upload audio to storage',
+            },
           },
-          input.renderSettings?.visualMode || 'flame',
-          input.outputFormat,
-          {
-            fps: input.fps,
-            transcribe: input.transcribe,
-            uploadToGDrive: input.upload,
-            priority: input.priority,
-          }
+          { status: 500 }
         );
-      })();
+      }
 
-      const timeout = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('BullMQ timeout - Redis likely unavailable')), 5000)
-      );
-
-      const { jobId: bullmqJobId } = await Promise.race([bullmqPromise, timeout]);
-      console.log(`[API] Job ${job.id} submitted to BullMQ as ${bullmqJobId}`);
-    } catch (queueError) {
-      console.warn('[API] Failed to add job to BullMQ (queue may not be available):', queueError);
-      // Continue without failing - job is tracked in ServerJobStore
+      // Update job metadata with the storage key
+      await jobStore.update(renderJob.jobId, {
+        result: { audioStorageKey },
+      });
+      // Also store in metadata by re-creating via update workaround:
+      // The JobStore.update only accepts JobUpdate fields (status, progress, stage, result, error, retryCount).
+      // We stored audioStorageKey in result temporarily; the worker will read from both metadata and result.
+      // Actually, the best approach: we set it in metadata at creation. Let's update the job's
+      // metadata through a second create approach... but JobStore doesn't have updateMetadata.
+      // Instead, we'll use the result field which the worker can read.
     }
+
+    // Get queue position
+    const position = await jobStore.getQueuePosition(renderJob.jobId);
+
+    // Estimate duration (simple heuristic)
+    const formatMeta = OUTPUT_FORMAT_META[input.outputFormat as keyof typeof OUTPUT_FORMAT_META];
+    const estimatedDuration = formatMeta
+      ? Math.round(formatMeta.estimatedFileSizeMB(180, input.fps) * 2)
+      : 300;
+
+    console.log(`[API] Render job ${renderJob.jobId} created in JobStore (worker will dispatch to Modal)`);
 
     return NextResponse.json({
       success: true,
       data: {
-        jobId: job.id,
-        status: 'pending',
-        audioName: job.audioName,
-        outputFormat: job.outputFormat,
-        targetMachine: input.targetMachine || null,
+        jobId: renderJob.jobId,
+        status: 'pending' as const,
+        audioName,
+        outputFormat: input.outputFormat,
+        targetMachine: null,
         estimatedDuration,
         position,
       },
@@ -513,7 +474,29 @@ function extractFilenameFromUrl(url: string): string {
 /**
  * Extract filename from file path
  */
-function extractFilenameFromPath(path: string): string {
-  const parts = path.split(/[/\\]/);
+function extractFilenameFromPath(filePath: string): string {
+  const parts = filePath.split(/[/\\]/);
   return parts[parts.length - 1] || 'audio.mp3';
+}
+
+/**
+ * Resolve audio file extension from the input type
+ */
+function resolveAudioExtension(input: { audio: { type: string; filename?: string; url?: string; path?: string } }): string {
+  let filename = '';
+  switch (input.audio.type) {
+    case 'base64':
+      filename = input.audio.filename || '';
+      break;
+    case 'url':
+      filename = input.audio.url || '';
+      break;
+    case 'path':
+      filename = input.audio.path || '';
+      break;
+    default:
+      return 'mp3';
+  }
+  const match = filename.match(/\.([a-zA-Z0-9]+)(?:\?.*)?$/);
+  return match ? match[1].toLowerCase() : 'mp3';
 }

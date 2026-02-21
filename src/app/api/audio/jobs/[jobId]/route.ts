@@ -11,7 +11,7 @@ import { getStorageAdapter } from '@/lib/storage';
  */
 export interface JobPollResponse {
   jobId: string;
-  type: 'ingest' | 'preview' | 'save';
+  type: 'ingest' | 'preview' | 'save' | 'render';
   status: 'pending' | 'processing' | 'complete' | 'failed' | 'cancelled';
   progress: number; // 0-100 within current stage
   stage: string | null; // descriptive name: "downloading", "normalizing", etc.
