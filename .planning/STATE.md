@@ -20,7 +20,7 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 Phase: 12 of 16 (Cloud Storage Adapter)
 Plan: 3 of 3 in current phase
 Status: Executing
-Last activity: 2026-02-20 -- Completed 12-03 (Upload/Download API routes + progress hook)
+Last activity: 2026-02-20 -- Completed 12-02 (AudioAssetService + API routes StorageAdapter migration)
 
 Progress: [####################] 100% (v2.0 phase 12: 3/3 plans complete)
 
@@ -40,6 +40,7 @@ Progress: [####################] 100% (v2.0 phase 12: 3/3 plans complete)
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 12    | 01   | 7min     | 2     | 6     |
+| 12    | 02   | 12min    | 2     | 10    |
 | 12    | 03   | 6min     | 3     | 5     |
 
 ---
@@ -59,13 +60,17 @@ Progress: [####################] 100% (v2.0 phase 12: 3/3 plans complete)
 - XHR for upload progress (fetch lacks upload progress events)
 - JSON response for download route in R2 mode (not redirect, avoids CORS)
 - Backward-compatible fallback to FormData ingest in AudioPrepEditor
+- resolveAssetPath uses adapter's resolveKey() for local, temp file download for cloud
+- Stream route redirects to signed URL instead of proxying content (CDN offload for R2)
+- Temp file pattern for ffmpeg: download from storage -> process -> upload result -> cleanup
+- Render output upload to storage async after process completion
 
 ### Technical Context
 
 - StorageAdapter interface implemented at `src/lib/storage/` with Local + R2 backends
 - Upload/download API routes at `/api/storage/upload` and `/api/storage/download`
 - useStorageUpload hook at `src/lib/hooks/useStorageUpload.ts` for progress-tracked uploads
-- AudioAssetService uses filesystem (`./audio-assets/{assetId}/`) -- needs R2 adapter (plan 12-02)
+- AudioAssetService fully migrated to StorageAdapter (plan 12-02 complete) -- all API routes use adapter-backed service
 - JobManager uses better-sqlite3 with WAL -- needs Turso adapter
 - Render pipeline partially wired to Modal (gated behind env var)
 - Drizzle ORM already in project for Turso/libsql
@@ -80,9 +85,9 @@ Progress: [####################] 100% (v2.0 phase 12: 3/3 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 12-03-PLAN.md (Upload/Download API routes + progress hook)
-Resume file: .planning/phases/12-cloud-storage-adapter/12-03-SUMMARY.md
+Stopped at: Completed 12-02-PLAN.md (AudioAssetService + API route StorageAdapter migration)
+Resume file: .planning/phases/12-cloud-storage-adapter/12-02-SUMMARY.md
 
 ---
 
-*Last updated: 2026-02-20 -- Phase 12 plan 03 complete*
+*Last updated: 2026-02-20 -- Phase 12 plan 02 complete (all 3 plans done)*
