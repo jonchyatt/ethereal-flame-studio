@@ -343,7 +343,16 @@ Plans:
   3. User can see job progress (percentage, current stage like "downloading" or "normalizing") by hitting the poll endpoint
   4. User cancels a job and the worker stops processing it within one poll cycle (no orphaned ffmpeg processes)
   5. A job stuck in "processing" for longer than the configured timeout is automatically marked as failed
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
+
+Plans:
+- [ ] 13-01-PLAN.md -- Drizzle schema + JobStore interface + LocalJobStore + TursoJobStore adapters
+- [ ] 13-02-PLAN.md -- Job poll and cancel API endpoints
+- [ ] 13-03-PLAN.md -- Render.com worker entry point + heartbeat/reaper + Dockerfile
+
+**Wave Structure:**
+- Wave 1: 13-01 (JobStore foundation)
+- Wave 2: 13-02, 13-03 (API routes + worker, parallel)
 
 ---
 
@@ -402,7 +411,7 @@ Plans:
 | 6. YouTube + Multi-Platform | v1.0 | 0/6 | Planned | - |
 | 7. Blender VFX | v1.0 | 0/12 | Not Started | - |
 | 12. Cloud Storage Adapter | 3/3 | Complete    | 2026-02-21 | - |
-| 13. Job State + Worker Infra | v2.0 | 0/? | Not started | - |
+| 13. Job State + Worker Infra | v2.0 | 0/3 | Planned | - |
 | 14. API + Worker Processing | v2.0 | 0/? | Not started | - |
 | 15. Modal Render Dispatch | v2.0 | 0/? | Not started | - |
 | 16. Production Deploy + CI/CD | v2.0 | 0/? | Not started | - |
