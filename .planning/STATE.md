@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Milestone v2.0 Cloud Production -- Phase 14: API + Worker Processing Pipeline
+**Current focus:** Milestone v2.0 Cloud Production -- Phase 15: Modal Render Dispatch
 
 **Key Files:**
 - `.planning/PROJECT.md` - Project definition
@@ -17,12 +17,12 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 ## Current Position
 
-Phase: 14 of 16 (API + Worker Processing Pipeline)
-Plan: 3 of 3 in current phase (all complete)
-Status: Phase Complete
-Last activity: 2026-02-21 -- Completed 14-02 (Worker processing pipelines)
+Phase: 15 of 16 (Modal Render Dispatch)
+Plan: 1 of 2 in current phase
+Status: In Progress
+Last activity: 2026-02-21 -- Completed 15-01 (Render job dispatch through JobStore/Worker/Modal)
 
-Progress: [####################] 100% (v2.0 phase 14: 3/3 plans complete)
+Progress: [##########..........] 50% (v2.0 phase 15: 1/2 plans complete)
 
 ---
 
@@ -34,7 +34,7 @@ Progress: [####################] 100% (v2.0 phase 14: 3/3 plans complete)
 - Audio Prep MVP shipped on feature branch
 
 **v2.0:**
-- Plans completed: 9
+- Plans completed: 10
 - Phases remaining: 2 (15-16)
 
 | Phase | Plan | Duration | Tasks | Files |
@@ -48,6 +48,7 @@ Progress: [####################] 100% (v2.0 phase 14: 3/3 plans complete)
 | 14    | 01   | 4min     | 2     | 5     |
 | 14    | 02   | 4min     | 2     | 5     |
 | 14    | 03   | 5min     | 2     | 2     |
+| 15    | 01   | 5min     | 2     | 7     |
 
 ---
 
@@ -90,6 +91,11 @@ Progress: [####################] 100% (v2.0 phase 14: 3/3 plans complete)
 - Source assets downloaded to OS temp dir, processed, uploaded to storage, temp cleaned in finally block
 - Preview pipeline checks storage cache before rendering (same cache key pattern as API route)
 - Save pipeline removes previous prepared.* files before writing new output
+- Audio uploaded to storage in API route (before job creation) for immediate worker access
+- Render pipeline returns after Modal dispatch at 30% -- webhook callback completes the job
+- Early return in processJob for render case skips implicit completion path
+- Worker tsconfig extended to include modalClient.ts for direct import from render pipeline
+- R2 signed URL (1-hour expiry) as audio handoff mechanism to Modal
 
 ### Technical Context
 
@@ -109,12 +115,15 @@ Progress: [####################] 100% (v2.0 phase 14: 3/3 plans complete)
 - Preview audio route at `/api/audio/edit/preview/[jobId]/audio` serves from storage adapter (not filesystem)
 - Webhook endpoint at `/api/webhooks/worker` validates INTERNAL_WEBHOOK_SECRET via Bearer token before processing job callbacks
 - Audio streaming endpoint at `/api/audio/assets/[id]/stream` supports ?variant=original|prepared query parameter
-- Render pipeline partially wired to Modal (gated behind env var)
+- Render pipeline fully wired: POST /api/render -> JobStore -> Worker -> Modal (via R2 signed URL)
 - Drizzle ORM already in project for Turso/libsql
-- Worker pipeline modules at `worker/pipelines/` (ingest, preview, save) wired into processJob dispatcher
+- Worker pipeline modules at `worker/pipelines/` (ingest, preview, save, render) wired into processJob dispatcher
 - All pipelines download source from storage, process with ffmpeg/yt-dlp, upload result, cleanup temp
 - Ingest pipeline enforces SEC-02: 100MB file size, 30-min duration limits
 - Audio prep MVP on `feature/audio-prep-mvp` branch
+- Render job type added to AudioPrepJob union; render jobs flow through JobStore -> Worker -> Modal
+- modalClient.ts supports audioSignedUrl, webhookUrl, webhookSecret for v2.0 dispatch
+- Render storage key pattern: `renders/{jobId}/audio.{ext}`
 
 ### Blockers
 
@@ -125,9 +134,9 @@ Progress: [####################] 100% (v2.0 phase 14: 3/3 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 14-02-PLAN.md (Worker processing pipelines)
-Resume file: .planning/phases/14-api-worker-processing-pipeline/14-02-SUMMARY.md
+Stopped at: Completed 15-01-PLAN.md (Render job dispatch through JobStore/Worker/Modal)
+Resume file: .planning/phases/15-modal-render-dispatch/15-01-SUMMARY.md
 
 ---
 
-*Last updated: 2026-02-21 -- Phase 14 complete (3/3 plans done)*
+*Last updated: 2026-02-21 -- Phase 15 in progress (1/2 plans done)*

@@ -38,7 +38,7 @@ Requirements for cloud production deployment. Each maps to roadmap phases 12-16.
 - [x] **WORK-01**: A Render.com background worker runs Node.js with ffmpeg and yt-dlp for CPU-intensive audio jobs
 - [x] **WORK-02**: Worker can ingest audio from YouTube URLs, direct URLs, and file uploads (via R2 presigned upload)
 - [x] **WORK-03**: Worker can execute audio edit previews and save operations using the existing recipe/filter_complex pipeline
-- [ ] **WORK-04**: Worker dispatches GPU render jobs to Modal by uploading audio to R2 and passing signed URL
+- [x] **WORK-04**: Worker dispatches GPU render jobs to Modal by uploading audio to R2 and passing signed URL
 - [ ] **WORK-05**: Modal calls a secure webhook on render completion with the R2 key of the output video
 
 ### API
@@ -97,7 +97,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WORK-01 | Phase 13 | Complete |
 | WORK-02 | Phase 14 | Complete |
 | WORK-03 | Phase 14 | Complete |
-| WORK-04 | Phase 15 | Pending |
+| WORK-04 | Phase 15 | Complete |
 | WORK-05 | Phase 15 | Pending |
 | API-01 | Phase 14 | Complete |
 | API-02 | Phase 14 | Complete |
