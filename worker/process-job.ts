@@ -3,13 +3,14 @@
  * detects cancellation via polling, and handles child process
  * cleanup with SIGTERM -> SIGKILL escalation.
  *
- * Phase 13 = infrastructure only. Actual ingest/edit/save pipelines
- * are wired in Phase 14. All job types currently complete with a
- * placeholder result.
+ * Pipeline modules wired in Phase 14: ingest, preview, save.
  */
 
 import type { ChildProcess } from 'child_process';
 import type { JobStore, AudioPrepJob } from '../src/lib/jobs/types';
+import { runIngestPipeline } from './pipelines/ingest';
+import { runPreviewPipeline } from './pipelines/preview';
+import { runSavePipeline } from './pipelines/save';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -99,7 +100,7 @@ export function killChildProcess(child: ChildProcess): Promise<void> {
  * @param store - The JobStore instance for state updates
  * @param job - The claimed job to process
  * @param _childRef - Optional ref object to expose spawned child process
- *                     (used by actual pipelines in Phase 14)
+ *                     for cancellation support
  */
 export async function processJob(
   store: JobStore,
@@ -159,30 +160,30 @@ export async function processJob(
     }, CANCEL_CHECK_INTERVAL_MS);
 
     // -- Dispatch by job type ----------------------------------------------
-    // Phase 13 = infrastructure only. All job types use placeholder logic.
-    // Phase 14 wires actual ingest/edit/save pipelines here.
 
     if (cancelled) return;
 
     console.log(
-      `[Worker] Processing ${job.type} job ${job.jobId} -- pipeline not yet wired (Phase 14)`,
+      `[Worker] Processing ${job.type} job ${job.jobId}`,
     );
 
-    // Update stage to initializing
     await store.update(job.jobId, { stage: 'initializing', progress: 0 });
 
     if (cancelled) return;
 
-    // Simulate minimal work (placeholder for Phase 14 pipeline dispatch)
-    await new Promise<void>((resolve) => setTimeout(resolve, 1000));
-
-    if (cancelled) return;
-
-    // Complete with placeholder result
-    await store.complete(job.jobId, {
-      placeholder: true,
-      message: 'Pipeline not yet wired',
-    });
+    switch (job.type) {
+      case 'ingest':
+        await runIngestPipeline(store, job, childRef);
+        break;
+      case 'preview':
+        await runPreviewPipeline(store, job, childRef);
+        break;
+      case 'save':
+        await runSavePipeline(store, job, childRef);
+        break;
+      default:
+        throw new Error(`Unknown job type: ${(job as any).type}`);
+    }
   } catch (err) {
     if (cancelled) return; // Don't retry cancelled jobs
 
