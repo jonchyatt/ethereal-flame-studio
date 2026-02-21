@@ -18,11 +18,11 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 13 of 16 (Job State + Worker Infrastructure)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: Executing
-Last activity: 2026-02-21 -- Completed 13-01 (JobStore adapter: schema, interface, Local + Turso implementations)
+Last activity: 2026-02-21 -- Completed 13-02 (Job poll & cancel API endpoints)
 
-Progress: [#######.............] 33% (v2.0 phase 13: 1/3 plans complete)
+Progress: [##############......] 67% (v2.0 phase 13: 2/3 plans complete)
 
 ---
 
@@ -34,7 +34,7 @@ Progress: [#######.............] 33% (v2.0 phase 13: 1/3 plans complete)
 - Audio Prep MVP shipped on feature branch
 
 **v2.0:**
-- Plans completed: 4
+- Plans completed: 5
 - Phases remaining: 4 (13-16)
 
 | Phase | Plan | Duration | Tasks | Files |
@@ -43,6 +43,7 @@ Progress: [#######.............] 33% (v2.0 phase 13: 1/3 plans complete)
 | 12    | 02   | 12min    | 2     | 10    |
 | 12    | 03   | 6min     | 3     | 5     |
 | 13    | 01   | 5min     | 2     | 6     |
+| 13    | 02   | 3min     | 2     | 2     |
 
 ---
 
@@ -68,6 +69,8 @@ Progress: [#######.............] 33% (v2.0 phase 13: 1/3 plans complete)
 - JobStore adapter pattern mirroring StorageAdapter (interface + Local/Turso + singleton factory)
 - Raw SQL for TursoJobStore (not Drizzle ORM query builder) for simplicity
 - Atomic job claim: RETURNING for SQLite, transaction for Turso
+- JobPollResponse exported from poll route for frontend type reuse
+- Cancel endpoint is state mutation only -- worker handles SIGTERM (separation of concerns)
 
 ### Technical Context
 
@@ -77,7 +80,9 @@ Progress: [#######.............] 33% (v2.0 phase 13: 1/3 plans complete)
 - AudioAssetService fully migrated to StorageAdapter (plan 12-02 complete) -- all API routes use adapter-backed service
 - JobStore adapter at `src/lib/jobs/` with Local (better-sqlite3) + Turso (@libsql/client) backends
 - Drizzle schema at `src/lib/db/job-schema.ts` with stage, retryCount, and 3 indexes
-- Original JobManager at `src/lib/audio-prep/JobManager.ts` still exists -- will be replaced by API route migration in 13-02
+- Job poll endpoint at `/api/audio/jobs/[jobId]` returns stage, progress, queue position, result/error
+- Job cancel endpoint at `/api/audio/jobs/[jobId]/cancel` transitions non-terminal jobs to cancelled (409 for terminal)
+- Original JobManager at `src/lib/audio-prep/JobManager.ts` still exists -- will be replaced by worker in 13-03
 - Render pipeline partially wired to Modal (gated behind env var)
 - Drizzle ORM already in project for Turso/libsql
 - Audio prep MVP on `feature/audio-prep-mvp` branch
@@ -91,9 +96,9 @@ Progress: [#######.............] 33% (v2.0 phase 13: 1/3 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 13-01-PLAN.md (JobStore adapter: schema, interface, Local + Turso implementations)
-Resume file: .planning/phases/13-job-state-worker-infra/13-01-SUMMARY.md
+Stopped at: Completed 13-02-PLAN.md (Job poll & cancel API endpoints)
+Resume file: .planning/phases/13-job-state-worker-infra/13-02-SUMMARY.md
 
 ---
 
-*Last updated: 2026-02-21 -- Phase 13 plan 01 complete (1/3 plans done)*
+*Last updated: 2026-02-21 -- Phase 13 plan 02 complete (2/3 plans done)*
