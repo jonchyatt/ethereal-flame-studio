@@ -18,7 +18,8 @@ let _instance: StorageAdapter | null = null;
 export function getStorageAdapter(): StorageAdapter {
   if (_instance) return _instance;
 
-  const backend = process.env.STORAGE_BACKEND || 'local';
+  const deployEnv = process.env.DEPLOY_ENV;
+  const backend = process.env.STORAGE_BACKEND || (deployEnv === 'production' ? 'r2' : 'local');
 
   if (backend === 'r2') {
     // Dynamic require keeps @aws-sdk out of the local-dev bundle

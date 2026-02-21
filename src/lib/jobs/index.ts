@@ -18,7 +18,8 @@ let _instance: JobStore | null = null;
 export function getJobStore(): JobStore {
   if (_instance) return _instance;
 
-  const backend = process.env.JOB_STORE_BACKEND || 'local';
+  const deployEnv = process.env.DEPLOY_ENV;
+  const backend = process.env.JOB_STORE_BACKEND || (deployEnv === 'production' ? 'turso' : 'local');
 
   if (backend === 'turso') {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
