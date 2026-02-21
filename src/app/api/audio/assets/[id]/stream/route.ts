@@ -4,8 +4,14 @@ import { getStorageAdapter } from '@/lib/storage';
 
 const assetService = new AudioAssetService();
 
+/** Valid audio variants that can be streamed. */
+type AudioVariant = 'original' | 'prepared';
+
 /**
- * Stream the original audio file for WaveSurfer playback.
+ * Stream audio for WaveSurfer playback.
+ *
+ * Supports an optional `?variant=prepared` query parameter to stream either
+ * the raw upload (`original`, default) or the edited output (`prepared`).
  *
  * Redirects to the storage adapter's signed URL, which works transparently in
  * both environments:
@@ -15,11 +21,16 @@ const assetService = new AudioAssetService();
  *   Cloudflare's CDN
  */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
+
+    // Determine which audio variant to stream (default: original)
+    const variantParam = request.nextUrl.searchParams.get('variant') || 'original';
+    const variant: AudioVariant = variantParam === 'prepared' ? 'prepared' : 'original';
+
     const asset = await assetService.getAsset(id);
 
     if (!asset) {
@@ -29,24 +40,38 @@ export async function GET(
       );
     }
 
-    // Find the original file key via storage adapter listing
+    // Find the requested variant's file key via storage adapter listing
     const storage = getStorageAdapter();
     const keys = await storage.list(`assets/${id}/`);
-    const originalKey = keys.find(k => {
+    const matchingKey = keys.find(k => {
       const filename = k.split('/').pop() || '';
-      return filename.startsWith('original');
+      return filename.startsWith(variant);
     });
 
-    if (!originalKey) {
+    if (!matchingKey) {
       return NextResponse.json(
-        { success: false, error: { code: 'NOT_FOUND', message: 'Original audio file not found' } },
+        {
+          success: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: `Audio file not found for this asset (variant: ${variant})`,
+          },
+        },
         { status: 404 }
       );
     }
 
     // Redirect to the adapter's signed URL (works for both local and R2)
-    const signedUrl = await storage.getSignedUrl(originalKey);
-    return NextResponse.redirect(signedUrl, 302);
+    const signedUrl = await storage.getSignedUrl(matchingKey);
+
+    // The signed URL itself handles access control, so caching the redirect
+    // for a short duration is safe and avoids redundant signed URL generation.
+    return NextResponse.redirect(signedUrl, {
+      status: 302,
+      headers: {
+        'Cache-Control': 'public, max-age=3600',
+      },
+    });
   } catch (error) {
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: error instanceof Error ? error.message : 'Unknown error' } },
