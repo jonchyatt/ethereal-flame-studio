@@ -368,7 +368,16 @@ Plans:
   5. Worker executes edit recipes (trim, split, join, fade, volume, normalize) using the existing filter_complex pipeline and writes results to R2
   6. Cloud ingest rejects files over 100MB and audio over 30 minutes duration
   7. Webhook endpoint rejects requests missing a valid INTERNAL_WEBHOOK_SECRET header
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
+
+Plans:
+- [ ] 14-01-PLAN.md -- Refactor API routes to async job dispatch via JobStore, enhance poll with download URL
+- [ ] 14-02-PLAN.md -- Wire worker processing pipelines (ingest, preview, save) with storage adapter I/O
+- [ ] 14-03-PLAN.md -- Webhook endpoint with INTERNAL_WEBHOOK_SECRET validation, streaming endpoint hardening
+
+**Wave Structure:**
+- Wave 1: 14-01, 14-03 (API routes + webhook, parallel)
+- Wave 2: 14-02 (worker pipelines, depends on 14-01)
 
 ---
 
@@ -412,7 +421,7 @@ Plans:
 | 7. Blender VFX | v1.0 | 0/12 | Not Started | - |
 | 12. Cloud Storage Adapter | 3/3 | Complete    | 2026-02-21 | - |
 | 13. Job State + Worker Infra | 3/3 | Complete    | 2026-02-21 | - |
-| 14. API + Worker Processing | v2.0 | 0/? | Not started | - |
+| 14. API + Worker Processing | v2.0 | 0/3 | Planned | - |
 | 15. Modal Render Dispatch | v2.0 | 0/? | Not started | - |
 | 16. Production Deploy + CI/CD | v2.0 | 0/? | Not started | - |
 
