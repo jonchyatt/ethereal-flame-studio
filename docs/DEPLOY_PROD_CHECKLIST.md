@@ -407,6 +407,8 @@ In the Render service settings, add:
 
 Click **Create Background Worker** or trigger a manual deploy.
 
+> **Note:** After initial manual setup, subsequent deploys to Render are automated via GitHub Actions (see Section 8). Pushing to `main` triggers the worker deploy automatically.
+
 ### Verification
 
 Check the Render service logs. You should see:
@@ -467,7 +469,47 @@ After all services are provisioned, run this smoke test to confirm everything wo
 
 ---
 
-## 8. Troubleshooting
+## 8. GitHub Actions CI/CD
+
+After completing the manual setup above, configure GitHub Actions to automate future deployments. Pushing to `main` will automatically deploy both the web app (Vercel) and the worker (Render.com).
+
+### 8.1 Required GitHub Secrets
+
+Add these secrets in your GitHub repository: **Settings** > **Secrets and variables** > **Actions** > **New repository secret**.
+
+| Secret                    | Where to Find It                                                                                       |
+| ------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `VERCEL_TOKEN`            | Create at [vercel.com/account/tokens](https://vercel.com/account/tokens) -- use "Full Access" scope    |
+| `VERCEL_ORG_ID`           | Run `vercel link` then check `.vercel/project.json`, or find in Vercel Dashboard > Team Settings > General > Team ID |
+| `VERCEL_PROJECT_ID`       | Run `vercel link` then check `.vercel/project.json`, or find in Vercel Dashboard > Project Settings > General > Project ID |
+| `RENDER_DEPLOY_HOOK_URL`  | Render Dashboard > `ethereal-flame-worker` service > **Settings** > **Deploy Hook** > Create and copy the URL |
+
+### 8.2 How It Works
+
+The workflow at `.github/workflows/deploy.yml` runs on every push to `main`:
+
+- **deploy-web** (Vercel): Checks out code, installs Vercel CLI, pulls production environment, builds, and deploys with `vercel deploy --prebuilt --prod`
+- **deploy-worker** (Render.com): Sends a POST request to the Render deploy hook URL, triggering a Docker rebuild from `worker/Dockerfile`
+
+Both jobs run **in parallel** -- the web app and worker deploy simultaneously. A concurrency group prevents overlapping deploys from rapid successive pushes.
+
+### 8.3 Verify
+
+1. Push a commit to the `main` branch
+2. Go to **GitHub** > **Actions** tab -- confirm the "Deploy" workflow starts
+3. Both jobs (deploy-web, deploy-worker) should show green checkmarks
+4. Verify in **Vercel Dashboard** that a new production deployment appears
+5. Verify in **Render Dashboard** that the worker service shows a new deploy
+
+### Troubleshooting CI/CD
+
+- **Workflow not triggering:** Ensure you are pushing to the `main` branch (not `master` or a feature branch)
+- **Vercel deploy fails:** Check that `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` are set correctly in GitHub Secrets
+- **Render deploy not starting:** Verify `RENDER_DEPLOY_HOOK_URL` is a valid URL -- test it manually with `curl -X POST "<url>"`
+
+---
+
+## 9. Troubleshooting
 
 ### Worker not picking up jobs
 
