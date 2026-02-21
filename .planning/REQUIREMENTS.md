@@ -28,14 +28,14 @@ Requirements for cloud production deployment. Each maps to roadmap phases 12-16.
 ### Jobs
 
 - [x] **JOB-01**: All job and asset metadata is persisted in Turso cloud database (replacing local better-sqlite3)
-- [ ] **JOB-02**: CPU worker polls Turso for pending jobs at 3-5 second intervals
+- [x] **JOB-02**: CPU worker polls Turso for pending jobs at 3-5 second intervals
 - [x] **JOB-03**: User can see job progress (percentage, stage) by polling the API
 - [x] **JOB-04**: User can cancel a running job, and the worker stops processing within one poll cycle
-- [ ] **JOB-05**: Jobs stuck in "processing" for longer than a configurable timeout are automatically marked failed
+- [x] **JOB-05**: Jobs stuck in "processing" for longer than a configurable timeout are automatically marked failed
 
 ### Workers
 
-- [ ] **WORK-01**: A Render.com background worker runs Node.js with ffmpeg and yt-dlp for CPU-intensive audio jobs
+- [x] **WORK-01**: A Render.com background worker runs Node.js with ffmpeg and yt-dlp for CPU-intensive audio jobs
 - [ ] **WORK-02**: Worker can ingest audio from YouTube URLs, direct URLs, and file uploads (via R2 presigned upload)
 - [ ] **WORK-03**: Worker can execute audio edit previews and save operations using the existing recipe/filter_complex pipeline
 - [ ] **WORK-04**: Worker dispatches GPU render jobs to Modal by uploading audio to R2 and passing signed URL
@@ -90,11 +90,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STOR-03 | Phase 12 | Complete |
 | STOR-04 | Phase 12 | Complete |
 | JOB-01 | Phase 13 | Complete |
-| JOB-02 | Phase 13 | Pending |
+| JOB-02 | Phase 13 | Complete |
 | JOB-03 | Phase 13 | Complete |
 | JOB-04 | Phase 13 | Complete |
-| JOB-05 | Phase 13 | Pending |
-| WORK-01 | Phase 13 | Pending |
+| JOB-05 | Phase 13 | Complete |
+| WORK-01 | Phase 13 | Complete |
 | WORK-02 | Phase 14 | Pending |
 | WORK-03 | Phase 14 | Pending |
 | WORK-04 | Phase 15 | Pending |

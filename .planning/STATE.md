@@ -18,11 +18,11 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 13 of 16 (Job State + Worker Infrastructure)
-Plan: 2 of 3 in current phase
-Status: Executing
-Last activity: 2026-02-21 -- Completed 13-02 (Job poll & cancel API endpoints)
+Plan: 3 of 3 in current phase
+Status: Phase Complete
+Last activity: 2026-02-21 -- Completed 13-03 (Render.com background worker)
 
-Progress: [##############......] 67% (v2.0 phase 13: 2/3 plans complete)
+Progress: [####################] 100% (v2.0 phase 13: 3/3 plans complete)
 
 ---
 
@@ -34,8 +34,8 @@ Progress: [##############......] 67% (v2.0 phase 13: 2/3 plans complete)
 - Audio Prep MVP shipped on feature branch
 
 **v2.0:**
-- Plans completed: 5
-- Phases remaining: 4 (13-16)
+- Plans completed: 6
+- Phases remaining: 3 (14-16)
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -44,6 +44,7 @@ Progress: [##############......] 67% (v2.0 phase 13: 2/3 plans complete)
 | 12    | 03   | 6min     | 3     | 5     |
 | 13    | 01   | 5min     | 2     | 6     |
 | 13    | 02   | 3min     | 2     | 2     |
+| 13    | 03   | 4min     | 2     | 6     |
 
 ---
 
@@ -71,6 +72,10 @@ Progress: [##############......] 67% (v2.0 phase 13: 2/3 plans complete)
 - Atomic job claim: RETURNING for SQLite, transaction for Turso
 - JobPollResponse exported from poll route for frontend type reuse
 - Cancel endpoint is state mutation only -- worker handles SIGTERM (separation of concerns)
+- skipLibCheck in worker tsconfig to avoid drizzle-orm node_modules type errors
+- Placeholder pipelines for Phase 13 worker; actual dispatch wired in Phase 14
+- Single default timeout for reaper (10 min); per-type timeouts deferred to Phase 14
+- childRef pattern in processJob for Phase 14 pipeline child process exposure
 
 ### Technical Context
 
@@ -82,7 +87,9 @@ Progress: [##############......] 67% (v2.0 phase 13: 2/3 plans complete)
 - Drizzle schema at `src/lib/db/job-schema.ts` with stage, retryCount, and 3 indexes
 - Job poll endpoint at `/api/audio/jobs/[jobId]` returns stage, progress, queue position, result/error
 - Job cancel endpoint at `/api/audio/jobs/[jobId]/cancel` transitions non-terminal jobs to cancelled (409 for terminal)
-- Original JobManager at `src/lib/audio-prep/JobManager.ts` still exists -- will be replaced by worker in 13-03
+- Standalone worker at `worker/` with poll loop, heartbeat, graceful shutdown, cancellation detection, and reaper
+- Worker Dockerfile includes ffmpeg + yt-dlp for Render.com deployment
+- Original JobManager at `src/lib/audio-prep/JobManager.ts` still exists -- replaced by worker + API routes
 - Render pipeline partially wired to Modal (gated behind env var)
 - Drizzle ORM already in project for Turso/libsql
 - Audio prep MVP on `feature/audio-prep-mvp` branch
@@ -96,9 +103,9 @@ Progress: [##############......] 67% (v2.0 phase 13: 2/3 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 13-02-PLAN.md (Job poll & cancel API endpoints)
-Resume file: .planning/phases/13-job-state-worker-infra/13-02-SUMMARY.md
+Stopped at: Completed 13-03-PLAN.md (Render.com background worker -- Phase 13 complete)
+Resume file: .planning/phases/13-job-state-worker-infra/13-03-SUMMARY.md
 
 ---
 
-*Last updated: 2026-02-21 -- Phase 13 plan 02 complete (2/3 plans done)*
+*Last updated: 2026-02-21 -- Phase 13 complete (3/3 plans done)*
