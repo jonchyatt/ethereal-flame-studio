@@ -50,8 +50,8 @@ Requirements for cloud production deployment. Each maps to roadmap phases 12-16.
 
 ### Config & Deploy
 
-- [ ] **DEPLOY-01**: Application switches between local and production mode based on environment variables (no code changes)
-- [ ] **DEPLOY-02**: .env.example documents all required production environment variables
+- [x] **DEPLOY-01**: Application switches between local and production mode based on environment variables (no code changes)
+- [x] **DEPLOY-02**: .env.example documents all required production environment variables
 - [x] **DEPLOY-03**: Deploy checklist (docs/DEPLOY_PROD_CHECKLIST.md) covers provisioning R2, Turso, Render, Modal, and Vercel
 - [ ] **DEPLOY-04**: GitHub Actions workflow auto-deploys web to Vercel and worker to Render on push
 
@@ -103,8 +103,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | API-02 | Phase 14 | Complete |
 | API-03 | Phase 14 | Complete |
 | API-04 | Phase 14 | Complete |
-| DEPLOY-01 | Phase 16 | Pending |
-| DEPLOY-02 | Phase 16 | Pending |
+| DEPLOY-01 | Phase 16 | Complete |
+| DEPLOY-02 | Phase 16 | Complete |
 | DEPLOY-03 | Phase 16 | Complete |
 | DEPLOY-04 | Phase 16 | Pending |
 | SEC-01 | Phase 14 | Complete |

@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Milestone v2.0 Cloud Production -- Phase 16: Production Deploy & CI/CD
+**Current focus:** Milestone v2.0 Cloud Production -- Phase 16: Production Deploy & CI/CD (env config complete)
 
 **Key Files:**
 - `.planning/PROJECT.md` - Project definition
@@ -50,6 +50,7 @@ Progress: [#############.......] 67% (v2.0 phase 16: 2/3 plans complete)
 | 14    | 03   | 5min     | 2     | 2     |
 | 15    | 01   | 5min     | 2     | 7     |
 | 15    | 02   | 3min     | 2     | 3     |
+| 16    | 01   | 7min     | 2     | 3     |
 | 16    | 02   | 2min     | 1     | 1     |
 
 ---
@@ -105,6 +106,8 @@ Progress: [#############.......] 67% (v2.0 phase 16: 2/3 plans complete)
 - Auto-derive R2 upload key as renders/{jobId}/output.mp4 when not explicit
 - Deployment checklist sections ordered by dependency: R2 -> Turso -> Modal -> webhook -> Vercel -> Render
 - Worker needs explicit STORAGE_BACKEND=r2 (not DEPLOY_ENV) since it's standalone Node.js
+- DEPLOY_ENV=production as convenience fallback -- explicit STORAGE_BACKEND/JOB_STORE_BACKEND always takes precedence
+- Legacy v1.0 variables preserved in .env.example under separate section
 
 ### Technical Context
 
@@ -138,6 +141,8 @@ Progress: [#############.......] 67% (v2.0 phase 16: 2/3 plans complete)
 - Poll endpoint resolves videoKey -> signed download URL (7-day expiry) for completed render jobs
 - Complete render flow: API -> JobStore -> Worker -> Modal -> R2 upload -> Webhook -> Poll with download URL
 - Production deployment checklist at docs/DEPLOY_PROD_CHECKLIST.md covers all 5 cloud services
+- DEPLOY_ENV=production activates R2 storage + Turso job store without individual backend vars
+- .env.example fully rewritten with 7 sections covering all v2.0 production variables
 
 ### Blockers
 
@@ -148,9 +153,9 @@ Progress: [#############.......] 67% (v2.0 phase 16: 2/3 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 16-02-PLAN.md (Production deployment checklist)
-Resume file: .planning/phases/16-production-deploy-ci-cd/16-02-SUMMARY.md
+Stopped at: Completed 16-01-PLAN.md (Environment config: DEPLOY_ENV + .env.example)
+Resume file: .planning/phases/16-production-deploy-ci-cd/16-01-SUMMARY.md
 
 ---
 
-*Last updated: 2026-02-21 -- Phase 16 in progress (2/3 plans done)*
+*Last updated: 2026-02-21 -- Phase 16 in progress (16-01 + 16-02 complete, 16-03 remaining)*
