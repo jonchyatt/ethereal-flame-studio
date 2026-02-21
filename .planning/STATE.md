@@ -18,11 +18,11 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 14 of 16 (API + Worker Processing Pipeline)
-Plan: 3 of 3 in current phase
-Status: In Progress
-Last activity: 2026-02-21 -- Completed 14-03 (Webhook callback + audio stream hardening)
+Plan: 3 of 3 in current phase (all complete)
+Status: Phase Complete
+Last activity: 2026-02-21 -- Completed 14-02 (Worker processing pipelines)
 
-Progress: [#############.......] 66% (v2.0 phase 14: 2/3 plans complete)
+Progress: [####################] 100% (v2.0 phase 14: 3/3 plans complete)
 
 ---
 
@@ -34,8 +34,8 @@ Progress: [#############.......] 66% (v2.0 phase 14: 2/3 plans complete)
 - Audio Prep MVP shipped on feature branch
 
 **v2.0:**
-- Plans completed: 8
-- Phases remaining: 3 (14-16)
+- Plans completed: 9
+- Phases remaining: 2 (15-16)
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -46,6 +46,7 @@ Progress: [#############.......] 66% (v2.0 phase 14: 2/3 plans complete)
 | 13    | 02   | 3min     | 2     | 2     |
 | 13    | 03   | 4min     | 2     | 6     |
 | 14    | 01   | 4min     | 2     | 5     |
+| 14    | 02   | 4min     | 2     | 5     |
 | 14    | 03   | 5min     | 2     | 2     |
 
 ---
@@ -85,6 +86,10 @@ Progress: [#############.......] 66% (v2.0 phase 14: 2/3 plans complete)
 - Constant-time comparison via crypto.timingSafeEqual to prevent timing-based secret enumeration
 - Variant query parameter (not separate routes) for original vs prepared audio streaming
 - Cache-Control 1h on stream redirect -- safe because signed URL handles access control
+- Pipeline modules export single async function (store, job, childRef) -> Promise<void> for consistent dispatch
+- Source assets downloaded to OS temp dir, processed, uploaded to storage, temp cleaned in finally block
+- Preview pipeline checks storage cache before rendering (same cache key pattern as API route)
+- Save pipeline removes previous prepared.* files before writing new output
 
 ### Technical Context
 
@@ -106,6 +111,9 @@ Progress: [#############.......] 66% (v2.0 phase 14: 2/3 plans complete)
 - Audio streaming endpoint at `/api/audio/assets/[id]/stream` supports ?variant=original|prepared query parameter
 - Render pipeline partially wired to Modal (gated behind env var)
 - Drizzle ORM already in project for Turso/libsql
+- Worker pipeline modules at `worker/pipelines/` (ingest, preview, save) wired into processJob dispatcher
+- All pipelines download source from storage, process with ffmpeg/yt-dlp, upload result, cleanup temp
+- Ingest pipeline enforces SEC-02: 100MB file size, 30-min duration limits
 - Audio prep MVP on `feature/audio-prep-mvp` branch
 
 ### Blockers
@@ -117,9 +125,9 @@ Progress: [#############.......] 66% (v2.0 phase 14: 2/3 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 14-03-PLAN.md (Webhook callback + audio stream hardening)
-Resume file: .planning/phases/14-api-worker-processing-pipeline/14-03-SUMMARY.md
+Stopped at: Completed 14-02-PLAN.md (Worker processing pipelines)
+Resume file: .planning/phases/14-api-worker-processing-pipeline/14-02-SUMMARY.md
 
 ---
 
-*Last updated: 2026-02-21 -- Phase 14 in progress (2/3 plans done)*
+*Last updated: 2026-02-21 -- Phase 14 complete (3/3 plans done)*

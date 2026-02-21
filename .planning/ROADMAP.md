@@ -305,7 +305,7 @@ Plans:
 
 - [x] **Phase 12: Cloud Storage Adapter** - Unified storage interface with R2 for production and local filesystem for development (completed 2026-02-21)
 - [x] **Phase 13: Job State + Worker Infrastructure** - Turso-backed job queue with Render.com CPU worker service (completed 2026-02-21)
-- [ ] **Phase 14: API + Worker Processing Pipeline** - Async API routes wired to worker for ingest, edit, and save operations
+- [x] **Phase 14: API + Worker Processing Pipeline** - Async API routes wired to worker for ingest, edit, and save operations (completed 2026-02-21)
 - [ ] **Phase 15: Modal Render Dispatch** - GPU render jobs dispatched to Modal via R2, with webhook completion
 - [ ] **Phase 16: Production Deploy + CI/CD** - Environment config, deploy checklist, and automated deployment pipeline
 
@@ -421,7 +421,7 @@ Plans:
 | 7. Blender VFX | v1.0 | 0/12 | Not Started | - |
 | 12. Cloud Storage Adapter | 3/3 | Complete    | 2026-02-21 | - |
 | 13. Job State + Worker Infra | 3/3 | Complete    | 2026-02-21 | - |
-| 14. API + Worker Processing | 2/3 | In Progress|  | - |
+| 14. API + Worker Processing | 3/3 | Complete   | 2026-02-21 | - |
 | 15. Modal Render Dispatch | v2.0 | 0/? | Not started | - |
 | 16. Production Deploy + CI/CD | v2.0 | 0/? | Not started | - |
 

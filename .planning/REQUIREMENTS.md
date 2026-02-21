@@ -36,8 +36,8 @@ Requirements for cloud production deployment. Each maps to roadmap phases 12-16.
 ### Workers
 
 - [x] **WORK-01**: A Render.com background worker runs Node.js with ffmpeg and yt-dlp for CPU-intensive audio jobs
-- [ ] **WORK-02**: Worker can ingest audio from YouTube URLs, direct URLs, and file uploads (via R2 presigned upload)
-- [ ] **WORK-03**: Worker can execute audio edit previews and save operations using the existing recipe/filter_complex pipeline
+- [x] **WORK-02**: Worker can ingest audio from YouTube URLs, direct URLs, and file uploads (via R2 presigned upload)
+- [x] **WORK-03**: Worker can execute audio edit previews and save operations using the existing recipe/filter_complex pipeline
 - [ ] **WORK-04**: Worker dispatches GPU render jobs to Modal by uploading audio to R2 and passing signed URL
 - [ ] **WORK-05**: Modal calls a secure webhook on render completion with the R2 key of the output video
 
@@ -58,7 +58,7 @@ Requirements for cloud production deployment. Each maps to roadmap phases 12-16.
 ### Security
 
 - [x] **SEC-01**: Modal webhook callback requires valid INTERNAL_WEBHOOK_SECRET in request header
-- [ ] **SEC-02**: Cloud ingest path enforces file size (100MB) and duration (30min) limits
+- [x] **SEC-02**: Cloud ingest path enforces file size (100MB) and duration (30min) limits
 
 ## v2.1 Requirements (Deferred)
 
@@ -95,8 +95,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | JOB-04 | Phase 13 | Complete |
 | JOB-05 | Phase 13 | Complete |
 | WORK-01 | Phase 13 | Complete |
-| WORK-02 | Phase 14 | Pending |
-| WORK-03 | Phase 14 | Pending |
+| WORK-02 | Phase 14 | Complete |
+| WORK-03 | Phase 14 | Complete |
 | WORK-04 | Phase 15 | Pending |
 | WORK-05 | Phase 15 | Pending |
 | API-01 | Phase 14 | Complete |
@@ -108,7 +108,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEPLOY-03 | Phase 16 | Pending |
 | DEPLOY-04 | Phase 16 | Pending |
 | SEC-01 | Phase 14 | Complete |
-| SEC-02 | Phase 14 | Pending |
+| SEC-02 | Phase 14 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 24 total
