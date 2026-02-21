@@ -409,7 +409,16 @@ Plans:
   2. .env.example lists every required production variable with descriptions
   3. docs/DEPLOY_PROD_CHECKLIST.md walks through provisioning R2 bucket, Turso database, Render worker, Modal endpoint, and Vercel project from scratch
   4. Pushing to main triggers GitHub Actions that deploy web to Vercel and worker to Render automatically
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
+
+Plans:
+- [ ] 16-01-PLAN.md -- Environment config (DEPLOY_ENV) + .env.example rewrite
+- [ ] 16-02-PLAN.md -- Production deployment checklist (docs/DEPLOY_PROD_CHECKLIST.md)
+- [ ] 16-03-PLAN.md -- GitHub Actions CI/CD workflow (Vercel + Render auto-deploy)
+
+**Wave Structure:**
+- Wave 1: 16-01, 16-02 (env config + checklist, parallel)
+- Wave 2: 16-03 (CI/CD workflow, depends on 16-01)
 
 ---
 
@@ -430,7 +439,7 @@ Plans:
 | 13. Job State + Worker Infra | 3/3 | Complete    | 2026-02-21 | - |
 | 14. API + Worker Processing | 3/3 | Complete    | 2026-02-21 | - |
 | 15. Modal Render Dispatch | 2/2 | Complete    | 2026-02-21 | - |
-| 16. Production Deploy + CI/CD | v2.0 | 0/? | Not started | - |
+| 16. Production Deploy + CI/CD | v2.0 | 0/3 | Planned | - |
 
 ---
 
