@@ -389,7 +389,14 @@ Plans:
   1. Worker uploads the prepared audio to R2, generates a signed URL, and dispatches a render job to Modal with that URL
   2. Modal calls the secure webhook on render completion, providing the R2 key of the output video
   3. User polls the render job and receives a download URL for the finished video once Modal reports completion
-**Plans**: TBD
+**Plans**: 2 plans in 1 wave
+
+Plans:
+- [ ] 15-01-PLAN.md -- Worker render pipeline: add render job type, refactor API route to JobStore dispatch, create worker render pipeline that uploads audio to R2 and dispatches to Modal
+- [ ] 15-02-PLAN.md -- Modal entry point R2 I/O: download audio from signed URL, upload rendered video to R2, call webhook with video key, enhance poll endpoint for render download URL
+
+**Wave Structure:**
+- Wave 1: 15-01, 15-02 (parallel -- no file overlap)
 
 ---
 
@@ -422,7 +429,7 @@ Plans:
 | 12. Cloud Storage Adapter | 3/3 | Complete    | 2026-02-21 | - |
 | 13. Job State + Worker Infra | 3/3 | Complete    | 2026-02-21 | - |
 | 14. API + Worker Processing | 3/3 | Complete    | 2026-02-21 | - |
-| 15. Modal Render Dispatch | v2.0 | 0/? | Not started | - |
+| 15. Modal Render Dispatch | v2.0 | 0/2 | Planned | - |
 | 16. Production Deploy + CI/CD | v2.0 | 0/? | Not started | - |
 
 ---
