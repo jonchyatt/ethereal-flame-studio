@@ -14,7 +14,10 @@ export interface ModalSubmitRequest {
   job_id: string;
   audio_url?: string;
   audio_base64?: string;
+  audio_signed_url?: string;
   callback_url?: string;
+  webhook_url?: string;
+  webhook_secret?: string;
   gpu?: boolean;
   auth_token: string;
 }
@@ -71,6 +74,9 @@ function getAuthToken(): string {
  * @param options.jobId   - Vercel job ID (used for callbacks)
  * @param options.audioUrl - URL to download audio from (mutually exclusive with audioBase64)
  * @param options.audioBase64 - Base64-encoded audio data
+ * @param options.audioSignedUrl - Presigned R2 download URL for the audio file
+ * @param options.webhookUrl - URL for Modal to call back when render completes
+ * @param options.webhookSecret - Secret token for webhook authentication
  * @param options.gpu     - Force GPU (auto-detected from format if omitted)
  */
 export async function submitToModal(options: {
@@ -78,12 +84,15 @@ export async function submitToModal(options: {
   jobId: string;
   audioUrl?: string;
   audioBase64?: string;
+  audioSignedUrl?: string;
+  webhookUrl?: string;
+  webhookSecret?: string;
   gpu?: boolean;
 }): Promise<ModalSubmitResponse> {
   const submitUrl = getSubmitUrl();
   const authToken = getAuthToken();
 
-  // Determine callback URL — use VERCEL_URL if available
+  // Determine callback URL — use VERCEL_URL if available (fallback for legacy callers)
   const callbackBase =
     process.env.NEXT_PUBLIC_APP_URL ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
@@ -93,7 +102,10 @@ export async function submitToModal(options: {
     job_id: options.jobId,
     audio_url: options.audioUrl,
     audio_base64: options.audioBase64,
+    audio_signed_url: options.audioSignedUrl,
     callback_url: callbackBase,
+    webhook_url: options.webhookUrl,
+    webhook_secret: options.webhookSecret,
     gpu: options.gpu,
     auth_token: authToken,
   };

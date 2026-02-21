@@ -18,6 +18,7 @@
     "../src/lib/jobs/**/*.ts",
     "../src/lib/db/job-schema.ts",
     "../src/lib/storage/**/*.ts",
-    "../src/lib/audio-prep/**/*.ts"
+    "../src/lib/audio-prep/**/*.ts",
+    "../src/lib/render/modalClient.ts"
   ]
 }

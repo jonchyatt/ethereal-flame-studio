@@ -11,6 +11,7 @@ import type { JobStore, AudioPrepJob } from '../src/lib/jobs/types';
 import { runIngestPipeline } from './pipelines/ingest';
 import { runPreviewPipeline } from './pipelines/preview';
 import { runSavePipeline } from './pipelines/save';
+import { runRenderPipeline } from './pipelines/render';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -181,6 +182,11 @@ export async function processJob(
       case 'save':
         await runSavePipeline(store, job, childRef);
         break;
+      case 'render':
+        // Render jobs are completed by the webhook callback, not here.
+        // The pipeline dispatches to Modal and returns without calling store.complete().
+        await runRenderPipeline(store, job, childRef);
+        return; // Skip implicit completion — job stays in 'processing' with stage 'dispatched-to-modal'
       default:
         throw new Error(`Unknown job type: ${(job as any).type}`);
     }
