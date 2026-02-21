@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Milestone v2.0 Cloud Production -- Phase 12: Cloud Storage Adapter
+**Current focus:** Milestone v2.0 Cloud Production -- Phase 13: Job State + Worker Infrastructure
 
 **Key Files:**
 - `.planning/PROJECT.md` - Project definition
@@ -17,12 +17,12 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 ## Current Position
 
-Phase: 12 of 16 (Cloud Storage Adapter)
-Plan: 3 of 3 in current phase
+Phase: 13 of 16 (Job State + Worker Infrastructure)
+Plan: 1 of 3 in current phase
 Status: Executing
-Last activity: 2026-02-20 -- Completed 12-02 (AudioAssetService + API routes StorageAdapter migration)
+Last activity: 2026-02-21 -- Completed 13-01 (JobStore adapter: schema, interface, Local + Turso implementations)
 
-Progress: [####################] 100% (v2.0 phase 12: 3/3 plans complete)
+Progress: [#######.............] 33% (v2.0 phase 13: 1/3 plans complete)
 
 ---
 
@@ -34,14 +34,15 @@ Progress: [####################] 100% (v2.0 phase 12: 3/3 plans complete)
 - Audio Prep MVP shipped on feature branch
 
 **v2.0:**
-- Plans completed: 3
-- Phases remaining: 5 (12-16)
+- Plans completed: 4
+- Phases remaining: 4 (13-16)
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 12    | 01   | 7min     | 2     | 6     |
 | 12    | 02   | 12min    | 2     | 10    |
 | 12    | 03   | 6min     | 3     | 5     |
+| 13    | 01   | 5min     | 2     | 6     |
 
 ---
 
@@ -64,6 +65,9 @@ Progress: [####################] 100% (v2.0 phase 12: 3/3 plans complete)
 - Stream route redirects to signed URL instead of proxying content (CDN offload for R2)
 - Temp file pattern for ffmpeg: download from storage -> process -> upload result -> cleanup
 - Render output upload to storage async after process completion
+- JobStore adapter pattern mirroring StorageAdapter (interface + Local/Turso + singleton factory)
+- Raw SQL for TursoJobStore (not Drizzle ORM query builder) for simplicity
+- Atomic job claim: RETURNING for SQLite, transaction for Turso
 
 ### Technical Context
 
@@ -71,7 +75,9 @@ Progress: [####################] 100% (v2.0 phase 12: 3/3 plans complete)
 - Upload/download API routes at `/api/storage/upload` and `/api/storage/download`
 - useStorageUpload hook at `src/lib/hooks/useStorageUpload.ts` for progress-tracked uploads
 - AudioAssetService fully migrated to StorageAdapter (plan 12-02 complete) -- all API routes use adapter-backed service
-- JobManager uses better-sqlite3 with WAL -- needs Turso adapter
+- JobStore adapter at `src/lib/jobs/` with Local (better-sqlite3) + Turso (@libsql/client) backends
+- Drizzle schema at `src/lib/db/job-schema.ts` with stage, retryCount, and 3 indexes
+- Original JobManager at `src/lib/audio-prep/JobManager.ts` still exists -- will be replaced by API route migration in 13-02
 - Render pipeline partially wired to Modal (gated behind env var)
 - Drizzle ORM already in project for Turso/libsql
 - Audio prep MVP on `feature/audio-prep-mvp` branch
@@ -84,10 +90,10 @@ Progress: [####################] 100% (v2.0 phase 12: 3/3 plans complete)
 
 ## Session Continuity
 
-Last session: 2026-02-20
-Stopped at: Completed 12-02-PLAN.md (AudioAssetService + API route StorageAdapter migration)
-Resume file: .planning/phases/12-cloud-storage-adapter/12-02-SUMMARY.md
+Last session: 2026-02-21
+Stopped at: Completed 13-01-PLAN.md (JobStore adapter: schema, interface, Local + Turso implementations)
+Resume file: .planning/phases/13-job-state-worker-infra/13-01-SUMMARY.md
 
 ---
 
-*Last updated: 2026-02-20 -- Phase 12 plan 02 complete (all 3 plans done)*
+*Last updated: 2026-02-21 -- Phase 13 plan 01 complete (1/3 plans done)*
