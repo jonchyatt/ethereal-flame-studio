@@ -113,6 +113,10 @@ export async function POST(request: NextRequest) {
   console.log(`[Webhook] Received callback for job ${jobId}: ${status}`);
 
   if (status === 'complete') {
+    // Log render-specific completions with video key info
+    if (result && typeof result.videoKey === 'string') {
+      console.log(`[Webhook] Render complete for job ${jobId}, video at ${result.videoKey}`);
+    }
     await store.complete(jobId, result ?? {});
   } else if (status === 'failed') {
     await store.fail(jobId, error ?? 'Unknown error from worker');

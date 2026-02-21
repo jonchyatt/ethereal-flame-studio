@@ -61,15 +61,18 @@ export async function GET(
       response.result = job.result;
 
       // Generate a signed download URL if the result contains a storage key.
-      // Workers store results with keys like previewKey, preparedKey, or assetId.
+      // Workers store results with keys like previewKey, preparedKey, videoKey, or assetId.
       const storageKey =
+        (job.result.videoKey as string | undefined) ||
         (job.result.previewKey as string | undefined) ||
         (job.result.preparedKey as string | undefined);
 
       if (storageKey) {
         try {
           const storage = getStorageAdapter();
-          response.downloadUrl = await storage.getSignedUrl(storageKey);
+          // Use 7-day expiry for video downloads (large files, user may return later)
+          const expirySeconds = job.result.videoKey ? 7 * 24 * 3600 : undefined;
+          response.downloadUrl = await storage.getSignedUrl(storageKey, expirySeconds);
         } catch {
           // Non-fatal: downloadUrl is optional. If signing fails (e.g. key
           // deleted), the poll response still returns the result object.
