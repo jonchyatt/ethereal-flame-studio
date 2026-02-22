@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Milestone v2.0 Cloud Production -- Phase 16: Production Deploy & CI/CD (COMPLETE)
+**Current focus:** Milestone v2.0 Cloud Production -- Phase 17: Integration Wiring Fixes (context gathered)
 
 **Key Files:**
 - `.planning/PROJECT.md` - Project definition
@@ -158,10 +158,10 @@ Progress: [####################] 100% (v2.0 phase 16: 3/3 plans complete)
 
 ## Session Continuity
 
-Last session: 2026-02-21
-Stopped at: Completed 16-03-PLAN.md (GitHub Actions CI/CD workflow) -- Phase 16 COMPLETE
-Resume file: .planning/phases/16-production-deploy-ci-cd/16-03-SUMMARY.md
+Last session: 2026-02-22
+Stopped at: Phase 17 context gathered
+Resume file: .planning/phases/17-integration-wiring-fixes/17-CONTEXT.md
 
 ---
 
-*Last updated: 2026-02-21 -- Phase 16 complete (all 3 plans: env config, deploy checklist, CI/CD workflow)*
+*Last updated: 2026-02-22 -- Phase 17 context gathered*
