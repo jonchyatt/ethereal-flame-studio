@@ -233,8 +233,17 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, preparedAs
           fps: selectedFps,
           visualConfig,
         };
-      } else {
-        // Legacy: convert audio file to base64
+      } else if (audioPath && (!audioFile || audioFile.size === 0)) {
+        // Audio loaded from URL (mock file with no bytes) — pass URL to server to download
+        requestBody = {
+          audioUrl: audioPath,
+          audioFilename: audioFile?.name || 'audio.mp3',
+          format: selectedFormat,
+          fps: selectedFps,
+          visualConfig,
+        };
+      } else if (audioFile && audioFile.size > 0) {
+        // Real file — base64 encode
         const base64 = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => {
@@ -244,15 +253,19 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, preparedAs
             resolve(result.substring(commaIdx + 1));
           };
           reader.onerror = () => reject(new Error('Failed to read audio file'));
-          reader.readAsDataURL(audioFile!);
+          reader.readAsDataURL(audioFile);
         });
         requestBody = {
           audioBase64: base64,
-          audioFilename: audioFile!.name,
+          audioFilename: audioFile.name,
           format: selectedFormat,
           fps: selectedFps,
           visualConfig,
         };
+      } else {
+        setLocalError('No renderable audio available');
+        setLocalRenderState('failed');
+        return;
       }
 
       const response = await fetch('/api/render/local', {
@@ -282,7 +295,7 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, preparedAs
       setLocalError(err instanceof Error ? err.message : 'Failed to start local render');
       setLocalRenderState('failed');
     }
-  }, [audioFile, preparedAssetId, selectedFormat, selectedFps, visualState]);
+  }, [audioFile, audioPath, preparedAssetId, selectedFormat, selectedFps, visualState]);
 
   // Cancel local render
   const handleCancelLocal = useCallback(async () => {

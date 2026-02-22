@@ -7,9 +7,9 @@ import { startLocalRender, getAllLocalRenderJobs } from '@/lib/render/localRende
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { audioBase64, audioFilename, assetId, format, fps, visualConfig } = body;
+    const { audioBase64, audioFilename, assetId, audioUrl, format, fps, visualConfig } = body;
 
-    if (!audioBase64 && !assetId) {
+    if (!audioBase64 && !assetId && !audioUrl) {
       return NextResponse.json(
         { success: false, error: 'Audio file or asset ID required' },
         { status: 400 }
@@ -30,6 +30,31 @@ export async function POST(request: NextRequest) {
       jobId = await startLocalRender({
         audioPath,
         audioFilename: audioFilename || `asset-${assetId}.wav`,
+        format: format || 'flat-1080p-landscape',
+        fps: fps || 30,
+        visualConfig: visualConfig || {},
+        appUrl,
+      });
+    } else if (audioUrl) {
+      // Audio loaded from a URL (e.g. direct URL or YouTube processed file) — download to temp
+      const os = await import('os');
+      const path = await import('path');
+      const fs = await import('fs/promises');
+      const { randomUUID } = await import('crypto');
+      const ext = path.extname(new URL(audioUrl).pathname) || '.mp3';
+      const tmpPath = path.join(os.tmpdir(), `render-audio-${randomUUID()}${ext}`);
+      const audioRes = await fetch(audioUrl);
+      if (!audioRes.ok) {
+        return NextResponse.json(
+          { success: false, error: `Failed to fetch audio URL: ${audioRes.status}` },
+          { status: 400 }
+        );
+      }
+      const buffer = Buffer.from(await audioRes.arrayBuffer());
+      await fs.writeFile(tmpPath, buffer);
+      jobId = await startLocalRender({
+        audioPath: tmpPath,
+        audioFilename: audioFilename || path.basename(tmpPath),
         format: format || 'flat-1080p-landscape',
         fps: fps || 30,
         visualConfig: visualConfig || {},
