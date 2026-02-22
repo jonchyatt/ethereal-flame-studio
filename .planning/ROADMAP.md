@@ -309,7 +309,7 @@ Plans:
 - [x] **Phase 15: Modal Render Dispatch** - GPU render jobs dispatched to Modal via R2, with webhook completion (completed 2026-02-21)
 - [x] **Phase 16: Production Deploy + CI/CD** - Environment config, deploy checklist, and automated deployment pipeline (completed 2026-02-21)
 - [x] **Phase 17: Integration Wiring Fixes** - Rewire legacy poll routes and worker to use getJobStore() factory (gap closure) (completed 2026-02-22)
-- [ ] **Phase 18: API Completeness + Timeout Accuracy** - Ingest downloadUrl, per-type timeouts, render job list (gap closure)
+- [x] **Phase 18: API Completeness + Timeout Accuracy** - Ingest downloadUrl, per-type timeouts, render job list (gap closure) (completed 2026-02-22)
 
 ## Phase Details
 
@@ -485,7 +485,7 @@ Plans:
 | 15. Modal Render Dispatch | 2/2 | Complete    | 2026-02-21 | - |
 | 16. Production Deploy + CI/CD | 3/3 | Complete    | 2026-02-21 | - |
 | 17. Integration Wiring Fixes | 2/2 | Complete    | 2026-02-22 | - |
-| 18. API Completeness + Timeout Accuracy | v2.0 | 0/2 | Planned | - |
+| 18. API Completeness + Timeout Accuracy | 2/2 | Complete   | 2026-02-22 | - |
 
 ---
 

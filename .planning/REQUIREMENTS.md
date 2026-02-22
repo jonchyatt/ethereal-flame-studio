@@ -31,7 +31,7 @@ Requirements for cloud production deployment. Each maps to roadmap phases 12-16.
 - [x] **JOB-02**: CPU worker polls Turso for pending jobs at 3-5 second intervals
 - [x] **JOB-03**: User can see job progress (percentage, stage) by polling the API
 - [x] **JOB-04**: User can cancel a running job, and the worker stops processing within one poll cycle
-- [ ] **JOB-05**: Jobs stuck in "processing" for longer than a configurable timeout are automatically marked failed
+- [x] **JOB-05**: Jobs stuck in "processing" for longer than a configurable timeout are automatically marked failed
 
 ### Workers
 
@@ -93,7 +93,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | JOB-02 | Phase 13 | Complete |
 | JOB-03 | Phase 17 | Complete |
 | JOB-04 | Phase 17 | Complete |
-| JOB-05 | Phase 18 | Pending |
+| JOB-05 | Phase 18 | Complete |
 | WORK-01 | Phase 13 | Complete |
 | WORK-02 | Phase 14 | Complete |
 | WORK-03 | Phase 14 | Complete |

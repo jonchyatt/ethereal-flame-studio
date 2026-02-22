@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Milestone v2.0 Cloud Production -- Phase 17: Integration Wiring Fixes (plan 02 complete)
+**Current focus:** Milestone v2.0 Cloud Production -- Phase 18: API Completeness & Timeout Accuracy (plan 02 complete)
 
 **Key Files:**
 - `.planning/PROJECT.md` - Project definition
@@ -17,12 +17,12 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 ## Current Position
 
-Phase: 17 of 18 (Integration Wiring Fixes)
+Phase: 18 of 18 (API Completeness & Timeout Accuracy)
 Plan: 2 of 2 in current phase
 Status: In Progress
-Last activity: 2026-02-22 -- Completed 17-02 (Worker JobStore factory wiring)
+Last activity: 2026-02-22 -- Completed 18-02 (Per-type reaper timeouts)
 
-Progress: [####################] 100% (phase 17: 2/2 plans complete)
+Progress: [####################] 100% (phase 18: 2/2 plans complete)
 
 ---
 
@@ -34,7 +34,7 @@ Progress: [####################] 100% (phase 17: 2/2 plans complete)
 - Audio Prep MVP shipped on feature branch
 
 **v2.0:**
-- Plans completed: 13
+- Plans completed: 15
 - Phases remaining: 0 (all v2.0 phases complete)
 
 | Phase | Plan | Duration | Tasks | Files |
@@ -55,6 +55,7 @@ Progress: [####################] 100% (phase 17: 2/2 plans complete)
 | 16    | 03   | 2min     | 2     | 2     |
 | 17    | 01   | 6min     | 2     | 3     |
 | 17    | 02   | 3min     | 1     | 1     |
+| 18    | 02   | 3min     | 2     | 4     |
 
 ---
 
@@ -118,6 +119,8 @@ Progress: [####################] 100% (phase 17: 2/2 plans complete)
 - Preserved { success, data } GET response wrapper on legacy poll routes for AudioPrepEditor backward compatibility
 - DELETE handlers on legacy routes use flat response shape (AudioPrepEditor does not parse DELETE responses)
 - Terminal state check (409) added to legacy DELETE handlers matching canonical cancel endpoint pattern
+- Two-pass reaper: per-type timeouts first (ingest 10m, preview 5m, save 15m), then default sweep for unconfigured types
+- Optional type parameter on markStaleJobsFailed preserves backward compatibility with existing callers
 
 ### Technical Context
 
@@ -157,6 +160,8 @@ Progress: [####################] 100% (phase 17: 2/2 plans complete)
 - GitHub Actions CI/CD at .github/workflows/deploy.yml: push to main triggers parallel Vercel + Render deploys
 - Deploy checklist section 8 documents 4 required GitHub Secrets (VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID, RENDER_DEPLOY_HOOK_URL)
 - Worker entry point uses getJobStore() factory (not hardcoded TursoJobStore) -- local dev works without Turso credentials
+- Reaper enforces per-type timeouts: ingest 10min, preview 5min, save 15min via markStaleJobsFailed type filter
+- markStaleJobsFailed accepts optional type parameter for per-type SQL filtering (AND type = ?)
 
 ### Blockers
 
@@ -167,9 +172,9 @@ Progress: [####################] 100% (phase 17: 2/2 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 17-01-PLAN.md (Legacy poll route rewiring)
-Resume file: .planning/phases/17-integration-wiring-fixes/17-01-SUMMARY.md
+Stopped at: Completed 18-02-PLAN.md (Per-type reaper timeouts)
+Resume file: .planning/phases/18-api-completeness-timeout-accuracy/18-02-SUMMARY.md
 
 ---
 
-*Last updated: 2026-02-22 -- Phase 17 plan 01 complete (all plans done)*
+*Last updated: 2026-02-22 -- Phase 18 plan 02 complete*
