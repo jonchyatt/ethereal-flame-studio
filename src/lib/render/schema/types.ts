@@ -514,6 +514,10 @@ export const AudioInputSchema = z.discriminatedUnion('type', [
     type: z.literal('path'),
     path: z.string().min(1),
   }),
+  z.object({
+    type: z.literal('asset'),
+    assetId: z.string().uuid(),
+  }),
 ]);
 
 /**
