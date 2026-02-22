@@ -55,6 +55,7 @@ Progress: [####################] 100% (phase 18: 2/2 plans complete)
 | 16    | 03   | 2min     | 2     | 2     |
 | 17    | 01   | 6min     | 2     | 3     |
 | 17    | 02   | 3min     | 1     | 1     |
+| 18    | 01   | 3min     | 2     | 2     |
 | 18    | 02   | 3min     | 2     | 4     |
 
 ---
@@ -119,6 +120,9 @@ Progress: [####################] 100% (phase 18: 2/2 plans complete)
 - Preserved { success, data } GET response wrapper on legacy poll routes for AudioPrepEditor backward compatibility
 - DELETE handlers on legacy routes use flat response shape (AudioPrepEditor does not parse DELETE responses)
 - Terminal state check (409) added to legacy DELETE handlers matching canonical cancel endpoint pattern
+- Ingest downloadUrl is a relative URL (/api/audio/assets/{assetId}/stream) not a signed R2 URL -- asset streaming endpoint handles auth/caching
+- GET /api/render uses in-memory pagination over full JobStore list -- sufficient at current scale, replaces always-empty ServerJobStore
+- Status mapping: AudioPrepJob processing->rendering, complete->completed for RenderJobSummary compatibility
 - Two-pass reaper: per-type timeouts first (ingest 10m, preview 5m, save 15m), then default sweep for unconfigured types
 - Optional type parameter on markStaleJobsFailed preserves backward compatibility with existing callers
 
@@ -162,6 +166,8 @@ Progress: [####################] 100% (phase 18: 2/2 plans complete)
 - Worker entry point uses getJobStore() factory (not hardcoded TursoJobStore) -- local dev works without Turso credentials
 - Reaper enforces per-type timeouts: ingest 10min, preview 5min, save 15min via markStaleJobsFailed type filter
 - markStaleJobsFailed accepts optional type parameter for per-type SQL filtering (AND type = ?)
+- Poll endpoint enriches completed ingest jobs with downloadUrl via result.assetId -> /api/audio/assets/{assetId}/stream
+- GET /api/render reads from getJobStore().list({ type: 'render' }) with in-memory pagination/sorting -- ServerJobStore removed
 
 ### Blockers
 
@@ -172,9 +178,9 @@ Progress: [####################] 100% (phase 18: 2/2 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 18-02-PLAN.md (Per-type reaper timeouts)
-Resume file: .planning/phases/18-api-completeness-timeout-accuracy/18-02-SUMMARY.md
+Stopped at: Completed 18-01-PLAN.md (API completeness: poll downloadUrl + render list)
+Resume file: .planning/phases/18-api-completeness-timeout-accuracy/18-01-SUMMARY.md
 
 ---
 
-*Last updated: 2026-02-22 -- Phase 18 plan 02 complete*
+*Last updated: 2026-02-22 -- Phase 18 plan 01 complete (all plans done)*
