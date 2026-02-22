@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ['better-sqlite3', '@libsql/client'],
   transpilePackages: ['three'],
   webpack: (config) => {
     // Add GLSL shader file support

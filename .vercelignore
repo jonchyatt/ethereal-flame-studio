@@ -1,0 +1,28 @@
+# Large/temp files
+nul
+/renders/
+/test-output/
+/test-frames/
+/test-screenshots/
+/temp/
+/temp-backup/
+/Holding/
+/jobs/
+audio-prep-jobs.db*
+jarvis-local.db
+*.db-shm
+*.db-wal
+
+# Dev artifacts
+/.planning/
+/.claude/
+/.playwright-mcp/
+/jarvis/
+/references/
+/worker/
+
+# Test files
+test-*.js
+test-*.ts
+test-*.png
+test-*.mp3
