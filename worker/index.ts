@@ -7,10 +7,10 @@
  */
 
 import 'dotenv/config';
-import { TursoJobStore } from '../src/lib/jobs/TursoJobStore';
+import { getJobStore } from '../src/lib/jobs';
+import type { JobStore } from '../src/lib/jobs';
 import { processJob } from './process-job';
 import { runReaper } from './reaper';
-import type { JobStore } from '../src/lib/jobs/types';
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -44,15 +44,10 @@ let reaperTimer: ReturnType<typeof setInterval> | null = null;
 // ---------------------------------------------------------------------------
 
 async function main(): Promise<void> {
-  const dbUrl = process.env.TURSO_DATABASE_URL;
-  const authToken = process.env.TURSO_AUTH_TOKEN;
+  const store: JobStore = getJobStore();
 
-  if (!dbUrl) {
-    console.error('[Worker] TURSO_DATABASE_URL is required');
-    process.exit(1);
-  }
-
-  const store: JobStore = new TursoJobStore(dbUrl, authToken);
+  const backend = process.env.JOB_STORE_BACKEND || (process.env.DEPLOY_ENV === 'production' ? 'turso' : 'local');
+  console.log(`[Worker] Using job store backend: ${backend}`);
 
   console.log(
     `[Worker] Started, polling every ${POLL_INTERVAL_MS}ms`,
@@ -124,9 +119,9 @@ async function main(): Promise<void> {
       }
     }
 
-    // Close database connection
-    if ('close' in store && typeof (store as TursoJobStore).close === 'function') {
-      (store as TursoJobStore).close();
+    // Close database connection (works for both LocalJobStore and TursoJobStore)
+    if ('close' in store && typeof (store as { close: () => void }).close === 'function') {
+      (store as { close: () => void }).close();
     }
 
     console.log('[Worker] Shutdown complete');
