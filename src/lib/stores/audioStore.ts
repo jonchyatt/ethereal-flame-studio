@@ -11,10 +11,12 @@ interface AudioState extends AudioLevels {
   audioFile: File | null;
   audioFileName: string | null;
   audioUrl: string | null; // URL source for render (when loaded from URL)
+  preparedAssetId: string | null; // Asset ID from audio-prep editor
 
   // Actions
   setPlaying: (playing: boolean) => void;
   setAudioFile: (file: File | null, fileName: string | null, url?: string | null) => void;
+  setPreparedAssetId: (id: string | null) => void;
   setLevels: (levels: Omit<AudioLevels, 'mid'> & { mid?: number; mids?: number }) => void;
   setBeat: (isBeat: boolean) => void;
 }
@@ -37,6 +39,7 @@ export const useAudioStore = create<AudioState>((set) => ({
   audioFile: null,
   audioFileName: null,
   audioUrl: null,
+  preparedAssetId: null,
 
   // Actions
   setPlaying: (playing) => set({ isPlaying: playing }),
@@ -45,6 +48,7 @@ export const useAudioStore = create<AudioState>((set) => ({
     audioFile: file,
     audioFileName: fileName,
     audioUrl: url,
+    preparedAssetId: null, // Clear prepared asset when new file is loaded
   }),
 
   setLevels: (levels) => {
@@ -60,6 +64,8 @@ export const useAudioStore = create<AudioState>((set) => ({
       currentScale: levels.currentScale,
     });
   },
+
+  setPreparedAssetId: (id) => set({ preparedAssetId: id }),
 
   setBeat: (isBeat) => set({ isBeat }),
 }));

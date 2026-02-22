@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude mcp add:*)",
+      "Bash(mkdir:*)",
+      "Bash(node:*)",
+      "Bash(powershell -Command \"cd ''C:\\Users\\jonch\\reset-biology-website''; node ''C:\\Users\\jonch\\AppData\\Local\\npm-cache\\_npx\\8ddf6bea01b2519d\\node_modules\\@testsprite\\testsprite-mcp\\dist\\index.js'' generateCodeAndExecute\")",
+      "Bash(powershell:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(taskkill:*)",
+      "Bash(cmd /c \"taskkill /F /IM node.exe\")",
+      "Bash(npm run dev:*)",
+      "Bash(timeout /t 10 /nobreak)",
+      "Bash(cmd /c \"taskkill /F /IM node.exe /T\")",
+      "Bash(cmd /c \"rmdir /s /q C:\\Users\\jonch\\reset-biology-website\\.next\")",
+      "Bash(npx tsc:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(copy \"C:\\Users\\jonch\\Downloads\\Snellen Eyecuity\\Snellen\\IMG_4237.PNG\" \"C:\\Users\\jonch\\reset-biology-website\\docs\\snellen-reference\\tumbling-e-example-1.png\")",
+      "Bash(copy \"C:\\Users\\jonch\\Downloads\\Snellen Eyecuity\\Snellen\\IMG_4238.PNG\" \"C:\\Users\\jonch\\reset-biology-website\\docs\\snellen-reference\\tumbling-e-example-2.png\")",
+      "Bash(copy \"C:\\Users\\jonch\\Downloads\\Snellen Eyecuity\\Snellen\\IMG_4240.PNG\" \"C:\\Users\\jonch\\reset-biology-website\\docs\\snellen-reference\\tumbling-e-example-3.png\")",
+      "Bash(copy:*)",
+      "Bash(copy \"C:\\Users\\jonch\\Downloads\\Snellen Eyecuity\\Snellen\\IMG_6013.PNG\" \"C:\\Users\\jonch\\reset-biology-website\\docs\\snellen-reference\\letter-chart-2.png\")",
+      "Bash(timeout /t 45 /nobreak)",
+      "Bash(npx tsx:*)",
+      "Bash(ls:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "additionalDirectories": [
+      "/home/jonch/.local/bin",
+      "/home/jonch/.cache/ms-playwright",
+      "/home/jonch"
+    ]
+  }
+}

@@ -86,9 +86,22 @@ export async function GET(request: Request): Promise<Response> {
     );
   }
 
+  // Register pending session BEFORE creating stream to prevent POST 404 race condition.
+  // The POST handler may arrive before ReadableStream.start() executes on Vercel.
+  const pendingSession: DeepgramSession = {
+    deepgram: null as unknown as LiveClient, // Populated inside start()
+    sseController: null,
+    lastActivity: Date.now(),
+    isConnected: false,
+  };
+  sessions.set(sessionId, pendingSession);
+
   // Create SSE stream
   const stream = new ReadableStream({
     start(controller) {
+      // Wire up the SSE controller
+      pendingSession.sseController = controller;
+
       // Send initial connection event
       const initEvent = `data: ${JSON.stringify({ type: 'connected', sessionId })}\n\n`;
       controller.enqueue(new TextEncoder().encode(initEvent));
@@ -108,14 +121,9 @@ export async function GET(request: Request): Promise<Response> {
         sample_rate: 16000,
       });
 
-      // Store session
-      const session: DeepgramSession = {
-        deepgram: connection,
-        sseController: controller,
-        lastActivity: Date.now(),
-        isConnected: false,
-      };
-      sessions.set(sessionId, session);
+      // Update pending session with real Deepgram connection
+      pendingSession.deepgram = connection;
+      const session = pendingSession;
 
       // Handle Deepgram events
       connection.on(LiveTranscriptionEvents.Open, () => {
@@ -251,7 +259,7 @@ export async function POST(request: Request): Promise<Response> {
       JSON.stringify({ error: 'Deepgram not yet connected. Wait for open event.' }),
       {
         status: 503,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Retry-After': '0.1' },
       }
     );
   }
@@ -263,7 +271,7 @@ export async function POST(request: Request): Promise<Response> {
     if (!session.isConnected) {
       return new Response(
         JSON.stringify({ error: 'Deepgram connection not ready' }),
-        { status: 503, headers: { 'Content-Type': 'application/json' } }
+        { status: 503, headers: { 'Content-Type': 'application/json', 'Retry-After': '0.1' } }
       );
     }
 

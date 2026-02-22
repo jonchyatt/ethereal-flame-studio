@@ -1,11 +1,14 @@
 /**
  * Chat Processor - Core Claude Tool Execution Loop
  *
- * Extracted from chat/route.ts for reuse by both:
+ * Routing:
+ * - Simple CRUD → direct Claude Haiku with tools (fast, deterministic)
+ * - Complex reasoning → Agent Zero (multi-step, analysis, planning)
+ * - Agent Zero down → graceful fallback to Claude Haiku
+ *
+ * Used by both:
  * - Web SSE route (with streaming callbacks)
  * - Telegram webhook (final text only)
- *
- * Phase 15: Telegram Control
  */
 
 import Anthropic from '@anthropic-ai/sdk';
@@ -18,6 +21,7 @@ import { withRetry } from '../resilience/withRetry';
 import { saveMessage, getSessionMessageCount } from '../memory/queries/messages';
 import { triggerSummarization } from '../memory/summarization';
 import { getJarvisConfig } from '../config';
+import { sendMessage as sendToAgentZero, getStatus as getAgentZeroStatus } from '../agentZero/client';
 
 const anthropic = new Anthropic();
 const MAX_TOOL_ITERATIONS = 5;
@@ -69,31 +73,76 @@ export interface ProcessChatResult {
 }
 
 /**
- * Process a chat message through Claude with full tool execution loop.
- * Returns the final text response after all tool iterations.
+ * Patterns that suggest complex multi-step reasoning best handled by Agent Zero.
+ * Simple CRUD (show tasks, create task, mark done) stays with Claude Haiku.
+ */
+const COMPLEX_REASONING_PATTERNS = [
+  /reorgani[sz]e/i,
+  /analy[sz]e/i,
+  /plan\s+(my|the)\s+(week|month|day)/i,
+  /what\s+should\s+i\s+(focus|prioriti[sz]e)/i,
+  /review\s+(my|the)\s+(week|month|progress)/i,
+  /spending\s+(trend|pattern|analysis)/i,
+  /suggest\s+(a\s+)?(plan|schedule|routine)/i,
+  /how\s+(can|should)\s+i\s+(improve|optimize)/i,
+  /compare\s+(my|the)/i,
+  /trend/i,
+  /correlation/i,
+  /pattern\s+in\s+my/i,
+];
+
+function isComplexQuery(text: string): boolean {
+  return COMPLEX_REASONING_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+/**
+ * Process a chat message with intelligent routing.
  *
- * Used by both:
- * - Web SSE route (with onToolUse/onToolResult callbacks for streaming)
- * - Telegram webhook (no callbacks, just final text)
+ * Routing:
+ * 1. Complex reasoning → try Agent Zero first
+ * 2. Agent Zero down or simple query → Claude Haiku with tools
  */
 export async function processChatMessage(options: ProcessChatOptions): Promise<ProcessChatResult> {
   const { sessionId, systemPrompt, messages, onToolUse, onToolResult } = options;
   const config = getJarvisConfig();
   const toolsUsed: string[] = [];
 
+  // Persist user message (fire-and-forget)
+  const lastUserMsg = messages[messages.length - 1];
+  if (lastUserMsg?.role === 'user') {
+    saveMessage(sessionId, 'user', lastUserMsg.content).catch(err =>
+      console.error('[ChatProcessor] Failed to save user message:', err)
+    );
+  }
+
+  // Route complex queries to Agent Zero if available
+  if (lastUserMsg?.role === 'user' && isComplexQuery(lastUserMsg.content)) {
+    console.log('[ChatProcessor] Complex query detected, trying Agent Zero');
+    onToolUse?.('agent_zero_reasoning', { query: lastUserMsg.content });
+
+    const a0Status = await getAgentZeroStatus();
+    if (a0Status.available) {
+      const a0Result = await sendToAgentZero(lastUserMsg.content, { sessionId });
+      onToolResult?.('agent_zero_reasoning', a0Result.message || '');
+
+      if (a0Result.success && a0Result.message) {
+        // Persist and return Agent Zero response
+        saveMessage(sessionId, 'assistant', a0Result.message).catch(() => {});
+        toolsUsed.push('agent_zero_reasoning');
+        return { success: true, responseText: a0Result.message, toolsUsed };
+      }
+      console.warn('[ChatProcessor] Agent Zero failed, falling back to Claude Haiku');
+    } else {
+      console.log('[ChatProcessor] Agent Zero unavailable, using Claude Haiku');
+      onToolResult?.('agent_zero_reasoning', 'Agent Zero unavailable, using local reasoning');
+    }
+  }
+
   try {
     const claudeMessages: Anthropic.MessageParam[] = messages.map(m => ({
       role: m.role,
       content: m.content,
     }));
-
-    // Persist user message (fire-and-forget)
-    const lastUserMsg = messages[messages.length - 1];
-    if (lastUserMsg?.role === 'user') {
-      saveMessage(sessionId, 'user', lastUserMsg.content).catch(err =>
-        console.error('[ChatProcessor] Failed to save user message:', err)
-      );
-    }
 
     // Tool execution loop
     let iteration = 0;
@@ -106,7 +155,7 @@ export async function processChatMessage(options: ProcessChatOptions): Promise<P
       // Call Claude with retry (Phase 14)
       const response = await withRetry(
         () => anthropic.messages.create({
-          model: 'claude-3-5-haiku-20241022',
+          model: 'claude-haiku-4-5-20251001',
           max_tokens: 1024,
           system: systemPrompt,
           messages: claudeMessages,

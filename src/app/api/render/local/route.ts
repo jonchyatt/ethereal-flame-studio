@@ -7,11 +7,11 @@ import { startLocalRender, getAllLocalRenderJobs } from '@/lib/render/localRende
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { audioBase64, audioFilename, format, fps, visualConfig } = body;
+    const { audioBase64, audioFilename, assetId, format, fps, visualConfig } = body;
 
-    if (!audioBase64 || !audioFilename) {
+    if (!audioBase64 && !assetId) {
       return NextResponse.json(
-        { success: false, error: 'Audio file required' },
+        { success: false, error: 'Audio file or asset ID required' },
         { status: 400 }
       );
     }
@@ -22,14 +22,35 @@ export async function POST(request: NextRequest) {
     const protocol = request.headers.get('x-forwarded-proto') || 'http';
     const appUrl = `${protocol}://${host}`;
 
-    const jobId = await startLocalRender({
-      audioBase64,
-      audioFilename,
-      format: format || 'flat-1080p-landscape',
-      fps: fps || 30,
-      visualConfig: visualConfig || {},
-      appUrl,
-    });
+    let jobId: string;
+    if (assetId) {
+      const { AudioAssetService } = await import('@/lib/audio-prep/AudioAssetService');
+      const assetService = new AudioAssetService();
+      const audioPath = await assetService.resolveAssetPath(assetId);
+      jobId = await startLocalRender({
+        audioPath,
+        audioFilename: audioFilename || `asset-${assetId}.wav`,
+        format: format || 'flat-1080p-landscape',
+        fps: fps || 30,
+        visualConfig: visualConfig || {},
+        appUrl,
+      });
+    } else {
+      if (!audioFilename) {
+        return NextResponse.json(
+          { success: false, error: 'audioFilename is required for base64 uploads' },
+          { status: 400 }
+        );
+      }
+      jobId = await startLocalRender({
+        audioBase64,
+        audioFilename,
+        format: format || 'flat-1080p-landscape',
+        fps: fps || 30,
+        visualConfig: visualConfig || {},
+        appUrl,
+      });
+    }
 
     return NextResponse.json({ success: true, data: { jobId } });
   } catch (error) {

@@ -40,6 +40,7 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
   const setSkyboxRotationSpeed = useVisualStore((state) => state.setSkyboxRotationSpeed);
   const audioFile = useAudioStore((state) => state.audioFile);
   const audioUrl = useAudioStore((state) => state.audioUrl);
+  const preparedAssetId = useAudioStore((state) => state.preparedAssetId);
   const currentMode = useVisualStore((state) => state.currentMode);
   // Water state
   const waterEnabled = useVisualStore((state) => state.waterEnabled);
@@ -150,11 +151,11 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
       </div>
 
       {/* Right panel: Core controls — top-16 leaves room for VR button */}
-      <div className="absolute top-16 bottom-2 right-0 flex justify-end">
+      <div className="absolute top-16 bottom-2 right-2 flex justify-end">
         <div
           className={`
-            pointer-events-auto h-full w-[300px] max-w-[85vw]
-            bg-black/80 backdrop-blur-md border border-white/10 rounded-l-xl shadow-xl
+            pointer-events-auto h-full w-[340px] max-w-[85vw] overflow-hidden
+            bg-black/80 backdrop-blur-md border border-white/10 rounded-xl shadow-xl
             transition-transform duration-300
             ${rightOpen ? 'translate-x-0' : 'translate-x-full'}
           `}
@@ -252,7 +253,7 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
                 onClick={() => setShowRenderDialog(true)}
                 className={`
                   w-full px-4 py-3
-                  ${audioFile
+                  ${audioFile || preparedAssetId
                     ? 'bg-gradient-to-r from-green-600/50 to-emerald-600/50 hover:from-green-500/60 hover:to-emerald-500/60 border-green-400/30'
                     : 'bg-white/10 border-white/10 cursor-not-allowed opacity-50'
                   }
@@ -263,8 +264,8 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
                   flex items-center justify-center gap-2
                   min-h-[48px]
                 `}
-                disabled={!audioFile}
-                title={audioFile ? 'Open render dialog' : 'Upload audio first'}
+                disabled={!audioFile && !preparedAssetId}
+                title={audioFile || preparedAssetId ? 'Open render dialog' : 'Upload audio first'}
               >
                 <svg
                   className="w-5 h-5"
@@ -282,7 +283,7 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
                 Render Video
               </button>
               <p className="text-white/40 text-xs mt-2 text-center">
-                {audioFile ? 'Server-side render with 360 VR support' : 'Upload audio to enable rendering'}
+                {audioFile || preparedAssetId ? 'Server-side render with 360 VR support' : 'Upload audio to enable rendering'}
               </p>
             </div>
 
@@ -386,6 +387,7 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
         onClose={() => setShowRenderDialog(false)}
         audioFile={audioFile}
         audioPath={audioUrl || undefined}
+        preparedAssetId={preparedAssetId || undefined}
         template={currentMode}
       />
     </div>

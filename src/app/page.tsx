@@ -247,8 +247,8 @@ export default function Home() {
         </Suspense>
       </Canvas>
 
-      {/* Floating VR Button - always visible above all panels */}
-      {!isVRMode && (
+      {/* Floating VR Button - hidden in VR mode and render mode */}
+      {!isVRMode && !renderMode.isActive && (
         <button
           onClick={enterVRMode}
           className="
@@ -274,8 +274,8 @@ export default function Home() {
       )}
 
       {/* Control panel fixed at bottom - includes mode selector, preset selector, and audio controls */}
-      {/* Always mounted to preserve audio state, hidden and non-interactive in VR mode */}
-      <div className={isVRMode ? "invisible pointer-events-none absolute -z-50" : ""}>
+      {/* Always mounted to preserve audio state, hidden in VR mode and render mode */}
+      <div className={(isVRMode || renderMode.isActive) ? "invisible pointer-events-none absolute -z-50" : ""}>
         <ControlPanel screenshotRef={screenshotRef} />
       </div>
 

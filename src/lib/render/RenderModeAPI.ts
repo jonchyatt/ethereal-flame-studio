@@ -12,6 +12,7 @@ import { FrameAudioData } from '@/types';
 import { useVisualStore } from '@/lib/stores/visualStore';
 import { useAudioStore } from '@/lib/stores/audioStore';
 import { STAR_NEST_PRESETS } from '@/components/canvas/StarNestSkybox';
+import { RenderVisualConfig } from './visualConfig';
 
 // Types for the render mode API
 export interface RenderConfig {
@@ -121,35 +122,7 @@ export function setCapturedImage(base64: string) {
 // Window API - Exposed to Puppeteer
 // ============================================================================
 
-/**
- * Visual config shape passed from CLI/Puppeteer to apply user's exported settings
- */
-interface VisualConfigPayload {
-  mode?: 'flame' | 'mist';
-  intensity?: number;
-  skyboxPreset?: string;
-  skyboxRotationSpeed?: number;
-  skyboxAudioReactiveEnabled?: boolean;
-  skyboxAudioReactivity?: number;
-  skyboxDriftSpeed?: number;
-  waterEnabled?: boolean;
-  waterColor?: string;
-  waterReflectivity?: number;
-  cameraOrbitEnabled?: boolean;
-  cameraOrbitRenderOnly?: boolean;
-  cameraOrbitSpeed?: number;
-  cameraOrbitRadius?: number;
-  cameraOrbitHeight?: number;
-  cameraLookAtOrb?: boolean;
-  orbAnchorMode?: 'viewer' | 'world';
-  orbDistance?: number;
-  orbHeight?: number;
-  orbSideOffset?: number;
-  orbWorldX?: number;
-  orbWorldY?: number;
-  orbWorldZ?: number;
-  layers?: any[];
-}
+type VisualConfigPayload = RenderVisualConfig;
 
 interface WindowRenderModeAPI {
   init: (config: RenderConfig) => Promise<boolean>;
@@ -204,48 +177,22 @@ const renderModeAPI: WindowRenderModeAPI = {
     console.log('[RenderMode] Applying visual config:', config);
     const store = useVisualStore;
 
-    // Build settings object for applyTemplateSettings
-    const settings: Record<string, unknown> = {};
-
-    if (config.intensity !== undefined) settings.intensity = config.intensity;
-    if (config.skyboxRotationSpeed !== undefined) settings.skyboxRotationSpeed = config.skyboxRotationSpeed;
-    if (config.skyboxAudioReactiveEnabled !== undefined) settings.skyboxAudioReactiveEnabled = config.skyboxAudioReactiveEnabled;
-    if (config.skyboxAudioReactivity !== undefined) settings.skyboxAudioReactivity = config.skyboxAudioReactivity;
-    if (config.skyboxDriftSpeed !== undefined) settings.skyboxDriftSpeed = config.skyboxDriftSpeed;
-    if (config.waterEnabled !== undefined) settings.waterEnabled = config.waterEnabled;
-    if (config.waterColor !== undefined) settings.waterColor = config.waterColor;
-    if (config.waterReflectivity !== undefined) settings.waterReflectivity = config.waterReflectivity;
-    if (config.layers) settings.layers = config.layers;
-
-    // Camera orbit
-    if (config.cameraOrbitEnabled !== undefined) settings.cameraOrbitEnabled = config.cameraOrbitEnabled;
-    if (config.cameraOrbitRenderOnly !== undefined) settings.cameraOrbitRenderOnly = config.cameraOrbitRenderOnly;
-    if (config.cameraOrbitSpeed !== undefined) settings.cameraOrbitSpeed = config.cameraOrbitSpeed;
-    if (config.cameraOrbitRadius !== undefined) settings.cameraOrbitRadius = config.cameraOrbitRadius;
-    if (config.cameraOrbitHeight !== undefined) settings.cameraOrbitHeight = config.cameraOrbitHeight;
-    if (config.cameraLookAtOrb !== undefined) settings.cameraLookAtOrb = config.cameraLookAtOrb;
-
-    // Orb placement
-    if (config.orbAnchorMode !== undefined) settings.orbAnchorMode = config.orbAnchorMode;
-    if (config.orbDistance !== undefined) settings.orbDistance = config.orbDistance;
-    if (config.orbHeight !== undefined) settings.orbHeight = config.orbHeight;
-    if (config.orbSideOffset !== undefined) settings.orbSideOffset = config.orbSideOffset;
-    if (config.orbWorldX !== undefined) settings.orbWorldX = config.orbWorldX;
-    if (config.orbWorldY !== undefined) settings.orbWorldY = config.orbWorldY;
-    if (config.orbWorldZ !== undefined) settings.orbWorldZ = config.orbWorldZ;
+    // Apply all fields directly except mode + skyboxPreset (which need conversion)
+    const { mode, skyboxPreset, ...rawSettings } = config;
+    const settings: Record<string, unknown> = { ...rawSettings };
 
     // Resolve skybox preset by key
-    if (config.skyboxPreset) {
-      const preset = STAR_NEST_PRESETS.find((p) => p.key === config.skyboxPreset);
+    if (skyboxPreset) {
+      const preset = STAR_NEST_PRESETS.find((p) => p.key === skyboxPreset);
       if (preset) {
         settings.skyboxPreset = preset;
       }
     }
 
     // Set the mode (without replacing layers, since we set them explicitly)
-    if (config.mode) {
-      const mode = config.mode === 'flame' ? 'etherealFlame' : 'etherealMist';
-      store.setState({ currentMode: mode } as any);
+    if (mode) {
+      const storeMode = mode === 'flame' ? 'etherealFlame' : 'etherealMist';
+      store.setState({ currentMode: storeMode } as any);
     }
 
     // Apply all visual settings

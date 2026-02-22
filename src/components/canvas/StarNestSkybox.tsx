@@ -548,9 +548,28 @@ export function StarNestSkybox({
     }
     const currentPreset = presetRef.current;
 
-    // In render mode, use fixed time directly
+    // In render mode, use fixed time steps with audio modulation
     if (renderMode.isActive && renderMode.elapsedTime !== null) {
-      materialRef.current.uniforms.uTime.value = renderMode.elapsedTime;
+      const renderElapsed = renderMode.elapsedTime;
+      // Reset on first frame
+      if (renderElapsed === 0) {
+        lastClockTimeRef.current = 0;
+        accumulatedTimeRef.current = 0;
+      }
+      const deltaTime = renderElapsed - lastClockTimeRef.current;
+      lastClockTimeRef.current = renderElapsed;
+
+      if (deltaTime > 0) {
+        // Read audio from audioStore (updated by RenderModeAPI.setFrame)
+        const audioState = useAudioStore.getState();
+        const amplitude = audioState.amplitude;
+        const bass = audioState.bass;
+        const audioBoost = audioReactiveEnabled ? audioReactivity : 0;
+        const audioModulation = 1.0 + (amplitude * 0.3 + bass * 0.2) * audioBoost;
+        accumulatedTimeRef.current += deltaTime * audioModulation;
+      }
+
+      materialRef.current.uniforms.uTime.value = accumulatedTimeRef.current;
     } else {
       // Calculate delta time for smooth incremental updates
       const currentClockTime = clock.elapsedTime;

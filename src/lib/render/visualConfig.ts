@@ -1,0 +1,84 @@
+import { ParticleLayerConfig } from '@/types';
+
+/**
+ * Visual configuration payload used by local/CLI render pipelines.
+ * Matches renderable fields from visualStore/template settings.
+ */
+export interface RenderVisualConfig {
+  mode?: 'flame' | 'mist';
+  intensity?: number;
+  skyboxPreset?: string;
+  skyboxRotationSpeed?: number;
+  skyboxAudioReactiveEnabled?: boolean;
+  skyboxAudioReactivity?: number;
+  skyboxDriftSpeed?: number;
+  skyboxMode?: 'shader' | 'video';
+  skyboxVideoUrl?: string | null;
+  skyboxVideoYaw?: number;
+  skyboxVideoPitch?: number;
+  skyboxMaskMode?: 'none' | 'luma' | 'chroma';
+  skyboxMaskThreshold?: number;
+  skyboxMaskSoftness?: number;
+  skyboxMaskColor?: string;
+  skyboxMaskPreviewMode?: 'tint' | 'matte';
+  skyboxMaskInvert?: boolean;
+  skyboxRectMaskEnabled?: boolean;
+  skyboxRectMaskU?: number;
+  skyboxRectMaskV?: number;
+  skyboxRectMaskWidth?: number;
+  skyboxRectMaskHeight?: number;
+  skyboxRectMaskSoftness?: number;
+  skyboxRectMaskInvert?: boolean;
+  skyboxSeamBlendEnabled?: boolean;
+  skyboxSeamBlendWidth?: number;
+  skyboxHoleFixEnabled?: boolean;
+  skyboxHoleFixThreshold?: number;
+  skyboxHoleFixSoftness?: number;
+  skyboxPoleFadeEnabled?: boolean;
+  skyboxPoleFadeStart?: number;
+  skyboxPoleFadeSoftness?: number;
+  skyboxPatchEnabled?: boolean;
+  skyboxPatchU?: number;
+  skyboxPatchV?: number;
+  skyboxPatchRadius?: number;
+  skyboxPatchSoftness?: number;
+  skyboxPatch2Enabled?: boolean;
+  skyboxPatch2U?: number;
+  skyboxPatch2V?: number;
+  skyboxPatch2Radius?: number;
+  skyboxPatch2Softness?: number;
+  skyboxPatch3Enabled?: boolean;
+  skyboxPatch3U?: number;
+  skyboxPatch3V?: number;
+  skyboxPatch3Radius?: number;
+  skyboxPatch3Softness?: number;
+  skyboxPatch4Enabled?: boolean;
+  skyboxPatch4U?: number;
+  skyboxPatch4V?: number;
+  skyboxPatch4Radius?: number;
+  skyboxPatch4Softness?: number;
+  skyboxPoleLogoEnabled?: boolean;
+  skyboxPoleLogoUrl?: string | null;
+  skyboxPoleLogoSize?: number;
+  skyboxPoleLogoOpacity?: number;
+  skyboxPoleLogoAutoScale?: boolean;
+  vrComfortMode?: boolean;
+  vrDebugOverlayEnabled?: boolean;
+  waterEnabled?: boolean;
+  waterColor?: string;
+  waterReflectivity?: number;
+  cameraOrbitEnabled?: boolean;
+  cameraOrbitRenderOnly?: boolean;
+  cameraOrbitSpeed?: number;
+  cameraOrbitRadius?: number;
+  cameraOrbitHeight?: number;
+  cameraLookAtOrb?: boolean;
+  orbAnchorMode?: 'viewer' | 'world';
+  orbDistance?: number;
+  orbHeight?: number;
+  orbSideOffset?: number;
+  orbWorldX?: number;
+  orbWorldY?: number;
+  orbWorldZ?: number;
+  layers?: ParticleLayerConfig[];
+}

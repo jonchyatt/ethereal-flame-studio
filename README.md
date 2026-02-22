@@ -162,6 +162,7 @@ Copy `.env.example` to `.env` (done automatically by `setup.bat`):
 | Document | Description |
 |----------|-------------|
 | [Remote Access](docs/REMOTE_ACCESS.md) | Cloudflare Tunnel setup |
+| [Audio Prep Quickstart](docs/QUICKSTART_AUDIO_PREP_RENDER.md) | Fast path: ingest, edit, preview, save, render |
 | [n8n Setup](docs/N8N_SETUP.md) | Workflow engine configuration |
 | [n8n Workflows](docs/N8N_WORKFLOWS.md) | YouTube upload workflow |
 | [Google Drive](docs/google-drive-setup.md) | rclone configuration |

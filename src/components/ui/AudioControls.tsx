@@ -14,6 +14,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { audioAnalyzer } from '@/lib/audio/AudioAnalyzer';
 import { useAudioStore } from '@/lib/stores/audioStore';
+import { AudioPrepEditor } from './AudioPrepEditor';
 
 // Demo tracks bundled in public folder
 const DEMO_TRACKS = [
@@ -34,6 +35,7 @@ export function AudioControls() {
   const [urlInput, setUrlInput] = useState('');
   const [isLoadingUrl, setIsLoadingUrl] = useState(false);
   const [showDemoDropdown, setShowDemoDropdown] = useState(false);
+  const [showAudioPrep, setShowAudioPrep] = useState(false);
 
   const {
     isPlaying,
@@ -281,6 +283,14 @@ export function AudioControls() {
             >
               URL
             </button>
+
+            {/* Audio Prep Editor Button */}
+            <button
+              onClick={() => setShowAudioPrep(true)}
+              className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors text-sm"
+            >
+              Audio Prep
+            </button>
           </div>
 
           {/* URL Input (expandable) */}
@@ -389,6 +399,9 @@ export function AudioControls() {
         {/* Hidden audio element */}
         <audio ref={audioRef} className="hidden" />
       </div>
+
+      {/* Audio Prep Editor Dialog */}
+      <AudioPrepEditor isOpen={showAudioPrep} onClose={() => setShowAudioPrep(false)} />
     </div>
   );
 }

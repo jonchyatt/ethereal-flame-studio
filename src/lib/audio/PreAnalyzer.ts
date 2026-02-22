@@ -598,6 +598,50 @@ async function analyzeInNode(
 }
 
 // ============================================================================
+// Normalization
+// ============================================================================
+
+/**
+ * Normalize pre-analyzed frames so audio levels use the full 0-1 range.
+ * Finds the peak value of each band and scales all frames proportionally.
+ * This ensures consistent visual reactivity regardless of source loudness.
+ */
+function normalizeFrames(frames: FrameAudioData[]): void {
+  if (frames.length === 0) return;
+
+  // Find peak values for each band
+  let peakAmplitude = 0;
+  let peakBass = 0;
+  let peakMid = 0;
+  let peakHigh = 0;
+
+  for (const frame of frames) {
+    if (frame.amplitude > peakAmplitude) peakAmplitude = frame.amplitude;
+    if (frame.bass > peakBass) peakBass = frame.bass;
+    if (frame.mid > peakMid) peakMid = frame.mid;
+    if (frame.high > peakHigh) peakHigh = frame.high;
+  }
+
+  // Only normalize if peaks are significantly below 1.0
+  // Use 0.95 as target peak to leave headroom
+  const targetPeak = 0.95;
+  const minPeakForNorm = 0.01; // Don't normalize near-silence
+
+  const ampScale = peakAmplitude > minPeakForNorm ? targetPeak / peakAmplitude : 1;
+  const bassScale = peakBass > minPeakForNorm ? targetPeak / peakBass : 1;
+  const midScale = peakMid > minPeakForNorm ? targetPeak / peakMid : 1;
+  const highScale = peakHigh > minPeakForNorm ? targetPeak / peakHigh : 1;
+
+  // Apply scaling
+  for (const frame of frames) {
+    frame.amplitude = Math.min(1, frame.amplitude * ampScale);
+    frame.bass = Math.min(1, frame.bass * bassScale);
+    frame.mid = Math.min(1, frame.mid * midScale);
+    frame.high = Math.min(1, frame.high * highScale);
+  }
+}
+
+// ============================================================================
 // PreAnalyzer Class
 // ============================================================================
 
@@ -654,6 +698,10 @@ export class PreAnalyzer {
     }
 
     checkAbort();
+
+    // Normalize audio levels so the peak amplitude reaches ~1.0
+    // This ensures consistent visual reactivity regardless of audio loudness
+    normalizeFrames(result.frames);
 
     // Cache result (browser only)
     if (useCache && isIndexedDBAvailable()) {

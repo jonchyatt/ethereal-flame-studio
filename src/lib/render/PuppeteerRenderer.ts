@@ -18,6 +18,7 @@ import puppeteer, { Browser, Page } from 'puppeteer';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { FrameAudioData, PreAnalysisResult } from '@/types';
+import { RenderVisualConfig } from './visualConfig';
 
 /**
  * Configuration for Puppeteer renderer
@@ -34,32 +35,7 @@ export interface PuppeteerRenderConfig {
   /** Template to activate (e.g., 'flame', 'mist') */
   template?: string;
   /** Full visual configuration from exported config file */
-  visualConfig?: {
-    mode?: 'flame' | 'mist';
-    intensity?: number;
-    skyboxPreset?: string;
-    skyboxRotationSpeed?: number;
-    skyboxAudioReactiveEnabled?: boolean;
-    skyboxAudioReactivity?: number;
-    skyboxDriftSpeed?: number;
-    waterEnabled?: boolean;
-    waterColor?: string;
-    waterReflectivity?: number;
-    cameraOrbitEnabled?: boolean;
-    cameraOrbitRenderOnly?: boolean;
-    cameraOrbitSpeed?: number;
-    cameraOrbitRadius?: number;
-    cameraOrbitHeight?: number;
-    cameraLookAtOrb?: boolean;
-    orbAnchorMode?: 'viewer' | 'world';
-    orbDistance?: number;
-    orbHeight?: number;
-    orbSideOffset?: number;
-    orbWorldX?: number;
-    orbWorldY?: number;
-    orbWorldZ?: number;
-    layers?: any[];
-  };
+  visualConfig?: RenderVisualConfig;
   /** Use headless mode (default: true) */
   headless?: boolean;
   /** Device scale factor for HiDPI (default: 1) */
@@ -128,6 +104,12 @@ export class PuppeteerRenderer {
   private page: Page | null = null;
   private config: PuppeteerRenderConfig;
   private isRendering = false;
+  private readonly ignored404Patterns: RegExp[] = [
+    /\/favicon\.ico(?:$|\?)/i,
+    /\.hot-update\.(json|js)(?:$|\?)/i,
+    /\/__nextjs_original-stack-frame/i,
+    /[?&]_rsc=/i,
+  ];
 
   constructor(config: PuppeteerRenderConfig) {
     this.config = {
@@ -188,35 +170,81 @@ export class PuppeteerRenderer {
 
     this.page = await this.browser.newPage();
 
-    // Disable animations and transitions for consistent captures
-    await this.page.evaluateOnNewDocument(() => {
-      // Skip window media query for prefers-reduced-motion
-      Object.defineProperty(window, 'matchMedia', {
-        writable: true,
-        value: (query: string) => ({
-          matches: query.includes('prefers-reduced-motion'),
-          media: query,
-          onchange: null,
-          addListener: () => {},
-          removeListener: () => {},
-          addEventListener: () => {},
-          removeEventListener: () => {},
-          dispatchEvent: () => false,
-        }),
-      });
-    });
+    // Disable animations/transitions and shim globals for consistent captures.
+    // IMPORTANT: pass raw JS string (not a TS function) so transpilers don't
+    // inject helpers like __name into the injected script itself.
+    await this.page.evaluateOnNewDocument(`
+      (() => {
+        if (typeof globalThis.__name !== 'function') {
+          Object.defineProperty(globalThis, '__name', {
+            value: function(target) { return target; },
+            configurable: true,
+            writable: false
+          });
+        }
+
+        Object.defineProperty(window, 'matchMedia', {
+          writable: true,
+          value: function(query) {
+            return {
+              matches: String(query).includes('prefers-reduced-motion'),
+              media: query,
+              onchange: null,
+              addListener: function() {},
+              removeListener: function() {},
+              addEventListener: function() {},
+              removeEventListener: function() {},
+              dispatchEvent: function() { return false; }
+            };
+          }
+        });
+      })();
+    `);
 
     // Log console messages from the page
     this.page.on('console', (msg) => {
       if (msg.type() === 'error') {
-        console.error(`[Browser] ${msg.text()}`);
+        const text = msg.text();
+        // Chromium emits URL-less "Failed to load resource" console noise.
+        // HTTP status logging below prints the actionable URL instead.
+        if (text.includes('Failed to load resource: the server responded with a status of 404')) {
+          return;
+        }
+        console.error(`[Browser] ${text}`);
       }
     });
 
     // Handle page errors
     this.page.on('pageerror', (err: unknown) => {
-      const message = err instanceof Error ? err.message : String(err);
-      console.error(`[Browser] Page error: ${message}`);
+      if (err instanceof Error) {
+        const stack = err.stack ? `\n${err.stack}` : '';
+        console.error(`[Browser] Page error: ${err.message}${stack}`);
+        return;
+      }
+      console.error(`[Browser] Page error: ${String(err)}`);
+    });
+
+    // Log HTTP failures with URLs so 404s can be diagnosed/fixed quickly.
+    this.page.on('response', (response) => {
+      const status = response.status();
+      if (status < 400) return;
+      const url = response.url();
+
+      if (status === 404 && this.ignored404Patterns.some((rx) => rx.test(url))) {
+        return;
+      }
+
+      console.warn(`[Browser] HTTP ${status}: ${url}`);
+    });
+
+    this.page.on('requestfailed', (request) => {
+      const failure = request.failure();
+      const reason = failure?.errorText || 'unknown';
+      const url = request.url();
+      if (this.ignored404Patterns.some((rx) => rx.test(url))) {
+        return;
+      }
+      console.warn(`[Browser] Request failed (${reason}): ${url}`);
     });
 
     console.log('[PuppeteerRenderer] Chrome launched successfully');
@@ -230,6 +258,19 @@ export class PuppeteerRenderer {
       throw new Error('Browser not launched. Call launch() first.');
     }
 
+    const waitForRenderModeApi = async (timeoutMs: number): Promise<boolean> => {
+      if (!this.page) return false;
+      try {
+        await this.page.waitForFunction(
+          () => !!(window as any).__renderMode,
+          { timeout: timeoutMs }
+        );
+        return true;
+      } catch {
+        return false;
+      }
+    };
+
     console.log(`[PuppeteerRenderer] Navigating to ${this.config.appUrl}...`);
 
     // Navigate to app
@@ -242,8 +283,24 @@ export class PuppeteerRenderer {
     // Wait for app to be ready (Three.js canvas should exist)
     await this.page.waitForSelector('canvas', { timeout: 10000 });
 
-    // Wait a bit for React/Three.js to initialize
-    await this.page.evaluate(() => new Promise((r) => setTimeout(r, 1000)));
+    // Wait for RenderModeAPI to be attached to window.
+    // On cold Next.js dev compiles, this can take longer than a fixed sleep.
+    let hasRenderModeApi = await waitForRenderModeApi(20000);
+    if (!hasRenderModeApi) {
+      console.warn('[PuppeteerRenderer] RenderModeAPI not ready after initial load, retrying with one page reload...');
+      await this.page.reload({
+        waitUntil: 'networkidle2',
+        timeout: 60000,
+      });
+      await this.page.waitForSelector('canvas', { timeout: 10000 });
+      hasRenderModeApi = await waitForRenderModeApi(20000);
+    }
+
+    if (!hasRenderModeApi) {
+      throw new Error(
+        'RenderModeAPI not found on window after retries. Ensure the app page loads without JS chunk errors before rendering.'
+      );
+    }
 
     // Initialize render mode
     console.log('[PuppeteerRenderer] Initializing render mode...');

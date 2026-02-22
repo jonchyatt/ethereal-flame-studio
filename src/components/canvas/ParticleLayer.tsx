@@ -255,7 +255,7 @@ export function ParticleLayer({
           treble: renderMode.audioData.high,
           amplitude: renderMode.audioData.amplitude,
           isBeat: renderMode.audioData.isBeat,
-          currentScale: 1.0,
+          currentScale: 1.0 + renderMode.audioData.amplitude * 0.5,
         }
       : audioLevelsRef.current;
 
@@ -271,16 +271,19 @@ export function ParticleLayer({
     }
 
     // Asymmetric smoothing - fast attack (bloom up), slow decay (fade down)
+    // In render mode, use near-instant response since each frame's audio data
+    // represents the exact levels for that moment (pre-analyzed)
     const smoothed = smoothedAudioRef.current;
-    const attackSmoothing = 0.4; // Very fast rise when audio increases
-    const releaseSmoothing = 0.04; // Slow fade when audio decreases
+    const inRenderMode = renderMode.isActive;
+    const attackSmoothing = inRenderMode ? 0.85 : 0.4;
+    const releaseSmoothing = inRenderMode ? 0.15 : 0.04;
     const isRising = bandAmplitude > smoothed.amplitude;
     const smoothing = isRising ? attackSmoothing : releaseSmoothing;
     smoothed.amplitude += (bandAmplitude - smoothed.amplitude) * smoothing;
 
     // Smooth beat pulse (quick attack, slow decay) - visible but not overwhelming
     const targetBeat = audioLevels.isBeat ? 1.15 : 1.0; // Visible beat pulse
-    const beatSmoothing = audioLevels.isBeat ? 0.3 : 0.05; // Quick attack, moderate decay
+    const beatSmoothing = audioLevels.isBeat ? (inRenderMode ? 0.7 : 0.3) : (inRenderMode ? 0.15 : 0.05);
     smoothed.beat += (targetBeat - smoothed.beat) * beatSmoothing;
 
     for (let i = 0; i < particleCount; i++) {
@@ -642,7 +645,7 @@ export function ParticleLayer({
             vec3 color = vColor * uIntensity * 0.7;
 
             // Moderate alpha for visible but ethereal particles
-            float finalAlpha = alpha * vAlpha * 0.35;
+            float finalAlpha = alpha * vAlpha * 0.7;
 
             gl_FragColor = vec4(color, finalAlpha);
           }

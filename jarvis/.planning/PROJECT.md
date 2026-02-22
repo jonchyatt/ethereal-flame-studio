@@ -82,7 +82,8 @@ A voice-enabled AI companion that integrates with Notion Life OS workspaces to p
 
 ### Future Considerations (v3+)
 
-- **Moltbot Agent**: Old MacBook available for dedicated automation tasks (details TBD)
+- **Agent Zero Daemon**: Deploy Agent Zero in Docker on dedicated Linux box for always-on agent capabilities (periodic tasks, Telegram, self-healing, sub-agents). Replaces old MacBook/Atlas plan. Any Docker-capable machine works.
+- **VPS option**: Can run Agent Zero on cheap VPS ($7-15/month) if no local hardware available
 
 ## v3.0 Tutorial & Teaching System (2026-02-03 — 2026-02-05)
 
@@ -144,10 +145,40 @@ Write step-by-step lesson content for the remaining 4 clusters:
 
 ### Remaining v3 Phases
 
-- **Phase 13: Memory Enhancement** — conversation continuity, hybrid search (BM25 + semantic)
-- **Phase 14: Self-Healing Loop** — automatic error recovery with learning
+- **Phase 13: Memory Enhancement** — conversation continuity, hybrid search (BM25 + semantic). Borrow Agent Zero's progressive summarization pattern (100-1000x context compression) and secrets masking (placeholder injection so LLM never sees raw API keys).
+- **Phase 14: Self-Healing Loop** — automatic error recovery with learning. Inspired by Agent Zero's agentic cron pattern where periodic tasks are agent chats that can self-fix on failure.
 - **Phase 15: Telegram Control** — remote command capability via Telegram
-- **Phase 16: Atlas Integration** — MacBook agent (requires hardware)
+- **Phase 16: Agent Zero Daemon** — Deploy Agent Zero in Docker on a dedicated Linux box (replaces old "Atlas/MacBook" plan). Any machine with Docker works — mini PC, old laptop with Ubuntu, or VPS. Agent Zero provides: sandboxed execution, sub-agent spawning, secrets management, periodic tasks, vector memory, and plugin/skills architecture. Connects to Jarvis web app via A2A protocol or webhook bridge.
+
+### Agent Zero Integration Strategy (2026-02-15)
+
+**Key Insight:** Agent Zero is not a replacement for Jarvis — it's the **always-on daemon backbone** that Jarvis's web UI connects to.
+
+**Architecture:**
+```
+[Phone/Browser] → [Jarvis Web UI on Vercel] → voice, dashboard, orb avatar
+                          ↕ API/webhook
+              [Agent Zero in Docker on Linux box] → always-on daemon
+                    ↕            ↕           ↕
+              [Notion API]  [Telegram]  [Scheduled tasks]
+              [Memory DB]   [SSH/tools] [Self-healing]
+```
+
+**What Agent Zero adds over Atlas/GOTCHA:**
+- Proven, maintained open-source project with community
+- Docker sandbox (safe code execution, no host pollution)
+- Sub-agent spawning with context isolation
+- Secrets management (LLM never sees raw keys)
+- Progressive context summarization (hours-long sessions)
+- Periodic agentic tasks (briefing cron, health checks, backups)
+- Cloud skills marketplace + self-creating skills
+- Plugin system (upcoming) for modular capabilities
+
+**Hardware:** Any Linux-capable machine with Docker:
+- Mini PC (~$150-200, low power, headless)
+- Old laptop with Ubuntu (free, already owned)
+- VPS ($7-15/month, Hostinger/Hetzner)
+- NOT restricted to MacBook — Docker runs natively on Linux (better than macOS)
 
 ## Context
 
@@ -188,6 +219,9 @@ Write step-by-step lesson content for the remaining 4 clusters:
 | State machine for briefing flows | Consistent pattern across Morning/Evening/Weekly | ✓ Good |
 | 28-day rolling baseline for life areas | Detects relative neglect without rigid schedules | ✓ Good |
 | Integration token (not OAuth) | Works for single user, OAuth deferred to v2 | ✓ Good |
+| Agent Zero over Atlas/GOTCHA | Proven open-source, Docker sandbox, community, plugins, secrets mgmt | Decided 2026-02-15 |
+| Any Linux box (not MacBook-only) | Docker runs natively on Linux, cheaper, headless, no sleep issues | Decided 2026-02-15 |
+| Hybrid Vercel + Linux daemon | Web UI stays on Vercel (fast, global), daemon on Linux for always-on tasks | Decided 2026-02-15 |
 
 ---
-*Last updated: 2026-02-05 — v2.0 complete, T1-T4 complete, Phase 13 next*
+*Last updated: 2026-02-15 — v2.0 at 90%, Agent Zero integration planned for Phase 16*

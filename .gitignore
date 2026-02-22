@@ -37,3 +37,59 @@ modal_app/__pycache__/
 
 # Audio prep assets (local storage)
 audio-assets/
+
+# Local databases
+*.db
+*.db-wal
+*.db-shm
+jarvis-local.db
+
+# Temp & test artifacts
+temp/
+temp-backup/
+test-output/
+test-frames/
+test-screenshots/
+test-audio.mp3
+test-polly.mp3
+test-*.png
+test-*.js
+test-*.ts
+!src/**/*.test.ts
+!src/**/*.test.tsx
+test-render-config.json
+test-fixes.spec.ts
+nul
+
+# Audio files (too large for git)
+audio/*.mp3
+audio/*.wav
+
+# Renders (large video files)
+renders/
+
+# Playwright MCP logs & screenshots
+.playwright-mcp/
+jarvis/.playwright-mcp/
+
+# Env verification files
+.env.production.check
+.env.production.verify
+.env.vercel.temp
+
+# Large asset folders
+Holding/
+Lemon Notion/
+references/
+agent-zero-hub/
+
+# Jobs directory
+jobs/
+
+# Build artifacts
+tsconfig.tsbuildinfo
+jarvis-debug.png
+
+# Batch scripts
+audio-prep.bat
+start-render.bat

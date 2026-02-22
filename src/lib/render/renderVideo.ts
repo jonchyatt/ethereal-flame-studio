@@ -15,6 +15,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { PreAnalyzer } from '../audio/PreAnalyzer';
 import { PuppeteerRenderer, RenderProgress } from './PuppeteerRenderer';
+import { RenderVisualConfig } from './visualConfig';
 import {
   FFmpegEncoder,
   OutputFormat,
@@ -36,32 +37,7 @@ export interface RenderVideoConfig {
   /** Template to use (e.g., 'flame', 'mist') */
   template?: string;
   /** Full visual configuration from exported config file */
-  visualConfig?: {
-    mode?: 'flame' | 'mist';
-    intensity?: number;
-    skyboxPreset?: string;
-    skyboxRotationSpeed?: number;
-    skyboxAudioReactiveEnabled?: boolean;
-    skyboxAudioReactivity?: number;
-    skyboxDriftSpeed?: number;
-    waterEnabled?: boolean;
-    waterColor?: string;
-    waterReflectivity?: number;
-    cameraOrbitEnabled?: boolean;
-    cameraOrbitRenderOnly?: boolean;
-    cameraOrbitSpeed?: number;
-    cameraOrbitRadius?: number;
-    cameraOrbitHeight?: number;
-    cameraLookAtOrb?: boolean;
-    orbAnchorMode?: 'viewer' | 'world';
-    orbDistance?: number;
-    orbHeight?: number;
-    orbSideOffset?: number;
-    orbWorldX?: number;
-    orbWorldY?: number;
-    orbWorldZ?: number;
-    layers?: any[];
-  };
+  visualConfig?: RenderVisualConfig;
   /** Output format */
   format: OutputFormat;
   /** Frames per second (default: 30) */

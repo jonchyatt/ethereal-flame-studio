@@ -1,0 +1,56 @@
+{
+  "version": "1.0",
+  "audio": {
+    "path": "./audio/SirAnthony.mp3"
+  },
+  "output": {
+    "path": "./output/PhonkShia_1080p.mp4",
+    "format": "flat-1080p-landscape",
+    "fps": 30
+  },
+  "visual": {
+    "mode": "flame",
+    "skyboxPreset": "DarkWorld1",
+    "skyboxRotationSpeed": 0.1,
+    "waterEnabled": false,
+    "waterColor": "#1a3a5c",
+    "waterReflectivity": 0.8,
+    "layers": [
+      {
+        "id": "inner-glow",
+        "name": "Inner Glow",
+        "enabled": true,
+        "particleCount": 35,
+        "baseSize": 5.5,
+        "spawnRadius": 0.35,
+        "maxSpeed": 0.03,
+        "lifetime": 3,
+        "audioReactivity": 2.5,
+        "frequencyBand": "mids",
+        "sizeAtBirth": 0.2,
+        "sizeAtPeak": 1.0,
+        "sizeAtDeath": 0.3,
+        "peakLifetime": 0.25
+      },
+      {
+        "id": "outer-halo",
+        "name": "Outer Halo",
+        "enabled": true,
+        "particleCount": 25,
+        "baseSize": 7.0,
+        "spawnRadius": 0.5,
+        "maxSpeed": 0.02,
+        "lifetime": 4,
+        "audioReactivity": 2.0,
+        "frequencyBand": "treble",
+        "sizeAtBirth": 0.15,
+        "sizeAtPeak": 1.0,
+        "sizeAtDeath": 0.25,
+        "peakLifetime": 0.3
+      }
+    ]
+  },
+  "options": {
+    "quality": "balanced"
+  }
+}

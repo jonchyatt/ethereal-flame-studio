@@ -17,7 +17,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { X, Upload, MessageSquare, CheckCircle, AlertCircle, Loader2, Download, Terminal, Monitor } from 'lucide-react';
 import { useVisualStore } from '@/lib/stores/visualStore';
-import { createConfigFromState, type LocalOutputFormat } from '@/lib/render/renderConfig';
+import { buildVisualConfigFromState, createConfigFromState, type LocalOutputFormat } from '@/lib/render/renderConfig';
 
 // Local render job shape (mirrors server LocalRenderJob)
 interface LocalRenderJobStatus {
@@ -90,10 +90,11 @@ interface RenderDialogProps {
   onClose: () => void;
   audioFile: File | null;
   audioPath?: string; // Server-side path if available
+  preparedAssetId?: string; // Asset ID from audio-prep editor
   template?: string;
 }
 
-export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template = 'flame' }: RenderDialogProps) {
+export function RenderDialog({ isOpen, onClose, audioFile, audioPath, preparedAssetId, template = 'flame' }: RenderDialogProps) {
   // State
   const [selectedFormat, setSelectedFormat] = useState<string>('flat-1080p-landscape');
   const [selectedFps, setSelectedFps] = useState<30 | 60>(30);
@@ -208,8 +209,8 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
 
   // Start local render
   const handleLocalRender = useCallback(async () => {
-    if (!audioFile) {
-      setLocalError('No audio file loaded');
+    if (!audioFile && !preparedAssetId) {
+      setLocalError('No audio file or prepared asset loaded');
       return;
     }
 
@@ -217,75 +218,47 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
     setLocalError(null);
 
     try {
-      // Convert audio file to base64
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result as string;
-          const commaIdx = result.indexOf(',');
-          if (commaIdx === -1) { reject(new Error('Invalid data')); return; }
-          resolve(result.substring(commaIdx + 1));
-        };
-        reader.onerror = () => reject(new Error('Failed to read audio file'));
-        reader.readAsDataURL(audioFile);
-      });
-
       // Build visual config from current state
       const vs = visualState;
-      const visualConfig = {
-        mode: vs.currentMode === 'etherealMist' ? 'mist' as const : 'flame' as const,
-        intensity: vs.intensity,
-        skyboxPreset: vs.skyboxPreset.key,
-        skyboxRotationSpeed: vs.skyboxRotationSpeed,
-        skyboxAudioReactiveEnabled: vs.skyboxAudioReactiveEnabled,
-        skyboxAudioReactivity: vs.skyboxAudioReactivity,
-        skyboxDriftSpeed: vs.skyboxDriftSpeed,
-        waterEnabled: vs.waterEnabled,
-        waterColor: vs.waterColor,
-        waterReflectivity: vs.waterReflectivity,
-        cameraOrbitEnabled: vs.cameraOrbitEnabled,
-        cameraOrbitRenderOnly: vs.cameraOrbitRenderOnly,
-        cameraOrbitSpeed: vs.cameraOrbitSpeed,
-        cameraOrbitRadius: vs.cameraOrbitRadius,
-        cameraOrbitHeight: vs.cameraOrbitHeight,
-        cameraLookAtOrb: vs.cameraLookAtOrb,
-        orbAnchorMode: vs.orbAnchorMode,
-        orbDistance: vs.orbDistance,
-        orbHeight: vs.orbHeight,
-        orbSideOffset: vs.orbSideOffset,
-        orbWorldX: vs.orbWorldX,
-        orbWorldY: vs.orbWorldY,
-        orbWorldZ: vs.orbWorldZ,
-        layers: vs.layers.map((l: { id: string; name: string; enabled: boolean; particleCount: number; baseSize: number; spawnRadius: number; maxSpeed: number; lifetime: number; audioReactivity: number; frequencyBand: string; sizeAtBirth: number; sizeAtPeak: number; sizeAtDeath: number; peakLifetime: number; colorStart?: [number, number, number]; colorEnd?: [number, number, number] }) => ({
-          id: l.id,
-          name: l.name,
-          enabled: l.enabled,
-          particleCount: l.particleCount,
-          baseSize: l.baseSize,
-          spawnRadius: l.spawnRadius,
-          maxSpeed: l.maxSpeed,
-          lifetime: l.lifetime,
-          audioReactivity: l.audioReactivity,
-          frequencyBand: l.frequencyBand,
-          sizeAtBirth: l.sizeAtBirth,
-          sizeAtPeak: l.sizeAtPeak,
-          sizeAtDeath: l.sizeAtDeath,
-          peakLifetime: l.peakLifetime,
-          colorStart: l.colorStart,
-          colorEnd: l.colorEnd,
-        })),
-      };
+      const visualConfig = buildVisualConfigFromState(vs);
+
+      let requestBody: Record<string, unknown>;
+
+      if (preparedAssetId) {
+        // Use prepared asset directly (no base64 encoding needed)
+        requestBody = {
+          assetId: preparedAssetId,
+          audioFilename: audioFile?.name || `asset-${preparedAssetId}.wav`,
+          format: selectedFormat,
+          fps: selectedFps,
+          visualConfig,
+        };
+      } else {
+        // Legacy: convert audio file to base64
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            const commaIdx = result.indexOf(',');
+            if (commaIdx === -1) { reject(new Error('Invalid data')); return; }
+            resolve(result.substring(commaIdx + 1));
+          };
+          reader.onerror = () => reject(new Error('Failed to read audio file'));
+          reader.readAsDataURL(audioFile!);
+        });
+        requestBody = {
+          audioBase64: base64,
+          audioFilename: audioFile!.name,
+          format: selectedFormat,
+          fps: selectedFps,
+          visualConfig,
+        };
+      }
 
       const response = await fetch('/api/render/local', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          audioBase64: base64,
-          audioFilename: audioFile.name,
-          format: selectedFormat,
-          fps: selectedFps,
-          visualConfig,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
@@ -309,7 +282,7 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
       setLocalError(err instanceof Error ? err.message : 'Failed to start local render');
       setLocalRenderState('failed');
     }
-  }, [audioFile, selectedFormat, selectedFps, visualState]);
+  }, [audioFile, preparedAssetId, selectedFormat, selectedFps, visualState]);
 
   // Cancel local render
   const handleCancelLocal = useCallback(async () => {
@@ -366,7 +339,7 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
 
   // Submit render job
   const handleSubmit = useCallback(async () => {
-    if (!audioFile && !audioPath) {
+    if (!audioFile && !audioPath && !preparedAssetId) {
       setError('No audio file selected');
       return;
     }
@@ -375,10 +348,13 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
     setError(null);
 
     try {
-      // Build audio input - convert file to base64 if needed
-      let audioInput: { type: string; path?: string; url?: string; data?: string; filename?: string; mimeType?: string };
+      // Build audio input - prefer preparedAssetId > audioPath > audioFile
+      let audioInput: { type: string; assetId?: string; path?: string; url?: string; data?: string; filename?: string; mimeType?: string };
 
-      if (audioPath) {
+      if (preparedAssetId) {
+        audioInput = { type: 'asset', assetId: preparedAssetId };
+        console.log('[RenderDialog] Using prepared asset:', preparedAssetId);
+      } else if (audioPath) {
         // Check if it's a URL or a local path
         if (audioPath.startsWith('http://') || audioPath.startsWith('https://')) {
           audioInput = { type: 'url', url: audioPath, filename: audioFile?.name };
@@ -445,7 +421,7 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
       setError(err instanceof Error ? err.message : 'Failed to submit job');
       setRenderState('error');
     }
-  }, [audioFile, audioPath, selectedFormat, selectedFps, template, enableTranscription, enableGoogleDrive]);
+  }, [audioFile, audioPath, preparedAssetId, selectedFormat, selectedFps, template, enableTranscription, enableGoogleDrive]);
 
   // Reset state
   const handleReset = useCallback(() => {
@@ -471,30 +447,8 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, template =
       selectedFormat as LocalOutputFormat,
       selectedFps,
       {
-        currentMode: template === 'etherealMist' ? 'etherealMist' : 'etherealFlame',
-        intensity: visualState.intensity,
-        skyboxPreset: visualState.skyboxPreset,
-        skyboxRotationSpeed: visualState.skyboxRotationSpeed,
-        skyboxAudioReactiveEnabled: visualState.skyboxAudioReactiveEnabled,
-        skyboxAudioReactivity: visualState.skyboxAudioReactivity,
-        skyboxDriftSpeed: visualState.skyboxDriftSpeed,
-        waterEnabled: visualState.waterEnabled,
-        waterColor: visualState.waterColor,
-        waterReflectivity: visualState.waterReflectivity,
-        cameraOrbitEnabled: visualState.cameraOrbitEnabled,
-        cameraOrbitRenderOnly: visualState.cameraOrbitRenderOnly,
-        cameraOrbitSpeed: visualState.cameraOrbitSpeed,
-        cameraOrbitRadius: visualState.cameraOrbitRadius,
-        cameraOrbitHeight: visualState.cameraOrbitHeight,
-        cameraLookAtOrb: visualState.cameraLookAtOrb,
-        orbAnchorMode: visualState.orbAnchorMode,
-        orbDistance: visualState.orbDistance,
-        orbHeight: visualState.orbHeight,
-        orbSideOffset: visualState.orbSideOffset,
-        orbWorldX: visualState.orbWorldX,
-        orbWorldY: visualState.orbWorldY,
-        orbWorldZ: visualState.orbWorldZ,
-        layers: visualState.layers,
+        ...visualState,
+        currentMode: visualState.currentMode,
       }
     );
 
@@ -823,10 +777,10 @@ pause
               {/* Render Locally — primary action */}
               <button
                 onClick={handleLocalRender}
-                disabled={!audioFile}
+                disabled={!audioFile && !preparedAssetId}
                 className={`
                   w-full py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2
-                  ${audioFile
+                  ${audioFile || preparedAssetId
                     ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-white shadow-lg shadow-orange-500/20'
                     : 'bg-white/10 text-white/40 cursor-not-allowed'
                   }
@@ -845,10 +799,10 @@ pause
                 </button>
                 <button
                   onClick={handleSubmit}
-                  disabled={!audioFile && !audioPath}
+                  disabled={!audioFile && !audioPath && !preparedAssetId}
                   className={`
                     flex-1 py-2 rounded-lg font-medium transition-colors
-                    ${audioFile || audioPath
+                    ${audioFile || audioPath || preparedAssetId
                       ? 'bg-blue-500 hover:bg-blue-600 text-white'
                       : 'bg-white/10 text-white/40 cursor-not-allowed'
                     }
@@ -860,10 +814,10 @@ pause
               {/* Export Config for Local CLI */}
               <button
                 onClick={handleExportConfig}
-                disabled={!audioFile && !audioPath}
+                disabled={!audioFile && !audioPath && !preparedAssetId}
                 className={`
                   w-full py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2
-                  ${audioFile || audioPath
+                  ${audioFile || audioPath || preparedAssetId
                     ? 'bg-white/5 border border-white/10 text-white/40 hover:bg-white/10 hover:text-white/60'
                     : 'bg-white/5 border border-white/10 text-white/20 cursor-not-allowed'
                   }

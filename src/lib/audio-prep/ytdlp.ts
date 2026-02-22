@@ -2,12 +2,13 @@ import { spawn } from 'child_process';
 import path from 'path';
 import { promises as fs } from 'fs';
 
-const ALLOWED_DOMAINS = ['youtube.com', 'www.youtube.com', 'youtu.be', 'm.youtube.com'];
+const DEFAULT_ALLOWED_DOMAINS = ['youtube.com', 'www.youtube.com', 'youtu.be', 'm.youtube.com'];
 
 interface YtDlpOptions {
   timeoutMs?: number;
   maxFileSizeMB?: number;
   cookieFilePath?: string;
+  allowedDomains?: string[];
   onProgress?: (percent: number) => void;
   signal?: AbortSignal;
 }
@@ -19,27 +20,29 @@ interface YtDlpResult {
   duration: number;
 }
 
-export function validateYouTubeUrl(url: string): boolean {
+export function validateYouTubeUrl(url: string, allowedDomains?: string[]): boolean {
   try {
     const parsed = new URL(url);
+    const domains = allowedDomains ?? DEFAULT_ALLOWED_DOMAINS;
 
     if (parsed.protocol !== 'https:') {
       return false;
     }
 
-    if (!ALLOWED_DOMAINS.some((d) => parsed.hostname === d)) {
+    if (!domains.some((d) => parsed.hostname === d || parsed.hostname === `www.${d}`)) {
       return false;
     }
 
     // Reject playlist-only URLs
     if (parsed.pathname === '/playlist') return false;
 
-    // youtube.com requires ?v= param
-    if (parsed.hostname !== 'youtu.be') {
-      if (!parsed.searchParams.has('v')) return false;
-    } else {
+    if (parsed.hostname === 'youtu.be') {
       // youtu.be/VIDEO_ID format
       if (!parsed.pathname.match(/^\/[a-zA-Z0-9_-]{11}$/)) return false;
+    } else {
+      // Accept ?v= param OR path-based formats: /shorts/ID, /live/ID, /embed/ID
+      const pathMatch = parsed.pathname.match(/^\/(shorts|live|embed)\/([a-zA-Z0-9_-]{11})/);
+      if (!parsed.searchParams.has('v') && !pathMatch) return false;
     }
 
     return true;
@@ -54,7 +57,12 @@ export function extractVideoId(url: string): string | null {
     if (parsed.hostname === 'youtu.be') {
       return parsed.pathname.slice(1).split('/')[0] || null;
     }
-    return parsed.searchParams.get('v');
+    // Check ?v= first, then path-based formats
+    const vParam = parsed.searchParams.get('v');
+    if (vParam) return vParam;
+    const pathMatch = parsed.pathname.match(/^\/(shorts|live|embed)\/([a-zA-Z0-9_-]{11})/);
+    if (pathMatch) return pathMatch[2];
+    return null;
   } catch {
     return null;
   }
@@ -65,9 +73,9 @@ export async function extractYouTubeAudio(
   outputDir: string,
   options: YtDlpOptions = {}
 ): Promise<YtDlpResult> {
-  const { timeoutMs = 300000, maxFileSizeMB = 100, cookieFilePath, onProgress, signal } = options;
+  const { timeoutMs = 300000, maxFileSizeMB = 100, cookieFilePath, allowedDomains, onProgress, signal } = options;
 
-  if (!validateYouTubeUrl(url)) {
+  if (!validateYouTubeUrl(url, allowedDomains)) {
     throw new Error(`Invalid or disallowed YouTube URL: ${url}`);
   }
 

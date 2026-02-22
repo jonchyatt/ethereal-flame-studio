@@ -16,6 +16,7 @@ import { getCheckInManager, destroyCheckInManager } from '@/lib/jarvis/executive
 import { NudgeOverlay } from '@/components/jarvis/NudgeOverlay';
 import { NotionPanel } from '@/components/jarvis/NotionPanel';
 import type { ScheduledEvent, BriefingData } from '@/lib/jarvis/executive/types';
+import { ChatPanel } from '@/components/jarvis/ChatPanel';
 import dynamic from 'next/dynamic';
 
 // Dynamic import to avoid SSR issues with Three.js
@@ -450,6 +451,9 @@ export default function JarvisPage() {
 
       {/* Nudge overlay - subtle indicator above controls */}
       {permissionUIState === 'ready' && <NudgeOverlay />}
+
+      {/* Text chat panel */}
+      {permissionUIState === 'ready' && <ChatPanel />}
 
       {/* Debug overlay */}
       {showDebug && permissionUIState === 'ready' && (
