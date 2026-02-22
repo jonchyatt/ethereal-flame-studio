@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Milestone v2.0 Cloud Production -- Phase 17: Integration Wiring Fixes (context gathered)
+**Current focus:** Milestone v2.0 Cloud Production -- Phase 17: Integration Wiring Fixes (plan 02 complete)
 
 **Key Files:**
 - `.planning/PROJECT.md` - Project definition
@@ -17,12 +17,12 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 ## Current Position
 
-Phase: 16 of 16 (Production Deploy & CI/CD)
-Plan: 3 of 3 in current phase
-Status: Complete
-Last activity: 2026-02-21 -- Completed 16-03 (GitHub Actions CI/CD workflow)
+Phase: 17 of 18 (Integration Wiring Fixes)
+Plan: 2 of 2 in current phase
+Status: In Progress
+Last activity: 2026-02-22 -- Completed 17-02 (Worker JobStore factory wiring)
 
-Progress: [####################] 100% (v2.0 phase 16: 3/3 plans complete)
+Progress: [####################] 100% (phase 17: 2/2 plans complete)
 
 ---
 
@@ -53,6 +53,7 @@ Progress: [####################] 100% (v2.0 phase 16: 3/3 plans complete)
 | 16    | 01   | 7min     | 2     | 3     |
 | 16    | 02   | 2min     | 1     | 1     |
 | 16    | 03   | 2min     | 2     | 2     |
+| 17    | 02   | 3min     | 1     | 1     |
 
 ---
 
@@ -112,6 +113,7 @@ Progress: [####################] 100% (v2.0 phase 16: 3/3 plans complete)
 - Parallel CI/CD deploy jobs (no dependency between web and worker deploys)
 - Concurrency group with cancel-in-progress: false (let deploys finish, don't cancel mid-deploy)
 - Render deploy via curl to deploy hook URL (simplest integration, no Render API needed)
+- Generic close() check via 'in' operator in worker shutdown -- works for both backends without importing either class
 
 ### Technical Context
 
@@ -149,6 +151,7 @@ Progress: [####################] 100% (v2.0 phase 16: 3/3 plans complete)
 - .env.example fully rewritten with 7 sections covering all v2.0 production variables
 - GitHub Actions CI/CD at .github/workflows/deploy.yml: push to main triggers parallel Vercel + Render deploys
 - Deploy checklist section 8 documents 4 required GitHub Secrets (VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID, RENDER_DEPLOY_HOOK_URL)
+- Worker entry point uses getJobStore() factory (not hardcoded TursoJobStore) -- local dev works without Turso credentials
 
 ### Blockers
 
@@ -159,9 +162,9 @@ Progress: [####################] 100% (v2.0 phase 16: 3/3 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Phase 17 context gathered
-Resume file: .planning/phases/17-integration-wiring-fixes/17-CONTEXT.md
+Stopped at: Completed 17-02-PLAN.md (Worker JobStore factory wiring)
+Resume file: .planning/phases/17-integration-wiring-fixes/17-02-SUMMARY.md
 
 ---
 
-*Last updated: 2026-02-22 -- Phase 17 context gathered*
+*Last updated: 2026-02-22 -- Phase 17 plan 02 complete*
