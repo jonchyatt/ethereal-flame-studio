@@ -9,8 +9,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { ServerJobStore } from '@/lib/queue/ServerJobStore';
 import { getJobStore } from '@/lib/jobs';
+import type { AudioPrepJob } from '@/lib/jobs';
 import { getStorageAdapter } from '@/lib/storage';
 import {
   SubmitRenderRequestSchema,
@@ -309,6 +309,38 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRen
 // GET /api/render - List jobs with pagination
 // =============================================================================
 
+/**
+ * Map AudioPrepJob status to the legacy RenderJobSummary JobStatus.
+ *
+ * AudioPrepJob uses 5 statuses: pending, processing, complete, failed, cancelled.
+ * RenderJobSummary expects the broader JobStatus enum.
+ */
+function mapStatus(status: AudioPrepJob['status']): JobStatus {
+  switch (status) {
+    case 'processing': return 'rendering';
+    case 'complete':   return 'completed';
+    default:           return status; // pending, failed, cancelled map 1:1
+  }
+}
+
+/**
+ * Convert an AudioPrepJob to a RenderJobSummary for the list response.
+ */
+function toRenderJobSummary(job: AudioPrepJob): RenderJobSummary {
+  return {
+    id: job.jobId as import('@/lib/render/schema/types').JobId,
+    batchId: null,
+    status: mapStatus(job.status),
+    progress: job.progress,
+    currentStage: job.stage || 'Unknown',
+    audioName: (job.metadata.audioName as string) || 'Unknown',
+    outputFormat: ((job.metadata.outputFormat as string) || 'unknown') as import('@/lib/render/schema/types').OutputFormat,
+    createdAt: job.createdAt,
+    completedAt: job.status === 'complete' ? job.updatedAt : null,
+    errorMessage: job.error || null,
+  };
+}
+
 export async function GET(request: NextRequest): Promise<NextResponse<ListJobsResponse | ApiErrorResponse>> {
   try {
     // Parse query parameters
@@ -340,17 +372,37 @@ export async function GET(request: NextRequest): Promise<NextResponse<ListJobsRe
 
     const query = parseResult.data;
 
-    // Fetch jobs
-    const { jobs, total } = await ServerJobStore.list({
-      status: query.status,
-      limit: query.limit,
-      offset: query.offset,
-      sortBy: query.sortBy,
-      sortOrder: query.sortOrder,
+    // Fetch all render jobs from the shared JobStore
+    const allJobs = await getJobStore().list({ type: 'render' });
+
+    // Apply status filter in-memory (map query status back to AudioPrepJob status for filtering)
+    let filtered = allJobs;
+    if (query.status) {
+      filtered = allJobs.filter((j) => mapStatus(j.status) === query.status);
+    }
+
+    // Sort (default: createdAt desc)
+    const sortField = query.sortBy as keyof AudioPrepJob;
+    const sortMul = query.sortOrder === 'asc' ? 1 : -1;
+    filtered.sort((a, b) => {
+      const aVal = String(a[sortField] ?? '');
+      const bVal = String(b[sortField] ?? '');
+      return aVal < bVal ? -1 * sortMul : aVal > bVal ? 1 * sortMul : 0;
     });
 
-    // Get status counts for summary
-    const summary = await ServerJobStore.getStatusCounts();
+    // Compute status summary across ALL render jobs (pre-pagination)
+    const summary = {} as Record<JobStatus, number>;
+    for (const j of allJobs) {
+      const mapped = mapStatus(j.status);
+      summary[mapped] = (summary[mapped] || 0) + 1;
+    }
+
+    // Paginate
+    const total = filtered.length;
+    const paged = filtered.slice(query.offset, query.offset + query.limit);
+
+    // Map to RenderJobSummary shape
+    const jobs: RenderJobSummary[] = paged.map(toRenderJobSummary);
 
     return NextResponse.json({
       success: true,
@@ -360,7 +412,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ListJobsRe
           total,
           limit: query.limit,
           offset: query.offset,
-          hasMore: query.offset + jobs.length < total,
+          hasMore: query.offset + paged.length < total,
         },
         summary,
       },
