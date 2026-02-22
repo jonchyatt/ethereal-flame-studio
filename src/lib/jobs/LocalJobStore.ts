@@ -198,17 +198,21 @@ export class LocalJobStore implements JobStore {
     return rowToJob(row);
   }
 
-  async markStaleJobsFailed(timeoutMs: number): Promise<number> {
+  async markStaleJobsFailed(timeoutMs: number, type?: AudioPrepJob['type']): Promise<number> {
     const cutoff = new Date(Date.now() - timeoutMs).toISOString();
+    const now = new Date().toISOString();
 
-    const result = this.db
-      .prepare(
-        `UPDATE audio_prep_jobs
-         SET status = 'failed', error = 'Timeout: job exceeded processing time limit', updatedAt = ?
-         WHERE status = 'processing' AND updatedAt < ?`,
-      )
-      .run(new Date().toISOString(), cutoff);
+    let sql = `UPDATE audio_prep_jobs
+      SET status = 'failed', error = 'Timeout: job exceeded processing time limit', updatedAt = ?
+      WHERE status = 'processing' AND updatedAt < ?`;
+    const params: unknown[] = [now, cutoff];
 
+    if (type) {
+      sql += ' AND type = ?';
+      params.push(type);
+    }
+
+    const result = this.db.prepare(sql).run(...params);
     return result.changes;
   }
 

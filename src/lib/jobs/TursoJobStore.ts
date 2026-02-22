@@ -241,19 +241,23 @@ export class TursoJobStore implements JobStore {
     }
   }
 
-  async markStaleJobsFailed(timeoutMs: number): Promise<number> {
+  async markStaleJobsFailed(timeoutMs: number, type?: AudioPrepJob['type']): Promise<number> {
     await this.ready();
 
     const cutoff = new Date(Date.now() - timeoutMs).toISOString();
     const now = new Date().toISOString();
 
-    const result = await this.client.execute({
-      sql: `UPDATE audio_prep_jobs
-            SET status = 'failed', error = 'Timeout: job exceeded processing time limit', updatedAt = ?
-            WHERE status = 'processing' AND updatedAt < ?`,
-      args: [now, cutoff],
-    });
+    let sql = `UPDATE audio_prep_jobs
+      SET status = 'failed', error = 'Timeout: job exceeded processing time limit', updatedAt = ?
+      WHERE status = 'processing' AND updatedAt < ?`;
+    const args: Array<string | number | null> = [now, cutoff];
 
+    if (type) {
+      sql += ' AND type = ?';
+      args.push(type);
+    }
+
+    const result = await this.client.execute({ sql, args });
     return result.rowsAffected;
   }
 

@@ -70,8 +70,8 @@ export interface JobStore {
   /** Atomically claim the oldest pending job for processing. */
   claimNextPending(): Promise<AudioPrepJob | undefined>;
 
-  /** Mark processing jobs as failed if their updatedAt exceeds timeoutMs. Returns count affected. */
-  markStaleJobsFailed(timeoutMs: number): Promise<number>;
+  /** Mark processing jobs as failed if their updatedAt exceeds timeoutMs. Optionally filter by job type. Returns count affected. */
+  markStaleJobsFailed(timeoutMs: number, type?: AudioPrepJob['type']): Promise<number>;
 
   /** Get this job's position in the pending queue (0-based). */
   getQueuePosition(jobId: string): Promise<number>;
