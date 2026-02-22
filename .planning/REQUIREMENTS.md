@@ -27,11 +27,11 @@ Requirements for cloud production deployment. Each maps to roadmap phases 12-16.
 
 ### Jobs
 
-- [x] **JOB-01**: All job and asset metadata is persisted in Turso cloud database (replacing local better-sqlite3)
+- [ ] **JOB-01**: All job and asset metadata is persisted in Turso cloud database (replacing local better-sqlite3)
 - [x] **JOB-02**: CPU worker polls Turso for pending jobs at 3-5 second intervals
-- [x] **JOB-03**: User can see job progress (percentage, stage) by polling the API
-- [x] **JOB-04**: User can cancel a running job, and the worker stops processing within one poll cycle
-- [x] **JOB-05**: Jobs stuck in "processing" for longer than a configurable timeout are automatically marked failed
+- [ ] **JOB-03**: User can see job progress (percentage, stage) by polling the API
+- [ ] **JOB-04**: User can cancel a running job, and the worker stops processing within one poll cycle
+- [ ] **JOB-05**: Jobs stuck in "processing" for longer than a configurable timeout are automatically marked failed
 
 ### Workers
 
@@ -44,13 +44,13 @@ Requirements for cloud production deployment. Each maps to roadmap phases 12-16.
 ### API
 
 - [x] **API-01**: All ingest/edit/save/render API routes return a jobId immediately without blocking
-- [x] **API-02**: Poll endpoint returns current job status, progress percentage, and result (including R2 download URL on completion)
+- [ ] **API-02**: Poll endpoint returns current job status, progress percentage, and result (including R2 download URL on completion)
 - [x] **API-03**: Asset streaming endpoint serves audio from R2 in production and local filesystem in development
 - [x] **API-04**: Webhook endpoint validates INTERNAL_WEBHOOK_SECRET header before processing callbacks
 
 ### Config & Deploy
 
-- [x] **DEPLOY-01**: Application switches between local and production mode based on environment variables (no code changes)
+- [ ] **DEPLOY-01**: Application switches between local and production mode based on environment variables (no code changes)
 - [x] **DEPLOY-02**: .env.example documents all required production environment variables
 - [x] **DEPLOY-03**: Deploy checklist (docs/DEPLOY_PROD_CHECKLIST.md) covers provisioning R2, Turso, Render, Modal, and Vercel
 - [x] **DEPLOY-04**: GitHub Actions workflow auto-deploys web to Vercel and worker to Render on push
@@ -89,21 +89,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STOR-02 | Phase 12 | Complete |
 | STOR-03 | Phase 12 | Complete |
 | STOR-04 | Phase 12 | Complete |
-| JOB-01 | Phase 13 | Complete |
+| JOB-01 | Phase 17 | Pending |
 | JOB-02 | Phase 13 | Complete |
-| JOB-03 | Phase 13 | Complete |
-| JOB-04 | Phase 13 | Complete |
-| JOB-05 | Phase 13 | Complete |
+| JOB-03 | Phase 17 | Pending |
+| JOB-04 | Phase 17 | Pending |
+| JOB-05 | Phase 18 | Pending |
 | WORK-01 | Phase 13 | Complete |
 | WORK-02 | Phase 14 | Complete |
 | WORK-03 | Phase 14 | Complete |
 | WORK-04 | Phase 15 | Complete |
 | WORK-05 | Phase 15 | Complete |
 | API-01 | Phase 14 | Complete |
-| API-02 | Phase 14 | Complete |
+| API-02 | Phase 18 | Pending |
 | API-03 | Phase 14 | Complete |
 | API-04 | Phase 14 | Complete |
-| DEPLOY-01 | Phase 16 | Complete |
+| DEPLOY-01 | Phase 17 | Pending |
 | DEPLOY-02 | Phase 16 | Complete |
 | DEPLOY-03 | Phase 16 | Complete |
 | DEPLOY-04 | Phase 16 | Complete |
@@ -114,6 +114,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 - v2.0 requirements: 24 total
 - Mapped to phases: 24
 - Unmapped: 0
+- Pending (gap closure): 6 (JOB-01, JOB-03, JOB-04, JOB-05, API-02, DEPLOY-01) → Phase 17-18
 
 ---
 *Requirements defined: 2026-02-20*

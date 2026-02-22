@@ -299,7 +299,7 @@ Plans:
 
 **Architecture:** Vercel (web/API) + Render.com (CPU worker) + Turso (state) + Cloudflare R2 (storage) + Modal (GPU render)
 
-**Phases:** 12-16 (5 phases, 24 requirements)
+**Phases:** 12-18 (7 phases, 24 requirements)
 
 ## Phases
 
@@ -308,6 +308,8 @@ Plans:
 - [x] **Phase 14: API + Worker Processing Pipeline** - Async API routes wired to worker for ingest, edit, and save operations (completed 2026-02-21)
 - [x] **Phase 15: Modal Render Dispatch** - GPU render jobs dispatched to Modal via R2, with webhook completion (completed 2026-02-21)
 - [x] **Phase 16: Production Deploy + CI/CD** - Environment config, deploy checklist, and automated deployment pipeline (completed 2026-02-21)
+- [ ] **Phase 17: Integration Wiring Fixes** - Rewire legacy poll routes and worker to use getJobStore() factory (gap closure)
+- [ ] **Phase 18: API Completeness + Timeout Accuracy** - Ingest downloadUrl, per-type timeouts, render job list (gap closure)
 
 ## Phase Details
 
@@ -422,9 +424,51 @@ Plans:
 
 ---
 
+### Phase 17: Integration Wiring Fixes
+**Goal**: All job poll and cancel paths in the API and worker use the getJobStore() factory so job state is consistent between web and worker in all environments
+**Depends on**: Phase 13 (getJobStore factory), Phase 16 (all phases complete)
+**Requirements**: JOB-01, JOB-03, JOB-04, DEPLOY-01
+**Gap Closure**: Closes CRIT-01 and CRIT-02 from v2.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. Polling `/api/audio/ingest/<jobId>` returns the job status (not 404) for jobs created by the async POST route
+  2. Polling `/api/audio/edit/save/<jobId>` and `/api/audio/edit/preview/<jobId>` return correct job status
+  3. Cancelling via legacy DELETE paths reaches the worker via the shared JobStore (not in-memory)
+  4. Running `npm run worker` locally (without TURSO_DATABASE_URL) uses LocalJobStore and works without Turso credentials
+  5. FLOW-01 (Audio Ingest) and FLOW-02 (Audio Edit+Save) E2E flows complete without 404 errors
+**Plans**: 2 plans in 1 wave
+
+Plans:
+- [ ] 17-01-PLAN.md -- Rewire 3 legacy poll/cancel routes to getJobStore() (ingest, edit/save, edit/preview)
+- [ ] 17-02-PLAN.md -- Fix worker/index.ts to use getJobStore() factory instead of hardcoded TursoJobStore
+
+**Wave Structure:**
+- Wave 1: 17-01, 17-02 (parallel — no file overlap)
+
+---
+
+### Phase 18: API Completeness + Timeout Accuracy
+**Goal**: Poll responses include download URLs for all job types, per-type timeouts are enforced, and the render job list reflects actual jobs
+**Depends on**: Phase 17 (wiring must be correct before API polish)
+**Requirements**: API-02, JOB-05
+**Gap Closure**: Closes GAP-01, GAP-02, GAP-03 from v2.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. Poll response for a completed ingest job includes a `downloadUrl` pointing to `/api/audio/assets/<assetId>/stream`
+  2. Ingest jobs timeout after 10min, preview jobs after 5min, save jobs after 15min (per JOB_TIMEOUTS config)
+  3. `GET /api/render` returns the actual render job list from getJobStore() (not always empty)
+**Plans**: 2 plans in 1 wave
+
+Plans:
+- [ ] 18-01-PLAN.md -- Add assetId→downloadUrl branch in poll endpoint; fix GET /api/render to use getJobStore()
+- [ ] 18-02-PLAN.md -- Fix reaper to pass per-type timeout from JOB_TIMEOUTS map instead of scalar default
+
+**Wave Structure:**
+- Wave 1: 18-01, 18-02 (parallel — no file overlap)
+
+---
+
 ## Progress
 
-**Execution Order:** 12 -> 13 -> 14 -> 15 -> 16
+**Execution Order:** 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -440,6 +484,8 @@ Plans:
 | 14. API + Worker Processing | 3/3 | Complete    | 2026-02-21 | - |
 | 15. Modal Render Dispatch | 2/2 | Complete    | 2026-02-21 | - |
 | 16. Production Deploy + CI/CD | 3/3 | Complete    | 2026-02-21 | - |
+| 17. Integration Wiring Fixes | v2.0 | 0/2 | Planned | - |
+| 18. API Completeness + Timeout Accuracy | v2.0 | 0/2 | Planned | - |
 
 ---
 
@@ -459,6 +505,12 @@ Phase 15 (Modal Render Dispatch)
     |
     v
 Phase 16 (Production Deploy + CI/CD)
+    |
+    v
+Phase 17 (Integration Wiring Fixes)
+    |
+    v
+Phase 18 (API Completeness + Timeout Accuracy)
 ```
 
 ---
