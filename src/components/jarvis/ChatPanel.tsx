@@ -15,6 +15,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useChatStore } from '@/lib/jarvis/stores/chatStore';
+import { useNotionPanelStore } from '@/lib/jarvis/stores/notionPanelStore';
 import { postJarvisAPI } from '@/lib/jarvis/api/fetchWithAuth';
 
 const QUICK_ACTIONS = [
@@ -36,6 +37,8 @@ export function ChatPanel() {
     togglePanel,
     setActiveTool,
   } = useChatStore();
+
+  const notionPanelOpen = useNotionPanelStore((s) => s.isOpen);
 
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -156,12 +159,12 @@ export function ChatPanel() {
 
   return (
     <>
-      {/* Toggle button - always visible */}
+      {/* Toggle button - hidden when NotionPanel is open so it doesn't overlap tutorial buttons */}
       <button
         onClick={togglePanel}
-        className="fixed bottom-6 right-6 z-50 w-12 h-12 bg-cyan-600 hover:bg-cyan-500
+        className={`fixed bottom-6 right-6 z-50 w-12 h-12 bg-cyan-600 hover:bg-cyan-500
                    rounded-full shadow-lg flex items-center justify-center transition-all
-                   md:bottom-8 md:right-8"
+                   md:bottom-8 md:right-8 ${notionPanelOpen ? 'hidden' : ''}`}
         aria-label={isPanelOpen ? 'Close chat' : 'Open chat'}
       >
         {isPanelOpen ? (

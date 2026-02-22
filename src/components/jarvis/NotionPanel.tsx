@@ -347,12 +347,6 @@ export function NotionPanel() {
           )}
         </div>
 
-        {/* Floating Jarvis indicator */}
-        <div className="absolute bottom-4 left-4">
-          <div className="w-8 h-8 rounded-full bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center">
-            <div className="w-3 h-3 rounded-full bg-cyan-400/60 animate-pulse" />
-          </div>
-        </div>
       </div>
     </>
   );
