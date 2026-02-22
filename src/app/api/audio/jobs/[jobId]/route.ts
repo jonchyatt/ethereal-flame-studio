@@ -77,6 +77,9 @@ export async function GET(
           // Non-fatal: downloadUrl is optional. If signing fails (e.g. key
           // deleted), the poll response still returns the result object.
         }
+      } else if (job.result.assetId) {
+        // Ingest jobs store an assetId — serve via the streaming endpoint
+        response.downloadUrl = `/api/audio/assets/${job.result.assetId}/stream`;
       }
     }
 
