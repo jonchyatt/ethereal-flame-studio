@@ -27,10 +27,10 @@ Requirements for cloud production deployment. Each maps to roadmap phases 12-16.
 
 ### Jobs
 
-- [ ] **JOB-01**: All job and asset metadata is persisted in Turso cloud database (replacing local better-sqlite3)
+- [x] **JOB-01**: All job and asset metadata is persisted in Turso cloud database (replacing local better-sqlite3)
 - [x] **JOB-02**: CPU worker polls Turso for pending jobs at 3-5 second intervals
-- [ ] **JOB-03**: User can see job progress (percentage, stage) by polling the API
-- [ ] **JOB-04**: User can cancel a running job, and the worker stops processing within one poll cycle
+- [x] **JOB-03**: User can see job progress (percentage, stage) by polling the API
+- [x] **JOB-04**: User can cancel a running job, and the worker stops processing within one poll cycle
 - [ ] **JOB-05**: Jobs stuck in "processing" for longer than a configurable timeout are automatically marked failed
 
 ### Workers
@@ -89,10 +89,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STOR-02 | Phase 12 | Complete |
 | STOR-03 | Phase 12 | Complete |
 | STOR-04 | Phase 12 | Complete |
-| JOB-01 | Phase 17 | Pending |
+| JOB-01 | Phase 17 | Complete |
 | JOB-02 | Phase 13 | Complete |
-| JOB-03 | Phase 17 | Pending |
-| JOB-04 | Phase 17 | Pending |
+| JOB-03 | Phase 17 | Complete |
+| JOB-04 | Phase 17 | Complete |
 | JOB-05 | Phase 18 | Pending |
 | WORK-01 | Phase 13 | Complete |
 | WORK-02 | Phase 14 | Complete |

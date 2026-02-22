@@ -53,6 +53,7 @@ Progress: [####################] 100% (phase 17: 2/2 plans complete)
 | 16    | 01   | 7min     | 2     | 3     |
 | 16    | 02   | 2min     | 1     | 1     |
 | 16    | 03   | 2min     | 2     | 2     |
+| 17    | 01   | 6min     | 2     | 3     |
 | 17    | 02   | 3min     | 1     | 1     |
 
 ---
@@ -114,6 +115,9 @@ Progress: [####################] 100% (phase 17: 2/2 plans complete)
 - Concurrency group with cancel-in-progress: false (let deploys finish, don't cancel mid-deploy)
 - Render deploy via curl to deploy hook URL (simplest integration, no Render API needed)
 - Generic close() check via 'in' operator in worker shutdown -- works for both backends without importing either class
+- Preserved { success, data } GET response wrapper on legacy poll routes for AudioPrepEditor backward compatibility
+- DELETE handlers on legacy routes use flat response shape (AudioPrepEditor does not parse DELETE responses)
+- Terminal state check (409) added to legacy DELETE handlers matching canonical cancel endpoint pattern
 
 ### Technical Context
 
@@ -127,7 +131,8 @@ Progress: [####################] 100% (phase 17: 2/2 plans complete)
 - Job cancel endpoint at `/api/audio/jobs/[jobId]/cancel` transitions non-terminal jobs to cancelled (409 for terminal)
 - Standalone worker at `worker/` with poll loop, heartbeat, graceful shutdown, cancellation detection, and reaper
 - Worker Dockerfile includes ffmpeg + yt-dlp for Render.com deployment
-- Original JobManager at `src/lib/audio-prep/JobManager.ts` still exists -- API routes now use JobStore, JobManager deprecated
+- Original JobManager at `src/lib/audio-prep/JobManager.ts` still exists -- all API routes now use JobStore, JobManager fully deprecated
+- Legacy poll/cancel routes (ingest, edit/save, edit/preview) rewired to getJobStore() with backward-compatible { success, data } response wrapper
 - All audio API POST routes (ingest, preview, save) dispatch to JobStore and return immediately (no inline processing)
 - Poll endpoint at `/api/audio/jobs/[jobId]` enriches completed jobs with signed downloadUrl from storage adapter
 - Preview audio route at `/api/audio/edit/preview/[jobId]/audio` serves from storage adapter (not filesystem)
@@ -162,9 +167,9 @@ Progress: [####################] 100% (phase 17: 2/2 plans complete)
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 17-02-PLAN.md (Worker JobStore factory wiring)
-Resume file: .planning/phases/17-integration-wiring-fixes/17-02-SUMMARY.md
+Stopped at: Completed 17-01-PLAN.md (Legacy poll route rewiring)
+Resume file: .planning/phases/17-integration-wiring-fixes/17-01-SUMMARY.md
 
 ---
 
-*Last updated: 2026-02-22 -- Phase 17 plan 02 complete*
+*Last updated: 2026-02-22 -- Phase 17 plan 01 complete (all plans done)*
