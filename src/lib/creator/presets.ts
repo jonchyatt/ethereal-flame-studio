@@ -285,7 +285,7 @@ export const CHANNEL_METADATA_PRESETS: ChannelMetadataPreset[] = [
     platform: 'instagram-reels',
     titleTemplates: [
       '{mood} visual reset',
-      '{topic} atmosphere • {mood}',
+      '{topic} atmosphere - {mood}',
       '{mood} energy sequence',
     ],
     descriptionTemplate:

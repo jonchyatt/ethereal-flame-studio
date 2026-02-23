@@ -14,7 +14,7 @@ export function getLocalAgentAdminSecret(): string {
     return process.env.LOCAL_AGENT_ADMIN_SECRET;
   }
   if (process.env.LOCAL_AGENT_SHARED_SECRET) {
-    console.warn('[local-agent/auth] LOCAL_AGENT_ADMIN_SECRET not set — falling back to LOCAL_AGENT_SHARED_SECRET for admin auth. Any agent token can access admin endpoints.');
+    console.warn('[local-agent/auth] LOCAL_AGENT_ADMIN_SECRET not set  --  falling back to LOCAL_AGENT_SHARED_SECRET for admin auth. Any agent token can access admin endpoints.');
     return process.env.LOCAL_AGENT_SHARED_SECRET;
   }
   throw new Error('LOCAL_AGENT_ADMIN_SECRET (or LOCAL_AGENT_SHARED_SECRET fallback) is not configured');

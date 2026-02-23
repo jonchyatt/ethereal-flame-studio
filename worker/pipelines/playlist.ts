@@ -29,7 +29,7 @@ function deriveAppUrl(metadata: PlaylistBatchMetadata): string {
     process.env.NEXT_PUBLIC_APP_URL ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
   if (!url) {
-    console.warn('[playlist] No appUrl, NEXT_PUBLIC_APP_URL, or VERCEL_URL set — falling back to http://localhost:3000');
+    console.warn('[playlist] No appUrl, NEXT_PUBLIC_APP_URL, or VERCEL_URL set  --  falling back to http://localhost:3000');
     return 'http://localhost:3000';
   }
   return url;

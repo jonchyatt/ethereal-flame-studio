@@ -509,11 +509,11 @@ export default function CreatorLibraryPage() {
                     >
                       <div className="text-sm font-medium truncate">{item.sourceAudioName}</div>
                       <div className="mt-1 text-[11px] text-zinc-500">
-                        {item.variants.length} variants • {item.recutPlans.length} recut plans • {item.thumbnailPlans.length} thumbnail plans
+                        {item.variants.length} variants  |  {item.recutPlans.length} recut plans  |  {item.thumbnailPlans.length} thumbnail plans
                       </div>
                       <div className="mt-1 text-[11px] text-zinc-500 truncate">
                         {(item.tags.moods.length || item.tags.topics.length || item.tags.keywords.length)
-                          ? `moods:${item.tags.moods.join('/')} • topics:${item.tags.topics.join('/')} • keywords:${item.tags.keywords.join('/')}`
+                          ? `moods:${item.tags.moods.join('/')}  |  topics:${item.tags.topics.join('/')}  |  keywords:${item.tags.keywords.join('/')}`
                           : 'No tags yet'}
                       </div>
                     </button>
@@ -532,11 +532,11 @@ export default function CreatorLibraryPage() {
                   <div>
                     <h2 className="text-xl font-semibold">{selectedItem.sourceAudioName}</h2>
                     <div className="text-xs text-zinc-500 mt-1">
-                      Updated {formatDate(selectedItem.updatedAt)} • Item {selectedItem.itemId}
+                      Updated {formatDate(selectedItem.updatedAt)}  |  Item {selectedItem.itemId}
                     </div>
                     {selectedPack && (
                       <div className="text-xs text-zinc-400 mt-1">
-                        Pack: {selectedPack.bundleLabel || selectedPack.bundleId || 'custom'} • Target: {selectedPack.target}
+                        Pack: {selectedPack.bundleLabel || selectedPack.bundleId || 'custom'}  |  Target: {selectedPack.target}
                         {selectedPack.targetAgentId ? ` (${selectedPack.targetAgentId})` : ''}
                       </div>
                     )}
@@ -661,7 +661,7 @@ export default function CreatorLibraryPage() {
                         {selectedItem.recutPlans.map((plan, idx) => (
                           <div key={`${plan.platform}:${idx}`} className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-3">
                             <div className="text-xs text-zinc-300">
-                              {plan.platform} � {plan.aspectRatio} � cap {plan.durationCapSec}s
+                              {plan.platform} � {plan.aspectRatio} � cap {plan.durationCapSec}s
                             </div>
                             <div className="mt-2 space-y-2">
                               {plan.segments.slice(0, 6).map((segment, segmentIdx) => (
@@ -669,7 +669,7 @@ export default function CreatorLibraryPage() {
                                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                                     <div className="text-[11px] text-zinc-300">
                                       {formatTime(segment.startSec)} - {formatTime(segment.endSec)}
-                                      <span className="text-zinc-500"> � {segment.reason}</span>
+                                      <span className="text-zinc-500"> � {segment.reason}</span>
                                     </div>
                                     <div className="flex items-center gap-2 text-[11px]">
                                       <span className="text-zinc-500">score {segment.score.toFixed(2)}</span>
@@ -730,10 +730,10 @@ export default function CreatorLibraryPage() {
                       <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 space-y-3">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                           <div className="text-xs text-zinc-300">
-                            Segment preview � plan {recutPreview.planIndex + 1}, segment {recutPreview.segmentIndex + 1}
+                            Segment preview � plan {recutPreview.planIndex + 1}, segment {recutPreview.segmentIndex + 1}
                           </div>
                           <div className="text-[11px] text-zinc-500">
-                            {formatTime(recutPreview.startSec)} - {formatTime(recutPreview.endSec)} � {recutPreview.safeZonePresetId}
+                            {formatTime(recutPreview.startSec)} - {formatTime(recutPreview.endSec)} � {recutPreview.safeZonePresetId}
                           </div>
                         </div>
                         <div
@@ -823,10 +823,10 @@ export default function CreatorLibraryPage() {
                         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
                           <div>
                             <div className="text-sm text-zinc-100">
-                              {variant.styleVariant.label} • {variant.outputFormat} • {variant.fps} FPS
+                              {variant.styleVariant.label}  |  {variant.outputFormat}  |  {variant.fps} FPS
                             </div>
                             <div className="text-[11px] text-zinc-500 mt-1">
-                              Platforms: {variant.platformTargets.join(', ') || 'none'} • Duration cap: {variant.durationCapSec ?? 'none'} • Safe zone: {variant.safeZonePresetId || 'none'}
+                              Platforms: {variant.platformTargets.join(', ') || 'none'}  |  Duration cap: {variant.durationCapSec ?? 'none'}  |  Safe zone: {variant.safeZonePresetId || 'none'}
                             </div>
                             <div className="text-[11px] text-zinc-500 mt-1">
                               Render target: {variant.renderTarget || selectedPack?.target || 'cloud'}
@@ -859,7 +859,7 @@ export default function CreatorLibraryPage() {
                       {selectedPack.publishDrafts.map((draft, idx) => (
                         <div key={`${draft.channelPresetId}:${idx}`} className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-3 space-y-2">
                           <div className="text-xs text-zinc-300">
-                            {draft.platform} • preset `{draft.channelPresetId}`
+                            {draft.platform}  |  preset `{draft.channelPresetId}`
                           </div>
                           <div>
                             <div className="text-[11px] text-zinc-500 mb-1">Title Variants</div>

@@ -293,7 +293,7 @@ export default function ThumbnailPlannerPage() {
                   >
                     {availableVariants.map((variant) => (
                       <option key={`${variant.variantId}:${variant.renderJobId}`} value={variant.variantId || variant.renderJobId}>
-                        {variant.outputFormat} • {variant.fps} FPS • {variant.renderJobId.slice(0, 16)}
+                        {variant.outputFormat}  |  {variant.fps} FPS  |  {variant.renderJobId.slice(0, 16)}
                       </option>
                     ))}
                   </select>
@@ -366,7 +366,7 @@ export default function ThumbnailPlannerPage() {
 
                 {selectedVariant && (
                   <div className="text-[11px] text-zinc-500">
-                    Variant: {selectedVariant.outputFormat} • Platforms: {selectedVariant.platformTargets.join(', ') || 'none'} • Job: {selectedVariant.renderJobId}
+                    Variant: {selectedVariant.outputFormat}  |  Platforms: {selectedVariant.platformTargets.join(', ') || 'none'}  |  Job: {selectedVariant.renderJobId}
                   </div>
                 )}
 
@@ -382,7 +382,7 @@ export default function ThumbnailPlannerPage() {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                   <div>
                     <div className="text-sm font-semibold text-zinc-200">
-                      {plan.platform} • {plan.aspectRatio} • {plan.safeZonePresetId}
+                      {plan.platform}  |  {plan.aspectRatio}  |  {plan.safeZonePresetId}
                     </div>
                     <div className="text-xs text-zinc-500">
                       Auto-selected timestamp: {plan.selectedTimestampSec != null ? `${formatTime(plan.selectedTimestampSec)} (${plan.selectedTimestampSec.toFixed(2)}s)` : 'none'}

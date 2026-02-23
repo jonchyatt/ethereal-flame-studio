@@ -262,10 +262,10 @@ export default function CreatorDashboardPage() {
                           </span>
                         </div>
                         <div className="text-xs text-zinc-500 mt-1">
-                          {row.pack.bundleLabel || row.pack.bundleId || 'Custom Bundle'} • Pack {row.pack.packId}
+                          {row.pack.bundleLabel || row.pack.bundleId || 'Custom Bundle'}  |  Pack {row.pack.packId}
                         </div>
                         <div className="text-xs text-zinc-500 mt-1">
-                          Created {formatDate(row.pack.createdAt)} • Updated {formatDate(row.pack.updatedAt)} • Synced {formatDate(row.live.syncedAt)}
+                          Created {formatDate(row.pack.createdAt)}  |  Updated {formatDate(row.pack.updatedAt)}  |  Synced {formatDate(row.live.syncedAt)}
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2 text-xs">
@@ -314,25 +314,25 @@ export default function CreatorDashboardPage() {
                         <div className="text-zinc-400 mb-1">Render Jobs</div>
                         <div className="text-zinc-200">
                           {row.live.render.complete}/{row.live.render.total} complete
-                          {row.live.render.processing ? ` • ${row.live.render.processing} active` : ''}
-                          {row.live.render.failed ? ` • ${row.live.render.failed} failed` : ''}
+                          {row.live.render.processing ? `  |  ${row.live.render.processing} active` : ''}
+                          {row.live.render.failed ? `  |  ${row.live.render.failed} failed` : ''}
                         </div>
                       </div>
                       <div className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-3">
                         <div className="text-zinc-400 mb-1">Recut Jobs</div>
                         <div className="text-zinc-200">
                           {row.live.recut.complete}/{row.live.recut.total} complete
-                          {row.live.recut.processing ? ` • ${row.live.recut.processing} active` : ''}
-                          {row.live.recut.failed ? ` • ${row.live.recut.failed} failed` : ''}
+                          {row.live.recut.processing ? `  |  ${row.live.recut.processing} active` : ''}
+                          {row.live.recut.failed ? `  |  ${row.live.recut.failed} failed` : ''}
                         </div>
                       </div>
                       <div className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-3">
                         <div className="text-zinc-400 mb-1">Publish Jobs</div>
                         <div className="text-zinc-200">
                           {row.live.publish.complete}/{row.live.publish.total} complete
-                          {row.live.publish.scheduled ? ` • ${row.live.publish.scheduled} scheduled` : ''}
-                          {row.live.publish.processing ? ` • ${row.live.publish.processing} active` : ''}
-                          {row.live.publish.failed ? ` • ${row.live.publish.failed} failed` : ''}
+                          {row.live.publish.scheduled ? `  |  ${row.live.publish.scheduled} scheduled` : ''}
+                          {row.live.publish.processing ? `  |  ${row.live.publish.processing} active` : ''}
+                          {row.live.publish.failed ? `  |  ${row.live.publish.failed} failed` : ''}
                         </div>
                       </div>
                     </div>
@@ -344,10 +344,10 @@ export default function CreatorDashboardPage() {
                           <div key={variant.renderJobId} className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3">
                             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                               <div>
-                                <div className="text-sm text-zinc-100">{variant.styleLabel} • {variant.outputFormat}</div>
+                                <div className="text-sm text-zinc-100">{variant.styleLabel}  |  {variant.outputFormat}</div>
                                 <div className="text-[11px] text-zinc-500 mt-1">
-                                  {variant.platformTargets.join(', ')} • {variant.stage || variant.status}
-                                  {variant.error ? ` • ${variant.error}` : ''}
+                                  {variant.platformTargets.join(', ')}  |  {variant.stage || variant.status}
+                                  {variant.error ? `  |  ${variant.error}` : ''}
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
@@ -372,7 +372,7 @@ export default function CreatorDashboardPage() {
                         <div className="flex flex-wrap gap-2">
                           {(row.pack.recutExecutions || []).slice(0, 12).map((recut) => (
                             <span key={recut.recutId} className={`px-2 py-1 rounded-full border text-[11px] ${statusTone(recut.status)}`}>
-                              {recut.platform} • {recut.status}
+                              {recut.platform}  |  {recut.status}
                             </span>
                           ))}
                         </div>
@@ -386,7 +386,7 @@ export default function CreatorDashboardPage() {
                           {(row.pack.publishTasks || []).slice(0, 8).map((task) => (
                             <div key={task.publishId} className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-2 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                               <div className="text-xs text-zinc-300">
-                                {task.platform} • {task.mode} • {task.providerStatus || task.status}
+                                {task.platform}  |  {task.mode}  |  {task.providerStatus || task.status}
                               </div>
                               <span className={`px-2 py-1 rounded-full border text-[11px] ${statusTone(task.status)}`}>{task.status}</span>
                             </div>
@@ -404,7 +404,7 @@ export default function CreatorDashboardPage() {
             <div>
               <h2 className="text-sm font-semibold text-zinc-200">Automation Controls</h2>
               <p className="text-xs text-zinc-500 mt-1">
-                These settings apply to the “Queue Recuts” and “Queue Publish” actions from each pack row.
+                These settings apply to the "Queue Recuts" and "Queue Publish" actions from each pack row.
               </p>
             </div>
 

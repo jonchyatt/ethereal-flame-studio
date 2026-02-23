@@ -527,7 +527,7 @@ export default function PlaylistBatchesPage() {
                       <div className="min-w-0">
                         <div className="text-sm font-medium truncate">{batch.playlistTitle}</div>
                         <div className="text-xs text-white/50">
-                          {batch.itemCount} items · {batch.outputFormat || 'unknown format'} · {batch.target || 'target?'}
+                          {batch.itemCount} items  |  {batch.outputFormat || 'unknown format'}  |  {batch.target || 'target?'}
                         </div>
                       </div>
                       <div className="text-right shrink-0">

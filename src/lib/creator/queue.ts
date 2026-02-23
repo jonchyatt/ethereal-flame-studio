@@ -293,7 +293,7 @@ function choosePublishDraftForPlatform(pack: CreatorRenderPack, platform: string
 }
 
 function buildFallbackPublishDraft(pack: CreatorRenderPack, platform: string) {
-  const baseTitle = `${pack.source.audioName.replace(/\.[^.]+$/, '')} • ${platform}`;
+  const baseTitle = `${pack.source.audioName.replace(/\.[^.]+$/, '')} - ${platform}`;
   return {
     channelPresetId: 'fallback',
     platform,

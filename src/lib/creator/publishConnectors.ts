@@ -50,7 +50,7 @@ function platformEnvSuffix(platform: string): string {
 
 function truncate(text: string, max: number): string {
   if (text.length <= max) return text;
-  return text.slice(0, Math.max(0, max - 1)).trimEnd() + '…';
+  return text.slice(0, Math.max(0, max - 1)).trimEnd() + '...';
 }
 
 function coerceDateTime(value: string | null | undefined): string | null {
@@ -349,12 +349,12 @@ async function buildYoutubeAuthClient() {
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      throw new Error(`YouTube OAuth token refresh failed — check YOUTUBE_PUBLISH_REFRESH_TOKEN and client credentials: ${msg}`);
+      throw new Error(`YouTube OAuth token refresh failed  --  check YOUTUBE_PUBLISH_REFRESH_TOKEN and client credentials: ${msg}`);
     }
   } else if (accessToken) {
-    // Static access token only — will fail when it expires
+    // Static access token only  --  will fail when it expires
     oauth2.setCredentials({ access_token: accessToken });
-    console.warn('[publishConnectors] Using static YOUTUBE_PUBLISH_ACCESS_TOKEN without refresh token — this will expire.');
+    console.warn('[publishConnectors] Using static YOUTUBE_PUBLISH_ACCESS_TOKEN without refresh token  --  this will expire.');
   }
   return oauth2;
 }
