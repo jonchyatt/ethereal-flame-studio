@@ -106,6 +106,7 @@ function getResolution(format: OutputFormat): { width: number; height: number } 
     // New format names (from renderConfig)
     'flat-1080p-landscape': { width: 1920, height: 1080 },
     'flat-1080p-portrait': { width: 1080, height: 1920 },
+    'flat-1080p-square': { width: 1080, height: 1080 },
     'flat-4k-landscape': { width: 3840, height: 2160 },
     'flat-4k-portrait': { width: 2160, height: 3840 },
     // 360 formats

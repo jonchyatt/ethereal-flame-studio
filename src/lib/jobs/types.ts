@@ -13,7 +13,7 @@
 
 export interface AudioPrepJob {
   jobId: string;
-  type: 'ingest' | 'preview' | 'save' | 'render';
+  type: 'ingest' | 'preview' | 'save' | 'render' | 'playlist' | 'creator-recut' | 'publish' | 'creator-pack-sync';
   status: 'pending' | 'processing' | 'complete' | 'failed' | 'cancelled';
   progress: number;
   stage: string | null; // descriptive stage name ("downloading", "analyzing", etc.)

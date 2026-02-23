@@ -28,7 +28,18 @@ export async function runReaper(
   // Pass 1: Per-type timeouts
   for (const [type, timeoutMs] of Object.entries(timeouts)) {
     if (type === 'default') continue;
-    const count = await store.markStaleJobsFailed(timeoutMs, type as 'ingest' | 'preview' | 'save' | 'render');
+    const count = await store.markStaleJobsFailed(
+      timeoutMs,
+      type as
+        | 'ingest'
+        | 'preview'
+        | 'save'
+        | 'render'
+        | 'playlist'
+        | 'creator-recut'
+        | 'publish'
+        | 'creator-pack-sync',
+    );
     total += count;
   }
 

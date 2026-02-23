@@ -34,6 +34,7 @@ export type OutputFormat =
   | 'flat-1080p'
   | 'flat-4k'
   | 'flat-1080p-vertical'
+  | 'flat-1080p-square'
   | 'flat-4k-vertical'
   | '360-mono-4k'
   | '360-mono-6k'
@@ -73,6 +74,8 @@ export interface EncodeOptions {
   signal?: AbortSignal;
   /** Use two-pass encoding for better quality (slower) */
   twoPass?: boolean;
+  /** Timeout in ms — kills FFmpeg if encoding exceeds this (default: 2 hours) */
+  timeoutMs?: number;
 }
 
 /**
@@ -157,6 +160,11 @@ const BITRATE_PRESETS: Record<OutputFormat, Record<QualityPreset, { bitrate: str
     fast: { bitrate: '12M', maxBitrate: '15M', bufsize: '30M' },
     balanced: { bitrate: '15M', maxBitrate: '20M', bufsize: '40M' },
     quality: { bitrate: '20M', maxBitrate: '25M', bufsize: '50M' },
+  },
+  'flat-1080p-square': {
+    fast: { bitrate: '10M', maxBitrate: '13M', bufsize: '26M' },
+    balanced: { bitrate: '12M', maxBitrate: '16M', bufsize: '32M' },
+    quality: { bitrate: '16M', maxBitrate: '20M', bufsize: '40M' },
   },
   'flat-4k-vertical': {
     fast: { bitrate: '40M', maxBitrate: '50M', bufsize: '100M' },
@@ -495,6 +503,7 @@ export class FFmpegEncoder extends EventEmitter {
 
     return new Promise((resolve) => {
       const args = this.getCommand();
+      const encodeTimeoutMs = this.options.timeoutMs ?? 2 * 60 * 60 * 1000; // Default: 2 hours
 
       this.reportProgress({
         frame: 0,
@@ -512,6 +521,14 @@ export class FFmpegEncoder extends EventEmitter {
         stdio: ['pipe', 'pipe', 'pipe'],
         shell: false,
       });
+
+      // Safety timeout — kill FFmpeg if it hangs
+      const encodeTimeout = setTimeout(() => {
+        if (this.process && !this.aborted) {
+          console.error(`[FFmpegEncoder] Timed out after ${Math.round(encodeTimeoutMs / 1000)}s — killing FFmpeg`);
+          this.abort();
+        }
+      }, encodeTimeoutMs);
 
       let stderrBuffer = '';
 
@@ -542,6 +559,7 @@ export class FFmpegEncoder extends EventEmitter {
 
       // Handle process errors
       this.process.on('error', (error) => {
+        clearTimeout(encodeTimeout);
         console.error('[FFmpegEncoder] Process error:', error);
         resolve({
           success: false,
@@ -553,6 +571,7 @@ export class FFmpegEncoder extends EventEmitter {
 
       // Handle process completion
       this.process.on('close', (code) => {
+        clearTimeout(encodeTimeout);
         const duration = (Date.now() - startTime) / 1000;
 
         if (this.aborted) {

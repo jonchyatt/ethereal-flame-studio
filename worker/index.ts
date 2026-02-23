@@ -27,6 +27,11 @@ const JOB_TIMEOUTS: Record<string, number> = {
   ingest: Number(process.env.WORKER_INGEST_TIMEOUT_MS) || 10 * 60 * 1000,   // 10 min
   preview: Number(process.env.WORKER_PREVIEW_TIMEOUT_MS) || 5 * 60 * 1000,  // 5 min
   save: Number(process.env.WORKER_SAVE_TIMEOUT_MS) || 15 * 60 * 1000,       // 15 min
+  render: Number(process.env.WORKER_RENDER_TIMEOUT_MS) || 24 * 60 * 60 * 1000, // 24h (Modal callback can take hours)
+  playlist: Number(process.env.WORKER_PLAYLIST_TIMEOUT_MS) || 48 * 60 * 60 * 1000, // 48h for sequential batches
+  'creator-recut': Number(process.env.WORKER_CREATOR_RECUT_TIMEOUT_MS) || 4 * 60 * 60 * 1000, // 4h
+  publish: Number(process.env.WORKER_PUBLISH_TIMEOUT_MS) || 60 * 60 * 1000, // 1h
+  'creator-pack-sync': Number(process.env.WORKER_CREATOR_PACK_SYNC_TIMEOUT_MS) || 10 * 60 * 1000, // 10m
   default: Number(process.env.WORKER_DEFAULT_TIMEOUT_MS) || 10 * 60 * 1000, // 10 min
 };
 

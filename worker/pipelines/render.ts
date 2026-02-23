@@ -122,13 +122,40 @@ export async function runRenderPipeline(
       visual: visualConfig,
     };
 
+    const renderTarget = (job.metadata.renderTarget as string | undefined) || 'cloud';
+    const targetAgentId = job.metadata.targetAgentId as string | undefined;
+    const callbackBase =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
+    if (renderTarget === 'local-agent') {
+      await store.update(job.jobId, { stage: 'awaiting-local-agent', progress: 28 });
+      await store.update(job.jobId, {
+        stage: 'awaiting-local-agent',
+        progress: 30,
+        result: {
+          ...(job.result || {}),
+          localAgentDispatch: {
+            schemaVersion: 1,
+            jobId: job.jobId,
+            audioSignedUrl: signedUrl,
+            renderConfig,
+            appUrl: (job.metadata.callbackUrl as string | undefined) || callbackBase,
+            targetAgentId: targetAgentId || null,
+            createdAt: new Date().toISOString(),
+          },
+        },
+      });
+      console.log(`[Render] Job ${job.jobId} staged for local agent dispatch (targetAgentId=${targetAgentId || 'any'})`);
+      return;
+    }
+
     // -- Step 5: Dispatch to Modal --------------------------------------------
 
     await store.update(job.jobId, { stage: 'dispatching', progress: 27 });
 
     const webhookUrl = `${
-      process.env.NEXT_PUBLIC_APP_URL ||
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+      callbackBase
     }/api/webhooks/worker`;
 
     const webhookSecret = process.env.INTERNAL_WEBHOOK_SECRET;
@@ -151,7 +178,10 @@ export async function runRenderPipeline(
     await store.update(job.jobId, {
       stage: 'dispatched-to-modal',
       progress: 30,
-      result: { modalCallId: modalResponse.call_id },
+      result: {
+        ...(job.result || {}),
+        modalCallId: modalResponse.call_id,
+      },
     });
   } finally {
     // Cleanup temp directory

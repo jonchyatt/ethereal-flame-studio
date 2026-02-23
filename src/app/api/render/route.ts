@@ -118,6 +118,22 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRen
     }
 
     const input = parseResult.data;
+    const requestMetadata = (input.metadata && typeof input.metadata === 'object')
+      ? (input.metadata as Record<string, unknown>)
+      : {};
+    const requestedRenderTarget = typeof requestMetadata.renderTarget === 'string'
+      ? requestMetadata.renderTarget
+      : 'cloud';
+    const renderTarget = ['cloud', 'home', 'local-agent'].includes(requestedRenderTarget)
+      ? requestedRenderTarget
+      : 'cloud';
+    const targetAgentId = typeof requestMetadata.targetAgentId === 'string' && requestMetadata.targetAgentId.trim()
+      ? requestMetadata.targetAgentId.trim()
+      : undefined;
+    const metadataVisualConfig =
+      requestMetadata.visualConfig && typeof requestMetadata.visualConfig === 'object'
+        ? (requestMetadata.visualConfig as Record<string, unknown>)
+        : undefined;
     const storage = getStorageAdapter();
     const jobStore = getJobStore();
 
@@ -171,8 +187,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRen
         );
     }
 
-    // Build visual config for worker pipeline
-    const visualConfig = {
+    // Build visual config for worker pipeline.
+    // Prefer explicit visualConfig from client metadata (full editor state projection),
+    // fall back to schema-backed renderSettings for older callers.
+    const visualConfig = metadataVisualConfig || {
       mode: input.renderSettings?.visualMode || 'flame',
       skyboxPreset: input.renderSettings?.skyboxPreset || 'nebula',
       skyboxRotationSpeed: input.renderSettings?.skyboxRotationSpeed || 0,
@@ -196,6 +214,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRen
       quality: input.priority,
       visualConfig,
       callbackUrl,
+      renderTarget,
+      targetAgentId: targetAgentId || null,
+      targetMachine: input.targetMachine || null,
+      clientMetadata: {
+        ...requestMetadata,
+        visualConfig: undefined,
+      },
       // These will be set after upload:
       audioStorageKey: undefined,
       audioUrl: audioUrl,
@@ -283,7 +308,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRen
         status: 'pending' as const,
         audioName,
         outputFormat: input.outputFormat,
-        targetMachine: null,
+        targetMachine: targetAgentId || input.targetMachine || (renderTarget !== 'cloud' ? renderTarget : null),
         estimatedDuration,
         position,
       },

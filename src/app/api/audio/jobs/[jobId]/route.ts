@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getJobStore } from '@/lib/jobs';
+import type { AudioPrepJob } from '@/lib/jobs/types';
 import { getStorageAdapter } from '@/lib/storage';
 
 /**
@@ -11,7 +12,7 @@ import { getStorageAdapter } from '@/lib/storage';
  */
 export interface JobPollResponse {
   jobId: string;
-  type: 'ingest' | 'preview' | 'save' | 'render';
+  type: AudioPrepJob['type'];
   status: 'pending' | 'processing' | 'complete' | 'failed' | 'cancelled';
   progress: number; // 0-100 within current stage
   stage: string | null; // descriptive name: "downloading", "normalizing", etc.

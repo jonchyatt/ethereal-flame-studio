@@ -12,6 +12,11 @@ import { runIngestPipeline } from './pipelines/ingest';
 import { runPreviewPipeline } from './pipelines/preview';
 import { runSavePipeline } from './pipelines/save';
 import { runRenderPipeline } from './pipelines/render';
+import { runPlaylistPipeline } from './pipelines/playlist';
+import { waitForRenderCompletion } from './pipelines/render-wait';
+import { runCreatorRecutPipeline } from './pipelines/creator-recut';
+import { runPublishPipeline } from './pipelines/publish';
+import { runCreatorPackSyncPipeline } from './pipelines/creator-pack-sync';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -186,12 +191,35 @@ export async function processJob(
         // Render jobs are completed by the webhook callback, not here.
         // The pipeline dispatches to Modal and returns without calling store.complete().
         await runRenderPipeline(store, job, childRef);
+        if ((job.metadata as Record<string, unknown>)?.waitForCompletion === true) {
+          await waitForRenderCompletion(store, job.jobId, {
+            heartbeatJobId: job.jobId,
+          });
+        }
         return; // Skip implicit completion — job stays in 'processing' with stage 'dispatched-to-modal'
+      case 'playlist':
+        await runPlaylistPipeline(store, job, childRef);
+        return;
+      case 'creator-recut':
+        await runCreatorRecutPipeline(store, job, childRef);
+        return;
+      case 'publish':
+        await runPublishPipeline(store, job, childRef);
+        return;
+      case 'creator-pack-sync':
+        await runCreatorPackSyncPipeline(store, job, childRef);
+        return;
       default:
         throw new Error(`Unknown job type: ${(job as any).type}`);
     }
   } catch (err) {
     if (cancelled) return; // Don't retry cancelled jobs
+    try {
+      const latest = await store.get(job.jobId);
+      if (latest?.status === 'cancelled') return;
+    } catch {
+      // Ignore lookup failure; fall through to normal error handling.
+    }
 
     // -- Error handling with auto-retry ------------------------------------
     const error = err instanceof Error ? err : new Error(String(err));

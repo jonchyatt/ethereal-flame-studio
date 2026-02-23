@@ -6,7 +6,7 @@ import { getStorageAdapter } from '@/lib/storage';
 // Validation
 // ---------------------------------------------------------------------------
 
-const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500 MB
+const MAX_FILE_SIZE = Number(process.env.STORAGE_UPLOAD_MAX_BYTES) || 500 * 1024 * 1024; // default 500 MB
 
 const uploadRequestSchema = z.object({
   key: z

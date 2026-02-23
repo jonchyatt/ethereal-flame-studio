@@ -85,3 +85,37 @@ npx tsc --noEmit
 npx jest src/lib/audio-prep/__tests__ --runInBand
 ```
 
+## 8. Playlist Batch MVP (Sequential YouTube Playlist Rendering)
+
+This repo now includes an MVP playlist batch page for sequential YouTube playlist ingest + render:
+
+- Open `http://localhost:3000/playlist-batches`
+- Paste a YouTube playlist URL (`/playlist?list=...`)
+- Check rights attestation
+- Choose output format / FPS / target (`Cloud` or `Home Server`)
+- Start the batch and leave a JobStore worker running
+
+Current MVP behavior:
+
+- Uses the JobStore worker path (not the legacy BullMQ batch page)
+- Ingests and renders playlist items one-by-one
+- Waits for each render to complete before dispatching the next item
+- Uses existing render pipeline/webhook flow (Modal/home-worker deployment path)
+- Applies per-target lease locks (`cloud`, `home`, `local-agent[:agentId]`) for multi-worker safety
+- Dedupes by `videoId + render settings` against completed playlist render jobs
+- Supports retrying failed items / resuming incomplete items from the playlist batch page
+
+### Local Agent Target (Viewer-Machine GPU)
+
+To render on the machine you are using to access the site, run the local agent on that machine:
+
+```powershell
+npx tsx scripts/local-render-agent.ts --server http://localhost:3000 --agent-id my-laptop --token YOUR_LOCAL_AGENT_SHARED_SECRET
+```
+
+Server requirement:
+
+- Set `LOCAL_AGENT_SHARED_SECRET` in the app environment (same value used by the agent `--token`)
+
+Then choose `Local Agent` as the target in `/playlist-batches` and optionally set `Target Agent ID` to `my-laptop`.
+

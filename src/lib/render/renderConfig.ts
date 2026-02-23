@@ -12,6 +12,7 @@ import { ParticleLayerConfig, VisualMode } from '@/types';
 export const OUTPUT_FORMATS = [
   'flat-1080p-landscape',
   'flat-1080p-portrait',
+  'flat-1080p-square',
   'flat-4k-landscape',
   'flat-4k-portrait',
   '360-mono-4k',
@@ -113,6 +114,23 @@ export const RenderConfigSchema = z.object({
     orbWorldX: z.number().optional(),
     orbWorldY: z.number().optional(),
     orbWorldZ: z.number().optional(),
+    // Orb audio dynamics
+    decaySpeed: z.number().optional(),
+    attackSpeed: z.number().optional(),
+    beatSensitivity: z.number().optional(),
+    minBrightness: z.number().optional(),
+    audioInputGain: z.number().optional(),
+    audioNoiseGate: z.number().optional(),
+    audioResponseCurve: z.number().optional(),
+    audioDynamicRange: z.number().optional(),
+    audioTransientBoost: z.number().optional(),
+    audioBeatPulseAmount: z.number().optional(),
+    audioVisibilityBoost: z.number().optional(),
+    audioSizeCapAmount: z.number().optional(),
+    audioPositionCapAmount: z.number().optional(),
+    audioBassWeight: z.number().optional(),
+    audioMidsWeight: z.number().optional(),
+    audioTrebleWeight: z.number().optional(),
     layers: z.array(z.object({
       id: z.string(),
       name: z.string(),
@@ -221,6 +239,22 @@ export interface RenderConfigVisualState {
   orbWorldX: number;
   orbWorldY: number;
   orbWorldZ: number;
+  decaySpeed: number;
+  attackSpeed: number;
+  beatSensitivity: number;
+  minBrightness: number;
+  audioInputGain: number;
+  audioNoiseGate: number;
+  audioResponseCurve: number;
+  audioDynamicRange: number;
+  audioTransientBoost: number;
+  audioBeatPulseAmount: number;
+  audioVisibilityBoost: number;
+  audioSizeCapAmount: number;
+  audioPositionCapAmount: number;
+  audioBassWeight: number;
+  audioMidsWeight: number;
+  audioTrebleWeight: number;
   layers: ParticleLayerConfig[];
 }
 
@@ -301,6 +335,22 @@ export function buildVisualConfigFromState(visualState: RenderConfigVisualState)
     orbWorldX: visualState.orbWorldX,
     orbWorldY: visualState.orbWorldY,
     orbWorldZ: visualState.orbWorldZ,
+    decaySpeed: visualState.decaySpeed,
+    attackSpeed: visualState.attackSpeed,
+    beatSensitivity: visualState.beatSensitivity,
+    minBrightness: visualState.minBrightness,
+    audioInputGain: visualState.audioInputGain,
+    audioNoiseGate: visualState.audioNoiseGate,
+    audioResponseCurve: visualState.audioResponseCurve,
+    audioDynamicRange: visualState.audioDynamicRange,
+    audioTransientBoost: visualState.audioTransientBoost,
+    audioBeatPulseAmount: visualState.audioBeatPulseAmount,
+    audioVisibilityBoost: visualState.audioVisibilityBoost,
+    audioSizeCapAmount: visualState.audioSizeCapAmount,
+    audioPositionCapAmount: visualState.audioPositionCapAmount,
+    audioBassWeight: visualState.audioBassWeight,
+    audioMidsWeight: visualState.audioMidsWeight,
+    audioTrebleWeight: visualState.audioTrebleWeight,
     layers: visualState.layers.map(layer => ({
       id: layer.id,
       name: layer.name,
@@ -366,6 +416,7 @@ export function getResolution(format: LocalOutputFormat): { width: number; heigh
   const resolutions: Record<LocalOutputFormat, { width: number; height: number }> = {
     'flat-1080p-landscape': { width: 1920, height: 1080 },
     'flat-1080p-portrait': { width: 1080, height: 1920 },
+    'flat-1080p-square': { width: 1080, height: 1080 },
     'flat-4k-landscape': { width: 3840, height: 2160 },
     'flat-4k-portrait': { width: 2160, height: 3840 },
     '360-mono-4k': { width: 4096, height: 2048 },

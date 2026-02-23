@@ -92,6 +92,7 @@ export const JOB_STATUSES = Object.keys(JOB_STATUS_META) as JobStatus[];
 export type OutputFormat =
   | 'flat-1080p-landscape'   // 1920x1080
   | 'flat-1080p-portrait'    // 1080x1920
+  | 'flat-1080p-square'      // 1080x1080
   | 'flat-4k-landscape'      // 3840x2160
   | 'flat-4k-portrait'       // 2160x3840
   | '360-mono-4k'            // 4096x2048 equirectangular
@@ -119,6 +120,11 @@ export const OUTPUT_FORMAT_META: Record<OutputFormat, {
     width: 1080, height: 1920, is360: false, isStereo: false,
     aspectRatio: '9:16',
     estimatedFileSizeMB: (dur, fps) => dur * fps * 0.015,
+  },
+  'flat-1080p-square': {
+    width: 1080, height: 1080, is360: false, isStereo: false,
+    aspectRatio: '1:1',
+    estimatedFileSizeMB: (dur, fps) => dur * fps * 0.012,
   },
   'flat-4k-landscape': {
     width: 3840, height: 2160, is360: false, isStereo: false,
@@ -441,7 +447,7 @@ export function isActiveState(status: JobStatus): boolean {
  * Output format Zod schema
  */
 export const OutputFormatSchema = z.enum([
-  'flat-1080p-landscape', 'flat-1080p-portrait',
+  'flat-1080p-landscape', 'flat-1080p-portrait', 'flat-1080p-square',
   'flat-4k-landscape', 'flat-4k-portrait',
   '360-mono-4k', '360-mono-6k', '360-mono-8k',
   '360-stereo-8k',

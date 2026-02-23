@@ -15,9 +15,10 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { X, Upload, MessageSquare, CheckCircle, AlertCircle, Loader2, Download, Terminal, Monitor } from 'lucide-react';
+import { X, Upload, MessageSquare, CheckCircle, AlertCircle, Loader2, Terminal, Monitor, Cloud, Cpu } from 'lucide-react';
 import { useVisualStore } from '@/lib/stores/visualStore';
 import { buildVisualConfigFromState, createConfigFromState, type LocalOutputFormat } from '@/lib/render/renderConfig';
+import { ORB_AUDIO_RESPONSE_PRESET_VALUES, type OrbAudioResponsePresetId } from '@/lib/creator/orbAudioResponsePresets';
 
 // Local render job shape (mirrors server LocalRenderJob)
 interface LocalRenderJobStatus {
@@ -45,6 +46,7 @@ interface OutputFormatOption {
 }
 
 type RenderState = 'idle' | 'submitting' | 'queued' | 'rendering' | 'complete' | 'error';
+type RemoteRenderTarget = 'cloud' | 'local-agent';
 
 interface JobStatus {
   id: string;
@@ -52,6 +54,63 @@ interface JobStatus {
   progress: number;
   currentStage: string;
   error?: string;
+}
+
+interface AvailableLocalAgent {
+  agentId: string;
+  label: string | null;
+  lastSeenAt: string | null;
+  expiresAt: string | null;
+  disabled: boolean;
+  capabilities?: Record<string, unknown>;
+}
+
+interface CreatorCatalogStyleVariant {
+  id: string;
+  label: string;
+  visualMode?: 'flame' | 'mist';
+  orbAudioPreset?: OrbAudioResponsePresetId;
+  description?: string;
+}
+
+interface CreatorCatalogExportPackVariant {
+  outputFormat: string;
+  fps: 30 | 60;
+  platformTargets: string[];
+  durationCapSec: number | null;
+  safeZonePresetId: 'safe-16x9' | 'safe-9x16' | 'safe-1x1';
+}
+
+interface CreatorCatalogExportPack {
+  id: string;
+  label: string;
+  description: string;
+  variants: CreatorCatalogExportPackVariant[];
+}
+
+interface CreatorCatalogBundle {
+  id: string;
+  label: string;
+  description: string;
+  defaultExportPackIds: string[];
+  styleVariants: CreatorCatalogStyleVariant[];
+  channelPresetIds: string[];
+}
+
+interface CreatorCatalogData {
+  bundles: CreatorCatalogBundle[];
+  exportPacks: CreatorCatalogExportPack[];
+}
+
+type CreatorQueueState = 'idle' | 'loading-catalog' | 'submitting' | 'complete' | 'error';
+
+interface CreatorQueueSummary {
+  totalVariants: number;
+  queuedVariants: number;
+  currentLabel: string | null;
+  packId: string | null;
+  contentLibraryItemId: string | null;
+  jobIds: string[];
 }
 
 // =============================================================================
@@ -63,6 +122,7 @@ const OUTPUT_FORMATS: OutputFormatOption[] = [
   // Flat formats
   { value: 'flat-1080p-landscape', label: '1080p Landscape', resolution: '1920x1080', category: 'flat' },
   { value: 'flat-1080p-portrait', label: '1080p Portrait', resolution: '1080x1920', category: 'flat', description: 'YouTube Shorts, TikTok, Reels' },
+  { value: 'flat-1080p-square', label: '1080p Square', resolution: '1080x1080', category: 'flat', description: 'Instagram Feed, cross-post crops' },
   { value: 'flat-4k-landscape', label: '4K Landscape', resolution: '3840x2160', category: 'flat' },
   { value: 'flat-4k-portrait', label: '4K Portrait', resolution: '2160x3840', category: 'flat' },
 
@@ -80,6 +140,21 @@ const CATEGORY_LABELS: Record<OutputCategory, string> = {
   '360-mono': '360 VR',
   '360-stereo': '360 VR 3D',
 };
+
+function parseTagList(input: string): string[] {
+  return Array.from(
+    new Set(
+      input
+        .split(',')
+        .map((part) => part.trim())
+        .filter(Boolean),
+    ),
+  ).slice(0, 20);
+}
+
+function toggleStringSelection(values: string[], id: string): string[] {
+  return values.includes(id) ? values.filter((v) => v !== id) : [...values, id];
+}
 
 // =============================================================================
 // COMPONENT
@@ -103,6 +178,26 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, preparedAs
   const [renderState, setRenderState] = useState<RenderState>('idle');
   const [jobStatus, setJobStatus] = useState<JobStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [remoteRenderTarget, setRemoteRenderTarget] = useState<RemoteRenderTarget>('cloud');
+  const [remoteTargetAgentId, setRemoteTargetAgentId] = useState<string>('');
+  const [localAgentPickerToken, setLocalAgentPickerToken] = useState<string>('');
+  const [availableLocalAgents, setAvailableLocalAgents] = useState<AvailableLocalAgent[]>([]);
+  const [localAgentsLoading, setLocalAgentsLoading] = useState(false);
+  const [localAgentsError, setLocalAgentsError] = useState<string | null>(null);
+  const [creatorAutomationEnabled, setCreatorAutomationEnabled] = useState(false);
+  const [creatorCatalog, setCreatorCatalog] = useState<CreatorCatalogData | null>(null);
+  const [creatorCatalogLoading, setCreatorCatalogLoading] = useState(false);
+  const [creatorCatalogError, setCreatorCatalogError] = useState<string | null>(null);
+  const [creatorBundleId, setCreatorBundleId] = useState<string>('brand-a');
+  const [selectedCreatorExportPackIds, setSelectedCreatorExportPackIds] = useState<string[]>([]);
+  const [selectedCreatorStyleVariantIds, setSelectedCreatorStyleVariantIds] = useState<string[]>([]);
+  const [creatorMoodsInput, setCreatorMoodsInput] = useState('');
+  const [creatorTopicsInput, setCreatorTopicsInput] = useState('');
+  const [creatorKeywordsInput, setCreatorKeywordsInput] = useState('');
+  const [creatorBpmInput, setCreatorBpmInput] = useState('');
+  const [creatorQueueState, setCreatorQueueState] = useState<CreatorQueueState>('idle');
+  const [creatorQueueError, setCreatorQueueError] = useState<string | null>(null);
+  const [creatorQueueSummary, setCreatorQueueSummary] = useState<CreatorQueueSummary | null>(null);
 
   // Get selected category
   const selectedCategory = OUTPUT_FORMATS.find(f => f.value === selectedFormat)?.category || 'flat';
@@ -115,8 +210,114 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, preparedAs
   // Get visual state for export and local render
   const visualState = useVisualStore();
 
+  const selectedBundle = creatorCatalog?.bundles.find((bundle) => bundle.id === creatorBundleId) || null;
+  const selectedCreatorExportPacks = (creatorCatalog?.exportPacks || []).filter((pack) => selectedCreatorExportPackIds.includes(pack.id));
+
   // Track consecutive poll failures to detect missing render server
   const pollFailures = useRef(0);
+
+  const fetchAvailableLocalAgents = useCallback(async () => {
+    const token = localAgentPickerToken.trim();
+    if (!token) {
+      setAvailableLocalAgents([]);
+      setLocalAgentsError('Enter Local Agent admin token to load agent picker');
+      return;
+    }
+
+    setLocalAgentsLoading(true);
+    setLocalAgentsError(null);
+    try {
+      const response = await fetch('/api/local-agent/agents', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      if (!response.ok || data.success === false) {
+        throw new Error(data.error?.message || `Failed to load local agents (${response.status})`);
+      }
+      const all = (data.data?.agents || []) as AvailableLocalAgent[];
+      const online = all.filter((agent) => {
+        if (agent.disabled) return false;
+        if (!agent.expiresAt) return false;
+        return new Date(agent.expiresAt).getTime() > Date.now();
+      });
+      setAvailableLocalAgents(online);
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem('localAgentAdminToken', token);
+      }
+    } catch (err) {
+      setAvailableLocalAgents([]);
+      setLocalAgentsError(err instanceof Error ? err.message : 'Failed to load local agents');
+    } finally {
+      setLocalAgentsLoading(false);
+    }
+  }, [localAgentPickerToken]);
+
+  const fetchCreatorCatalog = useCallback(async () => {
+    setCreatorCatalogLoading(true);
+    setCreatorCatalogError(null);
+    try {
+      const response = await fetch('/api/creator/catalog');
+      const data = await response.json();
+      if (!response.ok || data.success === false) {
+        throw new Error(data.error?.message || `Failed to load creator catalog (${response.status})`);
+      }
+      const catalog = (data.data || null) as CreatorCatalogData | null;
+      setCreatorCatalog(catalog);
+      if (catalog?.bundles?.length) {
+        const preferredBundle = catalog.bundles.find((bundle) => bundle.id === creatorBundleId) || catalog.bundles[0];
+        setCreatorBundleId(preferredBundle.id);
+      }
+    } catch (err) {
+      setCreatorCatalogError(err instanceof Error ? err.message : 'Failed to load creator presets');
+    } finally {
+      setCreatorCatalogLoading(false);
+    }
+  }, [creatorBundleId]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const saved = window.sessionStorage.getItem('localAgentAdminToken') || '';
+    if (saved) {
+      setLocalAgentPickerToken(saved);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen || remoteRenderTarget !== 'local-agent') return;
+    if (!localAgentPickerToken.trim()) return;
+    fetchAvailableLocalAgents().catch(() => {});
+  }, [isOpen, remoteRenderTarget, localAgentPickerToken, fetchAvailableLocalAgents]);
+
+  useEffect(() => {
+    if (!isOpen || !creatorAutomationEnabled) return;
+    if (creatorCatalog || creatorCatalogLoading) return;
+    setCreatorQueueState('loading-catalog');
+    fetchCreatorCatalog()
+      .then(() => setCreatorQueueState('idle'))
+      .catch(() => setCreatorQueueState('error'));
+  }, [isOpen, creatorAutomationEnabled, creatorCatalog, creatorCatalogLoading, fetchCreatorCatalog]);
+
+  useEffect(() => {
+    if (!creatorCatalog?.bundles?.length) return;
+    const bundle = creatorCatalog.bundles.find((item) => item.id === creatorBundleId) || creatorCatalog.bundles[0];
+    if (!bundle) return;
+    setSelectedCreatorExportPackIds((prev) => {
+      if (prev.length > 0) {
+        const valid = prev.filter((id) => creatorCatalog.exportPacks.some((pack) => pack.id === id));
+        if (valid.length > 0) return valid;
+      }
+      return bundle.defaultExportPackIds;
+    });
+    setSelectedCreatorStyleVariantIds((prev) => {
+      if (prev.length > 0) {
+        const valid = prev.filter((id) => bundle.styleVariants.some((variant) => variant.id === id));
+        if (valid.length > 0) return valid;
+      }
+      return bundle.styleVariants.map((variant) => variant.id);
+    });
+  }, [creatorCatalog, creatorBundleId]);
 
   // Poll job status when rendering
   useEffect(() => {
@@ -350,6 +551,91 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, preparedAs
     });
   }, []);
 
+  const buildRemoteAudioInput = useCallback(async () => {
+    let audioInput: { type: string; assetId?: string; path?: string; url?: string; data?: string; filename?: string; mimeType?: string };
+
+    if (preparedAssetId) {
+      audioInput = { type: 'asset', assetId: preparedAssetId };
+    } else if (audioPath) {
+      if (audioPath.startsWith('http://') || audioPath.startsWith('https://')) {
+        audioInput = { type: 'url', url: audioPath, filename: audioFile?.name };
+      } else {
+        audioInput = { type: 'path', path: audioPath };
+      }
+    } else if (audioFile) {
+      const base64Data = await fileToBase64(audioFile);
+      const mimeType = audioFile.type || 'audio/mpeg';
+      audioInput = { type: 'base64', data: base64Data, filename: audioFile.name, mimeType };
+    } else {
+      throw new Error('No audio source');
+    }
+
+    return audioInput;
+  }, [preparedAssetId, audioPath, audioFile, fileToBase64]);
+
+  const buildVariantVisualConfig = useCallback((
+    baseVisualConfig: Record<string, unknown>,
+    styleVariant?: CreatorCatalogStyleVariant,
+  ) => {
+    const nextConfig: Record<string, unknown> = { ...baseVisualConfig };
+    if (styleVariant?.visualMode) {
+      nextConfig.mode = styleVariant.visualMode;
+    }
+    if (styleVariant?.orbAudioPreset) {
+      Object.assign(nextConfig, ORB_AUDIO_RESPONSE_PRESET_VALUES[styleVariant.orbAudioPreset]);
+    }
+    return nextConfig;
+  }, []);
+
+  const submitRemoteRenderJob = useCallback(async (params: {
+    audioInput: { type: string; assetId?: string; path?: string; url?: string; data?: string; filename?: string; mimeType?: string };
+    outputFormat: string;
+    fps: 30 | 60;
+    visualConfig: Record<string, unknown>;
+    visualMode: 'flame' | 'mist';
+  }) => {
+    const body = {
+      audio: params.audioInput,
+      outputFormat: params.outputFormat,
+      fps: params.fps,
+      renderSettings: { visualMode: params.visualMode },
+      transcribe: enableTranscription,
+      upload: enableGoogleDrive,
+      metadata: {
+        renderTarget: remoteRenderTarget === 'local-agent' ? 'local-agent' : 'cloud',
+        targetAgentId: remoteRenderTarget === 'local-agent' && remoteTargetAgentId.trim() ? remoteTargetAgentId.trim() : undefined,
+        visualConfig: params.visualConfig,
+      },
+    };
+
+    const response = await fetch('/api/render', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await response.json();
+    if (!response.ok || data.success === false) {
+      let errorMsg = data.error?.message || `Failed to submit render (${response.status})`;
+      if (data.error?.details) {
+        const details = Object.entries(data.error.details)
+          .map(([field, msgs]) => `${field}: ${(msgs as string[]).join(', ')}`)
+          .join('; ');
+        errorMsg += ` (${details})`;
+      }
+      throw new Error(errorMsg);
+    }
+    return data.data as {
+      jobId: string;
+      status: string;
+      estimatedDuration?: number;
+    };
+  }, [
+    enableGoogleDrive,
+    enableTranscription,
+    remoteRenderTarget,
+    remoteTargetAgentId,
+  ]);
+
   // Submit render job
   const handleSubmit = useCallback(async () => {
     if (!audioFile && !audioPath && !preparedAssetId) {
@@ -361,80 +647,262 @@ export function RenderDialog({ isOpen, onClose, audioFile, audioPath, preparedAs
     setError(null);
 
     try {
-      // Build audio input - prefer preparedAssetId > audioPath > audioFile
-      let audioInput: { type: string; assetId?: string; path?: string; url?: string; data?: string; filename?: string; mimeType?: string };
-
-      if (preparedAssetId) {
-        audioInput = { type: 'asset', assetId: preparedAssetId };
-        console.log('[RenderDialog] Using prepared asset:', preparedAssetId);
-      } else if (audioPath) {
-        // Check if it's a URL or a local path
-        if (audioPath.startsWith('http://') || audioPath.startsWith('https://')) {
-          audioInput = { type: 'url', url: audioPath, filename: audioFile?.name };
-          console.log('[RenderDialog] Using URL audio:', audioPath);
-        } else {
-          audioInput = { type: 'path', path: audioPath };
-          console.log('[RenderDialog] Using path audio:', audioPath);
-        }
-      } else if (audioFile) {
-        console.log('[RenderDialog] Converting audio file:', audioFile.name, 'size:', audioFile.size, 'type:', audioFile.type);
-        const base64Data = await fileToBase64(audioFile);
-        // mimeType is required by the API schema
-        const mimeType = audioFile.type || 'audio/mpeg';
-        audioInput = { type: 'base64', data: base64Data, filename: audioFile.name, mimeType };
-        console.log('[RenderDialog] Audio input ready, data length:', base64Data.length);
-      } else {
-        throw new Error('No audio source');
-      }
-
-      // Map template names to schema values
-      // UI uses 'etherealFlame'/'etherealMist', schema expects 'flame'/'mist'
+      const audioInput = await buildRemoteAudioInput();
       const visualMode = template === 'etherealMist' ? 'mist' : 'flame';
-
-      // Build request body
-      const body = {
-        audio: audioInput,
+      const visualConfig = buildVisualConfigFromState(visualState) as Record<string, unknown>;
+      const result = await submitRemoteRenderJob({
+        audioInput,
         outputFormat: selectedFormat,
         fps: selectedFps,
-        renderSettings: { visualMode },
-        transcribe: enableTranscription,
-        upload: enableGoogleDrive,
-      };
-
-      const response = await fetch('/api/render', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        visualConfig,
+        visualMode,
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        setJobStatus({
-          id: data.data.jobId,
-          status: 'pending',
-          progress: 0,
-          currentStage: 'Queued',
-        });
-        setRenderState('queued');
-      } else {
-        // Show detailed validation errors if available
-        let errorMsg = data.error?.message || 'Failed to submit job';
-        if (data.error?.details) {
-          const details = Object.entries(data.error.details)
-            .map(([field, msgs]) => `${field}: ${(msgs as string[]).join(', ')}`)
-            .join('; ');
-          errorMsg += ` (${details})`;
-        }
-        console.error('[RenderDialog] Submission failed:', data.error);
-        setError(errorMsg);
-        setRenderState('error');
-      }
+      setJobStatus({
+        id: result.jobId,
+        status: 'pending',
+        progress: 0,
+        currentStage: 'Queued',
+      });
+      setRenderState('queued');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit job');
       setRenderState('error');
     }
-  }, [audioFile, audioPath, preparedAssetId, selectedFormat, selectedFps, template, enableTranscription, enableGoogleDrive]);
+  }, [
+    audioFile,
+    audioPath,
+    preparedAssetId,
+    selectedFormat,
+    selectedFps,
+    template,
+    visualState,
+    buildRemoteAudioInput,
+    submitRemoteRenderJob,
+  ]);
+
+  const handleRenderAndQueuePublish = useCallback(async () => {
+    if (!audioFile && !audioPath && !preparedAssetId) {
+      setCreatorQueueError('No audio file or prepared asset selected');
+      setCreatorQueueState('error');
+      return;
+    }
+    if (!creatorCatalog) {
+      setCreatorQueueError('Creator catalog not loaded yet');
+      setCreatorQueueState('error');
+      return;
+    }
+    const bundle = creatorCatalog.bundles.find((b) => b.id === creatorBundleId) || null;
+    if (!bundle) {
+      setCreatorQueueError('Select a creator bundle');
+      setCreatorQueueState('error');
+      return;
+    }
+    const selectedStyleVariants = bundle.styleVariants.filter((variant) => selectedCreatorStyleVariantIds.includes(variant.id));
+    if (selectedStyleVariants.length === 0) {
+      setCreatorQueueError('Select at least one style variant');
+      setCreatorQueueState('error');
+      return;
+    }
+    const selectedPacks = creatorCatalog.exportPacks.filter((pack) => selectedCreatorExportPackIds.includes(pack.id));
+    if (selectedPacks.length === 0) {
+      setCreatorQueueError('Select at least one export pack');
+      setCreatorQueueState('error');
+      return;
+    }
+
+    setCreatorQueueState('submitting');
+    setCreatorQueueError(null);
+    setCreatorQueueSummary({
+      totalVariants: 0,
+      queuedVariants: 0,
+      currentLabel: 'Preparing creator batch...',
+      packId: null,
+      contentLibraryItemId: null,
+      jobIds: [],
+    });
+
+    try {
+      const audioInput = await buildRemoteAudioInput();
+      const baseVisualConfig = buildVisualConfigFromState(visualState) as Record<string, unknown>;
+      const defaultVisualMode = (baseVisualConfig.mode === 'mist' || template === 'etherealMist') ? 'mist' : 'flame';
+      const audioName = audioFile?.name || audioPath?.split(/[/\\]/).pop() || (preparedAssetId ? `asset-${preparedAssetId}.wav` : 'audio.mp3');
+
+      type PlannedVariant = CreatorCatalogExportPackVariant & {
+        styleVariant: CreatorCatalogStyleVariant;
+        variantId: string;
+      };
+
+      const plannedMap = new Map<string, PlannedVariant>();
+      for (const styleVariant of selectedStyleVariants) {
+        for (const pack of selectedPacks) {
+          for (const variant of pack.variants) {
+            const key = [
+              styleVariant.id,
+              variant.outputFormat,
+              variant.fps,
+              variant.durationCapSec ?? 'null',
+              variant.safeZonePresetId,
+            ].join('|');
+            const existing = plannedMap.get(key);
+            if (existing) {
+              existing.platformTargets = Array.from(new Set([...existing.platformTargets, ...variant.platformTargets]));
+              continue;
+            }
+            plannedMap.set(key, {
+              ...variant,
+              styleVariant,
+              variantId: `${styleVariant.id}__${variant.outputFormat}__${variant.fps}`,
+            });
+          }
+        }
+      }
+
+      const plannedVariants = Array.from(plannedMap.values());
+      if (plannedVariants.length === 0) {
+        throw new Error('No creator variants resolved from the selected export packs');
+      }
+
+      setCreatorQueueSummary({
+        totalVariants: plannedVariants.length,
+        queuedVariants: 0,
+        currentLabel: 'Submitting render jobs...',
+        packId: null,
+        contentLibraryItemId: null,
+        jobIds: [],
+      });
+
+      const queuedVariants: Array<{
+        variantId: string;
+        outputFormat: string;
+        fps: 30 | 60;
+        styleVariant: CreatorCatalogStyleVariant;
+        platformTargets: string[];
+        durationCapSec: number | null;
+        safeZonePresetId: 'safe-16x9' | 'safe-9x16' | 'safe-1x1';
+        renderJobId: string;
+      }> = [];
+
+      for (let i = 0; i < plannedVariants.length; i++) {
+        const planned = plannedVariants[i];
+        setCreatorQueueSummary((prev) => prev ? {
+          ...prev,
+          totalVariants: plannedVariants.length,
+          currentLabel: `Queueing ${i + 1}/${plannedVariants.length}: ${planned.styleVariant.label} • ${planned.outputFormat}`,
+        } : prev);
+
+        const visualConfig = buildVariantVisualConfig(baseVisualConfig, planned.styleVariant);
+        const visualMode = (planned.styleVariant.visualMode || (visualConfig.mode as 'flame' | 'mist' | undefined) || defaultVisualMode);
+
+        const renderResult = await submitRemoteRenderJob({
+          audioInput,
+          outputFormat: planned.outputFormat,
+          fps: planned.fps,
+          visualConfig,
+          visualMode,
+        });
+
+        queuedVariants.push({
+          variantId: planned.variantId,
+          outputFormat: planned.outputFormat,
+          fps: planned.fps,
+          styleVariant: planned.styleVariant,
+          platformTargets: planned.platformTargets,
+          durationCapSec: planned.durationCapSec ?? null,
+          safeZonePresetId: planned.safeZonePresetId,
+          renderJobId: renderResult.jobId,
+        });
+
+        setCreatorQueueSummary((prev) => prev ? {
+          ...prev,
+          totalVariants: plannedVariants.length,
+          queuedVariants: i + 1,
+          currentLabel: `Queued ${i + 1}/${plannedVariants.length}`,
+          jobIds: [...prev.jobIds, renderResult.jobId],
+        } : prev);
+      }
+
+      const creatorResponse = await fetch('/api/creator/render-packs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          source: {
+            audioName,
+            assetId: preparedAssetId || null,
+            audioPath: audioPath && !/^https?:\/\//i.test(audioPath) ? audioPath : null,
+            sourceUrl: audioPath && /^https?:\/\//i.test(audioPath) ? audioPath : null,
+          },
+          bundleId: bundle.id,
+          exportPackIds: selectedPacks.map((pack) => pack.id),
+          variants: queuedVariants.map((variant) => ({
+            variantId: variant.variantId,
+            outputFormat: variant.outputFormat,
+            fps: variant.fps,
+            styleVariant: variant.styleVariant,
+            platformTargets: variant.platformTargets,
+            durationCapSec: variant.durationCapSec,
+            safeZonePresetId: variant.safeZonePresetId,
+            renderJobId: variant.renderJobId,
+            renderTarget: remoteRenderTarget === 'local-agent' ? 'local-agent' : 'cloud',
+            targetAgentId: remoteRenderTarget === 'local-agent' && remoteTargetAgentId.trim() ? remoteTargetAgentId.trim() : null,
+          })),
+          target: remoteRenderTarget === 'local-agent' ? 'local-agent' : 'cloud',
+          targetAgentId: remoteRenderTarget === 'local-agent' && remoteTargetAgentId.trim() ? remoteTargetAgentId.trim() : null,
+          channelPresetIds: bundle.channelPresetIds,
+          tags: {
+            moods: parseTagList(creatorMoodsInput),
+            topics: parseTagList(creatorTopicsInput),
+            keywords: parseTagList(creatorKeywordsInput),
+            bpm: creatorBpmInput.trim() ? Number(creatorBpmInput) : null,
+          },
+          metadata: {
+            createdFrom: 'RenderDialog',
+            selectedCategory,
+            selectedBaseFormat: selectedFormat,
+            selectedFps,
+            creatorAutomationEnabled: true,
+          },
+        }),
+      });
+      const creatorData = await creatorResponse.json();
+      if (!creatorResponse.ok || creatorData.success === false) {
+        throw new Error(creatorData.error?.message || `Failed to save creator pack (${creatorResponse.status})`);
+      }
+
+      setCreatorQueueSummary((prev) => prev ? {
+        ...prev,
+        currentLabel: 'Creator pack queued',
+        packId: creatorData.data?.pack?.packId || null,
+        contentLibraryItemId: creatorData.data?.contentItem?.itemId || null,
+      } : prev);
+      setCreatorQueueState('complete');
+    } catch (err) {
+      setCreatorQueueError(err instanceof Error ? err.message : 'Failed to queue creator batch');
+      setCreatorQueueState('error');
+    }
+  }, [
+    audioFile,
+    audioPath,
+    preparedAssetId,
+    creatorCatalog,
+    creatorBundleId,
+    selectedCreatorStyleVariantIds,
+    selectedCreatorExportPackIds,
+    buildRemoteAudioInput,
+    visualState,
+    template,
+    buildVariantVisualConfig,
+    submitRemoteRenderJob,
+    remoteRenderTarget,
+    remoteTargetAgentId,
+    creatorMoodsInput,
+    creatorTopicsInput,
+    creatorKeywordsInput,
+    creatorBpmInput,
+    selectedCategory,
+    selectedFormat,
+    selectedFps,
+  ]);
 
   // Reset state
   const handleReset = useCallback(() => {
@@ -664,6 +1132,387 @@ pause
             {/* Google Drive upload hidden - requires rclone on local render machine */}
           </div>
 
+          {/* Remote Render Target */}
+          <div className="space-y-3">
+            <label className="block text-sm text-white/60">Remote Render Target</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setRemoteRenderTarget('cloud')}
+                disabled={renderState !== 'idle'}
+                className={`
+                  p-3 rounded-lg text-left border transition-all
+                  ${remoteRenderTarget === 'cloud'
+                    ? 'bg-blue-500/25 border-blue-400/50 text-white'
+                    : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}
+                  ${renderState !== 'idle' ? 'opacity-50 cursor-not-allowed' : ''}
+                `}
+              >
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Cloud className="w-4 h-4" />
+                  Cloud
+                </div>
+                <div className="text-xs text-white/50 mt-1">Modal / server-side provider</div>
+              </button>
+              <button
+                onClick={() => setRemoteRenderTarget('local-agent')}
+                disabled={renderState !== 'idle'}
+                className={`
+                  p-3 rounded-lg text-left border transition-all
+                  ${remoteRenderTarget === 'local-agent'
+                    ? 'bg-teal-500/25 border-teal-400/50 text-white'
+                    : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'}
+                  ${renderState !== 'idle' ? 'opacity-50 cursor-not-allowed' : ''}
+                `}
+              >
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Cpu className="w-4 h-4" />
+                  Local Agent
+                </div>
+                <div className="text-xs text-white/50 mt-1">Viewer/home GPU agent pulls the job</div>
+              </button>
+            </div>
+
+            {remoteRenderTarget === 'local-agent' && (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs text-white/50 mb-1">Agent Picker Token</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="password"
+                      value={localAgentPickerToken}
+                      onChange={(e) => setLocalAgentPickerToken(e.target.value)}
+                      disabled={renderState !== 'idle'}
+                      placeholder="LOCAL_AGENT_ADMIN_SECRET (saved in Local Agents page)"
+                      className={`flex-1 px-3 py-2 rounded-lg border text-sm bg-white/5 text-white placeholder:text-white/30 ${
+                        renderState !== 'idle'
+                          ? 'border-white/10 opacity-50 cursor-not-allowed'
+                          : 'border-white/15 focus:outline-none focus:border-teal-400/60'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fetchAvailableLocalAgents()}
+                      disabled={renderState !== 'idle' || localAgentsLoading}
+                      className={`px-3 py-2 rounded-lg text-xs font-medium border ${
+                        renderState !== 'idle' || localAgentsLoading
+                          ? 'border-white/10 text-white/30 cursor-not-allowed'
+                          : 'border-white/15 text-white/70 hover:bg-white/10'
+                      }`}
+                    >
+                      {localAgentsLoading ? 'Loading…' : 'Load'}
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-white/35 mt-1">
+                    Uses `/api/local-agent/agents` to populate the dropdown. Token is stored locally in this browser.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs text-white/50 mb-1">Target Agent</label>
+                  {availableLocalAgents.length > 0 ? (
+                    <select
+                      value={remoteTargetAgentId}
+                      onChange={(e) => setRemoteTargetAgentId(e.target.value)}
+                      disabled={renderState !== 'idle'}
+                      className={`w-full px-3 py-2 rounded-lg border text-sm bg-white/5 text-white ${
+                        renderState !== 'idle'
+                          ? 'border-white/10 opacity-50 cursor-not-allowed'
+                          : 'border-white/15 focus:outline-none focus:border-teal-400/60'
+                      }`}
+                    >
+                      <option value="">Any available agent</option>
+                      {availableLocalAgents.map((agent) => {
+                        const label = agent.label?.trim() || agent.agentId;
+                        const hostname =
+                          agent.capabilities && typeof agent.capabilities.hostname === 'string'
+                            ? ` (${agent.capabilities.hostname})`
+                            : '';
+                        return (
+                          <option key={agent.agentId} value={agent.agentId}>
+                            {label}{hostname}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={remoteTargetAgentId}
+                      onChange={(e) => setRemoteTargetAgentId(e.target.value)}
+                      disabled={renderState !== 'idle'}
+                      placeholder="Manual Target Agent ID (optional)"
+                      className={`w-full px-3 py-2 rounded-lg border text-sm bg-white/5 text-white placeholder:text-white/30 ${
+                        renderState !== 'idle'
+                          ? 'border-white/10 opacity-50 cursor-not-allowed'
+                          : 'border-white/15 focus:outline-none focus:border-teal-400/60'
+                      }`}
+                    />
+                  )}
+
+                  {localAgentsError ? (
+                    <p className="text-[10px] text-amber-200/80 mt-1">{localAgentsError}</p>
+                  ) : (
+                    <p className="text-[10px] text-white/35 mt-1">
+                      {availableLocalAgents.length > 0
+                        ? `${availableLocalAgents.length} online local agent${availableLocalAgents.length === 1 ? '' : 's'} available`
+                        : 'Leave blank to allow any available agent to claim the job.'}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Creator Automation / Queue Publish */}
+          <div className="space-y-3 p-3 rounded-lg border border-white/10 bg-white/5">
+            <label className="flex items-center justify-between gap-3 cursor-pointer">
+              <div>
+                <div className="text-sm text-white/80">Creator Automation (Render + Queue Publish)</div>
+                <div className="text-xs text-white/40">
+                  Queue multiple format/style variants, then save metadata + recut + thumbnail plans.
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={creatorAutomationEnabled}
+                onChange={(e) => {
+                  setCreatorAutomationEnabled(e.target.checked);
+                  if (!e.target.checked) {
+                    setCreatorQueueState('idle');
+                    setCreatorQueueError(null);
+                    setCreatorQueueSummary(null);
+                  }
+                }}
+                disabled={renderState !== 'idle' || localRenderState !== 'idle'}
+                className="w-4 h-4 rounded border-white/20 bg-white/5 text-blue-500 focus:ring-blue-500/50"
+              />
+            </label>
+
+            {creatorAutomationEnabled && (
+              <div className="space-y-3">
+                {!creatorCatalog && (
+                  <button
+                    type="button"
+                    onClick={() => fetchCreatorCatalog()}
+                    disabled={creatorCatalogLoading}
+                    className={`w-full py-2 rounded-lg text-sm border ${
+                      creatorCatalogLoading
+                        ? 'border-white/10 text-white/30 cursor-not-allowed'
+                        : 'border-white/15 text-white/80 hover:bg-white/10'
+                    }`}
+                  >
+                    {creatorCatalogLoading ? 'Loading Creator Catalog...' : 'Load Creator Presets'}
+                  </button>
+                )}
+
+                {creatorCatalog && (
+                  <>
+                    <div>
+                      <label className="block text-xs text-white/50 mb-1">Preset Bundle</label>
+                      <select
+                        value={creatorBundleId}
+                        onChange={(e) => setCreatorBundleId(e.target.value)}
+                        disabled={renderState !== 'idle' || localRenderState !== 'idle'}
+                        className={`w-full px-3 py-2 rounded-lg border text-sm bg-white/5 text-white ${
+                          renderState !== 'idle' || localRenderState !== 'idle'
+                            ? 'border-white/10 opacity-50 cursor-not-allowed'
+                            : 'border-white/15 focus:outline-none focus:border-blue-400/60'
+                        }`}
+                      >
+                        {creatorCatalog.bundles.map((bundle) => (
+                          <option key={bundle.id} value={bundle.id}>
+                            {bundle.label}
+                          </option>
+                        ))}
+                      </select>
+                      {selectedBundle?.description && (
+                        <p className="text-[10px] text-white/40 mt-1">{selectedBundle.description}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs text-white/50">Export Packs (formats/platforms)</label>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedCreatorExportPackIds(creatorCatalog.exportPacks.map((pack) => pack.id))}
+                          className="text-[10px] text-white/40 hover:text-white/70"
+                        >
+                          Select all
+                        </button>
+                      </div>
+                      <div className="space-y-2 max-h-40 overflow-auto pr-1">
+                        {creatorCatalog.exportPacks.map((pack) => {
+                          const selected = selectedCreatorExportPackIds.includes(pack.id);
+                          return (
+                            <label
+                              key={pack.id}
+                              className={`block rounded-lg border p-2 cursor-pointer transition-colors ${
+                                selected
+                                  ? 'border-blue-400/40 bg-blue-500/10'
+                                  : 'border-white/10 bg-white/5 hover:bg-white/10'
+                              }`}
+                            >
+                              <div className="flex items-start gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={selected}
+                                  onChange={() => setSelectedCreatorExportPackIds((prev) => toggleStringSelection(prev, pack.id))}
+                                  className="mt-0.5 w-4 h-4 rounded border-white/20 bg-white/5 text-blue-500"
+                                />
+                                <div className="min-w-0">
+                                  <div className="text-xs text-white/90">{pack.label}</div>
+                                  <div className="text-[10px] text-white/40">{pack.description}</div>
+                                  <div className="text-[10px] text-blue-200/70 mt-0.5">
+                                    {pack.variants.length} variant{pack.variants.length === 1 ? '' : 's'}: {pack.variants.map((v) => v.outputFormat).join(', ')}
+                                  </div>
+                                </div>
+                              </div>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs text-white/50">Style Variants</label>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedCreatorStyleVariantIds(selectedBundle?.styleVariants.map((variant) => variant.id) || [])}
+                          className="text-[10px] text-white/40 hover:text-white/70"
+                        >
+                          Select all
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {(selectedBundle?.styleVariants || []).map((variant) => {
+                          const selected = selectedCreatorStyleVariantIds.includes(variant.id);
+                          return (
+                            <label
+                              key={variant.id}
+                              className={`block rounded-lg border p-2 cursor-pointer transition-colors ${
+                                selected
+                                  ? 'border-teal-400/40 bg-teal-500/10'
+                                  : 'border-white/10 bg-white/5 hover:bg-white/10'
+                              }`}
+                            >
+                              <div className="flex items-start gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={selected}
+                                  onChange={() => setSelectedCreatorStyleVariantIds((prev) => toggleStringSelection(prev, variant.id))}
+                                  className="mt-0.5 w-4 h-4 rounded border-white/20 bg-white/5 text-teal-500"
+                                />
+                                <div className="min-w-0">
+                                  <div className="text-xs text-white/90">{variant.label}</div>
+                                  <div className="text-[10px] text-white/45">
+                                    {(variant.visualMode ? `mode:${variant.visualMode}` : 'mode:current') +
+                                      (variant.orbAudioPreset ? ` • orb:${variant.orbAudioPreset}` : ' • orb:current')}
+                                  </div>
+                                  {variant.description && <div className="text-[10px] text-white/35">{variant.description}</div>}
+                                </div>
+                              </div>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] text-white/45 mb-1">Moods (comma-separated)</label>
+                        <input
+                          type="text"
+                          value={creatorMoodsInput}
+                          onChange={(e) => setCreatorMoodsInput(e.target.value)}
+                          placeholder="calm, ethereal, dark"
+                          className="w-full px-2 py-2 rounded-lg border border-white/15 bg-white/5 text-white text-xs placeholder:text-white/25"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-white/45 mb-1">Topics (comma-separated)</label>
+                        <input
+                          type="text"
+                          value={creatorTopicsInput}
+                          onChange={(e) => setCreatorTopicsInput(e.target.value)}
+                          placeholder="focus, meditation"
+                          className="w-full px-2 py-2 rounded-lg border border-white/15 bg-white/5 text-white text-xs placeholder:text-white/25"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-white/45 mb-1">Keywords (comma-separated)</label>
+                        <input
+                          type="text"
+                          value={creatorKeywordsInput}
+                          onChange={(e) => setCreatorKeywordsInput(e.target.value)}
+                          placeholder="phonk, visualizer"
+                          className="w-full px-2 py-2 rounded-lg border border-white/15 bg-white/5 text-white text-xs placeholder:text-white/25"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-white/45 mb-1">BPM (optional)</label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={300}
+                          step={1}
+                          value={creatorBpmInput}
+                          onChange={(e) => setCreatorBpmInput(e.target.value)}
+                          placeholder="140"
+                          className="w-full px-2 py-2 rounded-lg border border-white/15 bg-white/5 text-white text-xs placeholder:text-white/25"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px] text-white/35">
+                      <span>
+                        Estimated queue count: {(selectedBundle?.styleVariants.filter((v) => selectedCreatorStyleVariantIds.includes(v.id)).length || 0) *
+                          selectedCreatorExportPacks.reduce((sum, pack) => sum + pack.variants.length, 0)}
+                      </span>
+                      <div className="flex items-center gap-3">
+                        <a href="/creator/library" target="_blank" rel="noreferrer" className="hover:text-white/70">
+                          Creator Library
+                        </a>
+                        <a href="/creator/thumbnail-planner" target="_blank" rel="noreferrer" className="hover:text-white/70">
+                          Thumbnail Planner
+                        </a>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {creatorCatalogError && (
+                  <p className="text-xs text-amber-200/80">{creatorCatalogError}</p>
+                )}
+
+                {creatorQueueSummary && (
+                  <div className="rounded-lg border border-white/10 bg-black/20 p-2 space-y-1">
+                    <div className="text-xs text-white/80">
+                      {creatorQueueState === 'submitting' ? 'Queueing creator batch...' :
+                        creatorQueueState === 'complete' ? 'Creator batch queued' :
+                        creatorQueueState === 'error' ? 'Creator batch error' : 'Creator batch'}
+                    </div>
+                    <div className="text-[10px] text-white/45">
+                      {creatorQueueSummary.queuedVariants}/{creatorQueueSummary.totalVariants} variants queued
+                      {creatorQueueSummary.currentLabel ? ` • ${creatorQueueSummary.currentLabel}` : ''}
+                    </div>
+                    {creatorQueueSummary.packId && (
+                      <div className="text-[10px] text-green-200/80">
+                        Pack: {creatorQueueSummary.packId}
+                        {creatorQueueSummary.contentLibraryItemId ? ` • Library Item: ${creatorQueueSummary.contentLibraryItemId}` : ''}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {creatorQueueError && (
+                  <p className="text-xs text-red-300">{creatorQueueError}</p>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Progress/Status */}
           {renderState !== 'idle' && renderState !== 'error' && (
             <div className="p-4 bg-white/5 rounded-lg space-y-3">
@@ -821,9 +1670,31 @@ pause
                     }
                   `}
                 >
-                  Cloud Render
+                  {remoteRenderTarget === 'local-agent' ? 'Queue to Local Agent' : 'Cloud Render'}
                 </button>
               </div>
+              {creatorAutomationEnabled && (
+                <button
+                  onClick={handleRenderAndQueuePublish}
+                  disabled={
+                    !audioFile && !audioPath && !preparedAssetId ||
+                    creatorQueueState === 'submitting' ||
+                    creatorCatalogLoading
+                  }
+                  className={`
+                    w-full py-2 rounded-lg font-medium transition-colors
+                    ${(!audioFile && !audioPath && !preparedAssetId) || creatorQueueState === 'submitting' || creatorCatalogLoading
+                      ? 'bg-white/10 text-white/35 cursor-not-allowed'
+                      : 'bg-teal-600 hover:bg-teal-500 text-white'}
+                  `}
+                >
+                  {creatorQueueState === 'submitting'
+                    ? 'Queueing Creator Batch...'
+                    : remoteRenderTarget === 'local-agent'
+                      ? 'Render + Queue Publish (Local Agent)'
+                      : 'Render + Queue Publish'}
+                </button>
+              )}
               {/* Export Config for Local CLI */}
               <button
                 onClick={handleExportConfig}

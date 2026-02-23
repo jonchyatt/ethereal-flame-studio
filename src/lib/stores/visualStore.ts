@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { ParticleLayerConfig, StarNestPreset, VisualMode, VisualModeConfig } from '@/types';
 import { TemplateSettings } from '@/lib/templates/types';
 import { STAR_NEST_PRESETS } from '@/components/canvas/StarNestSkybox';
@@ -91,10 +91,22 @@ interface VisualState {
   currentMode: VisualMode;
   modeConfigs: Record<VisualMode, VisualModeConfig>;
   // Audio dynamics (global orb behavior)
-  decaySpeed: number;       // 0.01-0.3 — how fast orb fades back (releaseSmoothing)
-  attackSpeed: number;      // 0.1-0.8 — how fast orb reacts to new audio
-  beatSensitivity: number;  // 0-3 — beat pulse strength multiplier
-  minBrightness: number;    // 0-0.5 — baseline visibility when silent
+  decaySpeed: number;       // 0.01-0.3 â€” how fast orb fades back (releaseSmoothing)
+  attackSpeed: number;      // 0.1-0.8 â€” how fast orb reacts to new audio
+  beatSensitivity: number;  // 0-3 â€” beat pulse strength multiplier
+  minBrightness: number;    // 0-0.5 â€” baseline visibility when silent
+  audioInputGain: number;
+  audioNoiseGate: number;
+  audioResponseCurve: number;
+  audioDynamicRange: number;
+  audioTransientBoost: number;
+  audioBeatPulseAmount: number;
+  audioVisibilityBoost: number;
+  audioSizeCapAmount: number;
+  audioPositionCapAmount: number;
+  audioBassWeight: number;
+  audioMidsWeight: number;
+  audioTrebleWeight: number;
   // Water state
   waterEnabled: boolean;
   waterColor: string;
@@ -191,6 +203,18 @@ interface VisualState {
   setAttackSpeed: (value: number) => void;
   setBeatSensitivity: (value: number) => void;
   setMinBrightness: (value: number) => void;
+  setAudioInputGain: (value: number) => void;
+  setAudioNoiseGate: (value: number) => void;
+  setAudioResponseCurve: (value: number) => void;
+  setAudioDynamicRange: (value: number) => void;
+  setAudioTransientBoost: (value: number) => void;
+  setAudioBeatPulseAmount: (value: number) => void;
+  setAudioVisibilityBoost: (value: number) => void;
+  setAudioSizeCapAmount: (value: number) => void;
+  setAudioPositionCapAmount: (value: number) => void;
+  setAudioBassWeight: (value: number) => void;
+  setAudioMidsWeight: (value: number) => void;
+  setAudioTrebleWeight: (value: number) => void;
   // Template integration (plan 02-01)
   applyTemplateSettings: (settings: TemplateSettings) => void;
 }
@@ -273,7 +297,7 @@ export const ETHEREAL_MIST_CONFIG: VisualModeConfig = {
       layerOpacity: 1.0,
       particleCount: 25,         // Reduced from 60 - fewer, larger particles
       baseSize: 7.0,             // Increased from 5.0
-      spawnRadius: 0.15,         // REDUCED: 0.45 → 0.15 (third)
+      spawnRadius: 0.15,         // REDUCED: 0.45 â†’ 0.15 (third)
       maxSpeed: 0.015,
       lifetime: 4.0,
       audioReactivity: 2.5,      // Moderate
@@ -292,7 +316,7 @@ export const ETHEREAL_MIST_CONFIG: VisualModeConfig = {
       layerOpacity: 1.0,
       particleCount: 20,         // Reduced from 40
       baseSize: 8.0,             // Increased from 6.5
-      spawnRadius: 0.2,          // REDUCED: 0.6 → 0.2 (third)
+      spawnRadius: 0.2,          // REDUCED: 0.6 â†’ 0.2 (third)
       maxSpeed: 0.01,
       lifetime: 5.0,
       audioReactivity: 2.0,
@@ -444,6 +468,18 @@ export const useVisualStore = create<VisualState>((set) => ({
   attackSpeed: 0.4,
   beatSensitivity: 1.0,
   minBrightness: 0.15,
+  audioInputGain: 1.0,
+  audioNoiseGate: 0.02,
+  audioResponseCurve: 0.85,
+  audioDynamicRange: 1.0,
+  audioTransientBoost: 0.25,
+  audioBeatPulseAmount: 0.15,
+  audioVisibilityBoost: 1.25,
+  audioSizeCapAmount: 0.4,
+  audioPositionCapAmount: 0.2,
+  audioBassWeight: 1.15,
+  audioMidsWeight: 1.0,
+  audioTrebleWeight: 0.9,
   // Water state defaults
   waterEnabled: false,
   waterColor: '#0a1828',     // Dark blue
@@ -564,7 +600,18 @@ export const useVisualStore = create<VisualState>((set) => ({
   setAttackSpeed: (value) => set({ attackSpeed: value }),
   setBeatSensitivity: (value) => set({ beatSensitivity: value }),
   setMinBrightness: (value) => set({ minBrightness: value }),
-
+  setAudioInputGain: (value) => set({ audioInputGain: value }),
+  setAudioNoiseGate: (value) => set({ audioNoiseGate: value }),
+  setAudioResponseCurve: (value) => set({ audioResponseCurve: value }),
+  setAudioDynamicRange: (value) => set({ audioDynamicRange: value }),
+  setAudioTransientBoost: (value) => set({ audioTransientBoost: value }),
+  setAudioBeatPulseAmount: (value) => set({ audioBeatPulseAmount: value }),
+  setAudioVisibilityBoost: (value) => set({ audioVisibilityBoost: value }),
+  setAudioSizeCapAmount: (value) => set({ audioSizeCapAmount: value }),
+  setAudioPositionCapAmount: (value) => set({ audioPositionCapAmount: value }),
+  setAudioBassWeight: (value) => set({ audioBassWeight: value }),
+  setAudioMidsWeight: (value) => set({ audioMidsWeight: value }),
+  setAudioTrebleWeight: (value) => set({ audioTrebleWeight: value }),
   // Template integration (plan 02-01)
   applyTemplateSettings: (settings) => set((state) => ({
     intensity: settings.intensity ?? state.intensity,
@@ -647,6 +694,18 @@ export const useVisualStore = create<VisualState>((set) => ({
     attackSpeed: settings.attackSpeed ?? state.attackSpeed,
     beatSensitivity: settings.beatSensitivity ?? state.beatSensitivity,
     minBrightness: settings.minBrightness ?? state.minBrightness,
+    audioInputGain: settings.audioInputGain ?? state.audioInputGain,
+    audioNoiseGate: settings.audioNoiseGate ?? state.audioNoiseGate,
+    audioResponseCurve: settings.audioResponseCurve ?? state.audioResponseCurve,
+    audioDynamicRange: settings.audioDynamicRange ?? state.audioDynamicRange,
+    audioTransientBoost: settings.audioTransientBoost ?? state.audioTransientBoost,
+    audioBeatPulseAmount: settings.audioBeatPulseAmount ?? state.audioBeatPulseAmount,
+    audioVisibilityBoost: settings.audioVisibilityBoost ?? state.audioVisibilityBoost,
+    audioSizeCapAmount: settings.audioSizeCapAmount ?? state.audioSizeCapAmount,
+    audioPositionCapAmount: settings.audioPositionCapAmount ?? state.audioPositionCapAmount,
+    audioBassWeight: settings.audioBassWeight ?? state.audioBassWeight,
+    audioMidsWeight: settings.audioMidsWeight ?? state.audioMidsWeight,
+    audioTrebleWeight: settings.audioTrebleWeight ?? state.audioTrebleWeight,
   })),
 }));
 
@@ -745,5 +804,18 @@ export const selectSerializableState = (state: VisualState): TemplateSettings =>
     attackSpeed: state.attackSpeed,
     beatSensitivity: state.beatSensitivity,
     minBrightness: state.minBrightness,
+    audioInputGain: state.audioInputGain,
+    audioNoiseGate: state.audioNoiseGate,
+    audioResponseCurve: state.audioResponseCurve,
+    audioDynamicRange: state.audioDynamicRange,
+    audioTransientBoost: state.audioTransientBoost,
+    audioBeatPulseAmount: state.audioBeatPulseAmount,
+    audioVisibilityBoost: state.audioVisibilityBoost,
+    audioSizeCapAmount: state.audioSizeCapAmount,
+    audioPositionCapAmount: state.audioPositionCapAmount,
+    audioBassWeight: state.audioBassWeight,
+    audioMidsWeight: state.audioMidsWeight,
+    audioTrebleWeight: state.audioTrebleWeight,
   };
 };
+

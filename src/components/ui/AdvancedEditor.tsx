@@ -6,6 +6,118 @@ import { LayerEditor } from './LayerEditor';
 import { useVisualStore } from '@/lib/stores/visualStore';
 import { STAR_NEST_PRESETS } from '@/components/canvas/StarNestSkybox';
 
+type OrbAudioPresetKey = 'meditation' | 'speech' | 'phonk' | 'cinematic';
+
+const ORB_AUDIO_RESPONSE_PRESETS: Record<
+  OrbAudioPresetKey,
+  {
+    label: string;
+    values: {
+      beatSensitivity: number;
+      attackSpeed: number;
+      decaySpeed: number;
+      minBrightness: number;
+      audioInputGain: number;
+      audioNoiseGate: number;
+      audioResponseCurve: number;
+      audioDynamicRange: number;
+      audioTransientBoost: number;
+      audioBeatPulseAmount: number;
+      audioVisibilityBoost: number;
+      audioSizeCapAmount: number;
+      audioPositionCapAmount: number;
+      audioBassWeight: number;
+      audioMidsWeight: number;
+      audioTrebleWeight: number;
+    };
+  }
+> = {
+  meditation: {
+    label: 'Meditation',
+    values: {
+      beatSensitivity: 0.8,
+      attackSpeed: 0.25,
+      decaySpeed: 0.03,
+      minBrightness: 0.2,
+      audioInputGain: 1.0,
+      audioNoiseGate: 0.05,
+      audioResponseCurve: 0.6,
+      audioDynamicRange: 0.85,
+      audioTransientBoost: 0.05,
+      audioBeatPulseAmount: 0.08,
+      audioVisibilityBoost: 1.15,
+      audioSizeCapAmount: 0.28,
+      audioPositionCapAmount: 0.14,
+      audioBassWeight: 0.9,
+      audioMidsWeight: 1.25,
+      audioTrebleWeight: 0.7,
+    },
+  },
+  speech: {
+    label: 'Speech',
+    values: {
+      beatSensitivity: 0.65,
+      attackSpeed: 0.35,
+      decaySpeed: 0.05,
+      minBrightness: 0.16,
+      audioInputGain: 1.25,
+      audioNoiseGate: 0.04,
+      audioResponseCurve: 0.75,
+      audioDynamicRange: 1.0,
+      audioTransientBoost: 0.15,
+      audioBeatPulseAmount: 0.06,
+      audioVisibilityBoost: 1.35,
+      audioSizeCapAmount: 0.35,
+      audioPositionCapAmount: 0.18,
+      audioBassWeight: 0.85,
+      audioMidsWeight: 1.45,
+      audioTrebleWeight: 0.95,
+    },
+  },
+  phonk: {
+    label: 'Phonk',
+    values: {
+      beatSensitivity: 1.9,
+      attackSpeed: 0.65,
+      decaySpeed: 0.09,
+      minBrightness: 0.08,
+      audioInputGain: 1.8,
+      audioNoiseGate: 0.01,
+      audioResponseCurve: 0.95,
+      audioDynamicRange: 1.65,
+      audioTransientBoost: 1.1,
+      audioBeatPulseAmount: 0.28,
+      audioVisibilityBoost: 1.9,
+      audioSizeCapAmount: 0.75,
+      audioPositionCapAmount: 0.42,
+      audioBassWeight: 1.75,
+      audioMidsWeight: 1.0,
+      audioTrebleWeight: 1.05,
+    },
+  },
+  cinematic: {
+    label: 'Cinematic',
+    values: {
+      beatSensitivity: 1.2,
+      attackSpeed: 0.45,
+      decaySpeed: 0.04,
+      minBrightness: 0.14,
+      audioInputGain: 1.35,
+      audioNoiseGate: 0.02,
+      audioResponseCurve: 0.8,
+      audioDynamicRange: 1.25,
+      audioTransientBoost: 0.35,
+      audioBeatPulseAmount: 0.16,
+      audioVisibilityBoost: 1.55,
+      audioSizeCapAmount: 0.5,
+      audioPositionCapAmount: 0.25,
+      audioBassWeight: 1.25,
+      audioMidsWeight: 1.0,
+      audioTrebleWeight: 0.85,
+    },
+  },
+};
+
 export function AdvancedEditor() {
   const layers = useVisualStore((state) => state.layers);
   const intensity = useVisualStore((state) => state.intensity);
@@ -163,6 +275,7 @@ export function AdvancedEditor() {
   const setCameraOrbitHeight = useVisualStore((state) => state.setCameraOrbitHeight);
   const [videoUrlInput, setVideoUrlInput] = useState('');
   const [logoUrlInput, setLogoUrlInput] = useState('');
+  const [selectedAudioPreset, setSelectedAudioPreset] = useState<OrbAudioPresetKey | null>(null);
   const decaySpeed = useVisualStore((state) => state.decaySpeed);
   const setDecaySpeed = useVisualStore((state) => state.setDecaySpeed);
   const attackSpeed = useVisualStore((state) => state.attackSpeed);
@@ -171,6 +284,30 @@ export function AdvancedEditor() {
   const setBeatSensitivity = useVisualStore((state) => state.setBeatSensitivity);
   const minBrightness = useVisualStore((state) => state.minBrightness);
   const setMinBrightness = useVisualStore((state) => state.setMinBrightness);
+  const audioInputGain = useVisualStore((state) => state.audioInputGain);
+  const setAudioInputGain = useVisualStore((state) => state.setAudioInputGain);
+  const audioNoiseGate = useVisualStore((state) => state.audioNoiseGate);
+  const setAudioNoiseGate = useVisualStore((state) => state.setAudioNoiseGate);
+  const audioResponseCurve = useVisualStore((state) => state.audioResponseCurve);
+  const setAudioResponseCurve = useVisualStore((state) => state.setAudioResponseCurve);
+  const audioDynamicRange = useVisualStore((state) => state.audioDynamicRange);
+  const setAudioDynamicRange = useVisualStore((state) => state.setAudioDynamicRange);
+  const audioTransientBoost = useVisualStore((state) => state.audioTransientBoost);
+  const setAudioTransientBoost = useVisualStore((state) => state.setAudioTransientBoost);
+  const audioBeatPulseAmount = useVisualStore((state) => state.audioBeatPulseAmount);
+  const setAudioBeatPulseAmount = useVisualStore((state) => state.setAudioBeatPulseAmount);
+  const audioVisibilityBoost = useVisualStore((state) => state.audioVisibilityBoost);
+  const setAudioVisibilityBoost = useVisualStore((state) => state.setAudioVisibilityBoost);
+  const audioSizeCapAmount = useVisualStore((state) => state.audioSizeCapAmount);
+  const setAudioSizeCapAmount = useVisualStore((state) => state.setAudioSizeCapAmount);
+  const audioPositionCapAmount = useVisualStore((state) => state.audioPositionCapAmount);
+  const setAudioPositionCapAmount = useVisualStore((state) => state.setAudioPositionCapAmount);
+  const audioBassWeight = useVisualStore((state) => state.audioBassWeight);
+  const setAudioBassWeight = useVisualStore((state) => state.setAudioBassWeight);
+  const audioMidsWeight = useVisualStore((state) => state.audioMidsWeight);
+  const setAudioMidsWeight = useVisualStore((state) => state.setAudioMidsWeight);
+  const audioTrebleWeight = useVisualStore((state) => state.audioTrebleWeight);
+  const setAudioTrebleWeight = useVisualStore((state) => state.setAudioTrebleWeight);
   const waterEnabled = useVisualStore((state) => state.waterEnabled);
   const setWaterEnabled = useVisualStore((state) => state.setWaterEnabled);
   const waterColor = useVisualStore((state) => state.waterColor);
@@ -259,6 +396,28 @@ export function AdvancedEditor() {
     setSkyboxMaskPreviewSplit(false);
   };
 
+  const applyOrbAudioPreset = (presetKey: OrbAudioPresetKey) => {
+    const preset = ORB_AUDIO_RESPONSE_PRESETS[presetKey];
+    const v = preset.values;
+    setBeatSensitivity(v.beatSensitivity);
+    setAttackSpeed(v.attackSpeed);
+    setDecaySpeed(v.decaySpeed);
+    setMinBrightness(v.minBrightness);
+    setAudioInputGain(v.audioInputGain);
+    setAudioNoiseGate(v.audioNoiseGate);
+    setAudioResponseCurve(v.audioResponseCurve);
+    setAudioDynamicRange(v.audioDynamicRange);
+    setAudioTransientBoost(v.audioTransientBoost);
+    setAudioBeatPulseAmount(v.audioBeatPulseAmount);
+    setAudioVisibilityBoost(v.audioVisibilityBoost);
+    setAudioSizeCapAmount(v.audioSizeCapAmount);
+    setAudioPositionCapAmount(v.audioPositionCapAmount);
+    setAudioBassWeight(v.audioBassWeight);
+    setAudioMidsWeight(v.audioMidsWeight);
+    setAudioTrebleWeight(v.audioTrebleWeight);
+    setSelectedAudioPreset(presetKey);
+  };
+
   return (
     <div className="space-y-2">
       {/* Global Settings */}
@@ -283,6 +442,30 @@ export function AdvancedEditor() {
       {/* Audio Dynamics */}
       <ParameterGroup title="Audio Dynamics">
         <div className="space-y-3">
+          <div>
+            <label className="block text-white/60 text-xs mb-2">Response Presets</label>
+            <div className="grid grid-cols-2 gap-2">
+              {(Object.keys(ORB_AUDIO_RESPONSE_PRESETS) as OrbAudioPresetKey[]).map((presetKey) => (
+                <button
+                  key={presetKey}
+                  type="button"
+                  onClick={() => applyOrbAudioPreset(presetKey)}
+                  className={`px-3 py-2 rounded text-xs border transition-colors ${
+                    selectedAudioPreset === presetKey
+                      ? 'bg-teal-500/25 border-teal-400/50 text-teal-200'
+                      : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
+                  }`}
+                  title={`Apply ${ORB_AUDIO_RESPONSE_PRESETS[presetKey].label} orb response profile`}
+                >
+                  {ORB_AUDIO_RESPONSE_PRESETS[presetKey].label}
+                </button>
+              ))}
+            </div>
+            <p className="text-white/30 text-[10px] mt-1">
+              One-click starting points for meditation, voice, phonk, and cinematic dynamics.
+            </p>
+          </div>
+
           <div>
             <label className="flex justify-between text-white/60 text-xs mb-1">
               <span>Beat Sensitivity</span>
@@ -346,6 +529,220 @@ export function AdvancedEditor() {
               className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
             />
             <p className="text-white/30 text-[10px] mt-0.5">Baseline visibility when silent (0 = orb vanishes)</p>
+          </div>
+
+          <div className="pt-2 border-t border-white/10">
+            <p className="text-[10px] uppercase tracking-wide text-white/35 mb-2">Range + Sensitivity</p>
+          </div>
+
+          <div>
+            <label className="flex justify-between text-white/60 text-xs mb-1">
+              <span>Input Gain</span>
+              <span className="text-white/40">{audioInputGain.toFixed(2)}x</span>
+            </label>
+            <input
+              type="range"
+              min={0.5}
+              max={4}
+              step={0.05}
+              value={audioInputGain}
+              onChange={(e) => setAudioInputGain(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-white/30 text-[10px] mt-0.5">Raises/lower the overall audio drive into the orb</p>
+          </div>
+
+          <div>
+            <label className="flex justify-between text-white/60 text-xs mb-1">
+              <span>Noise Gate</span>
+              <span className="text-white/40">{audioNoiseGate.toFixed(2)}</span>
+            </label>
+            <input
+              type="range"
+              min={0}
+              max={0.4}
+              step={0.01}
+              value={audioNoiseGate}
+              onChange={(e) => setAudioNoiseGate(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-white/30 text-[10px] mt-0.5">Cuts room noise / low rumble so silence stays calm</p>
+          </div>
+
+          <div>
+            <label className="flex justify-between text-white/60 text-xs mb-1">
+              <span>Response Curve</span>
+              <span className="text-white/40">{audioResponseCurve.toFixed(2)}</span>
+            </label>
+            <input
+              type="range"
+              min={0.35}
+              max={1.8}
+              step={0.01}
+              value={audioResponseCurve}
+              onChange={(e) => setAudioResponseCurve(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-white/30 text-[10px] mt-0.5">Lower values lift quiet detail. Higher values emphasize peaks.</p>
+          </div>
+
+          <div>
+            <label className="flex justify-between text-white/60 text-xs mb-1">
+              <span>Dynamic Range</span>
+              <span className="text-white/40">{audioDynamicRange.toFixed(2)}x</span>
+            </label>
+            <input
+              type="range"
+              min={0.5}
+              max={2.5}
+              step={0.05}
+              value={audioDynamicRange}
+              onChange={(e) => setAudioDynamicRange(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-white/30 text-[10px] mt-0.5">Expand or compress the orb’s overall loudness swing</p>
+          </div>
+
+          <div>
+            <label className="flex justify-between text-white/60 text-xs mb-1">
+              <span>Transient Boost</span>
+              <span className="text-white/40">{audioTransientBoost.toFixed(2)}x</span>
+            </label>
+            <input
+              type="range"
+              min={0}
+              max={2}
+              step={0.05}
+              value={audioTransientBoost}
+              onChange={(e) => setAudioTransientBoost(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-white/30 text-[10px] mt-0.5">Adds punch to fast volume spikes (great for phonk/drums)</p>
+          </div>
+
+          <div>
+            <label className="flex justify-between text-white/60 text-xs mb-1">
+              <span>Beat Pulse Amount</span>
+              <span className="text-white/40">{audioBeatPulseAmount.toFixed(2)}</span>
+            </label>
+            <input
+              type="range"
+              min={0}
+              max={0.5}
+              step={0.01}
+              value={audioBeatPulseAmount}
+              onChange={(e) => setAudioBeatPulseAmount(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-white/30 text-[10px] mt-0.5">Base beat pulse before Beat Sensitivity scaling</p>
+          </div>
+
+          <div>
+            <label className="flex justify-between text-white/60 text-xs mb-1">
+              <span>Visibility Boost</span>
+              <span className="text-white/40">{audioVisibilityBoost.toFixed(2)}x</span>
+            </label>
+            <input
+              type="range"
+              min={0.5}
+              max={4}
+              step={0.05}
+              value={audioVisibilityBoost}
+              onChange={(e) => setAudioVisibilityBoost(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-white/30 text-[10px] mt-0.5">Makes the orb glow/alpha ramp up sooner as audio rises</p>
+          </div>
+
+          <div className="pt-2 border-t border-white/10">
+            <p className="text-[10px] uppercase tracking-wide text-white/35 mb-2">Motion Caps</p>
+          </div>
+
+          <div>
+            <label className="flex justify-between text-white/60 text-xs mb-1">
+              <span>Size Cap</span>
+              <span className="text-white/40">{audioSizeCapAmount.toFixed(2)}</span>
+            </label>
+            <input
+              type="range"
+              min={0.1}
+              max={1.2}
+              step={0.02}
+              value={audioSizeCapAmount}
+              onChange={(e) => setAudioSizeCapAmount(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-white/30 text-[10px] mt-0.5">Maximum audio-driven particle size expansion</p>
+          </div>
+
+          <div>
+            <label className="flex justify-between text-white/60 text-xs mb-1">
+              <span>Position Cap</span>
+              <span className="text-white/40">{audioPositionCapAmount.toFixed(2)}</span>
+            </label>
+            <input
+              type="range"
+              min={0.05}
+              max={0.8}
+              step={0.01}
+              value={audioPositionCapAmount}
+              onChange={(e) => setAudioPositionCapAmount(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-white/30 text-[10px] mt-0.5">Maximum audio-driven orb expansion in space</p>
+          </div>
+
+          <div className="pt-2 border-t border-white/10">
+            <p className="text-[10px] uppercase tracking-wide text-white/35 mb-2">Band Weighting</p>
+          </div>
+
+          <div>
+            <label className="flex justify-between text-white/60 text-xs mb-1">
+              <span>Bass Weight</span>
+              <span className="text-white/40">{audioBassWeight.toFixed(2)}x</span>
+            </label>
+            <input
+              type="range"
+              min={0}
+              max={2}
+              step={0.05}
+              value={audioBassWeight}
+              onChange={(e) => setAudioBassWeight(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+            />
+          </div>
+
+          <div>
+            <label className="flex justify-between text-white/60 text-xs mb-1">
+              <span>Mids Weight</span>
+              <span className="text-white/40">{audioMidsWeight.toFixed(2)}x</span>
+            </label>
+            <input
+              type="range"
+              min={0}
+              max={2}
+              step={0.05}
+              value={audioMidsWeight}
+              onChange={(e) => setAudioMidsWeight(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+            />
+          </div>
+
+          <div>
+            <label className="flex justify-between text-white/60 text-xs mb-1">
+              <span>Treble Weight</span>
+              <span className="text-white/40">{audioTrebleWeight.toFixed(2)}x</span>
+            </label>
+            <input
+              type="range"
+              min={0}
+              max={2}
+              step={0.05}
+              value={audioTrebleWeight}
+              onChange={(e) => setAudioTrebleWeight(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-white/30 text-[10px] mt-0.5">Tune response bias for speech, ambient, or bass-heavy genres</p>
           </div>
         </div>
       </ParameterGroup>

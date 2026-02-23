@@ -86,6 +86,18 @@ export interface TemplateSettings {
   attackSpeed?: number;
   beatSensitivity?: number;
   minBrightness?: number;
+  audioInputGain?: number;
+  audioNoiseGate?: number;
+  audioResponseCurve?: number;
+  audioDynamicRange?: number;
+  audioTransientBoost?: number;
+  audioBeatPulseAmount?: number;
+  audioVisibilityBoost?: number;
+  audioSizeCapAmount?: number;
+  audioPositionCapAmount?: number;
+  audioBassWeight?: number;
+  audioMidsWeight?: number;
+  audioTrebleWeight?: number;
 }
 
 /**

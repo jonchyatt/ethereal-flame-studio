@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useRef, useMemo } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
@@ -64,7 +64,17 @@ export function ParticleLayer({
   const baseSizesRef = useRef<Float32Array>(new Float32Array(particleCount));
 
   // Smoothed audio values for fluid response
-  const smoothedAudioRef = useRef({ amplitude: 0, beat: 1.0 });
+  const smoothedAudioRef = useRef({ amplitude: 0, rawAmplitude: 0, beat: 1.0 });
+
+  // Cached audio dynamics from store — avoids re-deriving 14+ values every frame per layer
+  const cachedDynamicsRef = useRef<{
+    storeRef: unknown;
+    userAttack: number; userDecay: number; userBeatSens: number; userMinBright: number;
+    userInputGain: number; userNoiseGate: number; userResponseCurve: number; userDynamicRange: number;
+    userTransientBoost: number; userBeatPulseAmount: number;
+    userBassWeight: number; userMidsWeight: number; userTrebleWeight: number;
+    userVisibilityBoost: number; userSizeCapAmount: number; userPositionCapAmount: number;
+  } | null>(null);
 
   // GPU buffer attributes
   const { positions, sizes, colors, alphas } = useMemo(() => {
@@ -271,13 +281,52 @@ export function ParticleLayer({
       bandAmplitude = audioLevels.treble;
     }
 
-    // Read global audio dynamics from store (cheap getState() call, no subscription)
-    const dynamics = useVisualStore.getState();
-    const userAttack = dynamics.attackSpeed;   // 0.05-0.8, default 0.4
-    const userDecay = dynamics.decaySpeed;     // 0.01-0.3, default 0.04
-    const userBeatSens = dynamics.beatSensitivity; // 0-3, default 1.0
-    const userMinBright = dynamics.minBrightness;  // 0-0.5, default 0.15
-
+    // Read global audio dynamics from store — cached to avoid re-deriving per frame per layer
+    const storeState = useVisualStore.getState();
+    let dyn = cachedDynamicsRef.current;
+    if (!dyn || dyn.storeRef !== storeState) {
+      dyn = {
+        storeRef: storeState,
+        userAttack: storeState.attackSpeed,
+        userDecay: storeState.decaySpeed,
+        userBeatSens: storeState.beatSensitivity,
+        userMinBright: storeState.minBrightness,
+        userInputGain: Math.max(0.01, storeState.audioInputGain ?? 1.0),
+        userNoiseGate: Math.max(0, Math.min(0.95, storeState.audioNoiseGate ?? 0)),
+        userResponseCurve: Math.max(0.2, storeState.audioResponseCurve ?? 1.0),
+        userDynamicRange: Math.max(0.1, storeState.audioDynamicRange ?? 1.0),
+        userTransientBoost: Math.max(0, storeState.audioTransientBoost ?? 0),
+        userBeatPulseAmount: Math.max(0, storeState.audioBeatPulseAmount ?? 0.15),
+        userBassWeight: Math.max(0, storeState.audioBassWeight ?? 1.0),
+        userMidsWeight: Math.max(0, storeState.audioMidsWeight ?? 1.0),
+        userTrebleWeight: Math.max(0, storeState.audioTrebleWeight ?? 1.0),
+        userVisibilityBoost: Math.max(0.1, storeState.audioVisibilityBoost ?? 1.0),
+        userSizeCapAmount: Math.max(0.05, storeState.audioSizeCapAmount ?? 0.4),
+        userPositionCapAmount: Math.max(0.02, storeState.audioPositionCapAmount ?? 0.2),
+      };
+      cachedDynamicsRef.current = dyn;
+    }
+    const {
+      userAttack, userDecay, userBeatSens, userMinBright,
+      userInputGain, userNoiseGate, userResponseCurve, userDynamicRange,
+      userTransientBoost, userBeatPulseAmount,
+      userBassWeight, userMidsWeight, userTrebleWeight,
+      userVisibilityBoost, userSizeCapAmount, userPositionCapAmount,
+    } = dyn;
+    if (band === 'bass') {
+      bandAmplitude *= userBassWeight;
+    } else if (band === 'mids') {
+      bandAmplitude *= userMidsWeight;
+    } else if (band === 'treble') {
+      bandAmplitude *= userTrebleWeight;
+    } else {
+      const weightSum = Math.max(0.0001, userBassWeight + userMidsWeight + userTrebleWeight);
+      bandAmplitude =
+        (audioLevels.bass * userBassWeight + audioLevels.mids * userMidsWeight + audioLevels.treble * userTrebleWeight) / weightSum;
+    }
+    const gatedAmplitude = Math.max(0, bandAmplitude - userNoiseGate);
+    const normalizedAmplitude = gatedAmplitude > 0 ? gatedAmplitude / Math.max(0.001, 1 - userNoiseGate) : 0;
+    const rawAmplitudeTarget = normalizedAmplitude * userInputGain;
     // Asymmetric smoothing - fast attack (bloom up), slow decay (fade down)
     // In render mode, use near-instant response since each frame's audio data
     // represents the exact levels for that moment (pre-analyzed)
@@ -285,12 +334,18 @@ export function ParticleLayer({
     const inRenderMode = renderMode.isActive;
     const attackSmoothing = inRenderMode ? 0.85 : userAttack;
     const releaseSmoothing = inRenderMode ? 0.15 : userDecay;
-    const isRising = bandAmplitude > smoothed.amplitude;
+    const previousRawAmplitude = smoothed.rawAmplitude;
+    const isRising = rawAmplitudeTarget > previousRawAmplitude;
     const smoothing = isRising ? attackSmoothing : releaseSmoothing;
-    smoothed.amplitude += (bandAmplitude - smoothed.amplitude) * smoothing;
-
-    // Smooth beat pulse — strength scales with beatSensitivity
-    const targetBeat = audioLevels.isBeat ? (1.0 + 0.15 * userBeatSens) : 1.0;
+    smoothed.rawAmplitude += (rawAmplitudeTarget - smoothed.rawAmplitude) * smoothing;
+    const transientAmount = Math.max(0, rawAmplitudeTarget - previousRawAmplitude);
+    const shapedTargetAmplitude = Math.pow(
+      Math.max(0, Math.min(3.0, smoothed.rawAmplitude * userDynamicRange + transientAmount * userTransientBoost)),
+      userResponseCurve,
+    );
+    smoothed.amplitude += (shapedTargetAmplitude - smoothed.amplitude) * smoothing;
+    // Smooth beat pulse - strength scales with beatSensitivity
+    const targetBeat = audioLevels.isBeat ? (1.0 + userBeatPulseAmount * userBeatSens) : 1.0;
     const beatAttack = inRenderMode ? 0.7 : (0.3 * Math.max(userBeatSens, 0.3));
     const beatRelease = inRenderMode ? 0.15 : userDecay;
     const beatSmoothing = audioLevels.isBeat ? beatAttack : beatRelease;
@@ -505,7 +560,7 @@ export function ParticleLayer({
       const reactivity = config.audioReactivity || 0;
       if (reactivity > 0) {
         const rawMultiplier = 1.0 + smoothed.amplitude * reactivity * 0.5;
-        const sizeCap = 1.0 + 0.4 * userBeatSens; // default 1.4, up to 2.2 at max sensitivity
+        const sizeCap = 1.0 + userSizeCapAmount * userBeatSens;
         audioSizeMultiplier = Math.min(rawMultiplier, sizeCap);
       }
 
@@ -518,7 +573,10 @@ export function ParticleLayer({
       // Update alpha - AUDIO-DRIVEN VISIBILITY
       // Low visibility when silent, full visibility with audio
       // Use power curve for more dramatic on/off effect
-      const audioVisibility = Math.pow(smoothed.amplitude, 0.5); // sqrt for faster rise
+      const audioVisibility = Math.pow(
+        Math.min(1, 1 - Math.exp(-Math.max(0, smoothed.amplitude) * userVisibilityBoost)),
+        0.5,
+      );
       const visibilityMultiplier = userMinBright + audioVisibility * (1.0 - userMinBright);
 
       // Multiply by layerOpacity for per-layer intensity control
@@ -530,7 +588,7 @@ export function ParticleLayer({
       let scale = 1.0;
       if (reactivity > 0) {
         const rawScale = 1.0 + smoothed.amplitude * reactivity * 0.15;
-        const scaleCap = 1.0 + 0.2 * userBeatSens; // default 1.2, up to 1.6 at max sensitivity
+        const scaleCap = 1.0 + userPositionCapAmount * userBeatSens;
         scale = Math.min(rawScale, scaleCap);
       }
       const bx = birthPositions[i * 3];
@@ -703,3 +761,4 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
 
   return [r, g, b];
 }
+
