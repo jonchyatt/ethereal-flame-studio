@@ -7,6 +7,8 @@
 
 import Database from 'better-sqlite3';
 import { randomUUID } from 'crypto';
+import fs from 'fs';
+import path from 'path';
 import type { JobStore, AudioPrepJob, JobUpdate, ListOptions } from './types';
 
 const CREATE_TABLE_SQL = `
@@ -54,7 +56,42 @@ export class LocalJobStore implements JobStore {
   private db: Database.Database;
 
   constructor(dbPath = './audio-prep-jobs.db') {
-    this.db = new Database(dbPath);
+    // Resolve relative paths to absolute so ensureDbParentDir can create them
+    const absPath = path.isAbsolute(dbPath) ? dbPath : path.resolve(dbPath);
+    ensureDbParentDir(absPath);
+
+    let openedPath = absPath;
+    try {
+      this.db = new Database(absPath);
+    } catch (primaryErr) {
+      // Serverless environments (Vercel, Lambda) have a read-only working directory.
+      // Fall back to /tmp which is always writable in these environments.
+      const tmpPath = '/tmp/audio-prep-jobs.db';
+      if (absPath !== tmpPath) {
+        console.warn(
+          `[LocalJobStore] Cannot open "${absPath}" (${primaryErr instanceof Error ? primaryErr.message : primaryErr}). ` +
+          `Falling back to ${tmpPath}. NOTE: /tmp is ephemeral — jobs will not persist across invocations. ` +
+          `For production, set DEPLOY_ENV=production + TURSO_DATABASE_URL + TURSO_AUTH_TOKEN.`,
+        );
+        try {
+          this.db = new Database(tmpPath);
+          openedPath = tmpPath;
+        } catch (fallbackErr) {
+          throw new Error(
+            `Failed to open job database. Tried "${absPath}" and fallback "${tmpPath}". ` +
+            `For production, set DEPLOY_ENV=production and configure TURSO_DATABASE_URL + TURSO_AUTH_TOKEN. ` +
+            `Primary error: ${primaryErr instanceof Error ? primaryErr.message : String(primaryErr)}`,
+          );
+        }
+      } else {
+        throw new Error(
+          `Failed to open job database at "${absPath}". ` +
+          `For production, set DEPLOY_ENV=production and configure TURSO_DATABASE_URL + TURSO_AUTH_TOKEN. ` +
+          `Error: ${primaryErr instanceof Error ? primaryErr.message : String(primaryErr)}`,
+        );
+      }
+    }
+    console.log(`[LocalJobStore] Opened database at ${openedPath}`);
     this.db.pragma('journal_mode = WAL');
     this.db.exec(CREATE_TABLE_SQL);
     this.db.exec(CREATE_INDEXES_SQL);
@@ -233,5 +270,19 @@ export class LocalJobStore implements JobStore {
   /** Close the database connection. */
   close(): void {
     this.db.close();
+  }
+}
+
+function ensureDbParentDir(dbPath: string): void {
+  // Skip special SQLite in-memory names
+  if (!dbPath || dbPath === ':memory:') return;
+
+  // Resolve relative paths so dirname is always meaningful
+  const absPath = path.isAbsolute(dbPath) ? dbPath : path.resolve(dbPath);
+  const dir = path.dirname(absPath);
+  if (!dir) return;
+
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
   }
 }

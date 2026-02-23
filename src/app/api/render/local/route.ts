@@ -41,9 +41,10 @@ export async function POST(request: NextRequest) {
       const path = await import('path');
       const fs = await import('fs/promises');
       const { randomUUID } = await import('crypto');
-      const ext = path.extname(new URL(audioUrl).pathname) || '.mp3';
+      const resolvedAudioUrl = new URL(audioUrl, appUrl).toString();
+      const ext = path.extname(new URL(resolvedAudioUrl).pathname) || '.mp3';
       const tmpPath = path.join(os.tmpdir(), `render-audio-${randomUUID()}${ext}`);
-      const audioRes = await fetch(audioUrl);
+      const audioRes = await fetch(resolvedAudioUrl);
       if (!audioRes.ok) {
         return NextResponse.json(
           { success: false, error: `Failed to fetch audio URL: ${audioRes.status}` },
