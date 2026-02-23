@@ -73,6 +73,86 @@ export async function extractYouTubeAudio(
   outputDir: string,
   options: YtDlpOptions = {}
 ): Promise<YtDlpResult> {
+  const { allowedDomains } = options;
+
+  if (!validateYouTubeUrl(url, allowedDomains)) {
+    throw new Error(`Invalid or disallowed YouTube URL: ${url}`);
+  }
+
+  // Try yt-dlp binary first; fall back to pure-JS downloader (serverless-compatible)
+  try {
+    return await extractYouTubeAudioYtDlp(url, outputDir, options);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes('yt-dlp') || msg.includes('ENOENT') || msg.includes('not found')) {
+      console.warn('[ytdlp] yt-dlp binary not found, falling back to pure-JS downloader');
+      return await extractYouTubeAudioPureJs(url, outputDir, options);
+    }
+    throw err;
+  }
+}
+
+async function extractYouTubeAudioPureJs(
+  url: string,
+  outputDir: string,
+  options: YtDlpOptions,
+): Promise<YtDlpResult> {
+  const { maxFileSizeMB = 100, onProgress, signal } = options;
+  const maxBytes = maxFileSizeMB * 1024 * 1024;
+
+  // Dynamic import keeps ytdl-core out of the worker bundle when yt-dlp is available
+  const ytdl = await import('@distube/ytdl-core');
+  const videoId = extractVideoId(url) ?? 'unknown';
+
+  const info = await ytdl.default.getInfo(url);
+  const formats = ytdl.default.filterFormats(info.formats, 'audioonly');
+  const best = formats.sort((a, b) => (b.audioBitrate ?? 0) - (a.audioBitrate ?? 0))[0];
+
+  if (!best) throw new Error('No audio-only format found for this YouTube video');
+
+  const ext = best.container ?? 'webm';
+  const outPath = path.join(outputDir, `${videoId}.${ext}`);
+  const writeStream = (await import('fs')).createWriteStream(outPath);
+
+  const title = info.videoDetails.title ?? 'unknown';
+  const duration = Number(info.videoDetails.lengthSeconds) || 0;
+
+  await new Promise<void>((resolve, reject) => {
+    if (signal?.aborted) { reject(new Error('Cancelled')); return; }
+
+    const stream = ytdl.default.downloadFromInfo(info, { format: best });
+    let downloaded = 0;
+    const totalBytes = Number(best.contentLength) || 0;
+
+    stream.on('data', (chunk: Buffer) => {
+      downloaded += chunk.byteLength;
+      if (downloaded > maxBytes) {
+        stream.destroy(new Error(`Download exceeds ${maxFileSizeMB}MB limit`));
+        return;
+      }
+      if (onProgress && totalBytes > 0) {
+        onProgress(Math.min(100, Math.round((downloaded / totalBytes) * 100)));
+      }
+    });
+
+    if (signal) {
+      signal.addEventListener('abort', () => { stream.destroy(new Error('Cancelled')); }, { once: true });
+    }
+
+    stream.pipe(writeStream);
+    stream.on('error', reject);
+    writeStream.on('finish', resolve);
+    writeStream.on('error', reject);
+  });
+
+  return { filePath: outPath, videoId, title, duration };
+}
+
+async function extractYouTubeAudioYtDlp(
+  url: string,
+  outputDir: string,
+  options: YtDlpOptions,
+): Promise<YtDlpResult> {
   const { timeoutMs = 300000, maxFileSizeMB = 100, cookieFilePath, allowedDomains, onProgress, signal } = options;
 
   if (!validateYouTubeUrl(url, allowedDomains)) {

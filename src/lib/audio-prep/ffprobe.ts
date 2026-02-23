@@ -2,6 +2,29 @@ import { spawn } from 'child_process';
 import type { AudioMetadata } from './types';
 
 export async function probeAudio(filePath: string): Promise<AudioMetadata> {
+  // Try ffprobe first; fall back to music-metadata (pure JS, works in serverless)
+  try {
+    return await probeWithFfprobe(filePath);
+  } catch {
+    return await probeWithMusicMetadata(filePath);
+  }
+}
+
+async function probeWithMusicMetadata(filePath: string): Promise<AudioMetadata> {
+  const { parseFile } = await import('music-metadata');
+  const meta = await parseFile(filePath);
+  const fmt = meta.format;
+  return {
+    duration: fmt.duration ?? 0,
+    sampleRate: fmt.sampleRate ?? 0,
+    channels: fmt.numberOfChannels ?? 0,
+    codec: fmt.codec ?? fmt.container ?? 'unknown',
+    bitrate: fmt.bitrate ?? 0,
+    format: fmt.container ?? 'unknown',
+  };
+}
+
+async function probeWithFfprobe(filePath: string): Promise<AudioMetadata> {
   const args = [
     '-v', 'quiet',
     '-print_format', 'json',

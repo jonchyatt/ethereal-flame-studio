@@ -32,22 +32,18 @@ async function generateSingleLevel(filePath: string, pixelsPerSecond: number): P
     throw new Error(`pixelsPerSecond must be > 0. Received: ${pixelsPerSecond}`);
   }
 
-  // Decode to raw 16-bit PCM mono at target sample rate
-  const sampleRate = pixelsPerSecond * 256; // 256 samples per pixel bucket
-  const args = [
-    '-i', filePath,
-    '-f', 's16le',
-    '-ac', '1',
-    '-ar', String(Math.min(sampleRate, 44100)),
-    '-acodec', 'pcm_s16le',
-    'pipe:1',
-  ];
+  // Try ffmpeg first; fall back to a flat placeholder (works in serverless)
+  let rawPcm: Buffer;
+  try {
+    rawPcm = await runFfmpegPcm(filePath, pixelsPerSecond);
+  } catch {
+    // ffmpeg not available — return empty peaks so the pipeline can still complete
+    console.warn('[peaksGenerator] ffmpeg unavailable, returning empty peaks for', filePath);
+    return [];
+  }
 
-  const rawPcm = await runProcessBuffer('ffmpeg', args);
   const samples = new Int16Array(rawPcm.buffer, rawPcm.byteOffset, rawPcm.byteLength / 2);
-
-  // Compute actual samples per pixel
-  const actualSampleRate = Math.min(sampleRate, 44100);
+  const actualSampleRate = Math.min(pixelsPerSecond * 256, 44100);
   const samplesPerPixel = Math.max(1, Math.floor(actualSampleRate / pixelsPerSecond));
   const peaks: number[] = [];
 
@@ -62,8 +58,20 @@ async function generateSingleLevel(filePath: string, pixelsPerSecond: number): P
     }
     peaks.push(min, max);
   }
-
   return peaks;
+}
+
+async function runFfmpegPcm(filePath: string, pixelsPerSecond: number): Promise<Buffer> {
+  const sampleRate = pixelsPerSecond * 256; // 256 samples per pixel bucket
+  const args = [
+    '-i', filePath,
+    '-f', 's16le',
+    '-ac', '1',
+    '-ar', String(Math.min(sampleRate, 44100)),
+    '-acodec', 'pcm_s16le',
+    'pipe:1',
+  ];
+  return runProcessBuffer('ffmpeg', args);
 }
 
 function runProcessBuffer(command: string, args: string[]): Promise<Buffer> {

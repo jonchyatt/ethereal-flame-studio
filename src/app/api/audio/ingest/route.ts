@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { after } from 'next/server';
 import { z } from 'zod';
 import { getJobStore } from '@/lib/jobs';
 import { getStorageAdapter } from '@/lib/storage';
 import { AudioAssetService } from '@/lib/audio-prep/AudioAssetService';
+import type { AudioPrepJob } from '@/lib/jobs';
+
+// Allow up to 5 minutes for the after() background processing (Vercel Pro/hobby limit)
+export const maxDuration = 300;
 
 const assetService = new AudioAssetService();
 
@@ -21,6 +26,24 @@ const JsonIngestSchema = z.discriminatedUnion('type', [
     url: z.string().url(),
   }),
 ]);
+
+/**
+ * Process a job inline (when no external worker is running).
+ * Runs via next/server after() so it executes after the response is sent.
+ */
+async function processInline(job: AudioPrepJob): Promise<void> {
+  const store = getJobStore();
+  try {
+    // Dynamically import pipeline to avoid bundling issues
+    const { runIngestPipeline } = await import('@/lib/ingest-pipeline');
+    await runIngestPipeline(store, job, { current: null });
+  } catch (err) {
+    console.error(`[ingest/inline] Job ${job.jobId} failed:`, err);
+    try {
+      await store.fail(job.jobId, err instanceof Error ? err.message : String(err));
+    } catch { /* ignore secondary failure */ }
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,8 +74,6 @@ export async function POST(request: NextRequest) {
       }
 
       // Buffer the file to storage so the worker can access it later.
-      // Generate a temporary jobId-like key for the upload, then create
-      // the job with that storage key in metadata.
       const { randomUUID } = await import('crypto');
       const uploadId = randomUUID();
       const ext = file.name.split('.').pop() || 'bin';
@@ -69,6 +90,9 @@ export async function POST(request: NextRequest) {
         storageKey,
         originalFilename: file.name,
       });
+
+      // Process inline via after() — runs after response is sent
+      after(() => processInline(job));
 
       return NextResponse.json({
         success: true,
@@ -96,6 +120,9 @@ export async function POST(request: NextRequest) {
       }
 
       const job = await store.create('ingest', metadata);
+
+      // Process inline via after() — runs after response is sent
+      after(() => processInline(job));
 
       return NextResponse.json({
         success: true,
