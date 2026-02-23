@@ -40,6 +40,8 @@ export type ParticleLayerConfig = {
   // Colors
   colorStart?: [number, number, number];
   colorEnd?: [number, number, number];
+  // Layer opacity (0-1, replaces simple on/off toggle)
+  layerOpacity?: number;
 };
 
 export interface ParticleSystemConfig {

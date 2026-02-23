@@ -81,6 +81,11 @@ export interface TemplateSettings {
   waterEnabled: boolean;
   waterColor: string;
   waterReflectivity: number;
+  // Audio dynamics
+  decaySpeed?: number;
+  attackSpeed?: number;
+  beatSensitivity?: number;
+  minBrightness?: number;
 }
 
 /**

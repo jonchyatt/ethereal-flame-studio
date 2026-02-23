@@ -57,7 +57,7 @@ export function ParticleSystem() {
   return (
     <group>
       {layers
-        .filter((layer) => layer.enabled)
+        .filter((layer) => layer.enabled && (layer.layerOpacity ?? 1) > 0)
         .map((config) => (
           <ParticleLayer
             key={config.id}

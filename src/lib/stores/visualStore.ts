@@ -90,6 +90,11 @@ interface VisualState {
   // Visual mode state (plan 01-05)
   currentMode: VisualMode;
   modeConfigs: Record<VisualMode, VisualModeConfig>;
+  // Audio dynamics (global orb behavior)
+  decaySpeed: number;       // 0.01-0.3 — how fast orb fades back (releaseSmoothing)
+  attackSpeed: number;      // 0.1-0.8 — how fast orb reacts to new audio
+  beatSensitivity: number;  // 0-3 — beat pulse strength multiplier
+  minBrightness: number;    // 0-0.5 — baseline visibility when silent
   // Water state
   waterEnabled: boolean;
   waterColor: string;
@@ -181,6 +186,11 @@ interface VisualState {
   setWaterEnabled: (enabled: boolean) => void;
   setWaterColor: (color: string) => void;
   setWaterReflectivity: (reflectivity: number) => void;
+  // Audio dynamics setters
+  setDecaySpeed: (value: number) => void;
+  setAttackSpeed: (value: number) => void;
+  setBeatSensitivity: (value: number) => void;
+  setMinBrightness: (value: number) => void;
   // Template integration (plan 02-01)
   applyTemplateSettings: (settings: TemplateSettings) => void;
 }
@@ -204,6 +214,7 @@ export const ETHEREAL_FLAME_CONFIG: VisualModeConfig = {
       id: 'inner-glow',           // ID without 'flame' to use else branch
       name: 'Inner Glow',
       enabled: true,
+      layerOpacity: 1.0,
       particleCount: 35,          // Matched to DEFAULT_LAYERS
       baseSize: 5.5,              // Matched to DEFAULT_LAYERS
       spawnRadius: 0.35,          // KEY: Large radius for organic effect
@@ -223,6 +234,7 @@ export const ETHEREAL_FLAME_CONFIG: VisualModeConfig = {
       id: 'outer-halo',           // ID without 'flame' to use else branch
       name: 'Outer Halo',
       enabled: true,
+      layerOpacity: 1.0,
       particleCount: 25,          // Matched to DEFAULT_LAYERS
       baseSize: 7.0,              // Matched to DEFAULT_LAYERS
       spawnRadius: 0.5,           // KEY: Large radius for organic effect
@@ -258,6 +270,7 @@ export const ETHEREAL_MIST_CONFIG: VisualModeConfig = {
       id: 'mist-core',
       name: 'Mist Core',
       enabled: true,
+      layerOpacity: 1.0,
       particleCount: 25,         // Reduced from 60 - fewer, larger particles
       baseSize: 7.0,             // Increased from 5.0
       spawnRadius: 0.15,         // REDUCED: 0.45 → 0.15 (third)
@@ -276,6 +289,7 @@ export const ETHEREAL_MIST_CONFIG: VisualModeConfig = {
       id: 'ambient-haze',
       name: 'Ambient Haze',
       enabled: true,
+      layerOpacity: 1.0,
       particleCount: 20,         // Reduced from 40
       baseSize: 8.0,             // Increased from 6.5
       spawnRadius: 0.2,          // REDUCED: 0.6 → 0.2 (third)
@@ -301,6 +315,7 @@ const DEFAULT_LAYERS: ParticleLayerConfig[] = [
     id: 'inner-glow',
     name: 'Inner Glow',
     enabled: true,
+    layerOpacity: 1.0,
     particleCount: 35,           // Reduced from 100
     baseSize: 5.5,               // Increased from 3.5
     spawnRadius: 0.35,
@@ -319,6 +334,7 @@ const DEFAULT_LAYERS: ParticleLayerConfig[] = [
     id: 'outer-halo',
     name: 'Outer Halo',
     enabled: true,
+    layerOpacity: 1.0,
     particleCount: 25,           // Reduced from 70
     baseSize: 7.0,               // Increased from 5.0
     spawnRadius: 0.5,
@@ -423,6 +439,11 @@ export const useVisualStore = create<VisualState>((set) => ({
     etherealMist: ETHEREAL_MIST_CONFIG,
     etherealFlame: ETHEREAL_FLAME_CONFIG,
   },
+  // Audio dynamics defaults
+  decaySpeed: 0.04,
+  attackSpeed: 0.4,
+  beatSensitivity: 1.0,
+  minBrightness: 0.15,
   // Water state defaults
   waterEnabled: false,
   waterColor: '#0a1828',     // Dark blue
@@ -538,6 +559,12 @@ export const useVisualStore = create<VisualState>((set) => ({
   setWaterColor: (color) => set({ waterColor: color }),
   setWaterReflectivity: (reflectivity) => set({ waterReflectivity: reflectivity }),
 
+  // Audio dynamics setters
+  setDecaySpeed: (value) => set({ decaySpeed: value }),
+  setAttackSpeed: (value) => set({ attackSpeed: value }),
+  setBeatSensitivity: (value) => set({ beatSensitivity: value }),
+  setMinBrightness: (value) => set({ minBrightness: value }),
+
   // Template integration (plan 02-01)
   applyTemplateSettings: (settings) => set((state) => ({
     intensity: settings.intensity ?? state.intensity,
@@ -616,6 +643,10 @@ export const useVisualStore = create<VisualState>((set) => ({
     waterEnabled: settings.waterEnabled ?? state.waterEnabled,
     waterColor: settings.waterColor ?? state.waterColor,
     waterReflectivity: settings.waterReflectivity ?? state.waterReflectivity,
+    decaySpeed: settings.decaySpeed ?? state.decaySpeed,
+    attackSpeed: settings.attackSpeed ?? state.attackSpeed,
+    beatSensitivity: settings.beatSensitivity ?? state.beatSensitivity,
+    minBrightness: settings.minBrightness ?? state.minBrightness,
   })),
 }));
 
@@ -710,5 +741,9 @@ export const selectSerializableState = (state: VisualState): TemplateSettings =>
     waterEnabled: state.waterEnabled,
     waterColor: state.waterColor,
     waterReflectivity: state.waterReflectivity,
+    decaySpeed: state.decaySpeed,
+    attackSpeed: state.attackSpeed,
+    beatSensitivity: state.beatSensitivity,
+    minBrightness: state.minBrightness,
   };
 };

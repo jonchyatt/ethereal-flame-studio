@@ -163,6 +163,14 @@ export function AdvancedEditor() {
   const setCameraOrbitHeight = useVisualStore((state) => state.setCameraOrbitHeight);
   const [videoUrlInput, setVideoUrlInput] = useState('');
   const [logoUrlInput, setLogoUrlInput] = useState('');
+  const decaySpeed = useVisualStore((state) => state.decaySpeed);
+  const setDecaySpeed = useVisualStore((state) => state.setDecaySpeed);
+  const attackSpeed = useVisualStore((state) => state.attackSpeed);
+  const setAttackSpeed = useVisualStore((state) => state.setAttackSpeed);
+  const beatSensitivity = useVisualStore((state) => state.beatSensitivity);
+  const setBeatSensitivity = useVisualStore((state) => state.setBeatSensitivity);
+  const minBrightness = useVisualStore((state) => state.minBrightness);
+  const setMinBrightness = useVisualStore((state) => state.setMinBrightness);
   const waterEnabled = useVisualStore((state) => state.waterEnabled);
   const setWaterEnabled = useVisualStore((state) => state.setWaterEnabled);
   const waterColor = useVisualStore((state) => state.waterColor);
@@ -269,6 +277,76 @@ export function AdvancedEditor() {
             onChange={(e) => setIntensity(parseFloat(e.target.value))}
             className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
           />
+        </div>
+      </ParameterGroup>
+
+      {/* Audio Dynamics */}
+      <ParameterGroup title="Audio Dynamics">
+        <div className="space-y-3">
+          <div>
+            <label className="flex justify-between text-white/60 text-xs mb-1">
+              <span>Beat Sensitivity</span>
+              <span className="text-white/40">{beatSensitivity.toFixed(1)}x</span>
+            </label>
+            <input
+              type="range"
+              min={0}
+              max={3}
+              step={0.1}
+              value={beatSensitivity}
+              onChange={(e) => setBeatSensitivity(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-white/30 text-[10px] mt-0.5">How dramatically the orb responds to beats</p>
+          </div>
+          <div>
+            <label className="flex justify-between text-white/60 text-xs mb-1">
+              <span>Attack Speed</span>
+              <span className="text-white/40">{attackSpeed.toFixed(2)}</span>
+            </label>
+            <input
+              type="range"
+              min={0.05}
+              max={0.8}
+              step={0.05}
+              value={attackSpeed}
+              onChange={(e) => setAttackSpeed(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-white/30 text-[10px] mt-0.5">How quickly the orb reacts to new audio</p>
+          </div>
+          <div>
+            <label className="flex justify-between text-white/60 text-xs mb-1">
+              <span>Decay Speed</span>
+              <span className="text-white/40">{decaySpeed.toFixed(2)}</span>
+            </label>
+            <input
+              type="range"
+              min={0.01}
+              max={0.3}
+              step={0.01}
+              value={decaySpeed}
+              onChange={(e) => setDecaySpeed(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-white/30 text-[10px] mt-0.5">How quickly the orb fades back to rest</p>
+          </div>
+          <div>
+            <label className="flex justify-between text-white/60 text-xs mb-1">
+              <span>Min Brightness</span>
+              <span className="text-white/40">{minBrightness.toFixed(2)}</span>
+            </label>
+            <input
+              type="range"
+              min={0}
+              max={0.5}
+              step={0.01}
+              value={minBrightness}
+              onChange={(e) => setMinBrightness(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-white/30 text-[10px] mt-0.5">Baseline visibility when silent (0 = orb vanishes)</p>
+          </div>
         </div>
       </ParameterGroup>
 

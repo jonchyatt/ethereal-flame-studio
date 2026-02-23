@@ -46,35 +46,50 @@ function Slider({
 
 export function LayerEditor({ layer }: LayerEditorProps) {
   const updateLayer = useVisualStore((state) => state.updateLayer);
-  const toggleLayer = useVisualStore((state) => state.toggleLayer);
 
   const update = (key: keyof ParticleLayerConfig, value: ParticleLayerConfig[typeof key]) => {
     updateLayer(layer.id, { [key]: value });
+  };
+
+  const opacity = layer.layerOpacity ?? 1.0;
+  const isActive = layer.enabled && opacity > 0;
+
+  const handleOpacityChange = (value: number) => {
+    updateLayer(layer.id, {
+      layerOpacity: value,
+      enabled: value > 0,
+    });
   };
 
   const frequencyBands: FrequencyBand[] = ['bass', 'mids', 'treble', 'all'];
 
   return (
     <div className="border border-white/10 rounded-lg overflow-hidden">
-      {/* Layer Header */}
-      <div className="flex items-center justify-between px-3 py-2 bg-white/5">
-        <span className="text-white/80 text-sm font-medium">{layer.name}</span>
-        <button
-          onClick={() => toggleLayer(layer.id)}
-          className={`
-            px-2 py-0.5 text-xs rounded
-            ${layer.enabled
-              ? 'bg-green-500/30 text-green-300 border border-green-500/50'
-              : 'bg-white/10 text-white/50 border border-white/20'
-            }
-          `}
-        >
-          {layer.enabled ? 'ON' : 'OFF'}
-        </button>
+      {/* Layer Header with Opacity Slider */}
+      <div className="px-3 py-2 bg-white/5">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-white/80 text-sm font-medium">{layer.name}</span>
+          <span className={`text-xs px-1.5 py-0.5 rounded ${
+            isActive
+              ? 'text-green-300 bg-green-500/20'
+              : 'text-white/40 bg-white/5'
+          }`}>
+            {opacity === 0 ? 'OFF' : `${Math.round(opacity * 100)}%`}
+          </span>
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.05}
+          value={opacity}
+          onChange={(e) => handleOpacityChange(parseFloat(e.target.value))}
+          className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+        />
       </div>
 
       {/* Layer Parameters */}
-      {layer.enabled && (
+      {isActive && (
         <div className="p-3 space-y-3 bg-black/20">
           {/* Core Parameters */}
           <div className="grid grid-cols-2 gap-3">

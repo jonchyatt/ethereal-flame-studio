@@ -5,6 +5,7 @@ import { useFrame, useLoader } from '@react-three/fiber';
 import * as THREE from 'three';
 import { ParticleLayerConfig } from '@/types';
 import { useRenderMode } from '@/hooks/useRenderMode';
+import { useVisualStore } from '@/lib/stores/visualStore';
 
 interface ParticleLayerProps {
   config: ParticleLayerConfig;
@@ -270,20 +271,29 @@ export function ParticleLayer({
       bandAmplitude = audioLevels.treble;
     }
 
+    // Read global audio dynamics from store (cheap getState() call, no subscription)
+    const dynamics = useVisualStore.getState();
+    const userAttack = dynamics.attackSpeed;   // 0.05-0.8, default 0.4
+    const userDecay = dynamics.decaySpeed;     // 0.01-0.3, default 0.04
+    const userBeatSens = dynamics.beatSensitivity; // 0-3, default 1.0
+    const userMinBright = dynamics.minBrightness;  // 0-0.5, default 0.15
+
     // Asymmetric smoothing - fast attack (bloom up), slow decay (fade down)
     // In render mode, use near-instant response since each frame's audio data
     // represents the exact levels for that moment (pre-analyzed)
     const smoothed = smoothedAudioRef.current;
     const inRenderMode = renderMode.isActive;
-    const attackSmoothing = inRenderMode ? 0.85 : 0.4;
-    const releaseSmoothing = inRenderMode ? 0.15 : 0.04;
+    const attackSmoothing = inRenderMode ? 0.85 : userAttack;
+    const releaseSmoothing = inRenderMode ? 0.15 : userDecay;
     const isRising = bandAmplitude > smoothed.amplitude;
     const smoothing = isRising ? attackSmoothing : releaseSmoothing;
     smoothed.amplitude += (bandAmplitude - smoothed.amplitude) * smoothing;
 
-    // Smooth beat pulse (quick attack, slow decay) - visible but not overwhelming
-    const targetBeat = audioLevels.isBeat ? 1.15 : 1.0; // Visible beat pulse
-    const beatSmoothing = audioLevels.isBeat ? (inRenderMode ? 0.7 : 0.3) : (inRenderMode ? 0.15 : 0.05);
+    // Smooth beat pulse — strength scales with beatSensitivity
+    const targetBeat = audioLevels.isBeat ? (1.0 + 0.15 * userBeatSens) : 1.0;
+    const beatAttack = inRenderMode ? 0.7 : (0.3 * Math.max(userBeatSens, 0.3));
+    const beatRelease = inRenderMode ? 0.15 : userDecay;
+    const beatSmoothing = audioLevels.isBeat ? beatAttack : beatRelease;
     smoothed.beat += (targetBeat - smoothed.beat) * beatSmoothing;
 
     for (let i = 0; i < particleCount; i++) {
@@ -490,14 +500,13 @@ export function ParticleLayer({
       }
 
       // Apply audio reactivity to size (VIS-08, VIS-09) using smoothed values
-      // Moderate multipliers - visible reaction while preserving organic look
+      // Beat sensitivity scales the caps for more dramatic response
       let audioSizeMultiplier = 1.0;
       const reactivity = config.audioReactivity || 0;
       if (reactivity > 0) {
-        // Visible size reaction - up to ~1.4x at full amplitude
         const rawMultiplier = 1.0 + smoothed.amplitude * reactivity * 0.5;
-        // Cap at 1.4x to prevent blowout while allowing visible response
-        audioSizeMultiplier = Math.min(rawMultiplier, 1.4);
+        const sizeCap = 1.0 + 0.4 * userBeatSens; // default 1.4, up to 2.2 at max sensitivity
+        audioSizeMultiplier = Math.min(rawMultiplier, sizeCap);
       }
 
       // Apply smoothed beat pulse effect (AUD-04)
@@ -510,19 +519,19 @@ export function ParticleLayer({
       // Low visibility when silent, full visibility with audio
       // Use power curve for more dramatic on/off effect
       const audioVisibility = Math.pow(smoothed.amplitude, 0.5); // sqrt for faster rise
-      const minVisibility = 0.15; // Low baseline - particles fade when quiet but don't vanish
-      const visibilityMultiplier = minVisibility + audioVisibility * (1.0 - minVisibility);
+      const visibilityMultiplier = userMinBright + audioVisibility * (1.0 - userMinBright);
 
-      alphas[i] = alpha * visibilityMultiplier;
+      // Multiply by layerOpacity for per-layer intensity control
+      const layerOpacity = config.layerOpacity ?? 1.0;
+      alphas[i] = alpha * visibilityMultiplier * layerOpacity;
 
       // Apply audio reactivity to position scale (expansion/contraction) using smoothed values
-      // Moderate expansion - visible "breathing" effect
+      // Beat sensitivity scales the expansion cap
       let scale = 1.0;
       if (reactivity > 0) {
-        // Visible expansion - up to ~1.2x
         const rawScale = 1.0 + smoothed.amplitude * reactivity * 0.15;
-        // Cap at 1.2x for visible but controlled breathing
-        scale = Math.min(rawScale, 1.2);
+        const scaleCap = 1.0 + 0.2 * userBeatSens; // default 1.2, up to 1.6 at max sensitivity
+        scale = Math.min(rawScale, scaleCap);
       }
       const bx = birthPositions[i * 3];
       const by = birthPositions[i * 3 + 1];
