@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 type LibraryVariant = {
@@ -71,6 +71,14 @@ function parseAspectRatio(aspect: string): string {
 }
 
 export default function ThumbnailPlannerPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-zinc-400">Loading...</div>}>
+      <ThumbnailPlannerContent />
+    </Suspense>
+  );
+}
+
+function ThumbnailPlannerContent() {
   const searchParams = useSearchParams();
   const preselectedItemId = searchParams.get('itemId') || '';
   const videoRef = useRef<HTMLVideoElement | null>(null);
