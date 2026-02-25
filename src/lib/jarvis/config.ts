@@ -63,7 +63,7 @@ export function getJarvisConfig(): JarvisConfig {
     enableMcpConnector: process.env.JARVIS_ENABLE_MCP === 'true',
     notionMcpUrl: process.env.NOTION_MCP_URL || 'https://mcp.notion.com/mcp',
     notionOAuthToken: process.env.NOTION_OAUTH_TOKEN || '',
-    enableSelfImprovement: process.env.JARVIS_ENABLE_SELF_IMPROVEMENT === 'true',
+    enableSelfImprovement: process.env.JARVIS_ENABLE_SELF_IMPROVEMENT !== 'false', // ON by default
   };
 }
 
