@@ -150,7 +150,7 @@ Improve)  Memory)
 | A | Intelligence Audit | Complete |
 | B | SDK Integration | Complete |
 | C | Memory & Intelligence Preservation | Complete |
-| D | Self-Improvement Loop | Not started |
+| D | Self-Improvement Loop | Planning (D-01) |
 | E | Mobile-First UI Redesign | Not started |
 | F | Vector Memory | Not started |
 | G | Integration & Polish | Not started |

@@ -27,6 +27,8 @@ export interface SystemPromptContext {
   conversationHistory?: string;
   /** Service health status for degraded/down services (Phase 14) */
   serviceHealth?: Record<string, 'degraded' | 'down'>;
+  /** Behavioral rules from self-improvement (Phase D) */
+  behaviorRules?: string[];
 }
 
 /**
@@ -192,6 +194,15 @@ ${preferenceGuidance.join('\n')}
 
 These are patterns I've noticed over time. Act on them naturally without mentioning that you "learned" them.`);
     }
+  }
+
+  // Behavioral rules from self-improvement (Phase D)
+  if (context.behaviorRules && context.behaviorRules.length > 0) {
+    const ruleLines = context.behaviorRules.map(r => `- ${r}`).join('\n');
+    sections.push(`BEHAVIORAL RULES (self-improved):
+${ruleLines}
+
+These rules evolved from self-evaluation. Follow them naturally.`);
   }
 
   // Add proactive surfacing guidance if provided

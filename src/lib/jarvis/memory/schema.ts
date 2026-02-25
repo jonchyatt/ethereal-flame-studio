@@ -1,10 +1,14 @@
 /**
  * Jarvis Memory System - Database Schema
  *
- * Three tables:
+ * Tables:
  * - memory_entries: Contextual facts for briefings/nudges/check-ins
  * - sessions: Conversation session tracking
  * - daily_logs: Significant events within sessions
+ * - observations: Behavioral pattern tracking for preference inference
+ * - messages: Conversation history for cross-session continuity
+ * - conversation_evaluations: Self-improvement critic scores (Phase D)
+ * - behavior_rules: Versioned behavioral rules from self-improvement (Phase D)
  */
 
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
@@ -91,6 +95,43 @@ export const messages = sqliteTable('messages', {
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
 });
 
+/**
+ * Conversation Evaluations - Self-improvement critic scores (Phase D)
+ *
+ * After each substantive conversation, a Haiku critic evaluates on 5 dimensions:
+ * Completeness, Accuracy, Efficiency, Tone, User Satisfaction.
+ * Scores stored for future reflection loop to synthesize into behavioral rules.
+ */
+export const conversationEvaluations = sqliteTable('conversation_evaluations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  sessionId: integer('session_id').references(() => sessions.id),
+  scores: text('scores').notNull(),         // JSON: { completeness: {score, evidence}, accuracy: {score, evidence}, ... }
+  overall: text('overall').notNull(),       // Numeric string, 1 decimal (e.g., "7.4")
+  strengths: text('strengths').notNull(),   // JSON array of strings
+  improvements: text('improvements').notNull(), // JSON array of strings
+  model: text('model').notNull(),           // Which model evaluated (e.g., "claude-haiku-4-5-20251001")
+  evaluatedAt: text('evaluated_at').notNull().$defaultFn(() => new Date().toISOString()),
+});
+
+/**
+ * Behavior Rules - Versioned behavioral instructions from self-improvement (Phase D)
+ *
+ * Rules evolve from reflection on conversation evaluations.
+ * Injected into system prompt to shape how Jarvis responds.
+ * Versioned: when a rule is superseded, isActive=0 and supersededAt is set.
+ */
+export const behaviorRules = sqliteTable('behavior_rules', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  rule: text('rule').notNull(),             // The behavioral instruction text
+  category: text('category').notNull(),     // 'communication' | 'workflow' | 'tone' | 'task_handling'
+  source: text('source').notNull(),         // 'reflection' | 'manual' | 'seed'
+  version: integer('version').notNull().default(1),
+  isActive: integer('is_active').notNull().default(1), // 1 = active, 0 = superseded
+  rationale: text('rationale'),             // Why this rule was created/changed
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+  supersededAt: text('superseded_at'),      // null = current, ISO = when replaced
+});
+
 // Type exports for use in queries
 export type MemoryEntry = typeof memoryEntries.$inferSelect;
 export type NewMemoryEntry = typeof memoryEntries.$inferInsert;
@@ -102,3 +143,7 @@ export type Observation = typeof observations.$inferSelect;
 export type NewObservation = typeof observations.$inferInsert;
 export type MessageRow = typeof messages.$inferSelect;
 export type NewMessageRow = typeof messages.$inferInsert;
+export type ConversationEvaluation = typeof conversationEvaluations.$inferSelect;
+export type NewConversationEvaluation = typeof conversationEvaluations.$inferInsert;
+export type BehaviorRule = typeof behaviorRules.$inferSelect;
+export type NewBehaviorRule = typeof behaviorRules.$inferInsert;

@@ -32,6 +32,8 @@ export interface JarvisConfig {
   notionMcpUrl: string;
   /** Notion OAuth token for MCP Connector (empty = disabled) */
   notionOAuthToken: string;
+  /** Enable self-improvement: conversation evaluation + behavior rules (default false) */
+  enableSelfImprovement: boolean;
 }
 
 /**
@@ -44,6 +46,7 @@ export interface JarvisConfig {
  * - JARVIS_ENABLE_MCP: "true" to enable Notion MCP Connector (default: false)
  * - NOTION_MCP_URL: Notion MCP server URL (default: https://mcp.notion.com/mcp)
  * - NOTION_OAUTH_TOKEN: Notion OAuth token for MCP (empty = disabled)
+ * - JARVIS_ENABLE_SELF_IMPROVEMENT: "true" to enable conversation evaluation + behavior rules
  */
 export function getJarvisConfig(): JarvisConfig {
   return {
@@ -60,6 +63,7 @@ export function getJarvisConfig(): JarvisConfig {
     enableMcpConnector: process.env.JARVIS_ENABLE_MCP === 'true',
     notionMcpUrl: process.env.NOTION_MCP_URL || 'https://mcp.notion.com/mcp',
     notionOAuthToken: process.env.NOTION_OAUTH_TOKEN || '',
+    enableSelfImprovement: process.env.JARVIS_ENABLE_SELF_IMPROVEMENT === 'true',
   };
 }
 

@@ -25,6 +25,7 @@ import { executeNotionTool } from '../notion/toolExecutor';
 import { executeMemoryTool } from '../memory/toolExecutor';
 import { executeTutorialTool } from '../tutorial/toolExecutor';
 import { handleRecurringTaskCompletion } from '../notion/recurringHook';
+import { evaluateConversation } from './evaluator';
 import { saveMessage, getSessionMessageCount } from '../memory/queries/messages';
 import { triggerSummarization } from '../memory/summarization';
 import { getJarvisConfig } from '../config';
@@ -234,6 +235,16 @@ export async function processChatMessage(options: ProcessChatOptions): Promise<P
             triggerSummarization(sessionId).catch(() => {});
           }
         }).catch(() => {});
+      }
+    }
+
+    // Self-improvement: evaluate substantive conversations (fire-and-forget)
+    if (config.enableSelfImprovement && result.success) {
+      const isSubstantive = result.toolsUsed.length >= 2 || isComplex;
+      if (isSubstantive) {
+        evaluateConversation(sessionId, messages).catch(err =>
+          console.error('[ChatProcessor] Evaluation failed (non-blocking):', err)
+        );
       }
     }
 

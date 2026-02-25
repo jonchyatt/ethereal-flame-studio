@@ -16,6 +16,7 @@ import {
   getEntriesByCategory,
 } from '../memory';
 import { loadConversationHistory } from '../memory/queries/messages';
+import { loadBehaviorRulesForPrompt } from '../intelligence/behaviorRules';
 import { getServiceHealth } from '../resilience/CircuitBreaker';
 import type { SystemPromptContext } from '../intelligence/systemPrompt';
 
@@ -33,6 +34,7 @@ export async function buildSystemPromptContext(
   let inferredPreferences: string[] | undefined;
   let conversationHistory: string | undefined;
   let serviceHealth: Record<string, 'degraded' | 'down'> | undefined;
+  let behaviorRules: string[] | undefined;
 
   if (config.enableMemoryLoading) {
     try {
@@ -71,6 +73,16 @@ export async function buildSystemPromptContext(
     if (Object.keys(issues).length > 0) serviceHealth = issues;
   }
 
+  // Self-improvement: load behavioral rules
+  if (config.enableSelfImprovement) {
+    try {
+      const rules = await loadBehaviorRulesForPrompt();
+      if (rules.length > 0) behaviorRules = rules;
+    } catch (error) {
+      console.error('[Context] Behavior rules loading failed:', error);
+    }
+  }
+
   return {
     currentTime: new Date(),
     memoryContext,
@@ -78,5 +90,6 @@ export async function buildSystemPromptContext(
     inferredPreferences,
     conversationHistory,
     serviceHealth,
+    behaviorRules,
   };
 }
