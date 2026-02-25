@@ -26,6 +26,12 @@ export interface JarvisConfig {
   enableSelfHealing: boolean;
   /** Enable Telegram bot integration (default false) */
   enableTelegram: boolean;
+  /** Enable Anthropic MCP Connector for Notion (default false) */
+  enableMcpConnector: boolean;
+  /** Notion MCP server URL */
+  notionMcpUrl: string;
+  /** Notion OAuth token for MCP Connector (empty = disabled) */
+  notionOAuthToken: string;
 }
 
 /**
@@ -35,6 +41,9 @@ export interface JarvisConfig {
  * - JARVIS_ENABLE_MEMORY: "true" to enable (default: false during rollout)
  * - JARVIS_MEMORY_TOKEN_BUDGET: token limit (default: 1000)
  * - JARVIS_MAX_MEMORIES: entry limit (default: 10)
+ * - JARVIS_ENABLE_MCP: "true" to enable Notion MCP Connector (default: false)
+ * - NOTION_MCP_URL: Notion MCP server URL (default: https://mcp.notion.com/mcp)
+ * - NOTION_OAUTH_TOKEN: Notion OAuth token for MCP (empty = disabled)
  */
 export function getJarvisConfig(): JarvisConfig {
   return {
@@ -48,6 +57,9 @@ export function getJarvisConfig(): JarvisConfig {
     maxHistoryMessages: parseInt(process.env.JARVIS_MAX_HISTORY_MESSAGES || '5', 10),
     enableSelfHealing: process.env.JARVIS_ENABLE_SELF_HEALING !== 'false', // ON by default
     enableTelegram: process.env.JARVIS_ENABLE_TELEGRAM === 'true',
+    enableMcpConnector: process.env.JARVIS_ENABLE_MCP === 'true',
+    notionMcpUrl: process.env.NOTION_MCP_URL || 'https://mcp.notion.com/mcp',
+    notionOAuthToken: process.env.NOTION_OAUTH_TOKEN || '',
   };
 }
 

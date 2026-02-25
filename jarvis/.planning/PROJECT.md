@@ -8,11 +8,21 @@ A voice-enabled AI companion that integrates with Notion Life OS workspaces to p
 
 **One system that knows everything, surfaces what matters, and keeps you on track.** Ideas get captured, priorities stay clear, and nothing slips through cracks - so you can focus on doing the work instead of managing the work.
 
-## Current Milestone: v2.0 Memory & Production — COMPLETE
+## Current Milestone: v4.0 Brain Swap & Life Manager UI
 
-**Goal:** Give Jarvis persistent memory across sessions and deploy to production.
+**Goal:** Replace Jarvis's custom Claude API backend with Claude Code SDK for a smarter, self-improving brain, and rebuild the UI as an elegant responsive life manager.
 
-**Delivered:**
+**Target features:**
+- Brain swap: Replace custom tool loop (chatProcessor, tools.ts, ClaudeClient) with Claude Code SDK (`@anthropic-ai/claude-code`)
+- Preserve intelligence gems: Audit existing memory system, learning patterns, personality before removing anything
+- MCP-native tools: Notion MCP + Playwright MCP via `.mcp.json` (same architecture as ClaudeClaw)
+- Responsive UI redesign: Elegant life manager for both desktop and mobile
+- Archive 3D orb (preserve for future miniaturized version), build clean chat + voice + dashboard
+- Self-improving agent: Preserve and enhance memory/learning capabilities from v2.0 and Agent Zero patterns
+
+**Prior milestones (complete):**
+
+### v2.0 Memory & Production — COMPLETE
 - Persistent memory system (facts, preferences, session logs) — Phase 7-9
 - Cross-session conversation continuity — Phase 8
 - Production deployment to jarvis.whatareyouappreciatingnow.com — Phase 11
@@ -222,6 +232,9 @@ Write step-by-step lesson content for the remaining 4 clusters:
 | Agent Zero over Atlas/GOTCHA | Proven open-source, Docker sandbox, community, plugins, secrets mgmt | Decided 2026-02-15 |
 | Any Linux box (not MacBook-only) | Docker runs natively on Linux, cheaper, headless, no sleep issues | Decided 2026-02-15 |
 | Hybrid Vercel + Linux daemon | Web UI stays on Vercel (fast, global), daemon on Linux for always-on tasks | Decided 2026-02-15 |
+| Claude Code SDK over custom Claude API | Same brain as ClaudeClaw — SDK handles tool loop, MCP servers, agentic behavior natively | Decided 2026-02-25 |
+| Archive 3D orb, don't delete | Preserve for future miniaturized version, remove from main UI for now | Decided 2026-02-25 |
+| Research before removing intelligence | Audit existing memory/tools/personality for hidden gems before any removal | Decided 2026-02-25 |
 
 ---
-*Last updated: 2026-02-15 — v2.0 at 90%, Agent Zero integration planned for Phase 16*
+*Last updated: 2026-02-25 — v4.0 milestone started (Brain Swap & Life Manager UI)*

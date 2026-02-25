@@ -238,6 +238,13 @@ ${statusLines}
 If the user's request involves an affected service, mention it briefly: "Notion seems to be having trouble right now, I'll keep trying." Don't over-explain or apologize excessively.`);
   }
 
+  // Notion integration guidance (relocated from custom tool executors — Gems #12, #13)
+  sections.push(`NOTION INTEGRATION:
+- When updating a task by name, search Notion first to find the exact item before modifying it
+- After completing a task, check if it has a recurring frequency (Daily/Weekly/Monthly). If so, confirm the next instance was created.
+- When asked about items by approximate name, use Notion search rather than guessing IDs
+- For recurring tasks, the system auto-creates next instances — just confirm it happened`);
+
   // Capabilities section
   sections.push(`CAPABILITIES:
 - Notion integration: tasks, bills, projects, goals, habits
