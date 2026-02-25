@@ -5,21 +5,24 @@
  * Active rules are injected into the system prompt.
  */
 
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and, ne } from 'drizzle-orm';
 import { db } from '../db';
 import { behaviorRules, type BehaviorRule } from '../schema';
 
-export type RuleCategory = 'communication' | 'workflow' | 'tone' | 'task_handling';
+export type RuleCategory = 'communication' | 'workflow' | 'tone' | 'task_handling' | 'meta_evaluation';
 export type RuleSource = 'reflection' | 'manual' | 'seed';
 
 /**
- * Get all active behavior rules.
+ * Get all active behavior rules (excludes meta_evaluation entries).
  */
 export async function getActiveRules(): Promise<BehaviorRule[]> {
   return db
     .select()
     .from(behaviorRules)
-    .where(eq(behaviorRules.isActive, 1))
+    .where(and(
+      eq(behaviorRules.isActive, 1),
+      ne(behaviorRules.category, 'meta_evaluation')
+    ))
     .orderBy(desc(behaviorRules.createdAt));
 }
 

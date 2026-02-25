@@ -26,6 +26,7 @@ import { executeMemoryTool } from '../memory/toolExecutor';
 import { executeTutorialTool } from '../tutorial/toolExecutor';
 import { handleRecurringTaskCompletion } from '../notion/recurringHook';
 import { evaluateConversation } from './evaluator';
+import { shouldReflect, runReflection } from './reflectionLoop';
 import { saveMessage, getSessionMessageCount } from '../memory/queries/messages';
 import { triggerSummarization } from '../memory/summarization';
 import { getJarvisConfig } from '../config';
@@ -245,6 +246,16 @@ export async function processChatMessage(options: ProcessChatOptions): Promise<P
         evaluateConversation(sessionId, messages).catch(err =>
           console.error('[ChatProcessor] Evaluation failed (non-blocking):', err)
         );
+
+        // Reflection loop: check if 10+ evaluations have accumulated (fire-and-forget)
+        shouldReflect().then(ready => {
+          if (ready) {
+            console.log('[ChatProcessor] Triggering reflection loop (10+ new evaluations)');
+            runReflection().catch(err =>
+              console.error('[ChatProcessor] Reflection failed (non-blocking):', err)
+            );
+          }
+        }).catch(() => {});
       }
     }
 

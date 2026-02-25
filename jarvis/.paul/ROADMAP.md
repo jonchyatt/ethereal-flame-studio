@@ -64,7 +64,7 @@
 
 **Depends on:** Phase C (memory system must be stable first)
 
-**Status:** Not started
+**Status:** COMPLETE — D-01 (evaluator + behavior rules) + D-02 (reflection loop + meta-evaluator)
 
 ---
 
@@ -150,7 +150,7 @@ Improve)  Memory)
 | A | Intelligence Audit | Complete |
 | B | SDK Integration | Complete |
 | C | Memory & Intelligence Preservation | Complete |
-| D | Self-Improvement Loop | Planning (D-01) |
+| D | Self-Improvement Loop | Complete |
 | E | Mobile-First UI Redesign | Not started |
 | F | Vector Memory | Not started |
 | G | Integration & Polish | Not started |

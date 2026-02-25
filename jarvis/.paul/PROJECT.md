@@ -32,7 +32,7 @@ MOBILE-FIRST UI (new)
 - **Tech stack:** Next.js + TypeScript
 - **Voice:** Deepgram STT, ElevenLabs TTS
 - **Data:** Notion SDK + Turso/libsql for memory
-- **AI:** Claude Code SDK (`@anthropic-ai/claude-code`)
+- **AI:** Anthropic API + MCP Connector (not Claude Code SDK — incompatible with Vercel serverless)
 - **Hosting:** Vercel (jarvis.whatamiappreciatingnow.com)
 
 ## Prior Work
@@ -51,3 +51,16 @@ MOBILE-FIRST UI (new)
 | PAUL over GSD for v4.0 | Scalpel approach for nuanced transformation, not volume execution |
 | v4.0 numbering | Preserves prior milestone history (v1, v2.0, v3.0) |
 | Archive orb, don't delete | Preserve for future miniaturized version |
+| Anthropic API + MCP Connector | Claude Code SDK incompatible with Vercel serverless — Phase B |
+| Opus for reflection ($3/month) | Best reasoning for the brain that improves the brain — Phase D |
+| Three-layer self-improvement | L1 Haiku critic, L2 Opus reflection, L3 Opus meta-evaluation — Phase D |
+| enableSelfImprovement ON by default | Self-improvement active immediately, opt-out via env var — Phase D |
+
+## Validated Requirements
+
+- ✓ SDK brain swap with dual-path architecture — Phase B
+- ✓ MCP Connector for Notion (server-side) — Phase C
+- ✓ Intelligence gems preserved (17/17) — Phase C
+- ✓ Self-improvement: conversation evaluation — Phase D
+- ✓ Self-improvement: reflection loop with rule evolution — Phase D
+- ✓ Self-improvement: meta-evaluation health monitoring — Phase D

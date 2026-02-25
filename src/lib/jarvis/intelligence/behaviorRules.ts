@@ -17,7 +17,10 @@ import { getActiveRules } from '../memory/queries/behaviorRules';
 export async function loadBehaviorRulesForPrompt(): Promise<string[]> {
   try {
     const rules = await getActiveRules();
-    return rules.map(r => r.rule);
+    // Filter out meta_evaluation entries — those are health reports, not behavioral rules
+    return rules
+      .filter(r => r.category !== 'meta_evaluation')
+      .map(r => r.rule);
   } catch (error) {
     console.error('[BehaviorRules] Failed to load rules:', error);
     return [];

@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/jarvis/reflect",
+      "schedule": "0 5 * * *"
+    }
+  ]
+}
