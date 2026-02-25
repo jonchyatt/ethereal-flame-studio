@@ -59,8 +59,16 @@ User is currently looking at: Notion Tasks database
 
 ### Layer 3 — MCP-B Semantic UI Map + Laser Pointer (The Foundation)
 
+#### The Key Insight
+If you register your UI elements as MCP-B tools ONCE, every agent (Jarvis, Agent Zero, any
+future agent) inherits a structured semantic map of your UI forever. They don't need to
+screenshot, scrape DOM, or guess — they call named tools and get back exact coordinates
+and can trigger actions.
+
 #### Why MCP-B first
-Before building the laser pointer, register the UI's important elements as MCP-B tools. This gives every agent (Jarvis, Agent Zero, future agents) a **structured semantic map** of the UI — not screenshots, not DOM scraping, but named tools with known coordinates and actions.
+Before building the laser pointer, register the UI's important elements as MCP-B tools.
+This gives every agent a structured semantic map — not screenshots, not DOM scraping,
+but named tools with known coordinates and actions.
 
 #### How MCP-B works
 ```js
@@ -79,7 +87,8 @@ navigator.modelContext.registerTool({
 });
 ```
 
-Once registered on `jarvis.whatamiappreciatingnow.com`, any compliant agent can call `highlight_tasks_section` and get back exact coordinates to drive the laser pointer.
+Once registered on `jarvis.whatamiappreciatingnow.com`, any compliant agent can call
+`highlight_tasks_section` and get back exact coordinates to drive the laser pointer.
 
 #### The Laser Pointer Component
 ```tsx

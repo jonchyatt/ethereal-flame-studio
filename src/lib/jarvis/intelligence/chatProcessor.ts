@@ -1,34 +1,42 @@
 /**
- * Chat Processor - Core Claude Tool Execution Loop
+ * Chat Processor — Orchestrator Layer
+ *
+ * v4.0: Delegates tool execution to sdkBrain.ts (the new brain module).
+ * This file remains the orchestrator responsible for:
+ * - Agent Zero routing (Gem #8: complex query detection)
+ * - Tool executor routing (3-way: Notion/Memory/Tutorial)
+ * - Fire-and-forget message persistence
+ * - Summarization triggers
  *
  * Routing:
- * - Simple CRUD → direct Claude Haiku with tools (fast, deterministic)
- * - Complex reasoning → Agent Zero (multi-step, analysis, planning)
- * - Agent Zero down → graceful fallback to Claude Haiku
+ * - Simple CRUD → sdkBrain (Claude Haiku with tools)
+ * - Complex reasoning → Agent Zero first, fallback to sdkBrain (Claude Sonnet)
+ * - Agent Zero down → sdkBrain with deep model
  *
  * Used by both:
  * - Web SSE route (with streaming callbacks)
  * - Telegram webhook (final text only)
  */
 
-import Anthropic from '@anthropic-ai/sdk';
+import { think } from './sdkBrain';
 import { notionTools, memoryTools } from './tools';
 import { tutorialTools } from '../tutorial/tutorialTools';
 import { executeNotionTool } from '../notion/toolExecutor';
 import { executeMemoryTool } from '../memory/toolExecutor';
 import { executeTutorialTool } from '../tutorial/toolExecutor';
-import { withRetry } from '../resilience/withRetry';
+import { handleRecurringTaskCompletion } from '../notion/recurringHook';
 import { saveMessage, getSessionMessageCount } from '../memory/queries/messages';
 import { triggerSummarization } from '../memory/summarization';
 import { getJarvisConfig } from '../config';
 import { sendMessage as sendToAgentZero, getStatus as getAgentZeroStatus } from '../agentZero/client';
 
-const anthropic = new Anthropic();
-const MAX_TOOL_ITERATIONS = 5;
 const allTools = [...notionTools, ...memoryTools, ...tutorialTools];
 
+// Local-only tools (memory, tutorial) — these are always executed locally even when MCP is enabled
+const localOnlyTools = [...memoryTools, ...tutorialTools];
+
 // Tool name sets for routing
-const memoryToolNames = [
+const memoryToolNames = new Set([
   'remember_fact',
   'forget_fact',
   'list_memories',
@@ -36,9 +44,9 @@ const memoryToolNames = [
   'restore_memory',
   'observe_pattern',
   'query_audit_log',
-];
+]);
 
-const tutorialToolNames = [
+const tutorialToolNames = new Set([
   'start_tutorial',
   'teach_topic',
   'continue_tutorial',
@@ -48,7 +56,7 @@ const tutorialToolNames = [
   'get_curriculum_status',
   'start_lesson',
   'complete_lesson',
-];
+]);
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -75,6 +83,8 @@ export interface ProcessChatResult {
 /**
  * Patterns that suggest complex multi-step reasoning best handled by Agent Zero.
  * Simple CRUD (show tasks, create task, mark done) stays with Claude Haiku.
+ *
+ * Gem #8: Complex query routing
  */
 const COMPLEX_REASONING_PATTERNS = [
   /reorgani[sz]e/i,
@@ -96,18 +106,72 @@ function isComplexQuery(text: string): boolean {
 }
 
 /**
+ * Route a tool call to the correct executor.
+ *
+ * 3-way routing preserves existing tool execution logic:
+ * - Tutorial tools → executeTutorialTool
+ * - Memory tools → executeMemoryTool (with sessionId for audit logging)
+ * - Everything else → executeNotionTool (with sessionId for audit logging)
+ */
+function createToolExecutor(sessionId: number) {
+  return async (name: string, input: Record<string, unknown>): Promise<string> => {
+    if (tutorialToolNames.has(name)) {
+      const tutorialResult = await executeTutorialTool(name, input);
+      return tutorialResult.content || tutorialResult.error || 'Tutorial operation completed';
+    }
+
+    if (memoryToolNames.has(name)) {
+      return executeMemoryTool(name, input, sessionId);
+    }
+
+    return executeNotionTool(name, input, sessionId);
+  };
+}
+
+/**
+ * Post-tool-result hook for intelligence gem relocation.
+ *
+ * Fires after every tool result (MCP or local). Detects:
+ * - Task completion → checks for recurring frequency → creates next instance (Gem #13)
+ *
+ * Fire-and-forget: errors are logged, never block the response.
+ */
+function createPostToolHook(sessionId: number) {
+  return async (name: string, input: Record<string, unknown>, result: string): Promise<void> => {
+    // Detect task completion patterns
+    // Local path: complete_task tool was called directly
+    // MCP path: result contains completion indicators
+    const isTaskCompletion =
+      name === 'complete_task' ||
+      (name === 'mcp_notion_result' && /completed|done|checked off/i.test(result));
+
+    if (!isTaskCompletion) return;
+
+    // Extract task ID from input (local) or result (MCP)
+    const taskId = (input.task_id as string) || (input.page_id as string) || null;
+
+    if (taskId) {
+      console.log(`[PostHook] Task completion detected (${name}), checking recurrence for ${taskId}`);
+      const hookResult = await handleRecurringTaskCompletion(taskId);
+      if (hookResult) {
+        console.log(`[PostHook] Session ${sessionId}: ${hookResult}`);
+      }
+    }
+  };
+}
+
+/**
  * Process a chat message with intelligent routing.
  *
  * Routing:
  * 1. Complex reasoning → try Agent Zero first
- * 2. Agent Zero down or simple query → Claude Haiku with tools
+ * 2. Agent Zero down or simple query → sdkBrain with tools
  */
 export async function processChatMessage(options: ProcessChatOptions): Promise<ProcessChatResult> {
   const { sessionId, systemPrompt, messages, onToolUse, onToolResult } = options;
   const config = getJarvisConfig();
-  const toolsUsed: string[] = [];
 
-  // Persist user message (fire-and-forget)
+  // Persist user message (fire-and-forget — Gem: async persistence)
   const lastUserMsg = messages[messages.length - 1];
   if (lastUserMsg?.role === 'user') {
     saveMessage(sessionId, 'user', lastUserMsg.content).catch(err =>
@@ -115,8 +179,10 @@ export async function processChatMessage(options: ProcessChatOptions): Promise<P
     );
   }
 
-  // Route complex queries to Agent Zero if available
-  if (lastUserMsg?.role === 'user' && isComplexQuery(lastUserMsg.content)) {
+  // Route complex queries to Agent Zero if available (Gem #8)
+  const isComplex = lastUserMsg?.role === 'user' && isComplexQuery(lastUserMsg.content);
+
+  if (isComplex) {
     console.log('[ChatProcessor] Complex query detected, trying Agent Zero');
     onToolUse?.('agent_zero_reasoning', { query: lastUserMsg.content });
 
@@ -126,124 +192,41 @@ export async function processChatMessage(options: ProcessChatOptions): Promise<P
       onToolResult?.('agent_zero_reasoning', a0Result.message || '');
 
       if (a0Result.success && a0Result.message) {
-        // Persist and return Agent Zero response
         saveMessage(sessionId, 'assistant', a0Result.message).catch(() => {});
-        toolsUsed.push('agent_zero_reasoning');
-        return { success: true, responseText: a0Result.message, toolsUsed };
+        return {
+          success: true,
+          responseText: a0Result.message,
+          toolsUsed: ['agent_zero_reasoning'],
+        };
       }
-      console.warn('[ChatProcessor] Agent Zero failed, falling back to Claude Haiku');
+      console.warn('[ChatProcessor] Agent Zero failed, falling back to deep model');
     } else {
-      console.log('[ChatProcessor] Agent Zero unavailable, using Claude Haiku');
+      console.log('[ChatProcessor] Agent Zero unavailable, using deep model');
       onToolResult?.('agent_zero_reasoning', 'Agent Zero unavailable, using local reasoning');
     }
   }
 
   try {
-    const claudeMessages: Anthropic.MessageParam[] = messages.map(m => ({
-      role: m.role,
-      content: m.content,
-    }));
+    // When MCP is enabled, only pass local tools (memory/tutorial) — Notion tools come from MCP
+    const toolsForBrain = config.enableMcpConnector && config.notionOAuthToken
+      ? localOnlyTools
+      : allTools;
 
-    // Tool execution loop
-    let iteration = 0;
-    let finalResponse: Anthropic.Message | null = null;
-
-    while (iteration < MAX_TOOL_ITERATIONS) {
-      iteration++;
-      console.log(`[ChatProcessor] Tool loop iteration ${iteration}`);
-
-      // Call Claude with retry (Phase 14)
-      const response = await withRetry(
-        () => anthropic.messages.create({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 1024,
-          system: systemPrompt,
-          messages: claudeMessages,
-          tools: allTools,
-        }),
-        'claude',
-        { maxAttempts: 2, initialDelayMs: 1000, maxDelayMs: 5000 }
-      );
-
-      console.log(`[ChatProcessor] Response stop_reason: ${response.stop_reason}`);
-
-      // If no tool use, we're done
-      if (response.stop_reason !== 'tool_use') {
-        finalResponse = response;
-        break;
-      }
-
-      const toolUseBlocks = response.content.filter(
-        (block): block is Anthropic.ToolUseBlock => block.type === 'tool_use'
-      );
-
-      if (toolUseBlocks.length === 0) {
-        finalResponse = response;
-        break;
-      }
-
-      console.log(`[ChatProcessor] Executing ${toolUseBlocks.length} tool(s)`);
-
-      // Execute tools in parallel
-      const toolResults = await Promise.all(
-        toolUseBlocks.map(async (toolUse) => {
-          toolsUsed.push(toolUse.name);
-          console.log(`[ChatProcessor] Executing tool: ${toolUse.name}`, toolUse.input);
-          onToolUse?.(toolUse.name, toolUse.input as Record<string, unknown>);
-
-          let result: string;
-          if (tutorialToolNames.includes(toolUse.name)) {
-            const tutorialResult = await executeTutorialTool(
-              toolUse.name,
-              toolUse.input as Record<string, unknown>
-            );
-            result = tutorialResult.content || tutorialResult.error || 'Tutorial operation completed';
-          } else if (memoryToolNames.includes(toolUse.name)) {
-            result = await executeMemoryTool(
-              toolUse.name,
-              toolUse.input as Record<string, unknown>,
-              sessionId
-            );
-          } else {
-            result = await executeNotionTool(
-              toolUse.name,
-              toolUse.input as Record<string, unknown>,
-              sessionId
-            );
-          }
-
-          onToolResult?.(toolUse.name, result);
-
-          return {
-            type: 'tool_result' as const,
-            tool_use_id: toolUse.id,
-            content: result,
-          };
-        })
-      );
-
-      // Add to message history for next iteration
-      claudeMessages.push({ role: 'assistant', content: response.content });
-      claudeMessages.push({ role: 'user', content: toolResults });
-    }
-
-    if (!finalResponse) {
-      console.warn(`[ChatProcessor] Hit max tool iterations (${MAX_TOOL_ITERATIONS})`);
-      return {
-        success: false,
-        responseText: 'I got a bit lost in my tools. Let me try a simpler approach.',
-        toolsUsed,
-      };
-    }
-
-    const assistantText = finalResponse.content
-      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-      .map(b => b.text)
-      .join('');
+    // Delegate to sdkBrain for tool execution
+    const result = await think({
+      systemPrompt,
+      messages: messages.map(m => ({ role: m.role, content: m.content })),
+      tools: toolsForBrain,
+      executeTool: createToolExecutor(sessionId),
+      useDeepModel: isComplex, // Complex queries get Sonnet when A0 is down
+      onToolUse,
+      onToolResult,
+      onPostToolResult: createPostToolHook(sessionId),
+    });
 
     // Persist assistant message + trigger summarization (fire-and-forget)
-    if (assistantText) {
-      saveMessage(sessionId, 'assistant', assistantText).catch(() => {});
+    if (result.responseText) {
+      saveMessage(sessionId, 'assistant', result.responseText).catch(() => {});
       if (config.enableMemoryLoading) {
         getSessionMessageCount(sessionId).then(count => {
           if (count >= 20) {
@@ -254,10 +237,15 @@ export async function processChatMessage(options: ProcessChatOptions): Promise<P
       }
     }
 
-    return { success: true, responseText: assistantText, toolsUsed };
+    return {
+      success: result.success,
+      responseText: result.responseText,
+      error: result.error,
+      toolsUsed: result.toolsUsed,
+    };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('[ChatProcessor] Error:', error);
-    return { success: false, responseText: '', error: errorMessage, toolsUsed };
+    return { success: false, responseText: '', error: errorMessage, toolsUsed: [] };
   }
 }
