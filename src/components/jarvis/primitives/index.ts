@@ -6,3 +6,4 @@ export { Input } from './Input';
 export { Toggle } from './Toggle';
 export { Sheet } from './Sheet';
 export { Toast } from './Toast';
+export { EmptyState } from './EmptyState';

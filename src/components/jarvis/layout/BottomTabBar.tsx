@@ -45,39 +45,52 @@ export function BottomTabBar() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-zinc-950 border-t border-white/10 z-50 md:hidden safe-area-bottom">
-      <div className="flex items-center justify-around h-full">
-        {TABS.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = getIsActive(tab);
-          const isCenter = tab.id === 'add';
+    <>
+      <style>{`
+        @keyframes fabGlow {
+          0%, 100% { box-shadow: 0 0 8px rgba(8, 145, 178, 0.3); }
+          50% { box-shadow: 0 0 16px rgba(8, 145, 178, 0.5); }
+        }
+        .fab-glow { animation: fabGlow 3s ease-in-out infinite; }
+      `}</style>
+      <nav className="fixed bottom-0 left-0 right-0 h-16 bg-zinc-950/80 backdrop-blur-xl border-t border-white/10 z-50 md:hidden safe-area-bottom">
+        <div className="flex items-center justify-around h-full">
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = getIsActive(tab);
+            const isCenter = tab.id === 'add';
 
-          return (
-            <button
-              key={tab.id}
-              onClick={() => handleTabPress(tab)}
-              className={`
-                flex flex-col items-center justify-center gap-1 flex-1 h-full
-                transition-colors
-                ${isCenter
-                  ? 'text-cyan-400'
-                  : isActive
+            return (
+              <button
+                key={tab.id}
+                onClick={() => handleTabPress(tab)}
+                className={`
+                  relative flex flex-col items-center justify-center gap-1 flex-1 h-full
+                  transition-colors
+                  ${isCenter
                     ? 'text-cyan-400'
-                    : 'text-zinc-500'
-                }
-              `}
-              aria-label={tab.label || 'Quick add'}
-            >
-              <span className={isCenter ? '-mt-3 w-10 h-10 bg-cyan-600 rounded-full flex items-center justify-center shadow-lg' : ''}>
-                <Icon className={isCenter ? 'w-5 h-5 text-white' : 'w-5 h-5'} />
-              </span>
-              {tab.label && (
-                <span className="text-[10px]">{tab.label}</span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </nav>
+                    : isActive
+                      ? 'text-cyan-400'
+                      : 'text-zinc-500'
+                  }
+                `}
+                aria-label={tab.label || 'Quick add'}
+              >
+                {isActive && !isCenter && (
+                  <span className="absolute top-2 w-1 h-1 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400/50" />
+                )}
+                <span className={isCenter ? '-mt-3 w-10 h-10 bg-cyan-600 rounded-full flex items-center justify-center shadow-lg fab-glow' : ''}>
+                  <Icon className={isCenter ? 'w-5 h-5 text-white' : 'w-5 h-5'} />
+                </span>
+                {tab.label && (
+                  <span className="text-[10px]">{tab.label}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+    </>
+
   );
 }

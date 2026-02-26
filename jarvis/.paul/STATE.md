@@ -4,20 +4,20 @@
 
 Milestone: v4.0 Brain Swap & Life Manager UI
 Phase: E of G (Multi-Domain Operating System) — E-04 Build Wave 1
-Plan: E-04-04 complete
-Status: Loop closed, ready for next PLAN
-Last activity: 2026-02-26 — Completed E-04-04 (Settings + Domain Activation)
+Plan: E-04-07 complete (E-04-08 not yet planned)
+Status: UNIFY complete, ready for next PLAN
+Last activity: 2026-02-26 — Unified E-04-07, SUMMARY created
 
 Progress:
 - Milestone: [########░░] 80% (Phase A + B + C + D complete, E in progress, F-G remaining)
-- Phase E: [████████░░] 70% (E-01/02/03 research + E-04-01/02/03/04 built, E-04-05+ remaining)
+- Phase E: [██████████] 90% (E-01/02/03 research + E-04-01 through E-04-07 built)
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [Loop complete — ready for next PLAN]
+  ✓        ✓        ✓     [E-04-07 loop closed — E-04-08 next]
 ```
 
 ## Phase E Sub-Phase Progress
@@ -30,7 +30,11 @@ PLAN ──▶ APPLY ──▶ UNIFY
   - E-04-02: Priority Home + Widget System — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-02-SUMMARY.md)
   - E-04-03: Remaining Primitives + Chat Overlay — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-03-SUMMARY.md)
   - E-04-04: Settings + Domain Activation — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-04-SUMMARY.md)
-  - E-04-05+: Personal domain, empty states, onboarding, notifications — not yet planned
+  - E-04-05: Personal Dashboard Foundation — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-05-SUMMARY.md)
+  - E-04-05.5: Visual Polish Pass — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-05.5-SUMMARY.md)
+  - E-04-06: Personal Sub-Views Wave 1 (Tasks + Habits + Bills) — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-06-SUMMARY.md)
+  - E-04-07: Personal Sub-Views Wave 2 (Calendar + Journal + Goals + Health) — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-07-SUMMARY.md)
+  - E-04-08: Onboarding + Notification Foundation — not yet planned
 - E-05+: Build Waves 2-5 — Not started
 
 ## What E-04-01 Delivered
@@ -66,6 +70,29 @@ PLAN ──▶ APPLY ──▶ UNIFY
 - DomainRail + DomainHealthGrid wired to settingsStore for dynamic domain visibility
 - Protected domains: Home and Personal cannot be deactivated
 - 277 lines across 1 new + 3 modified files
+
+## What E-04-05 Delivered
+
+- EmptyState primitive (9th primitive) — reusable empty state with icon, title, description, optional CTA
+- personalStore (zustand) — 7 typed interfaces, mock data for tasks/habits/bills/calendar/journal/goals/health, computed todayStats
+- Personal dashboard: TodaySnapshot (4-stat grid) + 7 SubProgramCards with live stats and status indicators
+- 7 sub-route placeholder pages with EmptyState + back navigation
+- ~500 lines across 12 new + 2 modified files
+
+## What E-04-06 Delivered
+
+- 3 view components: TasksList (grouped sections + checkbox), HabitsList (progress bar + streaks), BillsList (financial summary + Mark Paid)
+- 3 store mutations: toggleTask, toggleHabit, markBillPaid — all recompute todayStats
+- Summary heroes per view: stat pills (tasks), progress bar (habits), dollar totals (bills)
+- Glass surfaces, fadeInUp entrance animations, spring easing on all new components
+- ~400 lines across 3 new + 4 modified files
+
+## What E-04-07 Delivered
+
+- 4 view components: CalendarView (timeline), JournalView (mood selector), GoalsList (progress bars), HealthView (type-grouped)
+- 1 store mutation: setJournalMood — mood selection on today's journal entry
+- All 7 Personal sub-programs now have functional views (7/7 complete)
+- ~380 lines across 4 new + 5 modified files
 
 ## Accumulated Context
 
@@ -105,6 +132,19 @@ PLAN ──▶ APPLY ──▶ UNIFY
 | Protected domains guard (home, personal always on) | Phase E-04-04 | Cannot be deactivated per IA spec |
 | useActiveDomains() hook as canonical API | Phase E-04-04 | All components use this instead of getActiveDomains() |
 | Notification mode stored but not wired | Phase E-04-04 | UI ready, pipeline comes later |
+| E-04-05+ split into 4 plans | Phase E-04-05 | Manageable scope per plan |
+| Glass-interactive as default interactive surface | Phase E-04-05.5 | All new interactive cards MUST use glass-interactive, never default |
+| Staggered fadeInUp on all lists/grids (400ms/50ms) | Phase E-04-05.5 | Entrance animation is mandatory pattern for new components |
+| No flat bg-zinc-900 containers anywhere | Phase E-04-05.5 | Use glass or glass-interactive for all visible containers |
+| Spring easing for transforms, ease for opacity | Phase E-04-05.5 | cubic-bezier(0.34,1.56,0.64,1) for scale, ease for color |
+| Custom checkbox via button + Check icon | Phase E-04-06 | Spring scaling, not HTML checkbox |
+| useMemo for all group computations | Phase E-04-06 | Prevents re-filtering on every toggle |
+| SECTION_CONFIG declarative mapping for bills | Phase E-04-06 | Status → container/header style without nested ternaries |
+| Status-tinted section containers | Phase E-04-06 | Red for overdue, amber for due_soon, glass for upcoming/paid |
+| Inline span for category labels (not Badge) | Phase E-04-07 | Badge has no outline variant; plain span avoids primitive changes |
+| Mood selector only on today's entry | Phase E-04-07 | Prevents retroactive mood editing on past entries |
+| Violet tint for calendar today section | Phase E-04-07 | Matches Personal domain color identity |
+| TYPE_CONFIG for health grouping | Phase E-04-07 | Mirrors SECTION_CONFIG pattern from BillsList |
 
 ## Completed Phases
 
@@ -116,12 +156,11 @@ PLAN ──▶ APPLY ──▶ UNIFY
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: E-04-04 loop closed — clean pause for context refresh
-Next action: Plan E-04-05 (scope TBD — Personal domain dashboard + sub-views, empty/error states, onboarding)
-Resume file: .paul/phases/E-mobile-ui/E-04-04-SUMMARY.md
+Stopped at: E-04-07 loop closed, E-04-08 not yet planned
+Next action: /paul:plan (E-04-08: Onboarding + Notification Foundation)
 Resume context:
-- E-04-01/02/03/04 all COMPLETE — shell, home, primitives (8/8), chat overlay, toast system, settings built
-- ~2,800 lines of production UI across ~40+ files
-- Loop is clean (PLAN ✓ APPLY ✓ UNIFY ✓) — start fresh with /paul:plan for E-04-05
-- Read three blueprint docs before planning: domain-atlas, information-architecture, ui-system-design
-- Remaining E-04 scope: Personal domain views, empty/error states, onboarding, notification foundation
+- E-04-07 COMPLETE — Calendar/Journal/Goals/Health sub-views with heroes, grouping, mood selector
+- All 7 Personal sub-programs functional (7/7 views complete)
+- E-04-08 next: Onboarding wizard + notification foundation
+- Patterns available: All Wave 1/2 view patterns, store mutations, section grouping, progress bars
+- Quality bar: glass surfaces, fadeInUp entrance, spring easing, mood selector, type-grouped sections

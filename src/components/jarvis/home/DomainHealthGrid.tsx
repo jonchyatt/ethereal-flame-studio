@@ -30,16 +30,24 @@ export function DomainHealthGrid() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {activeDomains.map((domain) => {
-        const health = domainHealth.find((h) => h.domainId === domain.id);
-        const colors = DOMAIN_COLORS[domain.color];
-        const status = health?.status ?? 'gray';
+    <>
+      <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .domain-enter { animation: fadeInUp 400ms ease-out both; }
+      `}</style>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {activeDomains.map((domain, index) => {
+          const health = domainHealth.find((h) => h.domainId === domain.id);
+          const colors = DOMAIN_COLORS[domain.color];
+          const status = health?.status ?? 'gray';
 
-        return (
-          <Card
-            key={domain.id}
-            variant="interactive"
+          return (
+            <div key={domain.id} className="domain-enter" style={{ animationDelay: `${index * 50}ms` }}>
+              <Card
+                variant="glass-interactive"
             padding="md"
             onClick={() => router.push(domain.route)}
           >
@@ -63,9 +71,11 @@ export function DomainHealthGrid() {
                 {health?.summary ?? 'No data available'}
               </p>
             </div>
-          </Card>
-        );
-      })}
-    </div>
+            </Card>
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 }

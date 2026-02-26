@@ -28,8 +28,11 @@ export function BriefingCard() {
       </button>
 
       {/* Content */}
-      <div className={`mt-3 ${expanded ? '' : 'line-clamp-1'}`}>
-        <p className="text-sm text-white/70 leading-relaxed">
+      <div
+        className="mt-3 overflow-hidden transition-all duration-300 ease-in-out"
+        style={{ maxHeight: expanded ? '200px' : '1.5em' }}
+      >
+        <p className={`text-sm text-white/70 leading-relaxed ${!expanded ? 'text-ellipsis overflow-hidden whitespace-nowrap' : ''}`}>
           {briefingSummary ?? 'No briefing yet today'}
         </p>
       </div>

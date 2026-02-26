@@ -31,15 +31,23 @@ export function PriorityStack() {
   }
 
   return (
-    <ul role="list" className="space-y-2">
-      {sorted.map((item) => {
-        const domain = getDomainById(item.domainId);
-        const colors = domain ? DOMAIN_COLORS[domain.color] : null;
+    <>
+      <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .priority-enter { animation: fadeInUp 400ms ease-out both; }
+      `}</style>
+      <ul role="list" className="space-y-2">
+        {sorted.map((item, index) => {
+          const domain = getDomainById(item.domainId);
+          const colors = domain ? DOMAIN_COLORS[domain.color] : null;
 
-        return (
-          <li key={item.id}>
-            <Card
-              variant="interactive"
+          return (
+            <li key={item.id} className="priority-enter" style={{ animationDelay: `${index * 50}ms` }}>
+              <Card
+                variant="glass-interactive"
               padding="sm"
               statusStripe={URGENCY_STRIPE[item.urgency]}
             >
@@ -67,9 +75,10 @@ export function PriorityStack() {
                 )}
               </div>
             </Card>
-          </li>
-        );
-      })}
-    </ul>
+            </li>
+          );
+        })}
+      </ul>
+    </>
   );
 }

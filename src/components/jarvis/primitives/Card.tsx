@@ -2,7 +2,7 @@
 
 import { type ReactNode } from 'react';
 
-type CardVariant = 'default' | 'glass' | 'interactive';
+type CardVariant = 'default' | 'glass' | 'interactive' | 'glass-interactive';
 type CardPadding = 'none' | 'sm' | 'md' | 'lg';
 type StatusStripe = 'critical' | 'warning' | 'success' | 'info' | null;
 
@@ -21,6 +21,7 @@ const variantClasses: Record<CardVariant, string> = {
   default: 'bg-zinc-900 border border-white/10 rounded-2xl',
   glass: 'bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl',
   interactive: 'bg-zinc-900 border border-white/10 rounded-2xl hover:bg-zinc-800 hover:border-white/20 cursor-pointer transition-colors',
+  'glass-interactive': 'bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl hover:bg-white/[0.08] hover:border-white/20 hover:shadow-lg hover:shadow-black/20 hover:scale-[1.01] cursor-pointer transition-all duration-200',
 };
 
 const paddingClasses: Record<CardPadding, string> = {

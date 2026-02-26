@@ -12,7 +12,6 @@ import {
   Calendar,
 } from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
-import { Button } from '@/components/jarvis/primitives';
 
 interface QuickAction {
   label: string;
@@ -51,15 +50,13 @@ export function QuickActionsBar() {
   return (
     <div className="flex gap-2 overflow-x-auto pb-1 -mb-1">
       {actions.map((action) => (
-        <Button
+        <button
           key={action.label}
-          variant="secondary"
-          size="sm"
-          icon={<action.icon className="w-3.5 h-3.5" />}
-          className="flex-shrink-0 whitespace-nowrap"
+          className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white/70 hover:bg-white/10 hover:border-white/20 hover:text-white transition-all duration-200 flex items-center gap-2 flex-shrink-0 whitespace-nowrap"
         >
+          <action.icon className="w-3.5 h-3.5" />
           {action.label}
-        </Button>
+        </button>
       ))}
     </div>
   );

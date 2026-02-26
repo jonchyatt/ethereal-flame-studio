@@ -11,7 +11,7 @@ export function Header() {
   const toggleCommandPalette = useShellStore((s) => s.toggleCommandPalette);
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-14 bg-zinc-950 border-b border-white/10 z-50 md:left-16 flex items-center justify-between px-4">
+    <header className="fixed top-0 left-0 right-0 h-14 bg-zinc-950/80 backdrop-blur-xl border-b border-white/10 z-50 md:left-16 flex items-center justify-between px-4">
       {/* Left: Logo */}
       <button
         onClick={() => router.push('/jarvis/app')}
@@ -31,7 +31,7 @@ export function Header() {
         </Button>
         <button
           onClick={toggleCommandPalette}
-          className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs text-white/40 bg-white/5 border border-white/10 rounded-xl hover:border-white/20 transition-colors"
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs text-white/40 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all duration-200"
         >
           <Search className="w-3.5 h-3.5" />
           <span>Search...</span>
