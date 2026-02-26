@@ -28,16 +28,19 @@ function TaskRow({
   task,
   onToggle,
   isLast,
+  checkboxTutorialId,
 }: {
   task: PersonalTask;
   onToggle: (id: string) => void;
   isLast: boolean;
+  checkboxTutorialId?: string;
 }) {
   return (
     <div className={`flex items-center gap-3 py-2.5 px-1 ${!isLast ? 'border-b border-white/5' : ''}`}>
       <button
         onClick={() => onToggle(task.id)}
         className="task-check flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center"
+        data-tutorial-id={checkboxTutorialId}
         style={{
           borderColor: task.completed ? 'rgb(139 92 246)' : 'rgba(255,255,255,0.2)',
           backgroundColor: task.completed ? 'rgb(139 92 246)' : 'transparent',
@@ -129,7 +132,7 @@ export function TasksList() {
       `}</style>
 
       {/* Summary Hero */}
-      <Card variant="glass" padding="md" className="task-section-enter mb-4">
+      <Card variant="glass" padding="md" className="task-section-enter mb-4" data-tutorial-id="tasks-summary">
         <div className="flex items-center gap-3 flex-wrap">
           {groups.overdue.length > 0 && (
             <span className="text-xs px-2.5 py-1 rounded-full bg-red-400/10 text-red-400 border border-red-400/20">
@@ -147,15 +150,22 @@ export function TasksList() {
 
       {/* Sections */}
       <div className="space-y-3">
-        {sections.map((section, sectionIndex) => {
-          const rows = section.tasks.map((task, i) => (
+        {(() => { let firstCheckboxTagged = false; return sections.map((section, sectionIndex) => {
+          const rows = section.tasks.map((task, i) => {
+            let checkboxId: string | undefined;
+            if (!task.completed && !firstCheckboxTagged) {
+              checkboxId = 'tasks-first-checkbox';
+              firstCheckboxTagged = true;
+            }
+            return (
             <TaskRow
               key={task.id}
               task={task}
               onToggle={toggleTask}
               isLast={i === section.tasks.length - 1}
+              checkboxTutorialId={checkboxId}
             />
-          ));
+          ); });
 
           return (
             <div
@@ -180,7 +190,7 @@ export function TasksList() {
               )}
             </div>
           );
-        })}
+        }); })()}
       </div>
     </>
   );

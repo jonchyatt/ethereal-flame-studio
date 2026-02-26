@@ -473,6 +473,7 @@ const ChatInputRow = forwardRef<HTMLInputElement, ChatInputRowProps>(
               value={value}
               onChange={(e) => onChange(e.target.value)}
               disabled={disabled}
+              data-tutorial-id="chat-input"
             />
           </div>
           <Button
@@ -481,6 +482,7 @@ const ChatInputRow = forwardRef<HTMLInputElement, ChatInputRowProps>(
             size="sm"
             disabled={disabled || !value.trim()}
             icon={<Send className="w-4 h-4" />}
+            data-tutorial-id="chat-send"
           />
         </div>
       </form>

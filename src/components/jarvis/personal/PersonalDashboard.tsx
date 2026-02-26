@@ -101,6 +101,7 @@ export function PersonalDashboard() {
             warn={sp.warn}
             critical={sp.critical}
             index={index}
+            subProgramId={sp.id}
           />
         ))}
       </div>

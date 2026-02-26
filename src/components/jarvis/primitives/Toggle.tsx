@@ -7,6 +7,7 @@ interface ToggleProps {
   onChange: (checked: boolean) => void;
   disabled?: boolean;
   size?: ToggleSize;
+  'data-tutorial-id'?: string;
 }
 
 const trackSizes: Record<ToggleSize, string> = {
@@ -21,7 +22,7 @@ const thumbSizes: Record<ToggleSize, { className: string; onTranslate: string; o
 
 const spring = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 
-export function Toggle({ checked, onChange, disabled = false, size = 'md' }: ToggleProps) {
+export function Toggle({ checked, onChange, disabled = false, size = 'md', 'data-tutorial-id': tutorialId }: ToggleProps) {
   const thumb = thumbSizes[size];
 
   return (
@@ -31,6 +32,7 @@ export function Toggle({ checked, onChange, disabled = false, size = 'md' }: Tog
       aria-checked={checked}
       disabled={disabled}
       onClick={() => onChange(!checked)}
+      data-tutorial-id={tutorialId}
       className={`
         relative inline-flex items-center rounded-full
         ${trackSizes[size]}

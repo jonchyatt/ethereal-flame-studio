@@ -15,6 +15,7 @@ interface CardProps {
   children: ReactNode;
   onClick?: () => void;
   className?: string;
+  'data-tutorial-id'?: string;
 }
 
 const variantClasses: Record<CardVariant, string> = {
@@ -47,6 +48,7 @@ export function Card({
   children,
   onClick,
   className = '',
+  'data-tutorial-id': tutorialId,
 }: CardProps) {
   const Tag = onClick ? 'button' : 'div';
 
@@ -60,6 +62,7 @@ export function Card({
         ${className}
       `.trim().replace(/\s+/g, ' ')}
       onClick={onClick}
+      data-tutorial-id={tutorialId}
     >
       {header && (
         <div className="mb-3 pb-3 border-b border-white/5">

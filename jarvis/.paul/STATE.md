@@ -3,10 +3,10 @@
 ## Current Position
 
 Milestone: v4.0 Brain Swap & Life Manager UI
-Phase: E of G (Multi-Domain Operating System) — E-05 Jarvis Academy Planning
-Plan: E-05-01 created, awaiting approval
-Status: PLAN created, ready for APPLY
-Last activity: 2026-02-26 — Created .paul/phases/E-mobile-ui/E-05-01-PLAN.md
+Phase: E of G (Multi-Domain Operating System) — E-05 Jarvis Academy
+Plan: E-05-01 complete (SUMMARY written)
+Status: Loop closed, ready for next PLAN
+Last activity: 2026-02-26 — E-05-01 complete (Tutorial Data Layer + Spotlight Wiring)
 
 Progress:
 - Milestone: [########░░] 80% (Phase A + B + C + D complete, E in progress, F-G remaining)
@@ -17,7 +17,7 @@ Progress:
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ○        ○     [E-05-01 plan created, awaiting approval]
+  ✓        ✓        ✓     [E-05-01 loop complete — ready for E-05-02 PLAN]
 ```
 
 ## Phase E Sub-Phase Progress
@@ -36,7 +36,7 @@ PLAN ──▶ APPLY ──▶ UNIFY
   - E-04-07: Personal Sub-Views Wave 2 (Calendar + Journal + Goals + Health) — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-07-SUMMARY.md)
   - E-04-08: Onboarding Wizard + Jarvis Academy Foundation — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-08-SUMMARY.md)
 - E-05: Jarvis Academy — PLANNING
-  - E-05-01: Tutorial Data Layer + Spotlight Wiring — PLAN CREATED (foundation only, no UI page)
+  - E-05-01: Tutorial Data Layer + Spotlight Wiring — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-05-01-SUMMARY.md)
   - E-05-02: Lesson Execution Engine + ChatOverlay Integration — planned (wife test passes here)
   - E-05-03: Academy Hub + Suggestion Intelligence + Widget — planned (discoverability layer)
 - E-06+: Build Waves 2-5 (remaining domains + advanced features) — Not started
@@ -172,13 +172,12 @@ PLAN ──▶ APPLY ──▶ UNIFY
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: E-05-01 plan approved, ready for APPLY
-Next action: /paul:apply .paul/phases/E-mobile-ui/E-05-01-PLAN.md
-Resume file: .paul/HANDOFF-2026-02-26d.md
+Stopped at: E-05-01 loop complete, clean stopping point
+Next action: Commit E-05-01 → /paul:plan (E-05-02 Lesson Execution Engine + ChatOverlay Integration)
+Resume file: .paul/HANDOFF-2026-02-26e.md
 Resume context:
-- E-04 Build Wave 1 COMPLETE and committed (58fa154)
-- E-05 = Jarvis Academy (interactive tutorial system)
-- E-05-01 APPROVED: Tutorial Data Layer + Spotlight Wiring (2 tasks, 9 files, autonomous)
-- E-05-02 next: Execution Engine + ChatOverlay (wife test passes here)
+- E-05-01 COMPLETE: Tutorial data layer (4 lessons, 21 steps) + 20+ DOM hooks wired
+- E-05-02 NEXT: Execution Engine + ChatOverlay (wife test passes here)
 - E-05-03 after: Academy Hub + Suggestion Intelligence + Widget (discovery + polish)
-- Key revision: engine before showroom — build working tutorials before building Academy page
+- Foundation ready: tutorialLessons.ts has all data, SpotlightOverlay can find all targets
+- UNCOMMITTED: 12 modified + 2 new files — commit before starting E-05-02

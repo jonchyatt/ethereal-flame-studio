@@ -13,6 +13,7 @@ interface SubProgramCardProps {
   warn?: boolean;
   critical?: boolean;
   index?: number;
+  subProgramId?: string;
 }
 
 export function SubProgramCard({
@@ -23,6 +24,7 @@ export function SubProgramCard({
   warn = false,
   critical = false,
   index = 0,
+  subProgramId,
 }: SubProgramCardProps) {
   const stripe = critical ? 'critical' : warn ? 'warning' : undefined;
 
@@ -35,7 +37,7 @@ export function SubProgramCard({
         }
         .subprogram-enter { animation: fadeInUp 400ms ease-out both; }
       `}</style>
-      <Link href={route} className="subprogram-enter" style={{ animationDelay: `${index * 50}ms` }}>
+      <Link href={route} className="subprogram-enter" style={{ animationDelay: `${index * 50}ms` }} data-tutorial-id={subProgramId ? `personal-subprogram-${subProgramId}` : undefined}>
         <Card variant="glass-interactive" padding="md" statusStripe={stripe}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

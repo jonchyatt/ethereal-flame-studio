@@ -26,7 +26,7 @@ export function Header() {
       {/* Right: Actions */}
       <div className="flex items-center gap-1">
         {/* Search: icon on mobile, hint on desktop */}
-        <Button variant="icon" onClick={toggleCommandPalette} aria-label="Search">
+        <Button variant="icon" onClick={toggleCommandPalette} aria-label="Search" data-tutorial-id="header-search">
           <Search className="w-5 h-5" />
         </Button>
         <button
@@ -39,7 +39,7 @@ export function Header() {
         </button>
 
         {/* Notifications */}
-        <Button variant="icon" aria-label="Notifications" className="relative">
+        <Button variant="icon" aria-label="Notifications" className="relative" data-tutorial-id="header-notifications">
           <Bell className="w-5 h-5" />
           {/* Badge — hidden when count is 0 */}
           {false && (
@@ -54,6 +54,7 @@ export function Header() {
           variant="icon"
           onClick={() => router.push('/jarvis/app/settings')}
           aria-label="Settings"
+          data-tutorial-id="header-settings"
         >
           <Settings className="w-5 h-5" />
         </Button>

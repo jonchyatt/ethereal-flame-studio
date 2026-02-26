@@ -54,10 +54,12 @@ function BillRow({
   bill,
   onMarkPaid,
   isLast,
+  markPaidTutorialId,
 }: {
   bill: PersonalBill;
   onMarkPaid: (id: string) => void;
   isLast: boolean;
+  markPaidTutorialId?: string;
 }) {
   const badge = STATUS_BADGE[bill.status];
   const isPaid = bill.status === 'paid';
@@ -95,6 +97,7 @@ function BillRow({
           size="sm"
           className="w-full mt-2"
           onClick={() => onMarkPaid(bill.id)}
+          data-tutorial-id={markPaidTutorialId}
         >
           Mark Paid
         </Button>
@@ -144,7 +147,7 @@ export function BillsList() {
       `}</style>
 
       {/* Financial Summary Hero */}
-      <Card variant="glass" padding="md" className="bill-section-enter mb-4">
+      <Card variant="glass" padding="md" className="bill-section-enter mb-4" data-tutorial-id="bills-summary">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-xs text-white/40">Total Due</p>
@@ -159,16 +162,23 @@ export function BillsList() {
 
       {/* Grouped Sections */}
       <div className="space-y-3">
-        {sections.map((section, sectionIndex) => {
+        {(() => { let firstMarkPaidTagged = false; return sections.map((section, sectionIndex) => {
           const config = SECTION_CONFIG[section.key];
-          const rows = section.bills.map((bill, i) => (
+          const rows = section.bills.map((bill, i) => {
+            let markPaidId: string | undefined;
+            if (bill.status !== 'paid' && !firstMarkPaidTagged) {
+              markPaidId = 'bills-first-mark-paid';
+              firstMarkPaidTagged = true;
+            }
+            return (
             <BillRow
               key={bill.id}
               bill={bill}
               onMarkPaid={markBillPaid}
               isLast={i === section.bills.length - 1}
+              markPaidTutorialId={markPaidId}
             />
-          ));
+          ); });
 
           return (
             <div
@@ -189,7 +199,7 @@ export function BillsList() {
               )}
             </div>
           );
-        })}
+        }); })()}
       </div>
     </>
   );

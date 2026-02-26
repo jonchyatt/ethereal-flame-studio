@@ -27,7 +27,7 @@ export function HabitsList() {
       `}</style>
 
       {/* Progress Hero */}
-      <Card variant="glass" padding="md" className="habit-enter mb-4">
+      <Card variant="glass" padding="md" className="habit-enter mb-4" data-tutorial-id="habits-progress">
         <div className="flex items-baseline justify-between mb-3">
           <p className="text-2xl font-bold">
             <span className={allDone ? 'text-green-400' : 'text-white'}>{habitsDone}</span>
@@ -48,7 +48,13 @@ export function HabitsList() {
       {/* Habit Rows */}
       <div className="habit-enter" style={{ animationDelay: '80ms' }}>
       <Card variant="glass" padding="sm">
-        {habits.map((habit, index) => (
+        {(() => { let firstToggleTagged = false; return habits.map((habit, index) => {
+          let toggleTutorialId: string | undefined;
+          if (!habit.completedToday && !firstToggleTagged) {
+            toggleTutorialId = 'habits-first-toggle';
+            firstToggleTagged = true;
+          }
+          return (
           <div
             key={habit.id}
             className={`habit-enter flex items-center gap-3 py-3 px-1 ${
@@ -60,6 +66,7 @@ export function HabitsList() {
               checked={habit.completedToday}
               onChange={() => toggleHabit(habit.id)}
               size="sm"
+              data-tutorial-id={toggleTutorialId}
             />
 
             <div className="flex-1 min-w-0">
@@ -80,7 +87,7 @@ export function HabitsList() {
               )}
             </div>
           </div>
-        ))}
+        ); }); })()}
       </Card>
       </div>
     </>

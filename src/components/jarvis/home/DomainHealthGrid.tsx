@@ -45,7 +45,7 @@ export function DomainHealthGrid() {
           const status = health?.status ?? 'gray';
 
           return (
-            <div key={domain.id} className="domain-enter" style={{ animationDelay: `${index * 50}ms` }}>
+            <div key={domain.id} className="domain-enter" style={{ animationDelay: `${index * 50}ms` }} data-tutorial-id={`home-domain-card-${domain.id}`}>
               <Card
                 variant="glass-interactive"
             padding="md"

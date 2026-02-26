@@ -63,6 +63,7 @@ export function BottomTabBar() {
             return (
               <button
                 key={tab.id}
+                data-tutorial-id={`bottom-tab-${tab.id}`}
                 onClick={() => handleTabPress(tab)}
                 className={`
                   relative flex flex-col items-center justify-center gap-1 flex-1 h-full
