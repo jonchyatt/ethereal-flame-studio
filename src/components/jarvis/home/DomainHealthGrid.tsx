@@ -3,7 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/jarvis/primitives';
 import { useHomeStore, type HealthStatus } from '@/lib/jarvis/stores/homeStore';
-import { getActiveDomains, DOMAIN_COLORS } from '@/lib/jarvis/domains';
+import { DOMAIN_COLORS } from '@/lib/jarvis/domains';
+import { useActiveDomains } from '@/lib/jarvis/stores/settingsStore';
 import { DomainIcon } from './DomainIcon';
 
 const STATUS_DOT: Record<HealthStatus, string> = {
@@ -18,7 +19,7 @@ export function DomainHealthGrid() {
   const domainHealth = useHomeStore((s) => s.domainHealth);
 
   // Active domains excluding 'home' — home is the page we're on
-  const activeDomains = getActiveDomains().filter((d) => d.id !== 'home');
+  const activeDomains = useActiveDomains().filter((d) => d.id !== 'home');
 
   if (activeDomains.length === 0) {
     return (

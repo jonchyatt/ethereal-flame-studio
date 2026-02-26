@@ -4,13 +4,13 @@
 
 Milestone: v4.0 Brain Swap & Life Manager UI
 Phase: E of G (Multi-Domain Operating System) — E-04 Build Wave 1
-Plan: E-04-03 complete
+Plan: E-04-04 complete
 Status: Loop closed, ready for next PLAN
-Last activity: 2026-02-26 — Completed E-04-03 (Remaining Primitives + Chat Overlay)
+Last activity: 2026-02-26 — Completed E-04-04 (Settings + Domain Activation)
 
 Progress:
-- Milestone: [########░░] 78% (Phase A + B + C + D complete, E in progress, F-G remaining)
-- Phase E: [███████░░░] 65% (E-01/02/03 research + E-04-01/02/03 built, E-04-04+ remaining)
+- Milestone: [########░░] 80% (Phase A + B + C + D complete, E in progress, F-G remaining)
+- Phase E: [████████░░] 70% (E-01/02/03 research + E-04-01/02/03/04 built, E-04-05+ remaining)
 
 ## Loop Position
 
@@ -29,7 +29,8 @@ PLAN ──▶ APPLY ──▶ UNIFY
   - E-04-01: Shell Foundation — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-01-SUMMARY.md)
   - E-04-02: Priority Home + Widget System — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-02-SUMMARY.md)
   - E-04-03: Remaining Primitives + Chat Overlay — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-03-SUMMARY.md)
-  - E-04-04+: Settings, Personal domain — not yet planned
+  - E-04-04: Settings + Domain Activation — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-04-SUMMARY.md)
+  - E-04-05+: Personal domain, empty states, onboarding, notifications — not yet planned
 - E-05+: Build Waves 2-5 — Not started
 
 ## What E-04-01 Delivered
@@ -56,6 +57,15 @@ PLAN ──▶ APPLY ──▶ UNIFY
 - JarvisShell wired with ChatOverlay + ToastContainer
 - Keyboard shortcut Cmd/Ctrl+Shift+C for desktop chat toggle
 - 1,065 lines across 10 files — zero animation libraries
+
+## What E-04-04 Delivered
+
+- settingsStore (zustand + persist): activeDomainIds, notificationMode, featureToggles
+- useActiveDomains() hook — canonical way to get active domains for any component
+- Functional Settings page: 4 sections (Domains, Notifications, Features, About)
+- DomainRail + DomainHealthGrid wired to settingsStore for dynamic domain visibility
+- Protected domains: Home and Personal cannot be deactivated
+- 277 lines across 1 new + 3 modified files
 
 ## Accumulated Context
 
@@ -91,6 +101,10 @@ PLAN ──▶ APPLY ──▶ UNIFY
 | CSS keyframes via style tags in components | Phase E-04-03 | Self-contained, no global CSS or animation libs |
 | Ref-based touch tracking (no state during drag) | Phase E-04-03 | 60fps gesture performance |
 | toast convenience API (toast.success/error/info) | Phase E-04-03 | Any component can trigger toasts without store import |
+| settingsStore as domain activation source of truth | Phase E-04-04 | Replaces hardcoded domains.ts `active` flag |
+| Protected domains guard (home, personal always on) | Phase E-04-04 | Cannot be deactivated per IA spec |
+| useActiveDomains() hook as canonical API | Phase E-04-04 | All components use this instead of getActiveDomains() |
+| Notification mode stored but not wired | Phase E-04-04 | UI ready, pipeline comes later |
 
 ## Completed Phases
 
@@ -102,12 +116,12 @@ PLAN ──▶ APPLY ──▶ UNIFY
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: E-04-03 loop closed — clean pause for context refresh
-Next action: Plan E-04-04 (scope TBD — Settings, Personal domain, empty states, onboarding, notifications)
-Resume file: .paul/HANDOFF-2026-02-26.md
+Stopped at: E-04-04 loop closed — clean pause for context refresh
+Next action: Plan E-04-05 (scope TBD — Personal domain dashboard + sub-views, empty/error states, onboarding)
+Resume file: .paul/phases/E-mobile-ui/E-04-04-SUMMARY.md
 Resume context:
-- E-04-01/02/03 all COMPLETE — shell, home, primitives (8/8), chat overlay, toast system built
-- ~2,500 lines of production UI across ~39 files
-- Loop is clean (PLAN ✓ APPLY ✓ UNIFY ✓) — start fresh with /paul:plan for E-04-04
+- E-04-01/02/03/04 all COMPLETE — shell, home, primitives (8/8), chat overlay, toast system, settings built
+- ~2,800 lines of production UI across ~40+ files
+- Loop is clean (PLAN ✓ APPLY ✓ UNIFY ✓) — start fresh with /paul:plan for E-04-05
 - Read three blueprint docs before planning: domain-atlas, information-architecture, ui-system-design
-- Remaining E-04 scope: Settings page, Personal domain views, empty/error states, onboarding, notification foundation
+- Remaining E-04 scope: Personal domain views, empty/error states, onboarding, notification foundation

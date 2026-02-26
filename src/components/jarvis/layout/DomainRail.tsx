@@ -13,8 +13,9 @@ import {
   Settings,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { getActiveDomains, DOMAIN_COLORS } from '@/lib/jarvis/domains';
+import { DOMAIN_COLORS } from '@/lib/jarvis/domains';
 import { useShellStore } from '@/lib/jarvis/stores/shellStore';
+import { useActiveDomains } from '@/lib/jarvis/stores/settingsStore';
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Home,
@@ -32,7 +33,7 @@ export function DomainRail() {
   const pathname = usePathname();
   const activeDomain = useShellStore((s) => s.activeDomain);
   const setActiveDomain = useShellStore((s) => s.setActiveDomain);
-  const domains = getActiveDomains();
+  const domains = useActiveDomains();
 
   const handleDomainClick = (domainId: string, route: string) => {
     setActiveDomain(domainId);
