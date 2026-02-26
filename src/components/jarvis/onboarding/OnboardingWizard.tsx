@@ -611,15 +611,15 @@ export function OnboardingWizard() {
         </p>
       </Card>
 
-      <Button size="lg" onClick={finishOnboarding} className="w-full">
-        Go to Home
+      <Button size="lg" onClick={startTour} className="w-full">
+        Start the Guided Tour <ArrowRight className="w-4 h-4 ml-1" />
       </Button>
 
       <button
-        onClick={startTour}
+        onClick={finishOnboarding}
         className="text-sm text-white/40 hover:text-white/60 transition-colors text-center"
       >
-        Want Jarvis to show you around? Start the guided tour →
+        Skip tour and go to Home →
       </button>
     </div>
   );

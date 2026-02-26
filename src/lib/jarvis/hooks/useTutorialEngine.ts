@@ -302,11 +302,12 @@ export function useTutorialEngine(): TutorialEngineAPI {
     beginStep(lesson, stepIndex);
   }, [stepIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Auto-start from suggestedNext on mount ────────────────────────────
+  // ── Auto-start from suggestedNext (reactive — fires when value changes) ──
+
+  const suggestedNext = useTutorialStore((s) => s.suggestedNext);
 
   useEffect(() => {
-    const suggestedNext = useTutorialStore.getState().suggestedNext;
-    if (!suggestedNext) return;
+    if (!suggestedNext || isActive) return;
 
     const alreadyCompleted = useTutorialStore.getState().progress[suggestedNext];
     if (alreadyCompleted) return;
@@ -316,7 +317,7 @@ export function useTutorialEngine(): TutorialEngineAPI {
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [suggestedNext]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Cleanup on unmount ────────────────────────────────────────────────
 
