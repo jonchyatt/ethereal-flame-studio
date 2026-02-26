@@ -4,6 +4,8 @@ import { type ReactNode } from 'react';
 import { Header } from './Header';
 import { DomainRail } from './DomainRail';
 import { BottomTabBar } from './BottomTabBar';
+import { ChatOverlay } from './ChatOverlay';
+import { ToastContainer } from './ToastContainer';
 
 interface JarvisShellProps {
   children: ReactNode;
@@ -18,6 +20,8 @@ export function JarvisShell({ children }: JarvisShellProps) {
         {children}
       </main>
       <BottomTabBar />
+      <ChatOverlay />
+      <ToastContainer />
     </div>
   );
 }

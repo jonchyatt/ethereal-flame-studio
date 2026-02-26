@@ -3,3 +3,5 @@ export { Header } from './Header';
 export { DomainRail } from './DomainRail';
 export { BottomTabBar } from './BottomTabBar';
 export { ContentContainer } from './ContentContainer';
+export { ChatOverlay } from './ChatOverlay';
+export { ToastContainer } from './ToastContainer';

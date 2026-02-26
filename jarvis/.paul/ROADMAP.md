@@ -82,7 +82,7 @@
 **Depends on:** Phase B (needs SDK integration for chat to work)
 **Parallel with:** Phase C and D (UI is independent of memory/self-improvement internals)
 
-**Status:** In progress — E-01/E-02/E-03 complete (research + IA + UI design), E-04 building (Shell Foundation plan created)
+**Status:** In progress — E-01/E-02/E-03 complete (research + IA + UI design), E-04 building (E-04-01 shell + E-04-02 home complete, E-04-03 primitives + chat planned)
 
 ---
 

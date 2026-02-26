@@ -4,13 +4,13 @@
 
 Milestone: v4.0 Brain Swap & Life Manager UI
 Phase: E of G (Multi-Domain Operating System) — E-04 Build Wave 1
-Plan: E-04-01 complete (loop closed), E-04-02 next
-Status: Loop closed — ready for next PLAN
-Last activity: 2026-02-26 — E-04-01 UNIFY complete (SUMMARY created)
+Plan: E-04-03 complete
+Status: Loop closed, ready for next PLAN
+Last activity: 2026-02-26 — Completed E-04-03 (Remaining Primitives + Chat Overlay)
 
 Progress:
-- Milestone: [#######░░░] 72% (Phase A + B + C + D complete, E in progress, F-G remaining)
-- Phase E: [█████░░░░░] 45% (E-01/02/03 research + E-04-01 shell built)
+- Milestone: [########░░] 78% (Phase A + B + C + D complete, E in progress, F-G remaining)
+- Phase E: [███████░░░] 65% (E-01/02/03 research + E-04-01/02/03 built, E-04-04+ remaining)
 
 ## Loop Position
 
@@ -27,8 +27,9 @@ PLAN ──▶ APPLY ──▶ UNIFY
 - E-03: UI System Design — COMPLETE
 - E-04: Build Wave 1 (Shell + Personal) — IN PROGRESS
   - E-04-01: Shell Foundation — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-01-SUMMARY.md)
-  - E-04-02: Priority Home + Widget System — NEXT
-  - E-04-03+: Chat, Settings, Personal domain — not yet planned
+  - E-04-02: Priority Home + Widget System — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-02-SUMMARY.md)
+  - E-04-03: Remaining Primitives + Chat Overlay — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-03-SUMMARY.md)
+  - E-04-04+: Settings, Personal domain — not yet planned
 - E-05+: Build Waves 2-5 — Not started
 
 ## What E-04-01 Delivered
@@ -38,6 +39,23 @@ PLAN ──▶ APPLY ──▶ UNIFY
 - Domain config (8 domains, 2 active) + shellStore (zustand)
 - Route structure at /jarvis/app with 3 placeholder pages
 - 761 lines across 17 files
+
+## What E-04-02 Delivered
+
+- 5 home composites: PriorityStack, DomainHealthGrid, QuickActionsBar, WidgetZone, BriefingCard
+- Widget registry (8 definitions) + homeStore (zustand) + data freshness utility
+- DomainIcon helper (shared icon resolver)
+- Priority Home assembled with mock data — all 5 sections visible
+- 682 lines across 12 files
+
+## What E-04-03 Delivered
+
+- 4 primitives completing full set (8/8): Input, Toggle, Sheet, Toast
+- ChatOverlay: responsive bottom sheet (mobile) / side panel (desktop) with drag-to-dismiss, bouncing typing dots, staggered chip reveals, message entrance animations
+- Toast system: toastStore + ToastContainer with progress bars, stacking depth effect, swipe-to-dismiss
+- JarvisShell wired with ChatOverlay + ToastContainer
+- Keyboard shortcut Cmd/Ctrl+Shift+C for desktop chat toggle
+- 1,065 lines across 10 files — zero animation libraries
 
 ## Accumulated Context
 
@@ -66,6 +84,13 @@ PLAN ──▶ APPLY ──▶ UNIFY
 | 8 domain colors (violet, orange, emerald, rose, sky, amber, indigo) | Phase E-03 | Visual identity per domain |
 | New shell at /jarvis/app, old /jarvis untouched | Phase E-04-01 | Safe parallel testing |
 | DOMAIN_COLORS lookup for dynamic Tailwind classes | Phase E-04-01 | Avoids dynamic class string issues |
+| DomainIcon as shared helper component | Phase E-04-02 | Resolves icon name strings to lucide components |
+| Mock data in homeStore initial state | Phase E-04-02 | Home is immediately visual without API endpoints |
+| PriorityItem/DomainHealthItem types in homeStore | Phase E-04-02 | UI types separate from backend BriefingData |
+| Peer-focus pattern: input before icon in DOM | Phase E-04-03 | Required for Tailwind peer-focus selectors |
+| CSS keyframes via style tags in components | Phase E-04-03 | Self-contained, no global CSS or animation libs |
+| Ref-based touch tracking (no state during drag) | Phase E-04-03 | 60fps gesture performance |
+| toast convenience API (toast.success/error/info) | Phase E-04-03 | Any component can trigger toasts without store import |
 
 ## Completed Phases
 
@@ -77,6 +102,12 @@ PLAN ──▶ APPLY ──▶ UNIFY
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: E-04-01 loop closed
-Next action: /paul:plan E-04-02 (Priority Home + Widget System) or commit E-04-01
-Resume file: .paul/phases/E-mobile-ui/E-04-01-SUMMARY.md
+Stopped at: E-04-03 loop closed — clean pause for context refresh
+Next action: Plan E-04-04 (scope TBD — Settings, Personal domain, empty states, onboarding, notifications)
+Resume file: .paul/HANDOFF-2026-02-26.md
+Resume context:
+- E-04-01/02/03 all COMPLETE — shell, home, primitives (8/8), chat overlay, toast system built
+- ~2,500 lines of production UI across ~39 files
+- Loop is clean (PLAN ✓ APPLY ✓ UNIFY ✓) — start fresh with /paul:plan for E-04-04
+- Read three blueprint docs before planning: domain-atlas, information-architecture, ui-system-design
+- Remaining E-04 scope: Settings page, Personal domain views, empty/error states, onboarding, notification foundation
