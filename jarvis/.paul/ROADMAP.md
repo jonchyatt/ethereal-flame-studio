@@ -82,7 +82,7 @@
 **Depends on:** Phase B (needs SDK integration for chat to work)
 **Parallel with:** Phase C and D (UI is independent of memory/self-improvement internals)
 
-**Status:** In progress — E-01/E-02/E-03 complete (research + IA + UI design), E-04 building (E-04-01 shell + E-04-02 home complete, E-04-03 primitives + chat planned)
+**Status:** In progress — E-01/02/03 research complete, E-04 build wave 1 complete (8 sub-plans), E-05 Jarvis Academy in progress (E-05-01 + E-05-02 complete, E-05-03 planned), E-06 Command Palette planned
 
 ---
 
@@ -151,7 +151,7 @@ Improve)  Memory)
 | B | SDK Integration | Complete |
 | C | Memory & Intelligence Preservation | Complete |
 | D | Self-Improvement Loop | Complete |
-| E | Mobile-First UI Redesign | In progress (E-04-01 planning) |
+| E | Mobile-First UI Redesign | In progress (E-05-02 complete, E-05-03 + E-06 planned) |
 | F | Vector Memory | Not started |
 | G | Integration & Polish | Not started |
 

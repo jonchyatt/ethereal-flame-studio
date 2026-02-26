@@ -6,7 +6,7 @@ Milestone: v4.0 Brain Swap & Life Manager UI
 Phase: E of G (Multi-Domain Operating System) — E-05 Jarvis Academy
 Plan: E-05-01 complete (SUMMARY written)
 Status: Loop closed, ready for next PLAN
-Last activity: 2026-02-26 — E-05-01 complete (Tutorial Data Layer + Spotlight Wiring)
+Last activity: 2026-02-26 — E-05-02 built + hotfixed, added E-06 (Command Palette) to roadmap
 
 Progress:
 - Milestone: [########░░] 80% (Phase A + B + C + D complete, E in progress, F-G remaining)
@@ -39,7 +39,8 @@ PLAN ──▶ APPLY ──▶ UNIFY
   - E-05-01: Tutorial Data Layer + Spotlight Wiring — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-05-01-SUMMARY.md)
   - E-05-02: Lesson Execution Engine + ChatOverlay Integration — planned (wife test passes here)
   - E-05-03: Academy Hub + Suggestion Intelligence + Widget — planned (discoverability layer)
-- E-06+: Build Waves 2-5 (remaining domains + advanced features) — Not started
+- E-06: Command Palette — Not started (Cmd+K search-everything, deferred from E-04)
+- E-07+: Build Waves 2-5 (remaining domains + advanced features) — Not started
 
 ## What E-04-01 Delivered
 
@@ -161,6 +162,7 @@ PLAN ──▶ APPLY ──▶ UNIFY
 | JarvisShell conditional chrome for onboarding | Phase E-04-08 | Hides shell chrome when pathname is /onboarding |
 | Wizard local state → store write on finalize | Phase E-04-08 | All-or-nothing store commit on "Go to Home" |
 | SpotlightOverlay rAF-throttled resize tracking | Phase E-04-08 | 60fps positioning without layout thrashing |
+| Added Phase E-06: Command Palette | Phase E-05 | Deferred E-04 item — dead button in Header discovered during UAT |
 
 ## Completed Phases
 
