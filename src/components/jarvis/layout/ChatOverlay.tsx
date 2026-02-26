@@ -1,10 +1,14 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, forwardRef } from 'react';
-import { X, Send, Loader2 } from 'lucide-react';
+import { X, Send, Loader2, GraduationCap } from 'lucide-react';
 import { useShellStore } from '@/lib/jarvis/stores/shellStore';
-import { useChatStore } from '@/lib/jarvis/stores/chatStore';
+import { useChatStore, type ChatMessage } from '@/lib/jarvis/stores/chatStore';
+import { useTutorialStore } from '@/lib/jarvis/stores/tutorialStore';
 import { postJarvisAPI } from '@/lib/jarvis/api/fetchWithAuth';
+import { tutorialActionBus } from '@/lib/jarvis/curriculum/tutorialActionBus';
+import { getLesson } from '@/lib/jarvis/curriculum/tutorialLessons';
+import { useTutorialEngineContext } from './JarvisShell';
 import { Input } from '../primitives/Input';
 import { Button } from '../primitives/Button';
 
@@ -92,6 +96,13 @@ export function ChatOverlay() {
     setInput('');
     setIsTyping(true);
     setActiveTool(null);
+
+    // Tutorial action bus integration
+    tutorialActionBus.emit('user-sent-chat-message');
+    const userMsgCount = useChatStore.getState().messages.filter((m) => m.role === 'user').length;
+    if (userMsgCount >= 2) {
+      tutorialActionBus.emit('user-sent-second-message');
+    }
 
     const recentMessages = useChatStore.getState().messages.slice(-20).map((m) => ({
       role: m.role,
@@ -277,7 +288,7 @@ export function ChatOverlay() {
             <div className="w-10 h-1 bg-white/20 rounded-full mx-auto" />
           </div>
 
-          <ChatHeader onClose={closeChat} />
+          <ChatHeaderWithTutorial onClose={closeChat} />
           <ChatMessages
             messages={messages}
             isTyping={isTyping}
@@ -285,9 +296,7 @@ export function ChatOverlay() {
             onQuickAction={handleQuickAction}
             messagesEndRef={messagesEndRef}
           />
-          {messages.length > 0 && (
-            <QuickActionsRow onAction={handleQuickAction} disabled={isTyping} />
-          )}
+          <ChatActionsRow onAction={handleQuickAction} disabled={isTyping} messages={messages} />
           <ChatInputRow
             ref={inputRef}
             value={input}
@@ -310,7 +319,7 @@ export function ChatOverlay() {
         }}
       >
         <div className="bg-zinc-900/95 backdrop-blur-xl border-l border-white/10 h-full flex flex-col">
-          <ChatHeader onClose={closeChat} />
+          <ChatHeaderWithTutorial onClose={closeChat} />
           <ChatMessages
             messages={messages}
             isTyping={isTyping}
@@ -318,9 +327,7 @@ export function ChatOverlay() {
             onQuickAction={handleQuickAction}
             messagesEndRef={messagesEndRef}
           />
-          {messages.length > 0 && (
-            <QuickActionsRow onAction={handleQuickAction} disabled={isTyping} />
-          )}
+          <ChatActionsRow onAction={handleQuickAction} disabled={isTyping} messages={messages} />
           <ChatInputRow
             ref={inputRef}
             value={input}
@@ -336,7 +343,42 @@ export function ChatOverlay() {
 
 /* ---- Sub-components (internal, no separate files) ---- */
 
-function ChatHeader({ onClose }: { onClose: () => void }) {
+/** Conditionally renders tutorial progress header or normal header */
+function ChatHeaderWithTutorial({ onClose }: { onClose: () => void }) {
+  const engine = useTutorialEngineContext();
+
+  if (engine?.isActive && engine.currentLesson) {
+    const progress = ((engine.currentStepIndex + 1) / engine.totalSteps) * 100;
+    return (
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10 shrink-0">
+        <GraduationCap className="w-4 h-4 text-cyan-400 shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-white/90 text-xs font-medium truncate">
+              {engine.currentLesson.name}
+            </span>
+            <span className="text-white/40 text-xs shrink-0 ml-2">
+              {engine.currentStepIndex + 1}/{engine.totalSteps}
+            </span>
+          </div>
+          <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-cyan-500 rounded-full transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+        <button
+          onClick={engine.exitTutorial}
+          className="text-white/30 hover:text-white/60 transition-colors shrink-0"
+          title="Exit tutorial"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
       <span className="text-white/90 text-sm font-medium">Chat with Jarvis</span>
@@ -347,8 +389,18 @@ function ChatHeader({ onClose }: { onClose: () => void }) {
   );
 }
 
+// ── Tutorial message border colors ─────────────────────────────────────
+
+const TUTORIAL_BORDER: Record<string, string> = {
+  instruction: 'border-l-cyan-500',
+  hint: 'border-l-amber-500',
+  success: 'border-l-emerald-500',
+  teaching: 'border-l-violet-500',
+  celebration: 'border-l-emerald-500',
+};
+
 interface ChatMessagesProps {
-  messages: Array<{ id: string; role: 'user' | 'assistant'; content: string; isStreaming?: boolean }>;
+  messages: ChatMessage[];
   isTyping: boolean;
   activeTool: string | null;
   onQuickAction: (msg: string) => void;
@@ -380,27 +432,37 @@ function ChatMessages({ messages, isTyping, activeTool, onQuickAction, messagesE
         </div>
       )}
 
-      {messages.map((msg) => (
-        <div
-          key={msg.id}
-          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          style={{
-            animation: msg.role === 'user'
-              ? 'jarvis-msg-right 200ms ease-out both'
-              : 'jarvis-msg-left 200ms ease-out both',
-          }}
-        >
+      {messages.map((msg) => {
+        const tut = msg.tutorial;
+        const isTutorial = !!tut;
+        const borderClass = tut ? TUTORIAL_BORDER[tut.type] ?? '' : '';
+
+        return (
           <div
-            className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm leading-relaxed
-              ${msg.role === 'user'
-                ? 'bg-cyan-600/80 text-white rounded-br-md'
-                : 'bg-white/5 text-white/90 rounded-bl-md'
-              }`}
+            key={msg.id}
+            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            style={{
+              animation: msg.role === 'user'
+                ? 'jarvis-msg-right 200ms ease-out both'
+                : 'jarvis-msg-left 200ms ease-out both',
+            }}
           >
-            {msg.content || (msg.isStreaming ? <TypingDots /> : '')}
+            <div
+              className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm leading-relaxed
+                ${msg.role === 'user'
+                  ? 'bg-cyan-600/80 text-white rounded-br-md'
+                  : 'bg-white/5 text-white/90 rounded-bl-md'
+                }
+                ${isTutorial ? `border-l-2 ${borderClass}` : ''}`}
+            >
+              {isTutorial && msg.role === 'assistant' && (
+                <GraduationCap className="w-3.5 h-3.5 text-cyan-400/60 inline mr-1.5 -mt-0.5" />
+              )}
+              {msg.content || (msg.isStreaming ? <TypingDots /> : '')}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       {/* Typing indicator for streaming with no content yet */}
       {isTyping && !activeTool && messages.length > 0 && messages[messages.length - 1]?.content === '' && null}
@@ -435,7 +497,42 @@ function TypingDots() {
   );
 }
 
-function QuickActionsRow({ onAction, disabled }: { onAction: (msg: string) => void; disabled: boolean }) {
+/** Shows next-lesson chip during tutorial, or standard quick actions otherwise. */
+function ChatActionsRow({
+  onAction,
+  disabled,
+  messages,
+}: {
+  onAction: (msg: string) => void;
+  disabled: boolean;
+  messages: ChatMessage[];
+}) {
+  const engine = useTutorialEngineContext();
+  const suggestedNext = useTutorialStore((s) => s.suggestedNext);
+
+  // Between lessons — show "Continue" chip
+  if (!engine?.isActive && suggestedNext) {
+    const nextLesson = getLesson(suggestedNext);
+    if (nextLesson) {
+      return (
+        <div className="px-4 py-2 flex gap-2 border-t border-white/5 shrink-0">
+          <button
+            onClick={() => engine?.startLesson(suggestedNext)}
+            className="px-3 py-1.5 text-xs bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-full border border-cyan-500/20 transition-colors whitespace-nowrap"
+          >
+            Continue: {nextLesson.name} →
+          </button>
+        </div>
+      );
+    }
+  }
+
+  // During active tutorial — no quick actions (engine controls flow)
+  if (engine?.isActive) return null;
+
+  // Normal quick actions
+  if (messages.length === 0) return null;
+
   return (
     <div className="px-4 py-2 flex gap-2 overflow-x-auto border-t border-white/5 shrink-0">
       {QUICK_ACTIONS.map((action) => (

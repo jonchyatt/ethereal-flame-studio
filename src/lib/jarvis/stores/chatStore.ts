@@ -18,6 +18,11 @@ export interface ChatMessage {
   toolName?: string;
   /** Whether this message is still streaming */
   isStreaming?: boolean;
+  /** Tutorial metadata — present when this message is part of a guided lesson */
+  tutorial?: {
+    lessonId: string;
+    type: 'instruction' | 'hint' | 'success' | 'teaching' | 'celebration';
+  };
 }
 
 interface ChatStore {
