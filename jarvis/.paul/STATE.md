@@ -4,8 +4,8 @@
 
 Milestone: v4.0 Brain Swap & Life Manager UI
 Phase: E of G (Multi-Domain Operating System) — E-05 Jarvis Academy
-Plan: E-05-01 complete (SUMMARY written)
-Status: Loop closed, ready for next PLAN
+Plan: E-05-02 built + hotfixed, needs SUMMARY
+Status: APPLY complete, UNIFY pending
 Last activity: 2026-02-26 — E-05-02 built + hotfixed, added E-06 (Command Palette) to roadmap
 
 Progress:
@@ -17,7 +17,7 @@ Progress:
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [E-05-01 loop complete — ready for E-05-02 PLAN]
+  ✓        ✓        ○     [E-05-02 built + hotfixed — needs SUMMARY]
 ```
 
 ## Phase E Sub-Phase Progress
@@ -37,7 +37,7 @@ PLAN ──▶ APPLY ──▶ UNIFY
   - E-04-08: Onboarding Wizard + Jarvis Academy Foundation — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-08-SUMMARY.md)
 - E-05: Jarvis Academy — PLANNING
   - E-05-01: Tutorial Data Layer + Spotlight Wiring — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-05-01-SUMMARY.md)
-  - E-05-02: Lesson Execution Engine + ChatOverlay Integration — planned (wife test passes here)
+  - E-05-02: Lesson Execution Engine + ChatOverlay Integration — BUILT + HOTFIXED (needs SUMMARY)
   - E-05-03: Academy Hub + Suggestion Intelligence + Widget — planned (discoverability layer)
 - E-06: Command Palette — Not started (Cmd+K search-everything, deferred from E-04)
 - E-07+: Build Waves 2-5 (remaining domains + advanced features) — Not started
@@ -174,12 +174,12 @@ PLAN ──▶ APPLY ──▶ UNIFY
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: E-05-01 loop complete, clean stopping point
-Next action: Commit E-05-01 → /paul:plan (E-05-02 Lesson Execution Engine + ChatOverlay Integration)
-Resume file: .paul/HANDOFF-2026-02-26e.md
+Stopped at: E-05-02 built + hotfixed + deployed, needs SUMMARY (unify step)
+Next action: Write E-05-02-SUMMARY.md → verify UAT on live site → plan E-05-03
+Resume file: .paul/HANDOFF-2026-02-26f.md
 Resume context:
-- E-05-01 COMPLETE: Tutorial data layer (4 lessons, 21 steps) + 20+ DOM hooks wired
-- E-05-02 NEXT: Execution Engine + ChatOverlay (wife test passes here)
-- E-05-03 after: Academy Hub + Suggestion Intelligence + Widget (discovery + polish)
-- Foundation ready: tutorialLessons.ts has all data, SpotlightOverlay can find all targets
-- UNCOMMITTED: 12 modified + 2 new files — commit before starting E-05-02
+- E-05-02 COMPLETE: Execution engine (3 new files) + ChatOverlay integration (3 modified) + hotfix (auto-start + button)
+- UAT PENDING: Jonathan needs to retest Start Tour flow after hotfix
+- E-05-03 NEXT: Academy Hub + Suggestion Intelligence + Widget
+- E-06 ADDED: Command Palette (dead button in Header discovered during UAT)
+- All code committed and pushed, clean git state
