@@ -3,21 +3,21 @@
 ## Current Position
 
 Milestone: v4.0 Brain Swap & Life Manager UI
-Phase: E of G (Multi-Domain Operating System) — E-04 Build Wave 1 COMPLETE
-Plan: E-04-08 complete (loop closed)
-Status: E-04 Build Wave 1 complete — ready for E-05 planning
-Last activity: 2026-02-26 — E-04-08 Onboarding Wizard + Jarvis Academy Foundation built and unified
+Phase: E of G (Multi-Domain Operating System) — E-05 Jarvis Academy Planning
+Plan: E-05-01 created, awaiting approval
+Status: PLAN created, ready for APPLY
+Last activity: 2026-02-26 — Created .paul/phases/E-mobile-ui/E-05-01-PLAN.md
 
 Progress:
 - Milestone: [########░░] 80% (Phase A + B + C + D complete, E in progress, F-G remaining)
-- Phase E: [██████████] 95% (E-01/02/03 research + E-04 Build Wave 1 complete, E-05+ remaining)
+- Phase E: [██████████] 95% (E-01/02/03 research + E-04 Build Wave 1 complete, E-05 planning)
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [E-04-08 loop closed — E-04 Build Wave 1 complete]
+  ✓        ○        ○     [E-05-01 plan created, awaiting approval]
 ```
 
 ## Phase E Sub-Phase Progress
@@ -35,7 +35,11 @@ PLAN ──▶ APPLY ──▶ UNIFY
   - E-04-06: Personal Sub-Views Wave 1 (Tasks + Habits + Bills) — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-06-SUMMARY.md)
   - E-04-07: Personal Sub-Views Wave 2 (Calendar + Journal + Goals + Health) — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-07-SUMMARY.md)
   - E-04-08: Onboarding Wizard + Jarvis Academy Foundation — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-08-SUMMARY.md)
-- E-05+: Build Waves 2-5 — Not started
+- E-05: Jarvis Academy — PLANNING
+  - E-05-01: Tutorial Data Layer + Spotlight Wiring — PLAN CREATED (foundation only, no UI page)
+  - E-05-02: Lesson Execution Engine + ChatOverlay Integration — planned (wife test passes here)
+  - E-05-03: Academy Hub + Suggestion Intelligence + Widget — planned (discoverability layer)
+- E-06+: Build Waves 2-5 (remaining domains + advanced features) — Not started
 
 ## What E-04-01 Delivered
 
@@ -168,12 +172,13 @@ PLAN ──▶ APPLY ──▶ UNIFY
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: E-04 Build Wave 1 complete — uncommitted work pending
-Next action: Commit + push E-04-08, then plan E-05 (Build Wave 2)
-Resume file: .paul/HANDOFF-2026-02-26c.md
+Stopped at: E-05-01 plan approved, ready for APPLY
+Next action: /paul:apply .paul/phases/E-mobile-ui/E-05-01-PLAN.md
+Resume file: .paul/HANDOFF-2026-02-26d.md
 Resume context:
-- E-04 Build Wave 1 COMPLETE: Shell + Home + Primitives + Chat + Settings + Personal (7 views) + Onboarding + Tutorial infra
-- E-04-08 changes NOT YET COMMITTED — need git add + commit + push
-- All 8 sub-plans (E-04-01 through E-04-08) built and unified
-- E-05+ Build Waves 2-5 not yet started — remaining domains and advanced features
-- Future phase needed: Jarvis Academy lessons (Tier 1-4, 15+ tutorials)
+- E-04 Build Wave 1 COMPLETE and committed (58fa154)
+- E-05 = Jarvis Academy (interactive tutorial system)
+- E-05-01 APPROVED: Tutorial Data Layer + Spotlight Wiring (2 tasks, 9 files, autonomous)
+- E-05-02 next: Execution Engine + ChatOverlay (wife test passes here)
+- E-05-03 after: Academy Hub + Suggestion Intelligence + Widget (discovery + polish)
+- Key revision: engine before showroom — build working tutorials before building Academy page
