@@ -4,20 +4,20 @@
 
 Milestone: v4.0 Brain Swap & Life Manager UI
 Phase: E of G (Multi-Domain Operating System) — E-04 Build Wave 1
-Plan: E-04-07 complete (E-04-08 not yet planned)
-Status: UNIFY complete, ready for next PLAN
-Last activity: 2026-02-26 — Unified E-04-07, SUMMARY created
+Plan: E-04-08 created, awaiting approval
+Status: PLAN created, ready for APPLY
+Last activity: 2026-02-26 — Created E-04-08-PLAN.md (Onboarding Wizard + Jarvis Academy Foundation)
 
 Progress:
 - Milestone: [########░░] 80% (Phase A + B + C + D complete, E in progress, F-G remaining)
-- Phase E: [██████████] 90% (E-01/02/03 research + E-04-01 through E-04-07 built)
+- Phase E: [██████████] 92% (E-01/02/03 research + E-04-01 through E-04-07 built, E-04-08 planned)
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [E-04-07 loop closed — E-04-08 next]
+  ✓        ○        ○     [E-04-08 plan created, awaiting approval]
 ```
 
 ## Phase E Sub-Phase Progress
@@ -155,12 +155,14 @@ PLAN ──▶ APPLY ──▶ UNIFY
 
 ## Session Continuity
 
-Last session: 2026-02-26
-Stopped at: E-04-07 loop closed, E-04-08 not yet planned
-Next action: /paul:plan (E-04-08: Onboarding + Notification Foundation)
+Last session: 2026-02-26 (evening)
+Stopped at: E-04-08 plan created, awaiting approval
+Next action: /paul:apply .paul/phases/E-mobile-ui/E-04-08-PLAN.md
+Resume file: .paul/HANDOFF-2026-02-26b.md
 Resume context:
-- E-04-07 COMPLETE — Calendar/Journal/Goals/Health sub-views with heroes, grouping, mood selector
-- All 7 Personal sub-programs functional (7/7 views complete)
-- E-04-08 next: Onboarding wizard + notification foundation
-- Patterns available: All Wave 1/2 view patterns, store mutations, section grouping, progress bars
-- Quality bar: glass surfaces, fadeInUp entrance, spring easing, mood selector, type-grouped sections
+- E-04-08 PLAN created: Onboarding Wizard + Jarvis Academy Foundation (2 tasks, 8 ACs)
+- Vision document created: .paul/research/phase-e-jarvis-academy-vision.md (500+ lines)
+- No code written yet — all research + planning + documentation
+- Scope: 6-step setup wizard, settingsStore extensions, tutorialStore, SpotlightOverlay, onboarding redirect
+- Future phase needed: Jarvis Academy lessons (Tier 1-4, 15+ tutorials)
+- Quality bar: glass surfaces, fadeInUp entrance, spring easing — wizard MUST match
