@@ -6,6 +6,14 @@ import { DOMAINS, type Domain } from '@/lib/jarvis/domains';
 
 export type NotificationMode = 'focus' | 'active' | 'review' | 'dnd';
 
+export interface NotificationSchedule {
+  workDays: number[];
+  workStart: string;
+  workEnd: string;
+  sleepStart: string;
+  sleepEnd: string;
+}
+
 interface FeatureToggles {
   voiceEnabled: boolean;
   orbFullscreen: boolean;
@@ -19,6 +27,10 @@ interface SettingsState {
   activeDomainIds: string[];
   notificationMode: NotificationMode;
   featureToggles: FeatureToggles;
+  onboarded: boolean;
+  onboardedAt: number | null;
+  notificationSchedule: NotificationSchedule | null;
+  dataSourceUrls: Record<string, string>;
 }
 
 interface SettingsActions {
@@ -26,6 +38,9 @@ interface SettingsActions {
   deactivateDomain: (id: string) => void;
   setNotificationMode: (mode: NotificationMode) => void;
   setFeatureToggle: (key: string, value: boolean) => void;
+  setOnboarded: () => void;
+  setNotificationSchedule: (schedule: NotificationSchedule) => void;
+  setDataSourceUrl: (domainId: string, url: string) => void;
 }
 
 type SettingsStore = SettingsState & SettingsActions;
@@ -42,6 +57,10 @@ export const useSettingsStore = create<SettingsStore>()(
         orbFullscreen: false,
         selfImprovement: true,
       },
+      onboarded: false,
+      onboardedAt: null,
+      notificationSchedule: null,
+      dataSourceUrls: {},
 
       activateDomain: (id) =>
         set((state) => {
@@ -61,9 +80,27 @@ export const useSettingsStore = create<SettingsStore>()(
         set((state) => ({
           featureToggles: { ...state.featureToggles, [key]: value },
         })),
+
+      setOnboarded: () => set({ onboarded: true, onboardedAt: Date.now() }),
+
+      setNotificationSchedule: (schedule) => set({ notificationSchedule: schedule }),
+
+      setDataSourceUrl: (domainId, url) =>
+        set((state) => ({
+          dataSourceUrls: { ...state.dataSourceUrls, [domainId]: url },
+        })),
     }),
     {
       name: 'jarvis-settings',
+      partialize: (state) => ({
+        activeDomainIds: state.activeDomainIds,
+        notificationMode: state.notificationMode,
+        featureToggles: state.featureToggles,
+        onboarded: state.onboarded,
+        onboardedAt: state.onboardedAt,
+        notificationSchedule: state.notificationSchedule,
+        dataSourceUrls: state.dataSourceUrls,
+      }),
     }
   )
 );

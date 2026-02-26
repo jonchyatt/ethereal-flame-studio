@@ -3,21 +3,21 @@
 ## Current Position
 
 Milestone: v4.0 Brain Swap & Life Manager UI
-Phase: E of G (Multi-Domain Operating System) — E-04 Build Wave 1
-Plan: E-04-08 created, awaiting approval
-Status: PLAN created, ready for APPLY
-Last activity: 2026-02-26 — Created E-04-08-PLAN.md (Onboarding Wizard + Jarvis Academy Foundation)
+Phase: E of G (Multi-Domain Operating System) — E-04 Build Wave 1 COMPLETE
+Plan: E-04-08 complete (loop closed)
+Status: E-04 Build Wave 1 complete — ready for E-05 planning
+Last activity: 2026-02-26 — E-04-08 Onboarding Wizard + Jarvis Academy Foundation built and unified
 
 Progress:
 - Milestone: [########░░] 80% (Phase A + B + C + D complete, E in progress, F-G remaining)
-- Phase E: [██████████] 92% (E-01/02/03 research + E-04-01 through E-04-07 built, E-04-08 planned)
+- Phase E: [██████████] 95% (E-01/02/03 research + E-04 Build Wave 1 complete, E-05+ remaining)
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ○        ○     [E-04-08 plan created, awaiting approval]
+  ✓        ✓        ✓     [E-04-08 loop closed — E-04 Build Wave 1 complete]
 ```
 
 ## Phase E Sub-Phase Progress
@@ -25,7 +25,7 @@ PLAN ──▶ APPLY ──▶ UNIFY
 - E-01: Grand Research (Domain Atlas) — COMPLETE
 - E-02: Information Architecture — COMPLETE
 - E-03: UI System Design — COMPLETE
-- E-04: Build Wave 1 (Shell + Personal) — IN PROGRESS
+- E-04: Build Wave 1 (Shell + Personal) — COMPLETE
   - E-04-01: Shell Foundation — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-01-SUMMARY.md)
   - E-04-02: Priority Home + Widget System — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-02-SUMMARY.md)
   - E-04-03: Remaining Primitives + Chat Overlay — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-03-SUMMARY.md)
@@ -34,7 +34,7 @@ PLAN ──▶ APPLY ──▶ UNIFY
   - E-04-05.5: Visual Polish Pass — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-05.5-SUMMARY.md)
   - E-04-06: Personal Sub-Views Wave 1 (Tasks + Habits + Bills) — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-06-SUMMARY.md)
   - E-04-07: Personal Sub-Views Wave 2 (Calendar + Journal + Goals + Health) — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-07-SUMMARY.md)
-  - E-04-08: Onboarding + Notification Foundation — not yet planned
+  - E-04-08: Onboarding Wizard + Jarvis Academy Foundation — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-08-SUMMARY.md)
 - E-05+: Build Waves 2-5 — Not started
 
 ## What E-04-01 Delivered
@@ -94,6 +94,15 @@ PLAN ──▶ APPLY ──▶ UNIFY
 - All 7 Personal sub-programs now have functional views (7/7 complete)
 - ~380 lines across 4 new + 5 modified files
 
+## What E-04-08 Delivered
+
+- 6-step onboarding setup wizard at /jarvis/app/onboarding (Welcome → Domains → Data Sources → Home Setup → Notifications → Briefing)
+- settingsStore extensions: onboarded flag, notificationSchedule, dataSourceUrls + 3 actions + partialize
+- tutorialStore (zustand + persist): progress tracking, spotlight state, skill level — foundation for Jarvis Academy
+- SpotlightOverlay: tutorial element highlighting with pulse/ring animations, auto-repositioning
+- JarvisShell: onboarding redirect guard + conditional chrome hiding for full-screen onboarding
+- ~1,061 lines across 4 new + 2 modified files
+
 ## Accumulated Context
 
 ### Decisions
@@ -145,6 +154,9 @@ PLAN ──▶ APPLY ──▶ UNIFY
 | Mood selector only on today's entry | Phase E-04-07 | Prevents retroactive mood editing on past entries |
 | Violet tint for calendar today section | Phase E-04-07 | Matches Personal domain color identity |
 | TYPE_CONFIG for health grouping | Phase E-04-07 | Mirrors SECTION_CONFIG pattern from BillsList |
+| JarvisShell conditional chrome for onboarding | Phase E-04-08 | Hides shell chrome when pathname is /onboarding |
+| Wizard local state → store write on finalize | Phase E-04-08 | All-or-nothing store commit on "Go to Home" |
+| SpotlightOverlay rAF-throttled resize tracking | Phase E-04-08 | 60fps positioning without layout thrashing |
 
 ## Completed Phases
 
@@ -155,14 +167,13 @@ PLAN ──▶ APPLY ──▶ UNIFY
 
 ## Session Continuity
 
-Last session: 2026-02-26 (evening)
-Stopped at: E-04-08 plan created, awaiting approval
-Next action: /paul:apply .paul/phases/E-mobile-ui/E-04-08-PLAN.md
-Resume file: .paul/HANDOFF-2026-02-26b.md
+Last session: 2026-02-26
+Stopped at: E-04 Build Wave 1 complete — uncommitted work pending
+Next action: Commit + push E-04-08, then plan E-05 (Build Wave 2)
+Resume file: .paul/HANDOFF-2026-02-26c.md
 Resume context:
-- E-04-08 PLAN created: Onboarding Wizard + Jarvis Academy Foundation (2 tasks, 8 ACs)
-- Vision document created: .paul/research/phase-e-jarvis-academy-vision.md (500+ lines)
-- No code written yet — all research + planning + documentation
-- Scope: 6-step setup wizard, settingsStore extensions, tutorialStore, SpotlightOverlay, onboarding redirect
+- E-04 Build Wave 1 COMPLETE: Shell + Home + Primitives + Chat + Settings + Personal (7 views) + Onboarding + Tutorial infra
+- E-04-08 changes NOT YET COMMITTED — need git add + commit + push
+- All 8 sub-plans (E-04-01 through E-04-08) built and unified
+- E-05+ Build Waves 2-5 not yet started — remaining domains and advanced features
 - Future phase needed: Jarvis Academy lessons (Tier 1-4, 15+ tutorials)
-- Quality bar: glass surfaces, fadeInUp entrance, spring easing — wizard MUST match

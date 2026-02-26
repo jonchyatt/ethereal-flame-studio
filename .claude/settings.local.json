@@ -33,5 +33,10 @@
       "/home/jonch/.cache/ms-playwright",
       "/home/jonch"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "notion",
+    "playwright"
+  ],
+  "enableAllProjectMcpServers": true
 }
