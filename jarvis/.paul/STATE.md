@@ -3,22 +3,41 @@
 ## Current Position
 
 Milestone: v4.0 Brain Swap & Life Manager UI
-Phase: E of G (Mobile-First UI Redesign) — Not started
-Plan: Not started
-Status: Ready to plan Phase E
-Last activity: 2026-02-25 — Phase D complete, transitioned to Phase E
+Phase: E of G (Multi-Domain Operating System) — E-04 Build Wave 1
+Plan: E-04-01 complete (loop closed), E-04-02 next
+Status: Loop closed — ready for next PLAN
+Last activity: 2026-02-26 — E-04-01 UNIFY complete (SUMMARY created)
 
 Progress:
-- Milestone: [######░░░░] 64% (Phase A + B + C + D complete, E-G remaining)
-- Phase E: [░░░░░░░░░░] 0%
+- Milestone: [#######░░░] 72% (Phase A + B + C + D complete, E in progress, F-G remaining)
+- Phase E: [█████░░░░░] 45% (E-01/02/03 research + E-04-01 shell built)
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ○        ○        ○     [Ready for next PLAN]
+  ✓        ✓        ✓     [Loop complete — ready for next PLAN]
 ```
+
+## Phase E Sub-Phase Progress
+
+- E-01: Grand Research (Domain Atlas) — COMPLETE
+- E-02: Information Architecture — COMPLETE
+- E-03: UI System Design — COMPLETE
+- E-04: Build Wave 1 (Shell + Personal) — IN PROGRESS
+  - E-04-01: Shell Foundation — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-01-SUMMARY.md)
+  - E-04-02: Priority Home + Widget System — NEXT
+  - E-04-03+: Chat, Settings, Personal domain — not yet planned
+- E-05+: Build Waves 2-5 — Not started
+
+## What E-04-01 Delivered
+
+- 4 primitives: Button, Card, Badge, Skeleton
+- 5 layout components: JarvisShell, Header, DomainRail, BottomTabBar, ContentContainer
+- Domain config (8 domains, 2 active) + shellStore (zustand)
+- Route structure at /jarvis/app with 3 placeholder pages
+- 761 lines across 17 files
 
 ## Accumulated Context
 
@@ -26,28 +45,38 @@ PLAN ──▶ APPLY ──▶ UNIFY
 
 | Decision | Phase | Impact |
 |----------|-------|--------|
-| 2026-02-25: Option B — Anthropic MCP Connector for brain swap | Phase B | Use Anthropic API + MCP Connector instead of Claude Code SDK |
-| 2026-02-25: Multi-model routing | Phase B | Haiku for CRUD, Sonnet for complex queries when Agent Zero unavailable |
-| 2026-02-25: REVISED — Wire Notion MCP Connector + relocate gems to hooks/prompts | Phase C | User feedback: keeping Notion custom disconnects from Claude's brain intent |
-| 2026-02-25: Dual-path brain architecture | Phase C | thinkLocal (Phase B) + thinkWithMcp (new), zero regression risk |
-| 2026-02-25: Gem #13 extracted to standalone module | Phase C | recurringHook.ts reusable by both local and MCP paths |
-| 2026-02-25: Haiku as critic, tool_choice for structured output | Phase D-01 | Cheap, fast, reliable evaluations |
-| 2026-02-25: Settings UI deferred to Phase E | Phase D-01 | Gear icon settings page instead of env vars — user request |
-| 2026-02-25: drizzle-kit push in build, self-improvement ON by default | Phase D | Automatic schema deploy, no manual steps |
-| 2026-02-25: Opus for reflection (not Sonnet) | Phase D-02 | Best reasoning for the brain that improves the brain (~$3/month) |
-| 2026-02-25: Meta-evaluator — second-order feedback loop | Phase D-02 | Weekly health check: is self-improvement itself working? |
-| 2026-02-25: meta_evaluation category for rule storage | Phase D-02 | Meta-eval reports stored as behavior_rules entries, filtered from prompt |
+| Option B — Anthropic MCP Connector for brain swap | Phase B | Anthropic API + MCP Connector |
+| Multi-model routing | Phase B | Haiku for CRUD, Sonnet for complex |
+| Dual-path brain architecture | Phase C | thinkLocal + thinkWithMcp |
+| Haiku as critic, tool_choice for structured output | Phase D-01 | Cheap, fast evaluations |
+| Opus for reflection | Phase D-02 | Best reasoning for self-improvement |
+| Meta-evaluator — second-order feedback loop | Phase D-02 | Weekly health check |
+| Phase E is multi-domain OS, not UI facelift | Phase E | Ground-up design |
+| Full scope now, no deferring to v5/v6 | Phase E | All domains anticipated |
+| Domain Rail + Priority Home + Command Palette + Quick Capture | Phase E-02 | 4-layer navigation |
+| Pinnable Home Widgets (max 4) | Phase E-02 | iOS-style widget registry |
+| Chat as contextual overlay | Phase E-02 | Not a dedicated screen |
+| Proxy pattern for Reset Bio + Visopscreen | Phase E-02 | Display layer only |
+| Data freshness model (5 tiers) | Phase E-02 | Trust layer for proxied data |
+| Weekly Review (Sunday retrospective) | Phase E-02 | Self-improvement meets UI |
+| 6-step onboarding wizard | Phase E-02 | First-run experience |
+| Mini-orb (32px in header), not archived | Phase E-03 | Preserves identity |
+| lucide-react for icons | Phase E-03 | Already installed, tree-shakeable |
+| Dark theme only, glassmorphism signature | Phase E-03 | Formalized existing aesthetic |
+| 8 domain colors (violet, orange, emerald, rose, sky, amber, indigo) | Phase E-03 | Visual identity per domain |
+| New shell at /jarvis/app, old /jarvis untouched | Phase E-04-01 | Safe parallel testing |
+| DOMAIN_COLORS lookup for dynamic Tailwind classes | Phase E-04-01 | Avoids dynamic class string issues |
 
 ## Completed Phases
 
 - Phase A: Intelligence Audit — COMPLETE
-- Phase B: SDK Integration — COMPLETE (B-01-SUMMARY.md)
-- Phase C: Memory & Intelligence Preservation — COMPLETE (C-01-SUMMARY.md)
-- Phase D: Self-Improvement Loop — COMPLETE (D-01-SUMMARY.md, D-02-SUMMARY.md)
+- Phase B: SDK Integration — COMPLETE
+- Phase C: Memory & Intelligence Preservation — COMPLETE
+- Phase D: Self-Improvement Loop — COMPLETE
 
 ## Session Continuity
 
-Last session: 2026-02-25
-Stopped at: Phase D complete, ready to plan Phase E
-Next action: /paul:plan for Phase E (Mobile-First UI Redesign)
-Resume file: jarvis/.paul/ROADMAP.md
+Last session: 2026-02-26
+Stopped at: E-04-01 loop closed
+Next action: /paul:plan E-04-02 (Priority Home + Widget System) or commit E-04-01
+Resume file: .paul/phases/E-mobile-ui/E-04-01-SUMMARY.md

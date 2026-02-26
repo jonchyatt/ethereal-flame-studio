@@ -82,7 +82,7 @@
 **Depends on:** Phase B (needs SDK integration for chat to work)
 **Parallel with:** Phase C and D (UI is independent of memory/self-improvement internals)
 
-**Status:** Not started
+**Status:** In progress — E-01/E-02/E-03 complete (research + IA + UI design), E-04 building (Shell Foundation plan created)
 
 ---
 
@@ -151,7 +151,7 @@ Improve)  Memory)
 | B | SDK Integration | Complete |
 | C | Memory & Intelligence Preservation | Complete |
 | D | Self-Improvement Loop | Complete |
-| E | Mobile-First UI Redesign | Not started |
+| E | Mobile-First UI Redesign | In progress (E-04-01 planning) |
 | F | Vector Memory | Not started |
 | G | Integration & Polish | Not started |
 
