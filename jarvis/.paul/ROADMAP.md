@@ -106,15 +106,14 @@
 **Goal:** End-to-end verification, edge case handling, production hardening
 
 **What changes:**
-- Verify all 17 gems work in new architecture
-- Cross-session continuity testing
-- Executive function (briefings, nudges, check-ins) verified
-- Performance optimization
-- Production deployment verification
+- G-01: Brain activation (enableMemoryLoading ON)
+- G-02: Live data pipeline (Home + Personal with real Notion data)
+- G-03: Executive bridge (Scheduler + mode-aware toasts)
+- G-04: Production hardening (ErrorBoundary, fetch retry, health observatory, memory backfill, CRON hardening)
 
 **Depends on:** All prior phases
 
-**Status:** Planning (G-01 created)
+**Status:** COMPLETE
 
 ---
 
@@ -153,9 +152,9 @@ Improve)  Memory)
 | D | Self-Improvement Loop | Complete |
 | E | Mobile-First UI Redesign | In progress (E-06 complete, E-07+ remaining) |
 | F | Vector Memory | Complete |
-| G | Integration & Polish | Planning (G-01) |
+| G | Integration & Polish | Complete |
 
 ---
 
 *Created: 2026-02-25*
-*Milestone: v4.0 Brain Swap & Life Manager UI*
+*Milestone: v4.0 Brain Swap & Personal Domain*

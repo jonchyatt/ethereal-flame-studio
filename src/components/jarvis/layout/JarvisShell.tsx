@@ -7,12 +7,14 @@ import { useShellStore } from '@/lib/jarvis/stores/shellStore';
 import { useTutorialEngine, type TutorialEngineAPI } from '@/lib/jarvis/hooks/useTutorialEngine';
 import { useJarvisFetch } from '@/lib/jarvis/hooks/useJarvisFetch';
 import { useExecutiveBridge } from '@/lib/jarvis/hooks/useExecutiveBridge';
+import { useHealthMonitor } from '@/lib/jarvis/hooks/useHealthMonitor';
 import { Header } from './Header';
 import { DomainRail } from './DomainRail';
 import { BottomTabBar } from './BottomTabBar';
 import { ChatOverlay } from './ChatOverlay';
 import { CommandPalette } from './CommandPalette';
 import { ToastContainer } from './ToastContainer';
+import { ErrorBoundary } from './ErrorBoundary';
 import { SpotlightOverlay } from '@/components/jarvis/onboarding/SpotlightOverlay';
 
 // ── Tutorial Engine Context ─────────────────────────────────────────────
@@ -36,6 +38,7 @@ export function JarvisShell({ children }: JarvisShellProps) {
   const tutorialEngine = useTutorialEngine();
   useJarvisFetch(); // Central data pipeline — populates homeStore + personalStore
   useExecutiveBridge(); // Scheduler → mode-aware toasts + proactive chat triggers
+  useHealthMonitor(); // Once-per-session brain health check → anomaly toasts
   const isCommandPaletteOpen = useShellStore((s) => s.isCommandPaletteOpen);
   const toggleCommandPalette = useShellStore((s) => s.toggleCommandPalette);
 
@@ -74,7 +77,7 @@ export function JarvisShell({ children }: JarvisShellProps) {
         <Header />
         <DomainRail />
         <main className="h-full overflow-y-auto">
-          {children}
+          <ErrorBoundary>{children}</ErrorBoundary>
         </main>
         <BottomTabBar />
         <ChatOverlay />

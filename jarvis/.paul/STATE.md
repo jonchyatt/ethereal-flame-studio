@@ -2,29 +2,29 @@
 
 ## Current Position
 
-Milestone: v4.0 Brain Swap & Life Manager UI
-Phase: G of G (Integration & Polish) — Executing
-Plan: G-03 complete
-Status: Loop closed, ready for next PLAN (G-04)
-Last activity: 2026-02-27 — G-03 unified (Executive Bridge)
+Milestone: v4.0 Brain Swap & Personal Domain
+Phase: G of G (Integration & Polish) — COMPLETE
+Plan: G-04 complete (Production Hardening & Day-One Readiness)
+Status: Milestone complete — v4.0 shipped
+Last activity: 2026-02-27 — G-04 applied (Error Resilience + Intelligence Observatory + Memory Maintenance + Milestone Closure)
 
 Progress:
-- Milestone: [##########] 99% (Phase A-F complete, G nearly done)
-- Phase G: [########░░] 80% (G-01 + G-02 + G-03 complete, G-04 pending)
+- Milestone: [##########] 100% (All phases A-G complete)
+- Phase G: [##########] 100% (G-01 + G-02 + G-03 + G-04 complete)
 
 ## Phase G Sub-Plan Progress (REDESIGNED)
 
 - G-01: Brain Activation (enableMemoryLoading ON) — COMPLETE
 - G-02: Live Data Pipeline (Home + Personal real Notion data + QuickActions + BriefingCard freshness) — COMPLETE
 - G-03: Executive Bridge (Scheduler + mode-aware toasts, NO NudgeManager) — COMPLETE
-- G-04: Production Verification (comprehensive smoke test) — NOT STARTED
+- G-04: Production Hardening & Day-One Readiness — COMPLETE
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [Loop complete — ready for G-04]
+  ✓        ✓        ✓     [v4.0 MILESTONE COMPLETE]
 ```
 
 ## Phase E Sub-Phase Progress
@@ -266,13 +266,14 @@ Deep 5-agent audit revealed:
 ## Session Continuity
 
 Last session: 2026-02-27
-Handoff: `.paul/HANDOFF-2026-02-27-f.md`
-Stopped at: G-03 loop closed, session paused
-Next action: Commit + push G-03 changes, then /paul:apply jarvis/.paul/phases/G-integration-polish/G-04-PLAN.md
-Resume file: .paul/HANDOFF-2026-02-27-f.md
-Resume context:
-- G-03 complete — useExecutiveBridge wired, warning toasts, BriefingCard fixed
-- 7 files uncommitted (5 modified, 2 new) — commit before G-04
-- G-04 (Production Verification) is the LAST sub-plan in Phase G
-- OPENAI_API_KEY + CRON_SECRET already in Vercel — next push activates vector search + reflection
-- After G-04: Phase G complete → v4.0 milestone done
+Status: v4.0 milestone COMPLETE
+What shipped in G-04:
+- ErrorBoundary wrapping page content (shell chrome survives crashes)
+- Fetch retry with 3-attempt exponential backoff
+- /api/jarvis/health endpoint (DB + brain + memory stats)
+- useHealthMonitor — once-per-session anomaly toasts
+- Brain Health section in Settings page
+- Automated embedding backfill in reflect cron
+- CRON_SECRET hardening (500 if not configured)
+- About text: "Brain Swap & Personal Domain"
+Next: Push to GitHub → auto-deploy → verify from live site

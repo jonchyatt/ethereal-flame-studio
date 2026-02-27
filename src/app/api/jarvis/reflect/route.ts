@@ -11,16 +11,21 @@
 import { NextResponse } from 'next/server';
 import { runReflection } from '@/lib/jarvis/intelligence/reflectionLoop';
 import { runMetaEvaluation } from '@/lib/jarvis/intelligence/metaEvaluator';
+import { backfillEmbeddings } from '@/lib/jarvis/memory/embeddings';
 
-export const maxDuration = 30;
+export const maxDuration = 45;
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
-  // Verify cron secret
+  // Verify cron secret — MUST be configured in production
   const authHeader = request.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret) {
+    return NextResponse.json({ error: 'Server misconfigured: CRON_SECRET not set' }, { status: 500 });
+  }
+
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -39,6 +44,15 @@ export async function GET(request: Request) {
   } catch (err) {
     console.error('[Reflect Route] Meta-evaluation failed:', err);
     results.metaEvaluation = { error: 'failed' };
+  }
+
+  // Backfill embeddings for memories missing vectors
+  try {
+    const backfillResult = await backfillEmbeddings();
+    results.embeddingBackfill = backfillResult;
+  } catch (err) {
+    console.error('[Reflect Route] Embedding backfill failed:', err);
+    results.embeddingBackfill = { total: 0, processed: 0, failed: 0 };
   }
 
   return NextResponse.json({

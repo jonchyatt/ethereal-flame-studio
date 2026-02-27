@@ -6,3 +6,4 @@ export { ContentContainer } from './ContentContainer';
 export { ChatOverlay } from './ChatOverlay';
 export { ToastContainer } from './ToastContainer';
 export { CommandPalette } from './CommandPalette';
+export { ErrorBoundary } from './ErrorBoundary';

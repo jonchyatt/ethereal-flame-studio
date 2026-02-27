@@ -1,7 +1,8 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
 import { ContentContainer } from '@/components/jarvis/layout';
-import { Card, Toggle } from '@/components/jarvis/primitives';
+import { Card, Toggle, Badge, Skeleton } from '@/components/jarvis/primitives';
 import { DomainIcon } from '@/components/jarvis/home/DomainIcon';
 import { DOMAINS, DOMAIN_COLORS } from '@/lib/jarvis/domains';
 import {
@@ -16,6 +17,8 @@ import {
   Mic,
   Maximize2,
   Brain,
+  Activity,
+  RefreshCw,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -53,6 +56,144 @@ const FEATURES: FeatureOption[] = [
 // ── Protected Domains ──────────────────────────────────────────────────────
 
 const ALWAYS_ON = ['home', 'personal'];
+
+// ── Brain Health Section ──────────────────────────────────────────────────
+
+interface HealthData {
+  db: { connected: boolean };
+  brain: {
+    lastEvaluation: string | null;
+    evaluationCount: number;
+    activeRules: number;
+    lastReflection: string | null;
+    lastMetaEval: { timestamp: string } | null;
+  } | null;
+  memory: {
+    totalEntries: number;
+    embeddingCount: number;
+    vectorCoverage: number;
+  } | null;
+}
+
+function formatRelativeTime(iso: string | null): string {
+  if (!iso) return 'Never';
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+function BrainHealthSection() {
+  const [health, setHealth] = useState<HealthData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const fetchHealth = useCallback(async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const res = await fetch('/api/jarvis/health');
+      if (!res.ok) throw new Error('fetch failed');
+      setHealth(await res.json());
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchHealth(); }, [fetchHealth]);
+
+  if (loading) {
+    return (
+      <Card variant="glass" padding="md">
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-3 w-48" />
+          <Skeleton className="h-3 w-40" />
+          <Skeleton className="h-3 w-44" />
+        </div>
+      </Card>
+    );
+  }
+
+  if (error || !health) {
+    return (
+      <Card variant="glass" padding="md">
+        <div className="text-center text-white/40 text-sm py-2">
+          Could not load brain health
+        </div>
+      </Card>
+    );
+  }
+
+  const brainStatus = !health.db.connected
+    ? 'Error'
+    : health.brain && health.brain.evaluationCount > 0
+      ? 'Active'
+      : 'Dormant';
+
+  const badgeStatus = brainStatus === 'Active'
+    ? 'success' as const
+    : brainStatus === 'Dormant'
+      ? 'inactive' as const
+      : 'critical' as const;
+
+  return (
+    <Card variant="glass" padding="md">
+      <div className="space-y-4">
+        {/* Header row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-cyan-400" />
+            <Badge status={badgeStatus}>{brainStatus}</Badge>
+          </div>
+          <button
+            onClick={fetchHealth}
+            className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white/70 transition-colors"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Check Now
+          </button>
+        </div>
+
+        {/* Stats grid */}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+          <div className="text-white/40">Last Reflection</div>
+          <div className="text-white/70 text-right">{formatRelativeTime(health.brain?.lastReflection ?? null)}</div>
+
+          <div className="text-white/40">Active Rules</div>
+          <div className="text-white/70 text-right">{health.brain?.activeRules ?? 0}</div>
+
+          <div className="text-white/40">Evaluations</div>
+          <div className="text-white/70 text-right">
+            {health.brain?.evaluationCount ?? 0}
+            {health.brain?.lastEvaluation && (
+              <span className="text-white/30 ml-1">({formatRelativeTime(health.brain.lastEvaluation)})</span>
+            )}
+          </div>
+
+          {health.brain?.lastMetaEval && (
+            <>
+              <div className="text-white/40">Meta-Eval</div>
+              <div className="text-white/70 text-right">{formatRelativeTime(health.brain.lastMetaEval.timestamp)}</div>
+            </>
+          )}
+
+          <div className="text-white/40">Memories</div>
+          <div className="text-white/70 text-right">{health.memory?.totalEntries ?? 0}</div>
+
+          <div className="text-white/40">Vector Coverage</div>
+          <div className="text-white/70 text-right">{health.memory?.vectorCoverage ?? 0}%</div>
+        </div>
+      </div>
+    </Card>
+  );
+}
 
 // ── Page ───────────────────────────────────────────────────────────────────
 
@@ -184,13 +325,19 @@ export default function SettingsPage() {
           </Card>
         </section>
 
-        {/* Section 4: About */}
+        {/* Section 4: Brain Health */}
+        <section>
+          <h2 className="text-xs uppercase tracking-wide text-white/40 mb-3">Brain Health</h2>
+          <BrainHealthSection />
+        </section>
+
+        {/* Section 5: About */}
         <section>
           <h2 className="text-xs uppercase tracking-wide text-white/40 mb-3">About</h2>
           <Card variant="glass" padding="md">
             <div className="text-center space-y-1">
               <div className="text-lg font-semibold text-white/90">Jarvis v4.0</div>
-              <div className="text-sm text-white/60">Brain Swap & Life Manager UI</div>
+              <div className="text-sm text-white/60">Brain Swap & Personal Domain</div>
               <div className="text-xs text-white/30 pt-2">Built with love between patients</div>
             </div>
           </Card>

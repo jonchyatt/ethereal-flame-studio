@@ -210,6 +210,9 @@ function transformCalendar(data: BriefingData): StoreCalendarEvent[] {
 
 // ── Standalone fetch function (callable from anywhere) ────────────────────
 
+const MAX_RETRIES = 3;
+const RETRY_DELAYS = [1000, 2000]; // delays before retry 2 and 3
+
 export async function refetchJarvisData(silent = false): Promise<void> {
   const homeStore = useHomeStore.getState();
   const personalStore = usePersonalStore.getState();
@@ -217,29 +220,42 @@ export async function refetchJarvisData(silent = false): Promise<void> {
   if (!silent) homeStore.setLoading(true);
   homeStore.setFetchError(null);
 
-  try {
-    const data = await fetchBriefingData();
+  let lastError: string | null = null;
 
-    // Populate Home store
-    homeStore.setPriorityItems(transformPriorities(data));
-    homeStore.setDomainHealth(transformDomainHealth(data));
-    homeStore.setBriefingSummary(transformBriefingSummary(data));
-    homeStore.setLastFetched(new Date());
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const data = await fetchBriefingData();
 
-    // Populate Personal store
-    personalStore.setTasks(transformTasks(data));
-    personalStore.setHabits(transformHabits(data));
-    personalStore.setBills(transformBills(data));
-    personalStore.setGoals(transformGoals(data));
-    personalStore.setEvents(transformCalendar(data));
-    // Journal and Health: not available from briefing API — stays empty (honest)
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to fetch data';
-    homeStore.setFetchError(message);
-    console.error('[useJarvisFetch] Fetch failed:', message);
-  } finally {
-    homeStore.setLoading(false);
+      // Populate Home store
+      homeStore.setPriorityItems(transformPriorities(data));
+      homeStore.setDomainHealth(transformDomainHealth(data));
+      homeStore.setBriefingSummary(transformBriefingSummary(data));
+      homeStore.setLastFetched(new Date());
+
+      // Populate Personal store
+      personalStore.setTasks(transformTasks(data));
+      personalStore.setHabits(transformHabits(data));
+      personalStore.setBills(transformBills(data));
+      personalStore.setGoals(transformGoals(data));
+      personalStore.setEvents(transformCalendar(data));
+      // Journal and Health: not available from briefing API — stays empty (honest)
+
+      homeStore.setLoading(false);
+      return; // Success — exit early
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : 'Failed to fetch data';
+      console.warn(`[useJarvisFetch] Attempt ${attempt}/${MAX_RETRIES} failed:`, lastError);
+
+      if (attempt < MAX_RETRIES) {
+        await new Promise((r) => setTimeout(r, RETRY_DELAYS[attempt - 1]));
+      }
+    }
   }
+
+  // All retries exhausted
+  homeStore.setFetchError(lastError);
+  console.error('[useJarvisFetch] All retries exhausted:', lastError);
+  homeStore.setLoading(false);
 }
 
 // ── Hook (mount in JarvisShell only) ──────────────────────────────────────
