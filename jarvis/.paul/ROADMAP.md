@@ -114,7 +114,7 @@
 
 **Depends on:** All prior phases
 
-**Status:** Not started
+**Status:** Planning (G-01 created)
 
 ---
 
@@ -153,7 +153,7 @@ Improve)  Memory)
 | D | Self-Improvement Loop | Complete |
 | E | Mobile-First UI Redesign | In progress (E-06 complete, E-07+ remaining) |
 | F | Vector Memory | Complete |
-| G | Integration & Polish | Not started |
+| G | Integration & Polish | Planning (G-01) |
 
 ---
 

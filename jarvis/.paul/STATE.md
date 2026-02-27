@@ -3,21 +3,28 @@
 ## Current Position
 
 Milestone: v4.0 Brain Swap & Life Manager UI
-Phase: F of G (Vector Memory) — COMPLETE
-Plan: F-02 complete (Memory Consolidation)
-Status: Loop closed, phase complete — transition required
-Last activity: 2026-02-27 — F-02 unified, Phase F complete
+Phase: G of G (Integration & Polish) — Executing
+Plan: G-01 + G-02 COMPLETE (redesigned), G-03 remaining
+Status: Brain activated + live data pipeline deployed. Executive bridge next.
+Last activity: 2026-02-27 — G-01 + G-02 executed in single commit, pushed to production
 
 Progress:
-- Milestone: [#########░] 95% (Phase A + B + C + D + E + F complete, G remaining)
-- Phase F: [██████████] 100% (F-01 + F-02 complete)
+- Milestone: [##########] 98% (Phase A-F complete, G in progress)
+- Phase G: [######░░░░] 60% (G-01 + G-02 complete, G-03 executive bridge remaining)
+
+## Phase G Sub-Plan Progress (REDESIGNED)
+
+- G-01: Brain Activation (enableMemoryLoading ON) — COMPLETE
+- G-02: Live Data Pipeline (Home + Personal real Notion data + QuickActions + BriefingCard freshness) — COMPLETE
+- G-03: Executive Bridge (Scheduler + NudgeManager in new shell) — NOT STARTED
+- G-04: Production Verification (comprehensive smoke test) — NOT STARTED
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [Loop complete — Phase F done]
+  ✓        ◑        ○     [G-01+G-02 deployed, G-03 next]
 ```
 
 ## Phase E Sub-Phase Progress
@@ -242,14 +249,25 @@ PLAN ──▶ APPLY ──▶ UNIFY
 - Header search button now functional — was dead no-op since E-04-01
 - ~700 lines across 2 new + 2 modified files
 
+## Integration Audit Findings (2026-02-27)
+
+Deep 5-agent audit revealed:
+- ChatOverlay: FULLY WIRED to /api/jarvis/chat (SSE streaming, real backend) ✓
+- Executive functions: COMPLETELY ORPHANED from new /jarvis/app shell ✗
+- Voice pipeline: Absent from new shell (by design — text-first dashboard) ~
+- 4 gems DORMANT (enableMemoryLoading defaults OFF): memory scoring, proactive surfacing, decay, summarization ✗
+- Home screen: All mock data (PriorityStack, DomainHealthGrid, BriefingCard) ✗
+- Old /jarvis page: Fully functional, retains voice + executive functions ✓
+
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Phase F complete — clean stopping point
-Next action: /paul:plan for Phase G (Integration & Polish)
-Resume file: .paul/HANDOFF-2026-02-27-b.md
+Stopped at: G-01 + G-02 deployed, G-03 executive bridge next
+Next action: Build G-03 (Scheduler + NudgeManager in new shell) or proceed to G-04 verification
 Resume context:
-- Phase F committed and pushed (7997d0f), ROADMAP updated, loop closed
-- Phase G is the final phase: end-to-end verification, production hardening
-- OPENAI_API_KEY still needed in Vercel env for vector features
-- Phase E has E-07+ remaining (future domains) — not blocking G
+- G-01 + G-02 redesigned and executed in single commit (89a3c40)
+- Live data pipeline: /api/jarvis/briefing → homeStore + personalStore
+- All Home + Personal sub-pages now show real Notion data
+- QuickActionsBar wired to navigation + ChatOverlay intents
+- BriefingCard has freshness dot + refresh icon
+- Env vars still needed: OPENAI_API_KEY, CRON_SECRET in Vercel
