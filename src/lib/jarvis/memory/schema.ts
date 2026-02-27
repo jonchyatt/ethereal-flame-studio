@@ -110,6 +110,7 @@ export const conversationEvaluations = sqliteTable('conversation_evaluations', {
   strengths: text('strengths').notNull(),   // JSON array of strings
   improvements: text('improvements').notNull(), // JSON array of strings
   model: text('model').notNull(),           // Which model evaluated (e.g., "claude-haiku-4-5-20251001")
+  activeRuleIds: text('active_rule_ids'),   // JSON array of rule IDs active during this conversation (for causality tracking)
   evaluatedAt: text('evaluated_at').notNull().$defaultFn(() => new Date().toISOString()),
 });
 
@@ -128,6 +129,7 @@ export const behaviorRules = sqliteTable('behavior_rules', {
   version: integer('version').notNull().default(1),
   isActive: integer('is_active').notNull().default(1), // 1 = active, 0 = superseded
   rationale: text('rationale'),             // Why this rule was created/changed
+  example: text('example'),                 // Concrete example from real conversation (makes rules actionable for LLMs)
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
   supersededAt: text('superseded_at'),      // null = current, ISO = when replaced
 });

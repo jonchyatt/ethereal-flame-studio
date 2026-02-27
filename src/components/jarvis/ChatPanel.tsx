@@ -83,7 +83,6 @@ export function ChatPanel() {
       abortRef.current = new AbortController();
       const response = await postJarvisAPI('/api/jarvis/chat', {
         messages: recentMessages,
-        systemPrompt: '', // Server builds its own system prompt
       }, { signal: abortRef.current.signal });
 
       if (!response.ok) {

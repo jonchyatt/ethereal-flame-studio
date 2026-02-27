@@ -240,11 +240,13 @@ export async function processChatMessage(options: ProcessChatOptions): Promise<P
       }
     }
 
-    // Self-improvement: evaluate substantive conversations (fire-and-forget)
+    // Self-improvement: evaluate conversations with real interaction (fire-and-forget)
+    // Threshold: 1+ tool use OR complex query. Previously required 2+ tools,
+    // which silently skipped daily-driver interactions ("show tasks", "mark done").
     if (config.enableSelfImprovement && result.success) {
-      const isSubstantive = result.toolsUsed.length >= 2 || isComplex;
+      const isSubstantive = result.toolsUsed.length >= 1 || isComplex;
       if (isSubstantive) {
-        evaluateConversation(sessionId, messages).catch(err =>
+        evaluateConversation(sessionId, messages, result.toolsUsed).catch(err =>
           console.error('[ChatProcessor] Evaluation failed (non-blocking):', err)
         );
 

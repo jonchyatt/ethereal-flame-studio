@@ -64,22 +64,34 @@ export async function GET() {
       .orderBy(desc(behaviorRules.createdAt))
       .limit(1);
 
-    // Meta-eval: check for last meta-evaluation entry
-    // Meta-evals are stored as evaluations with a specific pattern
-    // We'll use the latest evaluation as a proxy for last reflection activity
+    // Meta-eval: read the actual meta-evaluator findings from behavior_rules
+    // (meta-evaluator stores reports with category='meta_evaluation')
     let lastMetaEval = null;
     try {
-      const metaRows = await db.all(
-        sql`SELECT id, scores, evaluated_at FROM conversation_evaluations ORDER BY evaluated_at DESC LIMIT 1`
-      ) as Array<{ id: number; scores: string; evaluated_at: string }>;
+      const metaRows = await db
+        .select()
+        .from(behaviorRules)
+        .where(eq(behaviorRules.category, 'meta_evaluation'))
+        .orderBy(desc(behaviorRules.createdAt))
+        .limit(1);
       if (metaRows.length > 0) {
-        // Parse the overall score from the latest evaluation as a health indicator
+        const report = JSON.parse(metaRows[0].rule) as {
+          healthScore: number;
+          diagnosis: string;
+          recommendations: string[];
+          adjustments: Array<{ parameter: string; currentValue: string; suggestedValue: string; reason: string }>;
+          timestamp: string;
+        };
         lastMetaEval = {
-          timestamp: metaRows[0].evaluated_at,
+          healthScore: report.healthScore,
+          diagnosis: report.diagnosis,
+          recommendations: report.recommendations,
+          adjustments: report.adjustments,
+          timestamp: report.timestamp || metaRows[0].createdAt,
         };
       }
     } catch {
-      // Meta-eval table may not exist yet — that's fine
+      // No meta-evaluation data yet — that's fine
     }
 
     brain = {

@@ -25,12 +25,11 @@ interface ChatMessage {
 
 interface ChatRequest {
   messages: ChatMessage[];
-  systemPrompt: string;
 }
 
 export async function POST(request: Request): Promise<Response> {
   try {
-    const { messages, systemPrompt } = (await request.json()) as ChatRequest;
+    const { messages } = (await request.json()) as ChatRequest;
 
     // Validate request
     if (!messages || !Array.isArray(messages)) {

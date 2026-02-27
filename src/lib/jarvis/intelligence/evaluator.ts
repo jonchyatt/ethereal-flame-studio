@@ -17,6 +17,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { storeEvaluation, type EvaluationScores } from '../memory/queries/evaluations';
+import { getActiveRules } from '../memory/queries/behaviorRules';
 import type { ChatMessage } from './chatProcessor';
 
 const MODEL_CRITIC = 'claude-haiku-4-5-20251001';
@@ -122,7 +123,8 @@ const EVALUATION_TOOL: Anthropic.Tool = {
  */
 export async function evaluateConversation(
   sessionId: number,
-  messages: ChatMessage[]
+  messages: ChatMessage[],
+  toolsUsed?: string[]
 ): Promise<void> {
   try {
     // Skip short conversations (< 3 messages = too little to evaluate)
@@ -131,10 +133,20 @@ export async function evaluateConversation(
       return;
     }
 
+    // Snapshot which behavioral rules were active during this conversation.
+    // This enables causality tracking: "Did Rule #7 actually improve scores?"
+    const activeRules = await getActiveRules().catch(() => []);
+    const activeRuleIds = activeRules.map(r => r.id);
+
     // Format conversation for the critic
     const transcript = messages
       .map(m => `${m.role.toUpperCase()}: ${m.content}`)
       .join('\n\n');
+
+    // Include tool usage context so the critic can score efficiency accurately
+    const toolContext = toolsUsed && toolsUsed.length > 0
+      ? `\n\nTOOLS USED (${toolsUsed.length} calls): ${toolsUsed.join(', ')}`
+      : '';
 
     const response = await anthropic.messages.create({
       model: MODEL_CRITIC,
@@ -142,7 +154,7 @@ export async function evaluateConversation(
       system: CRITIC_SYSTEM_PROMPT,
       messages: [{
         role: 'user',
-        content: `Evaluate this conversation:\n\n${transcript}`,
+        content: `Evaluate this conversation:\n\n${transcript}${toolContext}`,
       }],
       tools: [EVALUATION_TOOL],
       tool_choice: { type: 'tool', name: 'submit_evaluation' },
@@ -176,8 +188,15 @@ export async function evaluateConversation(
       return;
     }
 
-    // Calculate overall score (average of 5 dimensions)
+    // Calculate overall score (average of 5 dimensions, clamped to 0-10)
     const scores = result.scores;
+    const clamp = (n: number) => Math.max(0, Math.min(10, Number(n) || 0));
+    scores.completeness.score = clamp(scores.completeness.score);
+    scores.accuracy.score = clamp(scores.accuracy.score);
+    scores.efficiency.score = clamp(scores.efficiency.score);
+    scores.tone.score = clamp(scores.tone.score);
+    scores.satisfaction.score = clamp(scores.satisfaction.score);
+
     const overall = (
       scores.completeness.score +
       scores.accuracy.score +
@@ -186,14 +205,15 @@ export async function evaluateConversation(
       scores.satisfaction.score
     ) / 5;
 
-    // Store evaluation
+    // Store evaluation with active rule snapshot for causality tracking
     await storeEvaluation(
       sessionId,
       scores,
       overall,
       result.strengths,
       result.improvements,
-      MODEL_CRITIC
+      MODEL_CRITIC,
+      activeRuleIds.length > 0 ? activeRuleIds : undefined
     );
 
     console.log(

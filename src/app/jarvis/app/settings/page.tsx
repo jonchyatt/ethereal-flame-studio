@@ -59,6 +59,14 @@ const ALWAYS_ON = ['home', 'personal'];
 
 // ── Brain Health Section ──────────────────────────────────────────────────
 
+interface MetaEvalData {
+  healthScore: number;
+  diagnosis: string;
+  recommendations: string[];
+  adjustments: Array<{ parameter: string; currentValue: string; suggestedValue: string; reason: string }>;
+  timestamp: string;
+}
+
 interface HealthData {
   db: { connected: boolean };
   brain: {
@@ -66,7 +74,7 @@ interface HealthData {
     evaluationCount: number;
     activeRules: number;
     lastReflection: string | null;
-    lastMetaEval: { timestamp: string } | null;
+    lastMetaEval: MetaEvalData | null;
   } | null;
   memory: {
     totalEntries: number;
@@ -177,19 +185,41 @@ function BrainHealthSection() {
             )}
           </div>
 
-          {health.brain?.lastMetaEval && (
-            <>
-              <div className="text-white/40">Meta-Eval</div>
-              <div className="text-white/70 text-right">{formatRelativeTime(health.brain.lastMetaEval.timestamp)}</div>
-            </>
-          )}
-
           <div className="text-white/40">Memories</div>
           <div className="text-white/70 text-right">{health.memory?.totalEntries ?? 0}</div>
 
           <div className="text-white/40">Vector Coverage</div>
           <div className="text-white/70 text-right">{health.memory?.vectorCoverage ?? 0}%</div>
         </div>
+
+        {/* Meta-evaluator insights (weekly self-improvement health check) */}
+        {health.brain?.lastMetaEval && (
+          <div className="border-t border-white/10 pt-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-white/40">Self-Improvement Health</span>
+              <span className={`text-xs font-medium ${
+                health.brain.lastMetaEval.healthScore >= 7 ? 'text-emerald-400' :
+                health.brain.lastMetaEval.healthScore >= 4 ? 'text-amber-400' :
+                'text-red-400'
+              }`}>
+                {health.brain.lastMetaEval.healthScore}/10
+              </span>
+            </div>
+            <p className="text-xs text-white/50 leading-relaxed">
+              {health.brain.lastMetaEval.diagnosis}
+            </p>
+            {health.brain.lastMetaEval.recommendations.length > 0 && (
+              <ul className="text-xs text-white/40 space-y-1">
+                {health.brain.lastMetaEval.recommendations.slice(0, 3).map((rec, i) => (
+                  <li key={i} className="pl-2 border-l border-white/10">{rec}</li>
+                ))}
+              </ul>
+            )}
+            <div className="text-[10px] text-white/20 text-right">
+              {formatRelativeTime(health.brain.lastMetaEval.timestamp)}
+            </div>
+          </div>
+        )}
       </div>
     </Card>
   );

@@ -29,31 +29,30 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Run all three operations in parallel — each is independent, and
+  // sequential Opus calls risk exceeding the 45s Vercel function timeout.
+  const [reflectionResult, metaResult, backfillResult] = await Promise.allSettled([
+    runReflection(),
+    runMetaEvaluation(),
+    backfillEmbeddings(),
+  ]);
+
   const results: Record<string, unknown> = {};
 
-  // Run reflection loop
-  const reflectionResult = await runReflection();
-  results.reflection = reflectionResult;
+  results.reflection = reflectionResult.status === 'fulfilled'
+    ? reflectionResult.value
+    : { error: reflectionResult.reason?.message || 'failed' };
 
-  // Run meta-evaluation (weekly — metaEvaluator checks internally)
-  try {
-    const metaResult = await runMetaEvaluation();
-    if (metaResult) {
-      results.metaEvaluation = metaResult;
-    }
-  } catch (err) {
-    console.error('[Reflect Route] Meta-evaluation failed:', err);
+  if (metaResult.status === 'fulfilled' && metaResult.value) {
+    results.metaEvaluation = metaResult.value;
+  } else if (metaResult.status === 'rejected') {
+    console.error('[Reflect Route] Meta-evaluation failed:', metaResult.reason);
     results.metaEvaluation = { error: 'failed' };
   }
 
-  // Backfill embeddings for memories missing vectors
-  try {
-    const backfillResult = await backfillEmbeddings();
-    results.embeddingBackfill = backfillResult;
-  } catch (err) {
-    console.error('[Reflect Route] Embedding backfill failed:', err);
-    results.embeddingBackfill = { total: 0, processed: 0, failed: 0 };
-  }
+  results.embeddingBackfill = backfillResult.status === 'fulfilled'
+    ? backfillResult.value
+    : { total: 0, processed: 0, failed: 0 };
 
   return NextResponse.json({
     success: true,

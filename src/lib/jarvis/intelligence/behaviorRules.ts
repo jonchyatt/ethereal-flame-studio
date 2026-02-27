@@ -12,7 +12,7 @@ import { getActiveRules } from '../memory/queries/behaviorRules';
 
 /**
  * Load active behavior rules for system prompt injection.
- * Returns array of rule strings, or empty array if none exist.
+ * Returns array of rule strings (with examples when available).
  */
 export async function loadBehaviorRulesForPrompt(): Promise<string[]> {
   try {
@@ -20,7 +20,7 @@ export async function loadBehaviorRulesForPrompt(): Promise<string[]> {
     // Filter out meta_evaluation entries — those are health reports, not behavioral rules
     return rules
       .filter(r => r.category !== 'meta_evaluation')
-      .map(r => r.rule);
+      .map(r => r.example ? `${r.rule} (Example: ${r.example})` : r.rule);
   } catch (error) {
     console.error('[BehaviorRules] Failed to load rules:', error);
     return [];

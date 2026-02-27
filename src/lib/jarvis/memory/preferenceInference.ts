@@ -9,6 +9,7 @@ import {
   recordObservation as dbRecordObservation,
   countObservations,
   clearObservations,
+  getPatternCounts,
   type PatternType,
 } from './queries/observations';
 import { storeMemoryEntry } from './queries/memoryEntries';
@@ -31,7 +32,7 @@ const PATTERN_TO_PREFERENCE: Record<string, string> = {
   interested_in_health: 'Interested in health and wellness topics',
   uses_informal_language: 'Prefers informal conversational tone',
   uses_formal_language: 'Prefers formal professional tone',
-  // Error patterns (Phase 14)
+  // Error patterns
   notion_transient_error: 'Notion API has been experiencing intermittent failures',
   claude_transient_error: 'Claude API has been experiencing intermittent failures',
   turso_transient_error: 'Database has been experiencing intermittent failures',
@@ -103,7 +104,6 @@ export async function wouldInfer(pattern: string): Promise<boolean> {
  * Get all pending patterns that are close to inference threshold.
  */
 export async function getPendingInferences(): Promise<{ pattern: string; count: number; needed: number }[]> {
-  const { getPatternCounts } = await import('./queries/observations');
   const counts = await getPatternCounts();
 
   return counts

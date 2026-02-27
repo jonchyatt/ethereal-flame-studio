@@ -33,7 +33,8 @@ export async function addRule(
   rule: string,
   category: RuleCategory,
   source: RuleSource,
-  rationale: string
+  rationale: string,
+  example?: string
 ): Promise<BehaviorRule> {
   const inserted = await db
     .insert(behaviorRules)
@@ -42,6 +43,7 @@ export async function addRule(
       category,
       source,
       rationale,
+      example: example || null,
     })
     .returning();
 

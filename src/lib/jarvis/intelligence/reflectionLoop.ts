@@ -34,9 +34,6 @@ import type { ConversationEvaluation, BehaviorRule } from '../memory/schema';
 const MODEL_REFLECTOR = 'claude-opus-4-6';
 const anthropic = new Anthropic();
 
-// Track the last evaluation ID we reflected on (module-level cache)
-let _lastReflectedEvalId: number | null = null;
-
 const REFLECTION_SYSTEM_PROMPT = `You are a self-improvement analyst for an AI assistant called Jarvis. Your job is to analyze conversation evaluation data and propose behavioral rules that will improve Jarvis's performance.
 
 You receive:
@@ -63,7 +60,8 @@ Guidelines:
 - If scores are consistently high (8+) in a dimension, don't propose rules for it
 - Focus on dimensions scoring below 7 or with declining trends
 - When superseding a rule, the replacement must be clearly better
-- If everything looks good, propose zero changes — that's fine`;
+- If everything looks good, propose zero changes — that's fine
+- Every rule MUST include a concrete example from the evaluations — abstract rules without examples are ineffective for LLM instruction`;
 
 const REFLECTION_TOOL: Anthropic.Tool = {
   name: 'submit_reflection',
@@ -79,8 +77,9 @@ const REFLECTION_TOOL: Anthropic.Tool = {
             rule: { type: 'string', description: 'The behavioral rule text — specific and actionable' },
             category: { type: 'string', enum: ['communication', 'workflow', 'tone', 'task_handling'] },
             rationale: { type: 'string', description: 'Evidence from evaluations that led to this rule' },
+            example: { type: 'string', description: 'A concrete example from the evaluations showing what good behavior looks like. E.g. "When marking a task complete, just say: Done — next instance created for Thursday."' },
           },
-          required: ['rule', 'category', 'rationale'],
+          required: ['rule', 'category', 'rationale', 'example'],
         },
         description: 'New rules to add (max 3)',
       },
@@ -94,8 +93,9 @@ const REFLECTION_TOOL: Anthropic.Tool = {
             replacement: { type: 'string', description: 'The new, improved rule text' },
             category: { type: 'string', enum: ['communication', 'workflow', 'tone', 'task_handling'] },
             rationale: { type: 'string', description: 'Evidence supporting the change' },
+            example: { type: 'string', description: 'A concrete example showing what the improved rule looks like in practice' },
           },
-          required: ['ruleId', 'reason', 'replacement', 'category', 'rationale'],
+          required: ['ruleId', 'reason', 'replacement', 'category', 'rationale', 'example'],
         },
         description: 'Rules to supersede with improved versions (max 2)',
       },
@@ -118,11 +118,9 @@ export interface ReflectionResult {
 
 /**
  * Get the last evaluation ID that was reflected on.
- * Checks module cache first, then queries DB for most recent reflection rule.
+ * Queries DB for the most recent reflection rule's timestamp.
  */
 async function getLastReflectedEvalId(): Promise<number> {
-  if (_lastReflectedEvalId !== null) return _lastReflectedEvalId;
-
   try {
     // Find the most recent reflection-sourced rule — its creation time
     // approximates when we last reflected. Use the max eval ID at that time.
@@ -134,9 +132,7 @@ async function getLastReflectedEvalId(): Promise<number> {
       .limit(1);
 
     if (lastReflectionRule.length === 0) {
-      // No reflection has ever run — reflect on everything
-      _lastReflectedEvalId = 0;
-      return 0;
+      return 0; // No reflection has ever run — reflect on everything
     }
 
     // Find the max eval ID that existed at the time of last reflection
@@ -146,8 +142,7 @@ async function getLastReflectedEvalId(): Promise<number> {
       .from(conversationEvaluations)
       .where(sql`${conversationEvaluations.evaluatedAt} <= ${reflectionTime}`);
 
-    _lastReflectedEvalId = maxEvalAtReflection[0]?.maxId ?? 0;
-    return _lastReflectedEvalId;
+    return maxEvalAtReflection[0]?.maxId ?? 0;
   } catch {
     return 0;
   }
@@ -288,8 +283,8 @@ Remember: only propose rules backed by evidence from MULTIPLE evaluations.`;
     }
 
     const result = toolBlock.input as {
-      newRules: Array<{ rule: string; category: RuleCategory; rationale: string }>;
-      supersede: Array<{ ruleId: number; reason: string; replacement: string; category: RuleCategory; rationale: string }>;
+      newRules: Array<{ rule: string; category: RuleCategory; rationale: string; example: string }>;
+      supersede: Array<{ ruleId: number; reason: string; replacement: string; category: RuleCategory; rationale: string; example: string }>;
       summary: string;
     };
 
@@ -300,23 +295,22 @@ Remember: only propose rules backed by evidence from MULTIPLE evaluations.`;
     let rulesAdded = 0;
     let rulesSuperseded = 0;
 
-    // Execute supersessions first
+    // Execute supersessions first (replace old rule with improved version)
     for (const sup of supersessions) {
       try {
         await supersedeRule(sup.ruleId);
-        await addRule(sup.replacement, sup.category, 'reflection', sup.rationale);
+        await addRule(sup.replacement, sup.category, 'reflection', sup.rationale, sup.example);
         rulesSuperseded++;
-        rulesAdded++;
         console.log(`[Reflection] Superseded rule #${sup.ruleId}: ${sup.reason}`);
       } catch (err) {
         console.error(`[Reflection] Failed to supersede rule #${sup.ruleId}:`, err);
       }
     }
 
-    // Add new rules
+    // Add genuinely new rules
     for (const nr of newRules) {
       try {
-        await addRule(nr.rule, nr.category, 'reflection', nr.rationale);
+        await addRule(nr.rule, nr.category, 'reflection', nr.rationale, nr.example);
         rulesAdded++;
         console.log(`[Reflection] Added rule [${nr.category}]: "${nr.rule}"`);
       } catch (err) {
@@ -335,12 +329,8 @@ Remember: only propose rules backed by evidence from MULTIPLE evaluations.`;
       }
     }
 
-    // Update last reflected eval ID
-    const maxEvalId = Math.max(...evaluations.map(e => e.id));
-    _lastReflectedEvalId = maxEvalId;
-
     console.log(
-      `[Reflection] Complete: +${rulesAdded} rules, ${rulesSuperseded} superseded | ${result.summary}`
+      `[Reflection] Complete: +${rulesAdded} new, ${rulesSuperseded} superseded | ${result.summary}`
     );
 
     return {

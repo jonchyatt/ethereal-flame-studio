@@ -26,7 +26,8 @@ export async function storeEvaluation(
   overall: number,
   strengths: string[],
   improvements: string[],
-  model: string
+  model: string,
+  activeRuleIds?: number[]
 ): Promise<ConversationEvaluation> {
   const inserted = await db
     .insert(conversationEvaluations)
@@ -37,6 +38,7 @@ export async function storeEvaluation(
       strengths: JSON.stringify(strengths),
       improvements: JSON.stringify(improvements),
       model,
+      activeRuleIds: activeRuleIds ? JSON.stringify(activeRuleIds) : null,
     })
     .returning();
 
