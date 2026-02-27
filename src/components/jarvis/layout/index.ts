@@ -5,3 +5,4 @@ export { BottomTabBar } from './BottomTabBar';
 export { ContentContainer } from './ContentContainer';
 export { ChatOverlay } from './ChatOverlay';
 export { ToastContainer } from './ToastContainer';
+export { CommandPalette } from './CommandPalette';
