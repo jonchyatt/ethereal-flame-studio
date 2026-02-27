@@ -187,6 +187,10 @@ PLAN ──▶ APPLY ──▶ UNIFY
 | Animated close via closing state + onAnimationEnd | Phase E-06-01 | 150ms fade-out, no jarring unmount |
 | Actions excluded from recents | Phase E-06-01 | Ephemeral commands, not destinations |
 | Section cap of 4 per type | Phase E-06-01 | Prevents overwhelming walls of results |
+| Stored-embedding subquery for candidate detection | Phase F-02 | Zero OpenAI API calls for detection |
+| groupId = keepId-removeId for tool confirm parsing | Phase F-02 | Simple, deterministic two-phase flow |
+| Longer content wins keep target, tiebreak on lastAccessed | Phase F-02 | Preserves maximum information |
+| Haiku synthesis with fallback to longer content | Phase F-02 | Graceful degradation on API failure |
 
 ## Completed Phases
 
@@ -194,6 +198,7 @@ PLAN ──▶ APPLY ──▶ UNIFY
 - Phase B: SDK Integration — COMPLETE
 - Phase C: Memory & Intelligence Preservation — COMPLETE
 - Phase D: Self-Improvement Loop — COMPLETE
+- Phase F: Vector Memory — COMPLETE (F-01 + F-02)
 
 ## What E-05-02 Delivered
 
@@ -240,9 +245,11 @@ PLAN ──▶ APPLY ──▶ UNIFY
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Phase F complete — transition in progress
-Next action: Phase transition (commit, update ROADMAP, route to Phase G)
+Stopped at: Phase F complete — clean stopping point
+Next action: /paul:plan for Phase G (Integration & Polish)
+Resume file: .paul/HANDOFF-2026-02-27-b.md
 Resume context:
-- F-01 committed (eff938c), F-02 code complete (not yet committed)
-- Phase F fully delivered: vector search + dual retrieval + consolidation
-- OPENAI_API_KEY still needed in Vercel env
+- Phase F committed and pushed (7997d0f), ROADMAP updated, loop closed
+- Phase G is the final phase: end-to-end verification, production hardening
+- OPENAI_API_KEY still needed in Vercel env for vector features
+- Phase E has E-07+ remaining (future domains) — not blocking G
