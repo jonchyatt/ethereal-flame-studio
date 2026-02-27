@@ -26,6 +26,7 @@ import { type PatternType } from './queries/observations';
 import { getDb, memoryEntries } from './db';
 import { logEvent, getRecentToolInvocations, type ToolInvocationData } from './queries/dailyLogs';
 import { trackErrorPattern } from '../resilience/errorTracking';
+import { dualSearch } from './vectorSearch';
 
 export type MemoryToolName =
   | 'remember_fact'
@@ -34,7 +35,8 @@ export type MemoryToolName =
   | 'delete_all_memories'
   | 'restore_memory'
   | 'observe_pattern'
-  | 'query_audit_log';
+  | 'query_audit_log'
+  | 'search_memories';
 
 /**
  * Execute a memory tool call.
@@ -74,6 +76,9 @@ export async function executeMemoryTool(
         break;
       case 'query_audit_log':
         result = await handleQueryAuditLog(input);
+        break;
+      case 'search_memories':
+        result = await handleSearchMemories(input);
         break;
       default:
         result = JSON.stringify({ error: `Unknown memory tool: ${toolName}` });
@@ -134,6 +139,8 @@ function summarizeToolContext(
       return `Pattern: ${input.pattern}`;
     case 'query_audit_log':
       return `Queried audit log (limit: ${input.limit || 10})`;
+    case 'search_memories':
+      return `Searched: "${(input.query as string)?.slice(0, 50)}"`;
     default:
       return toolName;
   }
@@ -465,5 +472,42 @@ async function handleQueryAuditLog(
     message: `Here are my recent ${invocations.length} action(s).`,
     actions: actionList,
     raw: invocations,  // Include raw data for detailed queries
+  });
+}
+
+/**
+ * Handle search_memories tool - semantic + keyword search
+ */
+async function handleSearchMemories(
+  input: Record<string, unknown>
+): Promise<string> {
+  const query = input.query as string;
+  const limit = Math.min(Math.max(1, (input.limit as number) || 5), 10);
+
+  if (!query) {
+    return JSON.stringify({ error: 'query is required' });
+  }
+
+  const results = await dualSearch(query, limit);
+
+  if (results.length === 0) {
+    return JSON.stringify({
+      success: true,
+      message: `No memories found matching "${query}".`,
+      results: [],
+    });
+  }
+
+  const now = Date.now();
+  return JSON.stringify({
+    success: true,
+    message: `Found ${results.length} memory(ies) matching "${query}".`,
+    results: results.map(entry => ({
+      id: entry.id,
+      content: entry.content,
+      category: entry.category,
+      age: `${Math.round((now - new Date(entry.createdAt).getTime()) / 86400000)}d`,
+      createdAt: entry.createdAt,
+    })),
   });
 }

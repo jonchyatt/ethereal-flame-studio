@@ -28,6 +28,12 @@ export * from './decay';
 // Re-export inference functions
 export * from './preferenceInference';
 
+// Re-export embedding functions
+export * from './embeddings';
+
+// Re-export vector search functions
+export { vectorSearch, dualSearch } from './vectorSearch';
+
 // Import for MemoryService implementation
 import {
   storeMemoryEntry,

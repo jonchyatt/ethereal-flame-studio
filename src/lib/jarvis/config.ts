@@ -34,6 +34,10 @@ export interface JarvisConfig {
   notionOAuthToken: string;
   /** Enable self-improvement: conversation evaluation + behavior rules (default false) */
   enableSelfImprovement: boolean;
+  /** Enable vector memory for semantic search (default: true when OPENAI_API_KEY is set) */
+  enableVectorMemory: boolean;
+  /** OpenAI API key for embedding generation (empty = disabled) */
+  openaiApiKey: string;
 }
 
 /**
@@ -64,6 +68,8 @@ export function getJarvisConfig(): JarvisConfig {
     notionMcpUrl: process.env.NOTION_MCP_URL || 'https://mcp.notion.com/mcp',
     notionOAuthToken: process.env.NOTION_OAUTH_TOKEN || '',
     enableSelfImprovement: process.env.JARVIS_ENABLE_SELF_IMPROVEMENT !== 'false', // ON by default
+    enableVectorMemory: process.env.JARVIS_ENABLE_VECTOR_MEMORY !== 'false' && !!process.env.OPENAI_API_KEY,
+    openaiApiKey: process.env.OPENAI_API_KEY || '',
   };
 }
 

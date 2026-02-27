@@ -178,4 +178,23 @@ export const memoryTools: ToolDefinition[] = [
       },
     },
   },
+  {
+    name: 'search_memories',
+    description:
+      'Search your memories using natural language. Finds semantically similar memories even when exact keywords don\'t match. Use this when the user asks about past conversations, stored facts, or "remember when..."',
+    input_schema: {
+      type: 'object',
+      properties: {
+        query: {
+          type: 'string',
+          description: 'Natural language search query (e.g., "food preferences", "work schedule", "what we discussed about health")',
+        },
+        limit: {
+          type: 'number',
+          description: 'Maximum results to return (default 5, max 10)',
+        },
+      },
+      required: ['query'],
+    },
+  },
 ];

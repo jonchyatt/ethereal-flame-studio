@@ -9,6 +9,7 @@ import { createHash } from 'crypto';
 import { eq, desc, and, isNull, isNotNull, gte } from 'drizzle-orm';
 import { db } from '../db';
 import { memoryEntries, type MemoryEntry, type NewMemoryEntry } from '../schema';
+import { isVectorSearchAvailable, generateAndStoreEmbedding, deleteEmbedding } from '../embeddings';
 
 // Category and source type unions (matches schema comments)
 export type MemoryCategory = 'preference' | 'fact' | 'pattern';
@@ -79,6 +80,13 @@ export async function storeMemoryEntry(
       set: { lastAccessed: now },
     })
     .returning();
+
+  // Fire-and-forget: generate embedding (don't block response)
+  if (isVectorSearchAvailable()) {
+    generateAndStoreEmbedding(result[0].id, content).catch(err =>
+      console.error('[Memory] Embedding generation failed:', err)
+    );
+  }
 
   return result[0];
 }
@@ -189,6 +197,13 @@ export async function softDeleteMemoryEntry(id: number): Promise<MemoryEntry | u
     .where(eq(memoryEntries.id, id))
     .returning();
 
+  // Fire-and-forget: remove embedding for deleted memory
+  if (result[0] && isVectorSearchAvailable()) {
+    deleteEmbedding(id).catch(err =>
+      console.error('[Memory] Embedding deletion failed:', err)
+    );
+  }
+
   return result[0];
 }
 
@@ -275,19 +290,11 @@ function bm25Score(
 }
 
 /**
- * Find memories matching a natural language query using BM25 ranking.
- * Used for "forget" requests to find the memory the user wants to delete.
- *
- * BM25 provides much better ranking than simple word overlap:
- * - Rare terms score higher (IDF)
- * - Term frequency saturates (diminishing returns for repeated terms)
- * - Document length is normalized (short, focused entries aren't penalized)
- *
- * @param query - Natural language search query
- * @param limit - Maximum matches to return (default 5)
- * @returns Array of matching memory entries, sorted by relevance
+ * BM25-only memory search (internal implementation).
+ * Exported for use by vectorSearch.ts dual retrieval.
+ * External callers should use findMemoriesMatching() which adds vector search.
  */
-export async function findMemoriesMatching(
+export async function bm25FindMemories(
   query: string,
   limit = 5
 ): Promise<MemoryEntry[]> {
@@ -327,4 +334,25 @@ export async function findMemoriesMatching(
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map(s => s.entry);
+}
+
+/**
+ * Find memories matching a natural language query.
+ * Uses dual retrieval (BM25 + vector) when vector search is available,
+ * falls back to BM25-only otherwise.
+ *
+ * @param query - Natural language search query
+ * @param limit - Maximum matches to return (default 5)
+ * @returns Array of matching memory entries, sorted by relevance
+ */
+export async function findMemoriesMatching(
+  query: string,
+  limit = 5
+): Promise<MemoryEntry[]> {
+  if (isVectorSearchAvailable()) {
+    // Lazy import to avoid circular dependency (vectorSearch imports bm25FindMemories)
+    const { dualSearch } = require('../vectorSearch') as { dualSearch: (q: string, l?: number) => Promise<MemoryEntry[]> };
+    return dualSearch(query, limit);
+  }
+  return bm25FindMemories(query, limit);
 }

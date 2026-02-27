@@ -3,21 +3,21 @@
 ## Current Position
 
 Milestone: v4.0 Brain Swap & Life Manager UI
-Phase: E of G (Multi-Domain Operating System) — E-06 COMPLETE
-Plan: E-06-01 complete (SUMMARY: .paul/phases/E-mobile-ui/E-06-01-SUMMARY.md)
-Status: Loop closed, ready for next plan or phase transition
-Last activity: 2026-02-26 — E-06 Command Palette complete
+Phase: F of G (Vector Memory) — Planning
+Plan: F-01 complete (SUMMARY written)
+Status: Loop closed — ready for next PLAN (F-02 Memory Consolidation)
+Last activity: 2026-02-27 — F-01 Vector Search + Dual Retrieval complete
 
 Progress:
-- Milestone: [########░░] 85% (Phase A + B + C + D complete, E-01 thru E-06 complete, F-G remaining)
-- Phase E: [██████████] 100% of planned sub-phases (E-01 thru E-06 all complete; E-07+ deferred to future)
+- Milestone: [########░░] 90% (Phase A + B + C + D + E complete, F in progress, G remaining)
+- Phase F: [██████░░░░] 60% (F-01 done, F-02 consolidation not yet planned)
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [Loop complete — E-06 done]
+  ✓        ✓        ✓     [Loop complete — ready for next PLAN]
 ```
 
 ## Phase E Sub-Phase Progress
@@ -178,6 +178,11 @@ PLAN ──▶ APPLY ──▶ UNIFY
 | Reactive suggestedNext subscription | Phase E-05-02 | Store subscription reacts to changes vs one-shot useEffect |
 | Start Tour as primary button | Phase E-05-02 | User missed ghost text 3 times during UAT |
 | Hand-rolled fuzzy match — no external library | Phase E-06-01 | Scored matching with consecutive/word-start bonuses |
+| OpenAI text-embedding-3-small for embeddings | Phase F-01 | Second provider (Anthropic has no embedding model) |
+| Turso F32_BLOB + raw SQL (not Drizzle) for vectors | Phase F-01 | Drizzle can't manage vector column types |
+| RRF fusion (k=60) for dual retrieval | Phase F-01 | Standard constant, combines BM25 + vector rankings |
+| Separated bm25FindMemories to break circular deps | Phase F-01 | vectorSearch imports BM25, memoryEntries imports dualSearch |
+| Fire-and-forget all embedding operations | Phase F-01 | Never blocks tool responses |
 | Conditional mount for zero-cost palette | Phase E-06-01 | Hook only runs when palette is open |
 | Animated close via closing state + onAnimationEnd | Phase E-06-01 | 150ms fade-out, no jarring unmount |
 | Actions excluded from recents | Phase E-06-01 | Ephemeral commands, not destinations |
@@ -208,6 +213,15 @@ PLAN ──▶ APPLY ──▶ UNIFY
 - BottomTabBar: Learn tab (GraduationCap icon) replaces placeholder Alerts tab
 - ~440 lines across 4 new + 3 modified files
 
+## What F-01 Delivered
+
+- embeddings.ts: Lazy OpenAI singleton, ensureEmbeddingsTable (F32_BLOB + DiskANN index), generateEmbedding, storeEmbedding, deleteEmbedding, backfillEmbeddings
+- vectorSearch.ts: vectorSearch (vector_top_k), dualSearch (BM25 + vector RRF fusion, k=60)
+- search_memories tool: Natural language memory search available to Claude during conversations
+- findMemoriesMatching upgraded: Transparently uses dual retrieval when OPENAI_API_KEY is set
+- Graceful degradation: Everything works without OPENAI_API_KEY (falls back to BM25-only)
+- ~260 lines across 2 new + 6 modified files + openai SDK dependency
+
 ## What E-06-01 Delivered
 
 - useCommandPalette hook: scored fuzzy match, multi-word tokenized search, search registry (5 content types), keyboard nav, persistent recents (localStorage)
@@ -218,12 +232,12 @@ PLAN ──▶ APPLY ──▶ UNIFY
 
 ## Session Continuity
 
-Last session: 2026-02-26
-Stopped at: E-06-01 COMPLETE — Command Palette built, unified, loop closed
-Next action: Commit + push E-06 work to GitHub for auto-deploy, then live test
-Resume file: .paul/HANDOFF-2026-02-26.md
+Last session: 2026-02-27
+Stopped at: F-01 loop closed — Vector Search + Dual Retrieval shipped
+Next action: Plan F-02 (Memory Consolidation) or skip to Phase G
+Resume file: .paul/HANDOFF-2026-02-27.md
 Resume context:
-- E-06-01 Command Palette fully built (~700 lines, 2 new + 2 modified files)
-- Loop closed: PLAN ✓ → APPLY ✓ → UNIFY ✓
-- Code NOT yet committed or pushed — needs git commit + push
-- All 4 navigation layers now functional (Domain Rail, Priority Home, Command Palette, Quick Capture reserved)
+- F-01 complete: embeddings.ts + vectorSearch.ts + search_memories tool + dual retrieval
+- All work uncommitted — needs git commit before push
+- OPENAI_API_KEY needed in Vercel env for production vector search
+- F-02 (memory consolidation) scoped but not planned yet
