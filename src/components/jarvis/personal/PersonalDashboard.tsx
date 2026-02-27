@@ -17,7 +17,8 @@ export function PersonalDashboard() {
   const { todayStats, events, journal, goals, health, bills } = usePersonalStore();
 
   const todayEvents = events.filter((e) => e.isToday).length;
-  const hasJournalEntry = journal.some((j) => j.date === '2026-02-26');
+  const today = new Date().toISOString().split('T')[0];
+  const hasJournalEntry = journal.some((j) => j.date === today);
   const hasOverdueBills = bills.some((b) => b.status === 'overdue');
   const hasIncompletHabits = todayStats.habitsDone < todayStats.habitsTotal;
 

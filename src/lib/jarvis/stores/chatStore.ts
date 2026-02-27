@@ -31,6 +31,8 @@ interface ChatStore {
   isPanelOpen: boolean;
   /** Active tool being executed */
   activeTool: string | null;
+  /** Queued message to auto-send when panel opens (set by QuickActions) */
+  queuedMessage: string | null;
 
   addMessage: (msg: Omit<ChatMessage, 'id' | 'timestamp'>) => string;
   updateMessage: (id: string, updates: Partial<ChatMessage>) => void;
@@ -40,6 +42,9 @@ interface ChatStore {
   closePanel: () => void;
   setActiveTool: (tool: string | null) => void;
   clearMessages: () => void;
+  /** Open panel and queue a message for auto-send */
+  openWithMessage: (message: string) => void;
+  consumeQueuedMessage: () => string | null;
 }
 
 let messageCounter = 0;
@@ -49,6 +54,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   isTyping: false,
   isPanelOpen: false,
   activeTool: null,
+  queuedMessage: null,
 
   addMessage: (msg) => {
     const id = `msg-${++messageCounter}-${Date.now()}`;
@@ -71,4 +77,10 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   closePanel: () => set({ isPanelOpen: false }),
   setActiveTool: (tool) => set({ activeTool: tool }),
   clearMessages: () => set({ messages: [], activeTool: null }),
+  openWithMessage: (message) => set({ isPanelOpen: true, queuedMessage: message }),
+  consumeQueuedMessage: () => {
+    const msg = get().queuedMessage;
+    if (msg) set({ queuedMessage: null });
+    return msg;
+  },
 }));

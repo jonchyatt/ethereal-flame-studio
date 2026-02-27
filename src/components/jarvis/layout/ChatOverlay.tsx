@@ -42,6 +42,7 @@ export function ChatOverlay() {
   const overlayRef = useRef<HTMLDivElement>(null);
   const scrimRef = useRef<HTMLDivElement>(null);
   const touchStartRef = useRef<{ y: number; time: number } | null>(null);
+  const sendMessageRef = useRef<((text: string) => Promise<void>) | null>(null);
 
   // Open/close lifecycle
   useEffect(() => {
@@ -87,6 +88,17 @@ export function ChatOverlay() {
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [toggleChat]);
+
+  // Auto-send queued message (from QuickActions or programmatic open)
+  useEffect(() => {
+    if (animState === 'open') {
+      const msg = useChatStore.getState().consumeQueuedMessage();
+      if (msg) {
+        // Delay slightly so the panel is fully visible before sending
+        setTimeout(() => sendMessageRef.current?.(msg), 200);
+      }
+    }
+  }, [animState]);
 
   // SSE send — copied faithfully from ChatPanel
   const sendMessage = useCallback(async (text: string) => {
@@ -183,6 +195,9 @@ export function ChatOverlay() {
       abortRef.current = null;
     }
   }, [addMessage, updateMessage, setIsTyping, setActiveTool]);
+
+  // Keep ref in sync for queued message effect
+  sendMessageRef.current = sendMessage;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

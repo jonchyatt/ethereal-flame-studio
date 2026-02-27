@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useSettingsStore } from '@/lib/jarvis/stores/settingsStore';
 import { useShellStore } from '@/lib/jarvis/stores/shellStore';
 import { useTutorialEngine, type TutorialEngineAPI } from '@/lib/jarvis/hooks/useTutorialEngine';
+import { useJarvisFetch } from '@/lib/jarvis/hooks/useJarvisFetch';
 import { Header } from './Header';
 import { DomainRail } from './DomainRail';
 import { BottomTabBar } from './BottomTabBar';
@@ -32,6 +33,7 @@ export function JarvisShell({ children }: JarvisShellProps) {
   const onboarded = useSettingsStore((s) => s.onboarded);
   const isOnboarding = pathname === ONBOARDING_PATH;
   const tutorialEngine = useTutorialEngine();
+  useJarvisFetch(); // Central data pipeline — populates homeStore + personalStore
   const isCommandPaletteOpen = useShellStore((s) => s.isCommandPaletteOpen);
   const toggleCommandPalette = useShellStore((s) => s.toggleCommandPalette);
 

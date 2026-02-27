@@ -68,98 +68,18 @@ export interface TodayStats {
   streak: number;
 }
 
-// ── Mock Data ──────────────────────────────────────────────────────────────
-
-const MOCK_TASKS: PersonalTask[] = [
-  {
-    id: 'task-1',
-    title: 'Review budget spreadsheet',
-    project: 'Finance',
-    dueDate: '2026-02-24',
-    priority: 'high',
-    completed: false,
-    overdue: true,
-  },
-  {
-    id: 'task-2',
-    title: 'Schedule dentist appointment',
-    project: null,
-    dueDate: '2026-02-26',
-    priority: 'medium',
-    completed: false,
-    overdue: false,
-  },
-  {
-    id: 'task-3',
-    title: 'Update Visopscreen docs',
-    project: 'Visopscreen',
-    dueDate: '2026-02-26',
-    priority: 'high',
-    completed: false,
-    overdue: false,
-  },
-  {
-    id: 'task-4',
-    title: 'Plan weekend trip itinerary',
-    project: null,
-    dueDate: '2026-02-28',
-    priority: 'low',
-    completed: false,
-    overdue: false,
-  },
-  {
-    id: 'task-5',
-    title: 'Read Chapter 5 — Atomic Habits',
-    project: 'Reading',
-    dueDate: '2026-03-01',
-    priority: 'low',
-    completed: false,
-    overdue: false,
-  },
-];
-
-const MOCK_HABITS: PersonalHabit[] = [
-  { id: 'habit-1', name: 'Meditation', frequency: 'daily', completedToday: true, currentStreak: 12 },
-  { id: 'habit-2', name: 'Exercise', frequency: 'daily', completedToday: false, currentStreak: 5 },
-  { id: 'habit-3', name: 'Read 30 min', frequency: 'daily', completedToday: true, currentStreak: 8 },
-  { id: 'habit-4', name: 'Journal', frequency: 'daily', completedToday: false, currentStreak: 3 },
-];
-
-const MOCK_BILLS: PersonalBill[] = [
-  { id: 'bill-1', name: 'Electric', amount: 142.50, dueDate: '2026-02-24', status: 'overdue', category: 'Utilities' },
-  { id: 'bill-2', name: 'Internet', amount: 89.00, dueDate: '2026-02-28', status: 'due_soon', category: 'Utilities' },
-  { id: 'bill-3', name: 'Gym membership', amount: 45.00, dueDate: '2026-02-15', status: 'paid', category: 'Health' },
-];
-
-const MOCK_EVENTS: CalendarEvent[] = [
-  { id: 'event-1', title: 'Team standup', startTime: '2026-02-26T09:00', endTime: '2026-02-26T09:30', isToday: true },
-  { id: 'event-2', title: 'Dentist appointment', startTime: '2026-02-27T14:00', endTime: '2026-02-27T15:00', isToday: false },
-  { id: 'event-3', title: 'Weekend trip', startTime: '2026-02-28T08:00', endTime: '2026-02-28T18:00', isToday: false },
-];
-
-const MOCK_JOURNAL: JournalEntry[] = [
-  { id: 'journal-1', date: '2026-02-26', content: 'Productive morning — got through most of the backlog before rounds...', mood: null },
-];
-
-const MOCK_GOALS: PersonalGoal[] = [
-  { id: 'goal-1', title: 'Financial freedom', progress: 45, category: 'Finance' },
-  { id: 'goal-2', title: 'Read 24 books this year', progress: 33, category: 'Growth' },
-  { id: 'goal-3', title: 'Run a half marathon', progress: 20, category: 'Health' },
-];
-
-const MOCK_HEALTH: HealthItem[] = [
-  { id: 'health-1', type: 'workout', title: 'Morning run', summary: '5K in 28:14', date: '2026-02-26' },
-  { id: 'health-2', type: 'meal', title: 'Meal prep', summary: '1,800 cal tracked', date: '2026-02-26' },
-];
-
 // ── Computed Stats ─────────────────────────────────────────────────────────
+
+function getToday(): string {
+  return new Date().toISOString().split('T')[0];
+}
 
 function computeTodayStats(
   tasks: PersonalTask[],
   habits: PersonalHabit[],
   bills: PersonalBill[],
 ): TodayStats {
-  const today = '2026-02-26';
+  const today = getToday();
   const tasksDue = tasks.filter((t) => !t.completed && (t.overdue || t.dueDate === today)).length;
   const tasksCompleted = tasks.filter((t) => t.completed).length;
   const habitsDone = habits.filter((h) => h.completedToday).length;
@@ -200,14 +120,14 @@ interface PersonalActions {
 type PersonalStore = PersonalState & PersonalActions;
 
 export const usePersonalStore = create<PersonalStore>()((set) => ({
-  tasks: MOCK_TASKS,
-  habits: MOCK_HABITS,
-  bills: MOCK_BILLS,
-  events: MOCK_EVENTS,
-  journal: MOCK_JOURNAL,
-  goals: MOCK_GOALS,
-  health: MOCK_HEALTH,
-  todayStats: computeTodayStats(MOCK_TASKS, MOCK_HABITS, MOCK_BILLS),
+  tasks: [],
+  habits: [],
+  bills: [],
+  events: [],
+  journal: [],
+  goals: [],
+  health: [],
+  todayStats: computeTodayStats([], [], []),
 
   setTasks: (tasks) =>
     set((state) => ({

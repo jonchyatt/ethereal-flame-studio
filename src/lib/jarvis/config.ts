@@ -44,7 +44,7 @@ export interface JarvisConfig {
  * Get Jarvis configuration from environment.
  *
  * Environment variables:
- * - JARVIS_ENABLE_MEMORY: "true" to enable (default: false during rollout)
+ * - JARVIS_ENABLE_MEMORY: "false" to disable (default: true — stable since Phase C)
  * - JARVIS_MEMORY_TOKEN_BUDGET: token limit (default: 1000)
  * - JARVIS_MAX_MEMORIES: entry limit (default: 10)
  * - JARVIS_ENABLE_MCP: "true" to enable Notion MCP Connector (default: false)
@@ -54,7 +54,7 @@ export interface JarvisConfig {
  */
 export function getJarvisConfig(): JarvisConfig {
   return {
-    enableMemoryLoading: process.env.JARVIS_ENABLE_MEMORY === 'true',
+    enableMemoryLoading: process.env.JARVIS_ENABLE_MEMORY !== 'false',
     memoryTokenBudget: parseInt(process.env.JARVIS_MEMORY_TOKEN_BUDGET || '1000', 10),
     maxMemories: parseInt(process.env.JARVIS_MAX_MEMORIES || '10', 10),
     decayHalfLifeDays: parseInt(process.env.JARVIS_DECAY_HALF_LIFE || '30', 10),

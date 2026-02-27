@@ -33,6 +33,8 @@ interface HomeState {
   pinnedWidgets: PinnedWidget[];
   briefingSummary: string | null;
   lastFetched: Date | null;
+  isLoading: boolean;
+  fetchError: string | null;
 }
 
 interface HomeActions {
@@ -43,72 +45,26 @@ interface HomeActions {
   reorderWidgets: (widgets: PinnedWidget[]) => void;
   setBriefingSummary: (summary: string | null) => void;
   setLastFetched: (date: Date | null) => void;
+  setLoading: (loading: boolean) => void;
+  setFetchError: (error: string | null) => void;
 }
 
 type HomeStore = HomeState & HomeActions;
 
 const MAX_PINNED_WIDGETS = 4;
 
-// ── Mock Data ──────────────────────────────────────────────────────────────
-
-const MOCK_PRIORITIES: PriorityItem[] = [
-  {
-    id: 'mock-1',
-    domainId: 'personal',
-    title: 'Electric bill overdue',
-    subtitle: '2 days past due — $142.50',
-    urgency: 'critical',
-    urgencyScore: 100,
-    quickActionLabel: 'Mark paid',
-  },
-  {
-    id: 'mock-2',
-    domainId: 'personal',
-    title: '3 tasks due today',
-    subtitle: 'Review notes, Schedule dentist, Update budget',
-    urgency: 'warning',
-    urgencyScore: 80,
-    quickActionLabel: 'View tasks',
-  },
-  {
-    id: 'mock-3',
-    domainId: 'personal',
-    title: 'Morning habits incomplete',
-    subtitle: 'Meditation, Exercise',
-    urgency: 'routine',
-    urgencyScore: 60,
-    quickActionLabel: 'Mark done',
-  },
-  {
-    id: 'mock-4',
-    domainId: 'personal',
-    title: 'Weekly review Sunday 7 PM',
-    subtitle: null,
-    urgency: 'info',
-    urgencyScore: 20,
-    quickActionLabel: null,
-  },
-];
-
-const MOCK_HEALTH: DomainHealthItem[] = [
-  {
-    domainId: 'personal',
-    status: 'green',
-    metric: '3 tasks',
-    summary: '0 overdue, 2 habits tracked',
-  },
-];
-
 // ── Store Implementation ───────────────────────────────────────────────────
 
 export const useHomeStore = create<HomeStore>()(
   persist(
     (set) => ({
-      priorityItems: MOCK_PRIORITIES,
-      domainHealth: MOCK_HEALTH,
+      priorityItems: [],
+      domainHealth: [],
       pinnedWidgets: DEFAULT_PINNED_WIDGETS,
-      briefingSummary: 'Good morning — 3 tasks today, no overdue bills, habit streak at 5 days.',
-      lastFetched: new Date(),
+      briefingSummary: null,
+      lastFetched: null,
+      isLoading: true,
+      fetchError: null,
 
       setPriorityItems: (items) => set({ priorityItems: items }),
       setDomainHealth: (items) => set({ domainHealth: items }),
@@ -131,6 +87,8 @@ export const useHomeStore = create<HomeStore>()(
       reorderWidgets: (widgets) => set({ pinnedWidgets: widgets.slice(0, MAX_PINNED_WIDGETS) }),
       setBriefingSummary: (summary) => set({ briefingSummary: summary }),
       setLastFetched: (date) => set({ lastFetched: date }),
+      setLoading: (loading) => set({ isLoading: loading }),
+      setFetchError: (error) => set({ fetchError: error }),
     }),
     {
       name: 'jarvis-home',
