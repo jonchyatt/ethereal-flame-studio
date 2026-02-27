@@ -18,6 +18,7 @@ import {
   restoreMemoryEntry,
   findMemoriesMatching,
   getEntriesByCategory,
+  getMemoryEntryById,
   type MemoryCategory,
   type MemorySource,
 } from './queries/memoryEntries';
@@ -27,6 +28,7 @@ import { getDb, memoryEntries } from './db';
 import { logEvent, getRecentToolInvocations, type ToolInvocationData } from './queries/dailyLogs';
 import { trackErrorPattern } from '../resilience/errorTracking';
 import { dualSearch } from './vectorSearch';
+import { findConsolidationCandidates, executeConsolidation, synthesizeMergedMemory } from './consolidation';
 
 export type MemoryToolName =
   | 'remember_fact'
@@ -36,7 +38,8 @@ export type MemoryToolName =
   | 'restore_memory'
   | 'observe_pattern'
   | 'query_audit_log'
-  | 'search_memories';
+  | 'search_memories'
+  | 'consolidate_memories';
 
 /**
  * Execute a memory tool call.
@@ -79,6 +82,9 @@ export async function executeMemoryTool(
         break;
       case 'search_memories':
         result = await handleSearchMemories(input);
+        break;
+      case 'consolidate_memories':
+        result = await handleConsolidateMemories(input);
         break;
       default:
         result = JSON.stringify({ error: `Unknown memory tool: ${toolName}` });
@@ -141,6 +147,8 @@ function summarizeToolContext(
       return `Queried audit log (limit: ${input.limit || 10})`;
     case 'search_memories':
       return `Searched: "${(input.query as string)?.slice(0, 50)}"`;
+    case 'consolidate_memories':
+      return input.confirm_ids ? 'Executed memory consolidation' : 'Previewed consolidation candidates';
     default:
       return toolName;
   }
@@ -509,5 +517,92 @@ async function handleSearchMemories(
       age: `${Math.round((now - new Date(entry.createdAt).getTime()) / 86400000)}d`,
       createdAt: entry.createdAt,
     })),
+  });
+}
+
+/**
+ * Handle consolidate_memories tool - two-phase memory consolidation
+ *
+ * Phase 1 (preview): No confirm_ids — find and preview candidate pairs
+ * Phase 2 (confirm): confirm_ids provided — execute confirmed merges
+ */
+async function handleConsolidateMemories(
+  input: Record<string, unknown>
+): Promise<string> {
+  const confirmIdsStr = input.confirm_ids as string | undefined;
+  const threshold = input.threshold as number | undefined;
+
+  // Phase 2: Execute confirmed merges
+  if (confirmIdsStr) {
+    const groupIds = confirmIdsStr.split(',').map(s => s.trim()).filter(Boolean);
+
+    if (groupIds.length === 0) {
+      return JSON.stringify({ error: 'No valid group IDs provided in confirm_ids' });
+    }
+
+    // Parse keepId-removeId from each groupId and build candidates
+    const candidates: Array<{ keepId: number; removeId: number; keepContent: string; removeContent: string }> = [];
+
+    for (const groupId of groupIds) {
+      const parts = groupId.split('-').map(s => parseInt(s.trim(), 10));
+      if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) {
+        continue;
+      }
+      const [keepId, removeId] = parts;
+      const keepEntry = await getMemoryEntryById(keepId);
+      const removeEntry = await getMemoryEntryById(removeId);
+
+      if (!keepEntry || !removeEntry) continue;
+      if (keepEntry.deletedAt || removeEntry.deletedAt) continue;
+
+      candidates.push({
+        keepId,
+        removeId,
+        keepContent: keepEntry.content,
+        removeContent: removeEntry.content,
+      });
+    }
+
+    if (candidates.length === 0) {
+      return JSON.stringify({ error: 'No valid candidates found for the provided group IDs.' });
+    }
+
+    const stats = await executeConsolidation(candidates);
+    return JSON.stringify({
+      success: true,
+      message: `Merged ${stats.merged} pair(s).${stats.failed > 0 ? ` ${stats.failed} failed.` : ''}`,
+      stats,
+    });
+  }
+
+  // Phase 1: Preview candidates
+  const candidates = await findConsolidationCandidates(threshold);
+
+  if (candidates.length === 0) {
+    return JSON.stringify({
+      success: true,
+      message: 'No similar memories found — memory is already clean.',
+      candidates: [],
+    });
+  }
+
+  // Generate proposed merges for each candidate
+  const previews = [];
+  for (const candidate of candidates) {
+    const proposedMerge = await synthesizeMergedMemory(candidate.keepContent, candidate.removeContent);
+    previews.push({
+      groupId: candidate.groupId,
+      keep: { id: candidate.keepId, content: candidate.keepContent },
+      remove: { id: candidate.removeId, content: candidate.removeContent },
+      distance: candidate.distance,
+      proposedMerge,
+    });
+  }
+
+  return JSON.stringify({
+    success: true,
+    message: `Found ${previews.length} candidate pair(s) for consolidation. Review and confirm.`,
+    candidates: previews,
+    instruction: 'To merge, call consolidate_memories with confirm_ids set to the group IDs (comma-separated).',
   });
 }

@@ -97,7 +97,7 @@
 
 **Depends on:** Phase C (memory system must be preserved first)
 
-**Status:** In progress — F-01 planned (Vector Search + Dual Retrieval)
+**Status:** COMPLETE — F-01 (Vector Search + Dual Retrieval) + F-02 (Memory Consolidation)
 
 ---
 
@@ -152,7 +152,7 @@ Improve)  Memory)
 | C | Memory & Intelligence Preservation | Complete |
 | D | Self-Improvement Loop | Complete |
 | E | Mobile-First UI Redesign | In progress (E-06 complete, E-07+ remaining) |
-| F | Vector Memory | In progress (F-01 planned) |
+| F | Vector Memory | Complete |
 | G | Integration & Polish | Not started |
 
 ---

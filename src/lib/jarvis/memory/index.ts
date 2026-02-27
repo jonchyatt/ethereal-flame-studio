@@ -34,6 +34,9 @@ export * from './embeddings';
 // Re-export vector search functions
 export { vectorSearch, dualSearch } from './vectorSearch';
 
+// Re-export consolidation functions
+export { findConsolidationCandidates, executeConsolidation, synthesizeMergedMemory, runConsolidation } from './consolidation';
+
 // Import for MemoryService implementation
 import {
   storeMemoryEntry,

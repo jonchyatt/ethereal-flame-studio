@@ -117,6 +117,37 @@ export async function getMemoryEntries(
 }
 
 /**
+ * Update memory content and re-embed.
+ * Used by consolidation to replace content with synthesized version.
+ *
+ * @param id - Entry ID
+ * @param newContent - New content to set
+ * @returns Updated entry, or undefined if not found
+ */
+export async function updateMemoryContent(
+  id: number,
+  newContent: string
+): Promise<MemoryEntry | undefined> {
+  const now = new Date().toISOString();
+  const contentHash = hashContent(newContent);
+
+  const result = await db
+    .update(memoryEntries)
+    .set({ content: newContent, contentHash, lastAccessed: now })
+    .where(eq(memoryEntries.id, id))
+    .returning();
+
+  // Fire-and-forget: re-embed with new content
+  if (result[0] && isVectorSearchAvailable()) {
+    generateAndStoreEmbedding(id, newContent).catch(err =>
+      console.error('[Memory] Re-embedding after content update failed:', err)
+    );
+  }
+
+  return result[0];
+}
+
+/**
  * Update lastAccessed timestamp for an entry.
  * Call this when a fact is used in a briefing/nudge/check-in.
  *

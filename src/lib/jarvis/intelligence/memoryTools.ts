@@ -197,4 +197,22 @@ export const memoryTools: ToolDefinition[] = [
       required: ['query'],
     },
   },
+  {
+    name: 'consolidate_memories',
+    description:
+      'Find and merge semantically similar memories. Call without confirm_ids to preview candidates. Call with confirm_ids to execute the merges. Use periodically to keep memory clean, or when the user mentions duplicate memories.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        confirm_ids: {
+          type: 'string',
+          description: 'Comma-separated group IDs to confirm merging (from a previous preview call). Omit for preview mode.',
+        },
+        threshold: {
+          type: 'number',
+          description: 'Cosine distance threshold (0-1). Lower = stricter. Default 0.15. Only used in preview mode.',
+        },
+      },
+    },
+  },
 ];
