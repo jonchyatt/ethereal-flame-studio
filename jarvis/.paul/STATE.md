@@ -266,14 +266,11 @@ Deep 5-agent audit revealed:
 ## Session Continuity
 
 Last session: 2026-02-27
-Status: v4.0 milestone COMPLETE
-What shipped in G-04:
-- ErrorBoundary wrapping page content (shell chrome survives crashes)
-- Fetch retry with 3-attempt exponential backoff
-- /api/jarvis/health endpoint (DB + brain + memory stats)
-- useHealthMonitor — once-per-session anomaly toasts
-- Brain Health section in Settings page
-- Automated embedding backfill in reflect cron
-- CRON_SECRET hardening (500 if not configured)
-- About text: "Brain Swap & Personal Domain"
-Next: Push to GitHub → auto-deploy → verify from live site
+Stopped at: v4.0 milestone COMPLETE — all code committed and pushed
+Next action: Verify G-04 from live site, then plan v4.1 milestone
+Resume file: .paul/HANDOFF-2026-02-27-g.md
+Resume context:
+- v4.0 milestone 100% — phases A through G all complete
+- G-04 committed and pushed (1e00173) — deploying to production
+- Git clean, on master, up to date with origin
+- Known v4.1 gaps: journal/health data, write-back mutations, 6 empty domains, voice, shell convergence
