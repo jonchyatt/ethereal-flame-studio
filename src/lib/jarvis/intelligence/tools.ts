@@ -382,20 +382,15 @@ export const notionTools: ToolDefinition[] = [
   }
 ];
 
-// Re-export memory tools for combined tool usage
-export { memoryTools } from './memoryTools';
-
-// Re-export tutorial tools
-export { tutorialTools } from '../tutorial/tutorialTools';
+// Import for local use + re-export for external consumers
+import { memoryTools } from './memoryTools';
+import { tutorialTools } from '../tutorial/tutorialTools';
+export { memoryTools, tutorialTools };
 
 /**
  * Get all available tools for Claude
  */
 export function getAllTools(): ToolDefinition[] {
-  // Import dynamically to avoid circular dependencies
-  const { memoryTools } = require('./memoryTools');
-  const { tutorialTools } = require('../tutorial/tutorialTools');
-
   return [
     ...notionTools,
     ...memoryTools,

@@ -46,9 +46,6 @@ export function calculateDecay(entry: MemoryEntry, now: Date = new Date()): numb
   // At half-life days, decay = 0.5
   const baseDecay = 1 - Math.pow(0.5, daysSinceAccess / config.decayHalfLifeDays);
 
-  // Note: explicitDecayMultiplier no longer used since explicit memories
-  // are exempt. This is cleaner than a 0.5x multiplier.
-
   return Math.min(1, baseDecay);
 }
 

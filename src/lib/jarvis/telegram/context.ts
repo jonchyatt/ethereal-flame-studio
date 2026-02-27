@@ -20,12 +20,20 @@ import { loadBehaviorRulesForPrompt } from '../intelligence/behaviorRules';
 import { getServiceHealth } from '../resilience/CircuitBreaker';
 import type { SystemPromptContext } from '../intelligence/systemPrompt';
 
+export interface ContextOptions {
+  /** Client timezone (e.g., 'America/Chicago'). Falls back to UTC. */
+  timezone?: string;
+  /** Client type for prompt adaptation */
+  clientType?: 'text' | 'voice' | 'telegram';
+}
+
 /**
  * Build the full SystemPromptContext for a session.
  * Shared by web chat route and Telegram bot.
  */
 export async function buildSystemPromptContext(
-  sessionId: number
+  sessionId: number,
+  options?: ContextOptions
 ): Promise<SystemPromptContext> {
   const config = getJarvisConfig();
 
@@ -36,33 +44,58 @@ export async function buildSystemPromptContext(
   let serviceHealth: Record<string, 'degraded' | 'down'> | undefined;
   let behaviorRules: string[] | undefined;
 
-  if (config.enableMemoryLoading) {
-    try {
-      const memories = await retrieveMemories({
-        maxTokens: config.memoryTokenBudget,
-        maxEntries: config.maxMemories,
-      });
-      memoryContext = formatMemoriesForPrompt(memories);
+  // Launch all independent data fetches in parallel
+  const [memoryResult, historyResult, preferencesResult, rulesResult] = await Promise.all([
+    // 1. Memory retrieval + proactive surfacing
+    config.enableMemoryLoading
+      ? retrieveMemories({ maxTokens: config.memoryTokenBudget, maxEntries: config.maxMemories })
+          .catch(err => { console.error('[Context] Memory retrieval failed:', err); return null; })
+      : Promise.resolve(null),
 
-      const surfacing = getProactiveSurfacing(memories.entries);
-      const surfacingText = formatProactiveSurfacing(surfacing);
-      proactiveSurfacing = surfacingText || undefined;
+    // 2. Conversation history (independent of memory)
+    config.enableMemoryLoading
+      ? loadConversationHistory(sessionId, config.historyTokenBudget, config.maxHistoryMessages)
+          .catch(err => { console.error('[Context] History loading failed:', err); return null; })
+      : Promise.resolve(null),
 
-      const prefEntries = await getEntriesByCategory('preference');
-      const inferred = prefEntries.filter(e => e.source === 'jarvis_inferred');
-      if (inferred.length > 0) {
-        inferredPreferences = inferred.map(e => e.content);
-      }
+    // 3. Inferred preferences (independent query)
+    config.enableMemoryLoading
+      ? getEntriesByCategory('preference')
+          .catch(err => { console.error('[Context] Preferences loading failed:', err); return []; })
+      : Promise.resolve([]),
 
-      const history = await loadConversationHistory(
-        sessionId, config.historyTokenBudget, config.maxHistoryMessages
-      );
-      conversationHistory = history || undefined;
-    } catch (error) {
-      console.error('[Context] Memory loading failed:', error);
+    // 4. Behavioral rules (independent of memory)
+    config.enableSelfImprovement
+      ? loadBehaviorRulesForPrompt()
+          .catch(err => { console.error('[Context] Behavior rules loading failed:', err); return []; })
+      : Promise.resolve([]),
+  ]);
+
+  // Process memory results
+  if (memoryResult) {
+    memoryContext = formatMemoriesForPrompt(memoryResult);
+    const surfacing = getProactiveSurfacing(memoryResult.entries);
+    const surfacingText = formatProactiveSurfacing(surfacing);
+    proactiveSurfacing = surfacingText || undefined;
+  }
+
+  // Process conversation history
+  conversationHistory = historyResult || undefined;
+
+  // Process inferred preferences
+  if (preferencesResult && preferencesResult.length > 0) {
+    const inferred = preferencesResult.filter(e => e.source === 'jarvis_inferred');
+    if (inferred.length > 0) {
+      inferredPreferences = inferred.map(e => e.content);
     }
   }
 
+  // Process behavior rules
+  if (rulesResult && rulesResult.length > 0) {
+    behaviorRules = rulesResult;
+  }
+
+  // Service health (synchronous — no DB call)
   if (config.enableSelfHealing) {
     const health = getServiceHealth();
     const issues: Record<string, 'degraded' | 'down'> = {};
@@ -73,18 +106,14 @@ export async function buildSystemPromptContext(
     if (Object.keys(issues).length > 0) serviceHealth = issues;
   }
 
-  // Self-improvement: load behavioral rules
-  if (config.enableSelfImprovement) {
-    try {
-      const rules = await loadBehaviorRulesForPrompt();
-      if (rules.length > 0) behaviorRules = rules;
-    } catch (error) {
-      console.error('[Context] Behavior rules loading failed:', error);
-    }
-  }
+  const now = new Date();
+  const timezone = options?.timezone || 'UTC';
 
   return {
-    currentTime: new Date(),
+    currentTime: now,
+    timezone,
+    userName: 'Jonathan',
+    clientType: options?.clientType || 'text',
     memoryContext,
     proactiveSurfacing,
     inferredPreferences,

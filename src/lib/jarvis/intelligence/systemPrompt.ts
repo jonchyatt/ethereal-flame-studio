@@ -11,8 +11,12 @@
 export interface SystemPromptContext {
   /** Current time for temporal awareness */
   currentTime: Date;
+  /** Client timezone (IANA string, e.g. 'America/Chicago'). Falls back to UTC. */
+  timezone?: string;
   /** User's name if known */
   userName?: string;
+  /** Client type for adapting interaction style */
+  clientType?: 'text' | 'voice' | 'telegram';
   /** Key facts from cross-session memory */
   keyFacts?: string[];
   /** Pre-formatted memory context from database (Phase 8) */
@@ -32,34 +36,56 @@ export interface SystemPromptContext {
 }
 
 /**
- * Format a Date as a human-readable string with full date
- * Example: "Monday, February 3, 2026 at 3:45 PM"
+ * Format a Date as a human-readable string in the user's timezone.
+ * Example: "Monday, February 3, 2026 at 3:45 PM (America/Chicago)"
  */
-function formatTime(date: Date): string {
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const months = ['January', 'February', 'March', 'April', 'May', 'June',
-                  'July', 'August', 'September', 'October', 'November', 'December'];
-  const day = days[date.getDay()];
-  const month = months[date.getMonth()];
-  const dayOfMonth = date.getDate();
-  const year = date.getFullYear();
-
-  let hours = date.getHours();
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  hours = hours % 12 || 12;
-
-  return `${day}, ${month} ${dayOfMonth}, ${year} at ${hours}:${minutes} ${ampm}`;
+function formatTime(date: Date, timezone: string = 'UTC'): string {
+  try {
+    const formatted = date.toLocaleString('en-US', {
+      timeZone: timezone,
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+    return formatted;
+  } catch {
+    // Fallback if timezone is invalid
+    const formatted = date.toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+    return formatted;
+  }
 }
 
 /**
- * Format a Date as YYYY-MM-DD for tool use
+ * Format a Date as YYYY-MM-DD in the user's timezone for tool use
  */
-function formatDateISO(date: Date): string {
-  const year = date.getFullYear();
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  return `${year}-${month}-${day}`;
+function formatDateISO(date: Date, timezone: string = 'UTC'): string {
+  try {
+    // Extract date parts in the target timezone
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(date);
+    return parts; // en-CA locale formats as YYYY-MM-DD
+  } catch {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
 }
 
 /**
@@ -69,8 +95,10 @@ function formatDateISO(date: Date): string {
  * @returns Complete system prompt string
  */
 export function buildSystemPrompt(context: SystemPromptContext): string {
-  const timeString = formatTime(context.currentTime);
+  const tz = context.timezone || 'UTC';
+  const timeString = formatTime(context.currentTime, tz);
   const userName = context.userName || 'you';
+  const isVoice = context.clientType === 'voice';
 
   const sections: string[] = [];
 
@@ -86,10 +114,11 @@ PERSONALITY:
 - When a task is done, just confirm it's done - no "anything else?" or "would you like..."`);
 
   // Current context section - include ISO date for tool use
-  const isoDate = formatDateISO(context.currentTime);
+  const isoDate = formatDateISO(context.currentTime, tz);
   const contextParts = [`CURRENT CONTEXT:
 - Current time: ${timeString}
-- Today's date (for due dates): ${isoDate}`];
+- Today's date (for due dates): ${isoDate}
+- Timezone: ${tz}`];
 
   if (context.keyFacts && context.keyFacts.length > 0) {
     contextParts.push(`- What I know about ${userName}:`);
@@ -264,14 +293,24 @@ If the user's request involves an affected service, mention it briefly: "Notion 
 - Time awareness and conversation memory
 - Tutorial system: "start tutorial", "teach me about X", "what can you do?"`);
 
-  // Voice interface section
-  sections.push(`VOICE INTERFACE:
+  // Interaction style — adapted to client type
+  if (isVoice) {
+    sections.push(`VOICE INTERFACE:
 - BREVITY IS KEY - this is voice, not text chat
 - One sentence confirmations: "Added to your tasks." "Marked complete."
 - Never ask "Is there anything else?" or "Would you like me to..."
 - Don't explain what you're about to do - just do it and confirm
 - Avoid verbal filler like "Great!" or "Sure thing!" or "Absolutely!"
 - If listing items, keep it brief - mention 3-4 key items, not exhaustive lists`);
+  } else {
+    sections.push(`RESPONSE STYLE:
+- Default to concise responses — 1-3 sentences for confirmations
+- For queries that return data (tasks, bills, goals), format clearly with structure
+- Never ask "Is there anything else?" or "Would you like me to..."
+- Don't explain what you're about to do - just do it and confirm
+- Avoid filler like "Great!" or "Sure thing!" or "Absolutely!"
+- Use markdown formatting when it aids readability (lists, bold for emphasis)`);
+  }
 
   return sections.join('\n\n');
 }

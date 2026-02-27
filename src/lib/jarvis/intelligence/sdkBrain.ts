@@ -61,7 +61,7 @@ export interface BrainRequest {
   executeTool: (name: string, input: Record<string, unknown>) => Promise<string>;
   /** Use the deeper model for this request */
   useDeepModel?: boolean;
-  /** Max tokens for response (default 1024) */
+  /** Max tokens for response (default 4096) */
   maxTokens?: number;
   /** SSE callback: tool invocation started */
   onToolUse?: (toolName: string, input: Record<string, unknown>) => void;
@@ -105,7 +105,7 @@ async function thinkLocal(request: BrainRequest): Promise<BrainResult> {
     tools,
     executeTool,
     useDeepModel = false,
-    maxTokens = 1024,
+    maxTokens = 4096,
     onToolUse,
     onToolResult,
     onPostToolResult,
@@ -231,7 +231,7 @@ async function thinkWithMcp(request: BrainRequest): Promise<BrainResult> {
     tools,
     executeTool,
     useDeepModel = false,
-    maxTokens = 1024,
+    maxTokens = 4096,
     onToolUse,
     onToolResult,
     onPostToolResult,

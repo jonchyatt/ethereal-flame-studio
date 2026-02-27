@@ -53,8 +53,11 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
+    // Extract client timezone from header (sent by fetchWithAuth)
+    const clientTimezone = request.headers.get('X-Timezone') || undefined;
+
     // Build system prompt context (shared with Telegram)
-    const promptContext = await buildSystemPromptContext(sessionId);
+    const promptContext = await buildSystemPromptContext(sessionId, { timezone: clientTimezone });
     const serverSystemPrompt = buildSystemPrompt(promptContext);
 
     // Create SSE stream

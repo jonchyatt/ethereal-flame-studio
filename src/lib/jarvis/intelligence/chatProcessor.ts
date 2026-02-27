@@ -46,6 +46,8 @@ const memoryToolNames = new Set([
   'restore_memory',
   'observe_pattern',
   'query_audit_log',
+  'search_memories',
+  'consolidate_memories',
 ]);
 
 const tutorialToolNames = new Set([
@@ -140,12 +142,11 @@ function createToolExecutor(sessionId: number) {
  */
 function createPostToolHook(sessionId: number) {
   return async (name: string, input: Record<string, unknown>, result: string): Promise<void> => {
-    // Detect task completion patterns
-    // Local path: complete_task tool was called directly
-    // MCP path: result contains completion indicators
+    // Detect task completion via MCP path only.
+    // Local path recurring tasks are handled inline by notion/toolExecutor.ts
+    // (which provides feedback to Claude in the tool result).
     const isTaskCompletion =
-      name === 'complete_task' ||
-      (name === 'mcp_notion_result' && /completed|done|checked off/i.test(result));
+      name === 'mcp_notion_result' && /completed|done|checked off/i.test(result);
 
     if (!isTaskCompletion) return;
 

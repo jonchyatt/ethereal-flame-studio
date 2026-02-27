@@ -8,6 +8,7 @@
  */
 
 import { queryDatabase, createPage, updatePage, retrievePage } from './NotionClient';
+import { handleRecurringTaskCompletion } from './recurringHook';
 import {
   LIFE_OS_DATABASES,
   LIFE_OS_DATABASE_IDS,
@@ -27,8 +28,6 @@ import {
   buildBillProperties,
   buildBillPaidUpdate,
   buildTaskPauseUpdate,
-  calculateNextDueDate,
-  TASK_PROPS,
   // Phase 16: Feature Pack
   buildRecipeFilter,
   buildSubscriptionFilter,
@@ -49,25 +48,8 @@ import {
   CachedItem,
 } from './recentResults';
 import { findNotionDatabase } from './notionUrls';
-import { useDashboardStore } from '../stores/dashboardStore';
 import { logEvent, type ToolInvocationData } from '../memory/queries/dailyLogs';
 import { trackErrorPattern } from '../resilience/errorTracking';
-
-/**
- * Trigger dashboard refresh after write operations
- * Uses setTimeout to ensure it runs after current call stack
- */
-function triggerDashboardRefresh(): void {
-  setTimeout(() => {
-    try {
-      useDashboardStore.getState().triggerRefresh();
-      console.log('[ToolExecutor] Triggered dashboard refresh');
-    } catch (error) {
-      // Silently fail if store not available (e.g., SSR)
-      console.warn('[ToolExecutor] Could not trigger dashboard refresh:', error);
-    }
-  }, 100);
-}
 
 /**
  * Execute a Notion tool call by routing to SDK
@@ -275,7 +257,7 @@ async function executeNotionToolInner(
 
       await createPage(databaseId, properties);
 
-      triggerDashboardRefresh();
+
 
       let response = `Added bill: "${title}"`;
       if (input.amount) {
@@ -304,7 +286,7 @@ async function executeNotionToolInner(
       await createPage(databaseId, properties);
 
       // Trigger dashboard refresh after task creation
-      triggerDashboardRefresh();
+
 
       let response = `Created task: "${title}"`;
       if (input.due_date) {
@@ -350,7 +332,7 @@ async function executeNotionToolInner(
       await updatePage(taskId, properties);
 
       // Trigger dashboard refresh after status update
-      triggerDashboardRefresh();
+
 
       const statusLabel =
         newStatus === 'completed'
@@ -400,7 +382,7 @@ async function executeNotionToolInner(
       await updatePage(billId, properties);
 
       // Trigger dashboard refresh after bill paid
-      triggerDashboardRefresh();
+
 
       return 'Marked the bill as paid.';
     }
@@ -437,7 +419,7 @@ async function executeNotionToolInner(
       await updatePage(taskId, properties);
 
       // Trigger dashboard refresh after task pause
-      triggerDashboardRefresh();
+
 
       let response = 'Paused the task.';
       if (until) {
@@ -488,7 +470,7 @@ async function executeNotionToolInner(
       await createPage(databaseId, properties);
 
       // Trigger dashboard refresh after adding project item
-      triggerDashboardRefresh();
+
 
       return `Added "${item}" to the project.`;
     }
@@ -562,7 +544,7 @@ async function executeNotionToolInner(
 
       await createPage(databaseId, properties);
 
-      triggerDashboardRefresh();
+
 
       let response = `Added ${mealType} for ${dayOfWeek}: ${recipeName}${setting ? ` (${setting})` : ''}`;
 
@@ -630,7 +612,7 @@ async function executeNotionToolInner(
 
       await createPage(databaseId, properties);
 
-      triggerDashboardRefresh();
+
 
       let response = `Created ${frequency} recurring task: "${title}"`;
       if (frequency === 'weekly' && dayOfWeek) {
@@ -921,98 +903,4 @@ async function addItemsToShoppingList(
   return { attempted: true, created };
 }
 
-/**
- * Handle recurring task completion - auto-create next instance
- *
- * When a recurring task (Daily/Weekly/Monthly) is marked complete,
- * automatically create the next instance with updated due date.
- *
- * @param taskId - The completed task's ID
- * @returns Response message if next task was created, null otherwise
- */
-async function handleRecurringTaskCompletion(taskId: string): Promise<string | null> {
-  try {
-    // Fetch the completed task's properties
-    const page = await retrievePage(taskId) as {
-      properties: Record<string, unknown>;
-    };
-
-    if (!page?.properties) {
-      console.log('[ToolExecutor] Could not retrieve task properties for recurrence check');
-      return null;
-    }
-
-    // Extract frequency
-    const frequencyProp = page.properties[TASK_PROPS.frequency] as {
-      select?: { name?: string };
-    };
-    const frequency = frequencyProp?.select?.name;
-
-    // If no frequency or One-time, no recurrence needed
-    if (!frequency || frequency === 'One-time') {
-      console.log('[ToolExecutor] Task is not recurring, skipping auto-creation');
-      return null;
-    }
-
-    // Only handle Daily, Weekly, Monthly
-    if (!['Daily', 'Weekly', 'Monthly'].includes(frequency)) {
-      console.log(`[ToolExecutor] Unknown frequency: ${frequency}, skipping`);
-      return null;
-    }
-
-    // Extract title
-    const titleProp = page.properties[TASK_PROPS.title] as {
-      title?: Array<{ plain_text?: string }>;
-    };
-    const title = titleProp?.title?.[0]?.plain_text || 'Recurring Task';
-
-    // Extract current due date
-    const dueDateProp = page.properties[TASK_PROPS.dueDate] as {
-      date?: { start?: string };
-    };
-    const currentDueDate = dueDateProp?.date?.start || null;
-
-    // Calculate next due date
-    const nextDueDate = calculateNextDueDate(
-      currentDueDate,
-      frequency as 'Daily' | 'Weekly' | 'Monthly'
-    );
-
-    // Extract priority (to preserve it)
-    const priorityProp = page.properties[TASK_PROPS.priority] as {
-      select?: { name?: string };
-    };
-    const priority = priorityProp?.select?.name;
-
-    // Extract project relation (to preserve it)
-    const projectProp = page.properties[TASK_PROPS.project] as {
-      relation?: Array<{ id: string }>;
-    };
-    const projectId = projectProp?.relation?.[0]?.id;
-
-    // Create the next instance
-    const databaseId = LIFE_OS_DATABASE_IDS.tasks;
-    if (!databaseId) {
-      console.error('[ToolExecutor] Task database ID not configured');
-      return null;
-    }
-
-    const newProperties = buildTaskProperties({
-      title,
-      due_date: nextDueDate,
-      frequency: frequency as 'Daily' | 'Weekly' | 'Monthly',
-      priority,
-      project_id: projectId,
-    });
-
-    await createPage(databaseId, newProperties);
-
-    console.log(`[ToolExecutor] Created next ${frequency} instance of "${title}" due ${nextDueDate}`);
-
-    return `Created next ${frequency.toLowerCase()} occurrence due ${nextDueDate}.`;
-  } catch (error) {
-    console.error('[ToolExecutor] Error handling recurring task completion:', error);
-    // Don't throw - recurrence creation is best-effort
-    return null;
-  }
-}
+// Recurring task completion is handled by recurringHook.ts (imported above)
