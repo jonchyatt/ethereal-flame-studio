@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
-import { Home, MessageCircle, Plus, Bell, Settings } from 'lucide-react';
+import { Home, MessageCircle, Plus, GraduationCap, Settings } from 'lucide-react';
 import { useShellStore } from '@/lib/jarvis/stores/shellStore';
 
 interface TabItem {
@@ -16,7 +16,7 @@ const TABS: TabItem[] = [
   { id: 'home', label: 'Home', icon: Home, action: 'navigate', route: '/jarvis/app' },
   { id: 'chat', label: 'Chat', icon: MessageCircle, action: 'toggle-chat' },
   { id: 'add', label: '', icon: Plus, action: 'quick-add' },
-  { id: 'alerts', label: 'Alerts', icon: Bell, action: 'navigate', route: '/jarvis/app' }, // placeholder route
+  { id: 'learn', label: 'Learn', icon: GraduationCap, action: 'navigate', route: '/jarvis/app/academy' },
   { id: 'settings', label: 'Settings', icon: Settings, action: 'navigate', route: '/jarvis/app/settings' },
 ];
 

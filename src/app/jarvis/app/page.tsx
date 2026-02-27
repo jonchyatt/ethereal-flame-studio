@@ -8,6 +8,7 @@ import {
   WidgetZone,
   BriefingCard,
 } from '@/components/jarvis/home';
+import { AcademyProgress } from '@/components/jarvis/academy/AcademyProgress';
 
 export default function HomePage() {
   return (
@@ -35,6 +36,12 @@ export default function HomePage() {
         <section>
           <h2 className="text-xs uppercase tracking-wide text-white/40 mb-3">Quick Actions</h2>
           <QuickActionsBar />
+        </section>
+
+        {/* Academy */}
+        <section>
+          <h2 className="text-xs uppercase tracking-wide text-white/40 mb-3">Academy</h2>
+          <AcademyProgress />
         </section>
 
         {/* Pinned Widgets */}

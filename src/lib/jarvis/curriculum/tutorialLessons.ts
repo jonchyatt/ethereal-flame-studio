@@ -464,3 +464,39 @@ export function getTier1Lessons(): TutorialLesson[] {
 export function getLesson(id: string): TutorialLesson | undefined {
   return TIER_1_LESSONS.find((l) => l.id === id);
 }
+
+// ── Suggestion Intelligence ─────────────────────────────────────────────
+
+import type { CompletionRecord } from '@/lib/jarvis/stores/tutorialStore';
+
+export function getAllLessons(): TutorialLesson[] {
+  return TIER_1_LESSONS;
+}
+
+export function getLessonCount(): { total: number; tier1: number } {
+  return { total: TIER_1_LESSONS.length, tier1: TIER_1_LESSONS.length };
+}
+
+export function getSuggestedLesson(
+  progress: Record<string, CompletionRecord>,
+): TutorialLesson | null {
+  // Walk lessons in order — find the last completed lesson with a nextSuggestion
+  let chainSuggestion: TutorialLesson | null = null;
+
+  for (let i = TIER_1_LESSONS.length - 1; i >= 0; i--) {
+    const lesson = TIER_1_LESSONS[i];
+    if (progress[lesson.id] && lesson.nextSuggestion) {
+      const next = TIER_1_LESSONS.find((l) => l.id === lesson.nextSuggestion);
+      if (next && !progress[next.id]) {
+        chainSuggestion = next;
+        break;
+      }
+    }
+  }
+
+  if (chainSuggestion) return chainSuggestion;
+
+  // Fallback: first incomplete Tier 1 lesson
+  const firstIncomplete = TIER_1_LESSONS.find((l) => !progress[l.id]);
+  return firstIncomplete ?? null;
+}

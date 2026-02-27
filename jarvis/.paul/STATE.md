@@ -4,20 +4,20 @@
 
 Milestone: v4.0 Brain Swap & Life Manager UI
 Phase: E of G (Multi-Domain Operating System) — E-05 Jarvis Academy
-Plan: E-05-03 created, awaiting approval
-Status: PLAN created, ready for APPLY
-Last activity: 2026-02-26 — Created .paul/phases/E-mobile-ui/E-05-03-PLAN.md
+Plan: E-05-03 APPLIED — Academy Hub + Suggestion Intelligence
+Status: APPLY complete, ready for UNIFY
+Last activity: 2026-02-26 — Applied E-05-03, ~440 lines across 4 new + 3 modified files
 
 Progress:
-- Milestone: [########░░] 80% (Phase A + B + C + D complete, E in progress, F-G remaining)
-- Phase E: [██████████] 95% (E-01/02/03 research + E-04 complete, E-05-01/02 complete, E-05-03 + E-06 remaining)
+- Milestone: [########░░] 82% (Phase A + B + C + D complete, E in progress, F-G remaining)
+- Phase E: [██████████] 97% (E-01/02/03 research + E-04 + E-05 complete, E-06 remaining)
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ○        ○     [E-05-03 plan created, awaiting approval]
+  ✓        ✓        ○     [E-05-03 applied, awaiting unify]
 ```
 
 ## Phase E Sub-Phase Progress
@@ -35,22 +35,15 @@ PLAN ──▶ APPLY ──▶ UNIFY
   - E-04-06: Personal Sub-Views Wave 1 (Tasks + Habits + Bills) — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-06-SUMMARY.md)
   - E-04-07: Personal Sub-Views Wave 2 (Calendar + Journal + Goals + Health) — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-07-SUMMARY.md)
   - E-04-08: Onboarding Wizard + Jarvis Academy Foundation — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-08-SUMMARY.md)
-- E-05: Jarvis Academy — PLANNING
+- E-05: Jarvis Academy — COMPLETE
   - E-05-01: Tutorial Data Layer + Spotlight Wiring — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-05-01-SUMMARY.md)
   - E-05-02: Lesson Execution Engine + ChatOverlay Integration — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-05-02-SUMMARY.md)
-    - Core orchestrator hook (useTutorialEngine, 337 lines): step lifecycle (instruct → await → success → advance), mobile chat choreography (auto-open/close), auto-start from suggestedNext, lesson completion recording
-    - Verification engine: maps lesson check strings to runtime predicates (route/store/action) with snapshot-based comparison to detect NEW user actions vs pre-existing state
-    - Action bus (pub/sub): decoupled bridge from ChatOverlay user actions to engine verification
-    - ChatOverlay integration: tutorial progress bar header, colored message borders (cyan instruction, emerald success, amber hint), graduation cap icon, next-lesson quick action chip
-    - JarvisShell: mounts engine, provides TutorialEngineContext for cross-component access
-    - Hotfix: reactive suggestedNext subscription (useEffect deps fix) + Start Tour as primary CTA
-    - 653 lines across 3 new + 4 modified files
-  - E-05-03: Academy Hub + Suggestion Intelligence + Widget — planned (discoverability layer)
-    - Academy Hub page: browsable lesson catalog with progress indicators, tier grouping, completion badges
-    - Suggestion intelligence: context-aware lesson recommendations based on user behavior (e.g., "you haven't tried habits yet" → suggest Habits lesson)
-    - Academy widget: Home screen widget showing next suggested lesson, overall progress, streak
-    - Lesson discovery UX: surface tutorials at relevant moments, not just from a dedicated page
-    - This is the "front door" — E-05-01/02 built the engine, E-05-03 makes it findable and inviting
+  - E-05-03: Academy Hub + Suggestion Intelligence — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-05-03-SUMMARY.md)
+    - Suggestion intelligence: getSuggestedLesson() follows nextSuggestion chain with fallback to first incomplete
+    - Academy Hub page (/jarvis/app/academy): grouped lesson catalog with progress ring, 4 lesson card states (completed/in-progress/suggested/default)
+    - AcademyProgress: dedicated Home section between Quick Actions and Widgets
+    - BottomTabBar: Learn tab (GraduationCap) replaces placeholder Alerts tab
+    - ~440 lines across 4 new + 3 modified files
 - E-06: Command Palette — Not started (Cmd+K search-everything, deferred from E-04)
 - E-07+: Build Waves 2-5 (remaining domains + advanced features) — Not started
 
@@ -198,15 +191,20 @@ PLAN ──▶ APPLY ──▶ UNIFY
 - Hotfix: reactive suggestedNext subscription + Start Tour button prominence
 - 653 lines across 3 new + 4 modified files
 
+## What E-05-03 Delivered
+
+- Suggestion intelligence: getSuggestedLesson() — follows nextSuggestion chain, falls back to first incomplete, returns null when all done
+- Academy Hub page (/jarvis/app/academy): lesson catalog grouped by tier, SVG progress ring, 4 lesson card visual states
+- LessonCard: completed (green check, muted), in-progress (amber ring + pulsing dot + Resume), suggested (cyan ring + Recommended badge + Start), default (ghost Start)
+- AcademyProgress: Home section with next lesson name + mini progress ring, links to Academy
+- BottomTabBar: Learn tab (GraduationCap icon) replaces placeholder Alerts tab
+- ~440 lines across 4 new + 3 modified files
+
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: E-05-03 plan revised (v2), awaiting approval
-Next action: Approve E-05-03 plan, then run /paul:apply .paul/phases/E-mobile-ui/E-05-03-PLAN.md
-Resume file: .paul/HANDOFF-2026-02-26g.md
-Resume context:
-- E-05-03 PLAN v2: Academy Hub + Suggestion Intelligence + Home section (revised from widget approach)
-- 3 fixes applied: Resume state, Home section instead of widget, smart navigation
-- 3 tasks, 7 acceptance criteria, autonomous (no checkpoints)
-- Plan awaits Jonathan's approval before APPLY
-- E-06 PLANNED: Command Palette (after E-05 completes)
+Stopped at: E-05-03 APPLIED, awaiting UNIFY
+Next action: /paul:unify .paul/phases/E-mobile-ui/E-05-03-PLAN.md
+- E-05 Jarvis Academy now COMPLETE (all 3 sub-plans delivered)
+- E-06 Command Palette is next phase
+- Commit and push needed
