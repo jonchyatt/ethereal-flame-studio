@@ -4,20 +4,20 @@
 
 Milestone: v4.0 Brain Swap & Life Manager UI
 Phase: F of G (Vector Memory) — Planning
-Plan: F-01 complete (SUMMARY written)
-Status: Loop closed — ready for next PLAN (F-02 Memory Consolidation)
-Last activity: 2026-02-27 — F-01 Vector Search + Dual Retrieval complete
+Plan: F-02 created, awaiting approval (Memory Consolidation)
+Status: PLAN created, ready for APPLY
+Last activity: 2026-02-27 — Created F-02-PLAN.md
 
 Progress:
 - Milestone: [########░░] 90% (Phase A + B + C + D + E complete, F in progress, G remaining)
-- Phase F: [██████░░░░] 60% (F-01 done, F-02 consolidation not yet planned)
+- Phase F: [██████░░░░] 60% (F-01 done, F-02 planned)
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [Loop complete — ready for next PLAN]
+  ✓        ○        ○     [Plan created, awaiting approval]
 ```
 
 ## Phase E Sub-Phase Progress
@@ -233,11 +233,11 @@ PLAN ──▶ APPLY ──▶ UNIFY
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: F-01 loop closed — Vector Search + Dual Retrieval shipped
-Next action: Plan F-02 (Memory Consolidation) or skip to Phase G
+Stopped at: F-02 plan created and approved — Memory Consolidation
+Next action: /paul:apply .paul/phases/F-vector-memory/F-02-PLAN.md
 Resume file: .paul/HANDOFF-2026-02-27.md
 Resume context:
-- F-01 complete: embeddings.ts + vectorSearch.ts + search_memories tool + dual retrieval
-- All work uncommitted — needs git commit before push
-- OPENAI_API_KEY needed in Vercel env for production vector search
-- F-02 (memory consolidation) scoped but not planned yet
+- F-02 plan v2 approved (revised after self-critique: stored embeddings, Haiku synthesis, two-phase tool, re-embed)
+- 2 tasks: consolidation.ts engine + tool wiring
+- All F-01 work committed (eff938c)
+- OPENAI_API_KEY still needed in Vercel env
