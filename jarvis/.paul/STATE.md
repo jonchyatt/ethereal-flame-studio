@@ -3,20 +3,20 @@
 ## Current Position
 
 Milestone: v4.0 Brain Swap & Life Manager UI
-Phase: G of G (Integration & Polish) — Executing
-Plan: G-01 + G-02 COMPLETE (redesigned), G-03 remaining
-Status: Brain activated + live data pipeline deployed. Executive bridge next.
-Last activity: 2026-02-27 — G-01 + G-02 executed in single commit, pushed to production
+Phase: G of G (Integration & Polish) — Planning
+Plan: G-03 created, awaiting approval
+Status: PLAN created, ready for APPLY
+Last activity: 2026-02-27 — Created G-03-PLAN.md (Executive Bridge)
 
 Progress:
 - Milestone: [##########] 98% (Phase A-F complete, G in progress)
-- Phase G: [######░░░░] 60% (G-01 + G-02 complete, G-03 executive bridge remaining)
+- Phase G: [######░░░░] 60% (G-01 + G-02 complete, G-03 planned, G-04 pending)
 
 ## Phase G Sub-Plan Progress (REDESIGNED)
 
 - G-01: Brain Activation (enableMemoryLoading ON) — COMPLETE
 - G-02: Live Data Pipeline (Home + Personal real Notion data + QuickActions + BriefingCard freshness) — COMPLETE
-- G-03: Executive Bridge (Scheduler + NudgeManager in new shell) — NOT STARTED
+- G-03: Executive Bridge (Scheduler + mode-aware toasts, NO NudgeManager) — PLANNED
 - G-04: Production Verification (comprehensive smoke test) — NOT STARTED
 
 ## Loop Position
@@ -24,7 +24,7 @@ Progress:
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ◑        ○     [G-01+G-02 deployed, G-03 next]
+  ✓        ○        ○     [G-03 plan created, awaiting approval]
 ```
 
 ## Phase E Sub-Phase Progress
@@ -198,6 +198,10 @@ PLAN ──▶ APPLY ──▶ UNIFY
 | groupId = keepId-removeId for tool confirm parsing | Phase F-02 | Simple, deterministic two-phase flow |
 | Longer content wins keep target, tiebreak on lastAccessed | Phase F-02 | Preserves maximum information |
 | Haiku synthesis with fallback to longer content | Phase F-02 | Graceful degradation on API failure |
+| Skip NudgeManager in new shell | Phase G-03 | Voice-era artifact: double-fetch, sound, redundant with PriorityStack |
+| Scheduler as proactive conversation trigger | Phase G-03 | Toast "Chat" → chatStore.openWithMessage → AI executive walkthrough |
+| Notification mode gates toasts, not data refresh | Phase G-03 | focus=morning only, active=all, dnd/review=silent; data always refreshes |
+| Data-driven toast messages from store state | Phase G-03 | "Good morning — 5 tasks, 2 overdue" not static "briefing ready" |
 
 ## Completed Phases
 
@@ -262,15 +266,15 @@ Deep 5-agent audit revealed:
 ## Session Continuity
 
 Last session: 2026-02-27
-Handoff: `.paul/HANDOFF-2026-02-27-d.md`
-Stopped at: G-01 + G-02 deployed, env vars set, G-03 executive bridge next
-Next action: Plan and execute G-03 (Scheduler + NudgeManager in new shell)
+Handoff: `.paul/HANDOFF-2026-02-27-e.md`
+Stopped at: G-03 plan v3 created (proactive conversation trigger architecture), awaiting approval
+Next action: Approve G-03 plan → /paul:apply .paul/phases/G-integration-polish/G-03-PLAN.md
+Resume file: .paul/phases/G-integration-polish/G-03-PLAN.md
 Resume context:
-- G-01 + G-02 redesigned and executed in single commit (89a3c40)
-- Live data pipeline: /api/jarvis/briefing → homeStore + personalStore
-- All Home + Personal sub-pages now show real Notion data
-- QuickActionsBar wired to navigation + ChatOverlay intents
-- BriefingCard has freshness dot + refresh icon
-- BriefingCard manual refresh TODO: should call refetchJarvisData() not fetchBriefingData()
-- OPENAI_API_KEY + CRON_SECRET added to Vercel (all environments) — redeploy needed
-- Next redeploy (or next git push) will activate vector search + reflection endpoint
+- G-03 plan went through 3 iterations: mechanical port → text-first rethink → proactive chat trigger
+- Key insight: toast "Chat" action → chatStore.openWithMessage() → AI conversation
+- NudgeManager intentionally excluded (voice-era, double-fetch, sound leak, redundant with PriorityStack)
+- Notification mode gating: focus=morning only, active=all, dnd/review=silent
+- Warning toast variant needed (amber styling for missed events)
+- BriefingCard refresh fix included (fetchBriefingData → refetchJarvisData)
+- OPENAI_API_KEY + CRON_SECRET already in Vercel — next push activates vector search + reflection
