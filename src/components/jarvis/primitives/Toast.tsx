@@ -1,9 +1,9 @@
 'use client';
 
 import { useRef, useCallback } from 'react';
-import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle, AlertTriangle, Info, X } from 'lucide-react';
 
-type ToastVariant = 'success' | 'error' | 'info';
+type ToastVariant = 'success' | 'error' | 'info' | 'warning';
 
 interface ToastAction {
   label: string;
@@ -22,6 +22,7 @@ const variantConfig: Record<ToastVariant, { icon: typeof CheckCircle2; borderCol
   success: { icon: CheckCircle2, borderColor: 'border-l-green-500', iconColor: 'text-green-400', progressColor: 'bg-green-500/40' },
   error: { icon: AlertCircle, borderColor: 'border-l-red-500', iconColor: 'text-red-400', progressColor: 'bg-red-500/40' },
   info: { icon: Info, borderColor: 'border-l-cyan-500', iconColor: 'text-cyan-400', progressColor: 'bg-cyan-500/40' },
+  warning: { icon: AlertTriangle, borderColor: 'border-l-amber-500', iconColor: 'text-amber-400', progressColor: 'bg-amber-500/40' },
 };
 
 export function Toast({ variant, message, action, duration, onDismiss }: ToastProps) {

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 export interface ToastItem {
   id: string;
-  variant: 'success' | 'error' | 'info';
+  variant: 'success' | 'error' | 'info' | 'warning';
   message: string;
   action?: { label: string; onClick: () => void };
   duration: number;
@@ -63,4 +63,6 @@ export const toast = {
     useToastStore.getState().addToast({ variant: 'error', message, ...opts }),
   info: (message: string, opts?: Omit<AddToastOpts, 'variant' | 'message'>) =>
     useToastStore.getState().addToast({ variant: 'info', message, ...opts }),
+  warning: (message: string, opts?: Omit<AddToastOpts, 'variant' | 'message'>) =>
+    useToastStore.getState().addToast({ variant: 'warning', message, ...opts }),
 };

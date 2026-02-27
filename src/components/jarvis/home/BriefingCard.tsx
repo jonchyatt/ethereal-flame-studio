@@ -5,7 +5,7 @@ import { FileText, ChevronDown, RefreshCw } from 'lucide-react';
 import { Card } from '@/components/jarvis/primitives';
 import { useHomeStore } from '@/lib/jarvis/stores/homeStore';
 import { getFreshness, type FreshnessTier } from '@/lib/jarvis/data/freshness';
-import { fetchBriefingData } from '@/lib/jarvis/executive/BriefingClient';
+import { refetchJarvisData } from '@/lib/jarvis/hooks/useJarvisFetch';
 
 const FRESHNESS_DOT: Record<FreshnessTier, { color: string; label: string } | null> = {
   live: { color: 'bg-green-400', label: 'Live' },
@@ -29,17 +29,9 @@ export function BriefingCard() {
     if (refreshing) return;
     setRefreshing(true);
     try {
-      // Trigger refetch via import — this re-calls the same API
-      await fetchBriefingData();
-      // The useJarvisFetch hook handles store population on its interval,
-      // but for manual refresh we need to trigger it explicitly.
-      // Since we can't call the hook from here, we dispatch a visibility event
-      // which the interval checks. Simpler: just reload the data ourselves.
-      // Actually, the cleanest approach: store a refreshTrigger.
-      // For now, the 5-minute interval will pick it up.
-      // TODO: wire manual refresh through store
+      await refetchJarvisData();
     } catch {
-      // Silently fail — toast system could handle this
+      // Silent — user sees stale data indicator via freshness dot
     } finally {
       setRefreshing(false);
     }

@@ -3,20 +3,20 @@
 ## Current Position
 
 Milestone: v4.0 Brain Swap & Life Manager UI
-Phase: G of G (Integration & Polish) — Planning
-Plan: G-03 created, awaiting approval
-Status: PLAN created, ready for APPLY
-Last activity: 2026-02-27 — Created G-03-PLAN.md (Executive Bridge)
+Phase: G of G (Integration & Polish) — Executing
+Plan: G-03 complete
+Status: Loop closed, ready for next PLAN (G-04)
+Last activity: 2026-02-27 — G-03 unified (Executive Bridge)
 
 Progress:
-- Milestone: [##########] 98% (Phase A-F complete, G in progress)
-- Phase G: [######░░░░] 60% (G-01 + G-02 complete, G-03 planned, G-04 pending)
+- Milestone: [##########] 99% (Phase A-F complete, G nearly done)
+- Phase G: [########░░] 80% (G-01 + G-02 + G-03 complete, G-04 pending)
 
 ## Phase G Sub-Plan Progress (REDESIGNED)
 
 - G-01: Brain Activation (enableMemoryLoading ON) — COMPLETE
 - G-02: Live Data Pipeline (Home + Personal real Notion data + QuickActions + BriefingCard freshness) — COMPLETE
-- G-03: Executive Bridge (Scheduler + mode-aware toasts, NO NudgeManager) — PLANNED
+- G-03: Executive Bridge (Scheduler + mode-aware toasts, NO NudgeManager) — COMPLETE
 - G-04: Production Verification (comprehensive smoke test) — NOT STARTED
 
 ## Loop Position
@@ -24,7 +24,7 @@ Progress:
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ○        ○     [G-03 plan created, awaiting approval]
+  ✓        ✓        ✓     [Loop complete — ready for G-04]
 ```
 
 ## Phase E Sub-Phase Progress
@@ -266,15 +266,13 @@ Deep 5-agent audit revealed:
 ## Session Continuity
 
 Last session: 2026-02-27
-Handoff: `.paul/HANDOFF-2026-02-27-e.md`
-Stopped at: G-03 plan v3 created (proactive conversation trigger architecture), awaiting approval
-Next action: Approve G-03 plan → /paul:apply .paul/phases/G-integration-polish/G-03-PLAN.md
-Resume file: .paul/phases/G-integration-polish/G-03-PLAN.md
+Handoff: `.paul/HANDOFF-2026-02-27-f.md`
+Stopped at: G-03 loop closed, session paused
+Next action: Commit + push G-03 changes, then /paul:apply jarvis/.paul/phases/G-integration-polish/G-04-PLAN.md
+Resume file: .paul/HANDOFF-2026-02-27-f.md
 Resume context:
-- G-03 plan went through 3 iterations: mechanical port → text-first rethink → proactive chat trigger
-- Key insight: toast "Chat" action → chatStore.openWithMessage() → AI conversation
-- NudgeManager intentionally excluded (voice-era, double-fetch, sound leak, redundant with PriorityStack)
-- Notification mode gating: focus=morning only, active=all, dnd/review=silent
-- Warning toast variant needed (amber styling for missed events)
-- BriefingCard refresh fix included (fetchBriefingData → refetchJarvisData)
+- G-03 complete — useExecutiveBridge wired, warning toasts, BriefingCard fixed
+- 7 files uncommitted (5 modified, 2 new) — commit before G-04
+- G-04 (Production Verification) is the LAST sub-plan in Phase G
 - OPENAI_API_KEY + CRON_SECRET already in Vercel — next push activates vector search + reflection
+- After G-04: Phase G complete → v4.0 milestone done

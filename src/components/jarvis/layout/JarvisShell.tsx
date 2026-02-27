@@ -6,6 +6,7 @@ import { useSettingsStore } from '@/lib/jarvis/stores/settingsStore';
 import { useShellStore } from '@/lib/jarvis/stores/shellStore';
 import { useTutorialEngine, type TutorialEngineAPI } from '@/lib/jarvis/hooks/useTutorialEngine';
 import { useJarvisFetch } from '@/lib/jarvis/hooks/useJarvisFetch';
+import { useExecutiveBridge } from '@/lib/jarvis/hooks/useExecutiveBridge';
 import { Header } from './Header';
 import { DomainRail } from './DomainRail';
 import { BottomTabBar } from './BottomTabBar';
@@ -34,6 +35,7 @@ export function JarvisShell({ children }: JarvisShellProps) {
   const isOnboarding = pathname === ONBOARDING_PATH;
   const tutorialEngine = useTutorialEngine();
   useJarvisFetch(); // Central data pipeline — populates homeStore + personalStore
+  useExecutiveBridge(); // Scheduler → mode-aware toasts + proactive chat triggers
   const isCommandPaletteOpen = useShellStore((s) => s.isCommandPaletteOpen);
   const toggleCommandPalette = useShellStore((s) => s.toggleCommandPalette);
 
