@@ -1,80 +1,134 @@
-# E-05-03 Summary: Academy Hub + Suggestion Intelligence
+---
+phase: E-mobile-ui
+plan: 05-03
+subsystem: ui
+tags: [react, zustand, tutorial, academy, navigation]
 
-**Status:** COMPLETE
-**Date:** 2026-02-26
-**Plan:** E-05-03-PLAN.md
+requires:
+  - phase: E-05-01
+    provides: Tutorial data layer, TIER_1_LESSONS, tutorialStore
+  - phase: E-05-02
+    provides: Tutorial engine, TutorialEngineContext, ChatOverlay integration
+provides:
+  - Academy Hub page with browsable lesson catalog
+  - Suggestion intelligence (context-aware next-lesson picking)
+  - Academy progress section on Home screen
+  - Learn tab in BottomTabBar navigation
+affects: [E-06 Command Palette, future tier 2-4 lessons]
 
-## What Was Built
+tech-stack:
+  added: []
+  patterns: [suggestion-chain algorithm, SVG progress ring, dedicated Home section vs widget]
 
-### Suggestion Intelligence (tutorialLessons.ts)
-- `getAllLessons()` — returns full lesson catalog (alias for future multi-tier expansion)
-- `getLessonCount()` — returns `{ total, tier1 }` for progress display
-- `getSuggestedLesson(progress)` — context-aware next-lesson picker: follows `nextSuggestion` chain from last completed lesson, falls back to first incomplete, returns null when all done
+key-files:
+  created:
+    - src/components/jarvis/academy/LessonCard.tsx
+    - src/components/jarvis/academy/AcademyHub.tsx
+    - src/components/jarvis/academy/AcademyProgress.tsx
+    - src/app/jarvis/app/academy/page.tsx
+  modified:
+    - src/lib/jarvis/curriculum/tutorialLessons.ts
+    - src/app/jarvis/app/page.tsx
+    - src/components/jarvis/layout/BottomTabBar.tsx
 
-### Academy Hub Page (`/jarvis/app/academy`)
-- **AcademyHub.tsx** — full lesson catalog grouped by tier with tier name/description headers
-- SVG circular progress ring (40px, cyan fill, zinc track) showing completion ratio
-- Back navigation to home, GraduationCap icon branding
-- All-complete celebration state (emerald icon + message)
-- **LessonCard.tsx** — 4 visual states:
-  1. **Completed:** green check, emerald "Completed" text, opacity-60, no action
-  2. **In-progress:** amber ring + pulsing dot, "Resume" button (amber ghost)
-  3. **Suggested:** cyan ring, "Recommended" badge, primary "Start" button
-  4. **Default:** ghost "Start" button
-- Time estimate display (Clock icon + "~N min")
-- fadeInUp entrance animations with 80ms stagger per card
-- Resume does NOT navigate — user stays on current page
+key-decisions:
+  - "Academy as dedicated Home section, NOT widget registry entry"
+  - "Suggestion chain algorithm walks nextSuggestion links backward"
+  - "Resume does NOT navigate — user stays on current page"
 
-### Academy Progress (Home Section)
-- **AcademyProgress.tsx** — dedicated Home section (NOT widget registry)
-- Compact card: GraduationCap icon + "Jarvis Academy" + next lesson name + progress ring (24px)
-- Entire card is a Link to `/jarvis/app/academy`
-- Emerald ring border when all lessons complete
-- Placed between "Quick Actions" and "Widgets" sections on Home
+patterns-established:
+  - "SVG progress ring: reusable ProgressRing component (40px and 24px variants)"
+  - "4-state card pattern: completed/in-progress/suggested/default"
 
-### BottomTabBar Learn Tab
-- Replaced placeholder "Alerts" (Bell) tab with "Learn" (GraduationCap) tab
-- Routes to `/jarvis/app/academy`
-- Auto-generates `data-tutorial-id="bottom-tab-learn"` for tutorial system compatibility
-- Active state highlights when on `/jarvis/app/academy` route
+completed: 2026-02-26
+---
 
-## Files Changed
+# Phase E Plan 05-03: Academy Hub + Suggestion Intelligence Summary
 
-| File | Action | Lines |
-|------|--------|-------|
-| `src/lib/jarvis/curriculum/tutorialLessons.ts` | Modified | +36 |
-| `src/components/jarvis/academy/LessonCard.tsx` | Created | ~120 |
-| `src/components/jarvis/academy/AcademyHub.tsx` | Created | ~170 |
-| `src/components/jarvis/academy/AcademyProgress.tsx` | Created | ~100 |
-| `src/app/jarvis/app/academy/page.tsx` | Created | ~7 |
-| `src/app/jarvis/app/page.tsx` | Modified | +7 |
-| `src/components/jarvis/layout/BottomTabBar.tsx` | Modified | +2/-2 |
+**Browsable lesson catalog with context-aware suggestions, Home screen integration, and Learn tab navigation — the discoverable "front door" to Jarvis Academy.**
 
-**Total:** ~440 lines across 4 new + 3 modified files
+## Performance
 
-## Acceptance Criteria
+| Metric | Value |
+|--------|-------|
+| Completed | 2026-02-26 |
+| Tasks | 3 completed |
+| Files | 4 created + 3 modified |
+| Lines | ~440 |
 
-- [x] AC-1: Academy Hub renders lesson catalog grouped by tier
-- [x] AC-2: Lesson cards show accurate progress including resume
-- [x] AC-3: Tapping Start/Resume triggers the tutorial engine
-- [x] AC-4: Academy progress section renders on Home screen
-- [x] AC-5: BottomTabBar has "Learn" tab with GraduationCap
-- [x] AC-6: Suggestion intelligence picks context-aware next lesson
-- [x] AC-7: Zero new TypeScript errors (0 TS errors; webpack errors are pre-existing audio pipeline)
+## Acceptance Criteria Results
 
-## Design System Compliance
+| Criterion | Status | Notes |
+|-----------|--------|-------|
+| AC-1: Academy Hub renders lesson catalog | Pass | Grouped by tier with tier name/description headers |
+| AC-2: Lesson cards show accurate progress + resume | Pass | 4 visual states: completed, in-progress, suggested, default |
+| AC-3: Start/Resume triggers tutorial engine | Pass | Engine starts, navigates to home; resume stays on page |
+| AC-4: Academy progress section on Home | Pass | Between Quick Actions and Widgets sections |
+| AC-5: BottomTabBar has Learn tab | Pass | GraduationCap icon, routes to /jarvis/app/academy |
+| AC-6: Suggestion intelligence context-aware | Pass | Follows nextSuggestion chain, falls back to first incomplete |
+| AC-7: Build compiles clean | Pass | 0 TS errors; webpack errors pre-existing (audio pipeline) |
 
-- All cards use `glass-interactive` variant (per E-04-05.5 mandatory pattern)
-- fadeInUp entrance animations with stagger delays
-- Spring-like transitions via ease-out curves
-- lucide-react icons throughout (Check, Clock, Play, RotateCcw, ArrowLeft, GraduationCap, ChevronRight)
-- No flat bg-zinc-900 surfaces
-- Dark theme, glassmorphism signature maintained
+## Accomplishments
 
-## Architecture Notes
+- **Suggestion intelligence algorithm:** Walks `nextSuggestion` chain backward from last completed lesson, falls back to first incomplete Tier 1 lesson, returns null when all done
+- **Academy Hub page** (`/jarvis/app/academy`): Full lesson catalog with SVG progress ring, tier grouping, 4-state LessonCards with resume support
+- **Home screen integration:** Dedicated AcademyProgress section (not a widget) with next lesson name + mini progress ring
+- **Navigation integration:** Learn tab replaces placeholder Alerts tab in BottomTabBar
 
-- Academy is a **first-class Home section**, not a widget registry entry — keeps widget system clean
-- Suggestion intelligence lives in `tutorialLessons.ts` alongside lesson data — single source of truth
-- AcademyHub consumes `TutorialEngineContext` from JarvisShell — no prop drilling, no new providers
-- No stores modified — all data sourced from existing `tutorialStore` + new helper functions
-- Resume detection uses `currentLesson` from store — simple equality check
+## Task Commits
+
+All tasks committed atomically in a single commit:
+
+| Task | Commit | Type | Description |
+|------|--------|------|-------------|
+| Task 1: Suggestion intelligence | `8c866f6` | feat | getAllLessons(), getSuggestedLesson(), getLessonCount() |
+| Task 2: Academy Hub + LessonCard | `8c866f6` | feat | AcademyHub, LessonCard (4 states), academy route |
+| Task 3: Home + BottomTabBar + build | `8c866f6` | feat | AcademyProgress, Home section, Learn tab |
+
+## Files Created/Modified
+
+| File | Change | Purpose |
+|------|--------|---------|
+| `src/lib/jarvis/curriculum/tutorialLessons.ts` | Modified (+36) | Suggestion intelligence: getAllLessons, getSuggestedLesson, getLessonCount |
+| `src/components/jarvis/academy/LessonCard.tsx` | Created (~120) | 4-state lesson card: completed/in-progress/suggested/default |
+| `src/components/jarvis/academy/AcademyHub.tsx` | Created (~170) | Full catalog page: tier grouping, progress ring, engine integration |
+| `src/components/jarvis/academy/AcademyProgress.tsx` | Created (~100) | Home section: next lesson + mini progress ring |
+| `src/app/jarvis/app/academy/page.tsx` | Created (~7) | Route: renders AcademyHub |
+| `src/app/jarvis/app/page.tsx` | Modified (+7) | Added Academy section between Quick Actions and Widgets |
+| `src/components/jarvis/layout/BottomTabBar.tsx` | Modified (+2/-2) | Replace Alerts/Bell with Learn/GraduationCap |
+
+## Decisions Made
+
+| Decision | Rationale | Impact |
+|----------|-----------|--------|
+| Academy as Home section, not widget | Keeps widget registry clean; Academy is always visible, not pinnable/unpinnable | Widget system stays untouched |
+| SVG progress ring (not library) | Consistent with zero-dependency animation policy (E-04-03 precedent) | Reusable 40px and 24px variants |
+| Resume does NOT navigate | User may already be mid-flow on correct page; navigating would disrupt | Better UX for in-progress lessons |
+| Suggestion chain walks backward | Last completed lesson's nextSuggestion is most relevant; backward scan finds it efficiently | O(n) where n=4, trivial |
+
+## Deviations from Plan
+
+None — plan executed exactly as written.
+
+## Issues Encountered
+
+| Issue | Resolution |
+|-------|------------|
+| Webpack build fails (music-metadata, @distube/ytdl-core) | Pre-existing audio pipeline issue, unrelated to Academy. Zero TS errors confirmed via `tsc --noEmit`. |
+
+## Next Phase Readiness
+
+**Ready:**
+- E-05 Jarvis Academy is fully complete (data layer + engine + discoverability)
+- E-06 Command Palette is next (Cmd+K search-everything)
+- All tutorial infrastructure in place for future Tier 2-4 lesson authoring
+
+**Concerns:**
+- None
+
+**Blockers:**
+- None
+
+---
+*Phase: E-mobile-ui, Plan: 05-03*
+*Completed: 2026-02-26*
