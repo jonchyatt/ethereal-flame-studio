@@ -4,20 +4,20 @@
 
 Milestone: v4.0 Brain Swap & Life Manager UI
 Phase: E of G (Multi-Domain Operating System) — E-05 Jarvis Academy
-Plan: E-05-02 built + hotfixed, needs SUMMARY
-Status: APPLY complete, UNIFY pending
-Last activity: 2026-02-26 — E-05-02 built + hotfixed, added E-06 (Command Palette) to roadmap
+Plan: E-05-03 created, awaiting approval
+Status: PLAN created, ready for APPLY
+Last activity: 2026-02-26 — Created .paul/phases/E-mobile-ui/E-05-03-PLAN.md
 
 Progress:
 - Milestone: [########░░] 80% (Phase A + B + C + D complete, E in progress, F-G remaining)
-- Phase E: [██████████] 95% (E-01/02/03 research + E-04 Build Wave 1 complete, E-05 planning)
+- Phase E: [██████████] 95% (E-01/02/03 research + E-04 complete, E-05-01/02 complete, E-05-03 + E-06 remaining)
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ○     [E-05-02 built + hotfixed — needs SUMMARY]
+  ✓        ○        ○     [E-05-03 plan created, awaiting approval]
 ```
 
 ## Phase E Sub-Phase Progress
@@ -37,8 +37,20 @@ PLAN ──▶ APPLY ──▶ UNIFY
   - E-04-08: Onboarding Wizard + Jarvis Academy Foundation — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-04-08-SUMMARY.md)
 - E-05: Jarvis Academy — PLANNING
   - E-05-01: Tutorial Data Layer + Spotlight Wiring — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-05-01-SUMMARY.md)
-  - E-05-02: Lesson Execution Engine + ChatOverlay Integration — BUILT + HOTFIXED (needs SUMMARY)
+  - E-05-02: Lesson Execution Engine + ChatOverlay Integration — COMPLETE (SUMMARY: .paul/phases/E-mobile-ui/E-05-02-SUMMARY.md)
+    - Core orchestrator hook (useTutorialEngine, 337 lines): step lifecycle (instruct → await → success → advance), mobile chat choreography (auto-open/close), auto-start from suggestedNext, lesson completion recording
+    - Verification engine: maps lesson check strings to runtime predicates (route/store/action) with snapshot-based comparison to detect NEW user actions vs pre-existing state
+    - Action bus (pub/sub): decoupled bridge from ChatOverlay user actions to engine verification
+    - ChatOverlay integration: tutorial progress bar header, colored message borders (cyan instruction, emerald success, amber hint), graduation cap icon, next-lesson quick action chip
+    - JarvisShell: mounts engine, provides TutorialEngineContext for cross-component access
+    - Hotfix: reactive suggestedNext subscription (useEffect deps fix) + Start Tour as primary CTA
+    - 653 lines across 3 new + 4 modified files
   - E-05-03: Academy Hub + Suggestion Intelligence + Widget — planned (discoverability layer)
+    - Academy Hub page: browsable lesson catalog with progress indicators, tier grouping, completion badges
+    - Suggestion intelligence: context-aware lesson recommendations based on user behavior (e.g., "you haven't tried habits yet" → suggest Habits lesson)
+    - Academy widget: Home screen widget showing next suggested lesson, overall progress, streak
+    - Lesson discovery UX: surface tutorials at relevant moments, not just from a dedicated page
+    - This is the "front door" — E-05-01/02 built the engine, E-05-03 makes it findable and inviting
 - E-06: Command Palette — Not started (Cmd+K search-everything, deferred from E-04)
 - E-07+: Build Waves 2-5 (remaining domains + advanced features) — Not started
 
@@ -163,6 +175,12 @@ PLAN ──▶ APPLY ──▶ UNIFY
 | Wizard local state → store write on finalize | Phase E-04-08 | All-or-nothing store commit on "Go to Home" |
 | SpotlightOverlay rAF-throttled resize tracking | Phase E-04-08 | 60fps positioning without layout thrashing |
 | Added Phase E-06: Command Palette | Phase E-05 | Deferred E-04 item — dead button in Header discovered during UAT |
+| Instructions through ChatOverlay, not separate UI | Phase E-05-02 | Jarvis IS the teacher — conversation is the natural channel |
+| Snapshot-based store verification | Phase E-05-02 | Detects NEW actions vs pre-existing state |
+| React context for engine API | Phase E-05-02 | ChatOverlay accesses engine without prop drilling |
+| Mobile auto-close chat after instruction | Phase E-05-02 | 70vh sheet covers UI; user needs to see spotlight targets |
+| Reactive suggestedNext subscription | Phase E-05-02 | Store subscription reacts to changes vs one-shot useEffect |
+| Start Tour as primary button | Phase E-05-02 | User missed ghost text 3 times during UAT |
 
 ## Completed Phases
 
@@ -171,15 +189,24 @@ PLAN ──▶ APPLY ──▶ UNIFY
 - Phase C: Memory & Intelligence Preservation — COMPLETE
 - Phase D: Self-Improvement Loop — COMPLETE
 
+## What E-05-02 Delivered
+
+- 3 new files: tutorialActionBus (pub/sub), verificationEngine (snapshot-based predicates), useTutorialEngine (337-line orchestrator)
+- ChatOverlay integration: progress bar header, colored message borders, graduation cap icon, next-lesson chip
+- JarvisShell: engine mount + TutorialEngineContext provider
+- chatStore: tutorial metadata field on ChatMessage
+- Hotfix: reactive suggestedNext subscription + Start Tour button prominence
+- 653 lines across 3 new + 4 modified files
+
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: E-05-02 built + hotfixed + deployed, needs SUMMARY (unify step)
-Next action: Write E-05-02-SUMMARY.md → verify UAT on live site → plan E-05-03
-Resume file: .paul/HANDOFF-2026-02-26f.md
+Stopped at: E-05-03 plan revised (v2), awaiting approval
+Next action: Approve E-05-03 plan, then run /paul:apply .paul/phases/E-mobile-ui/E-05-03-PLAN.md
+Resume file: .paul/HANDOFF-2026-02-26g.md
 Resume context:
-- E-05-02 COMPLETE: Execution engine (3 new files) + ChatOverlay integration (3 modified) + hotfix (auto-start + button)
-- UAT PENDING: Jonathan needs to retest Start Tour flow after hotfix
-- E-05-03 NEXT: Academy Hub + Suggestion Intelligence + Widget
-- E-06 ADDED: Command Palette (dead button in Header discovered during UAT)
-- All code committed and pushed, clean git state
+- E-05-03 PLAN v2: Academy Hub + Suggestion Intelligence + Home section (revised from widget approach)
+- 3 fixes applied: Resume state, Home section instead of widget, smart navigation
+- 3 tasks, 7 acceptance criteria, autonomous (no checkpoints)
+- Plan awaits Jonathan's approval before APPLY
+- E-06 PLANNED: Command Palette (after E-05 completes)
