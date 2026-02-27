@@ -262,12 +262,15 @@ Deep 5-agent audit revealed:
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: G-01 + G-02 deployed, G-03 executive bridge next
-Next action: Build G-03 (Scheduler + NudgeManager in new shell) or proceed to G-04 verification
+Handoff: `.paul/HANDOFF-2026-02-27-d.md`
+Stopped at: G-01 + G-02 deployed, env vars set, G-03 executive bridge next
+Next action: Plan and execute G-03 (Scheduler + NudgeManager in new shell)
 Resume context:
 - G-01 + G-02 redesigned and executed in single commit (89a3c40)
 - Live data pipeline: /api/jarvis/briefing → homeStore + personalStore
 - All Home + Personal sub-pages now show real Notion data
 - QuickActionsBar wired to navigation + ChatOverlay intents
 - BriefingCard has freshness dot + refresh icon
-- Env vars still needed: OPENAI_API_KEY, CRON_SECRET in Vercel
+- BriefingCard manual refresh TODO: should call refetchJarvisData() not fetchBriefingData()
+- OPENAI_API_KEY + CRON_SECRET added to Vercel (all environments) — redeploy needed
+- Next redeploy (or next git push) will activate vector search + reflection endpoint
