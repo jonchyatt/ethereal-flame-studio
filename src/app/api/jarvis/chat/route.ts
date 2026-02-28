@@ -95,27 +95,38 @@ export async function POST(request: Request): Promise<Response> {
             },
           });
 
-          // Stream final response
-          if (result.success) {
-            const data = JSON.stringify({ type: 'text', text: result.responseText });
-            controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));
-          } else {
-            const errorText = result.error
-              ? result.error
-              : result.responseText || 'Something went wrong.';
-            const data = JSON.stringify({ type: 'text', text: errorText });
-            controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));
-          }
+          // Stream final response — wrapped in try/catch because the client
+          // may have disconnected mid-chat (controller closed), which would throw
+          // on enqueue. Without this, the catch block below also throws, producing
+          // an unhandled rejection inside the ReadableStream start function.
+          try {
+            if (result.success) {
+              const data = JSON.stringify({ type: 'text', text: result.responseText });
+              controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));
+            } else {
+              const errorText = result.error
+                ? result.error
+                : result.responseText || 'Something went wrong.';
+              const data = JSON.stringify({ type: 'text', text: errorText });
+              controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));
+            }
 
-          // Signal completion
-          controller.enqueue(new TextEncoder().encode('data: {"type":"done"}\n\n'));
-          controller.close();
+            // Signal completion
+            controller.enqueue(new TextEncoder().encode('data: {"type":"done"}\n\n'));
+            controller.close();
+          } catch {
+            // Stream already closed (client disconnected) — nothing to send to
+          }
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           console.error('[Chat] Error:', error);
-          const errorData = JSON.stringify({ type: 'error', error: errorMessage });
-          controller.enqueue(new TextEncoder().encode(`data: ${errorData}\n\n`));
-          controller.close();
+          try {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            const errorData = JSON.stringify({ type: 'error', error: errorMessage });
+            controller.enqueue(new TextEncoder().encode(`data: ${errorData}\n\n`));
+            controller.close();
+          } catch {
+            // Stream already closed (client disconnected)
+          }
         }
       },
     });

@@ -9,7 +9,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/jarvis/memory/db';
 import { conversationEvaluations, behaviorRules, memoryEntries } from '@/lib/jarvis/memory/schema';
-import { sql, eq, desc, and, isNull } from 'drizzle-orm';
+import { sql, eq, desc, isNull } from 'drizzle-orm';
 
 export const maxDuration = 10;
 export const dynamic = 'force-dynamic';

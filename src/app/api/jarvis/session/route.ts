@@ -14,7 +14,6 @@ import {
   MemoryService,
   getActiveSession,
   startSession,
-  endSession,
   getSessionById,
   type EndTrigger,
 } from '@/lib/jarvis/memory';
@@ -143,7 +142,8 @@ export async function PATCH(request: NextRequest) {
   const isProduction = process.env.NODE_ENV === 'production';
 
   try {
-    const body = await request.json();
+    // .catch handles malformed/missing body (e.g. browser beforeunload sending incomplete data)
+    const body = await request.json().catch(() => ({}));
     const trigger: EndTrigger = body.trigger || 'explicit';
     const summary = body.summary;
 
