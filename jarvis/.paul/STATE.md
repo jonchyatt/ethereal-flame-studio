@@ -265,12 +265,13 @@ Deep 5-agent audit revealed:
 
 ## Session Continuity
 
-Last session: 2026-02-27
-Stopped at: v4.0 milestone COMPLETE — all code committed and pushed
-Next action: Verify G-04 from live site, then plan v4.1 milestone
-Resume file: .paul/HANDOFF-2026-02-27-g.md
+Last session: 2026-02-28
+Stopped at: "Best work" audit — Layer 2 (Intelligence) complete, Layer 3 next
+Next action: Continue audit — Layer 3: UI Foundation (Phase E shell + stores + primitives)
+Resume file: .paul/HANDOFF-2026-02-28.md
 Resume context:
-- v4.0 milestone 100% — phases A through G all complete
-- G-04 committed and pushed (1e00173) — deploying to production
-- Git clean, on master, up to date with origin
-- Known v4.1 gaps: journal/health data, write-back mutations, 6 empty domains, voice, shell convergence
+- Layer 1 (Core Brain) + Layer 2 (Intelligence) both audited and committed
+- Layer 2 produced 4 architectural improvements + v4.1 intelligence vision doc
+- Jarvis Academy concept also documented this session
+- Commit 150b7d3 pushed to master, deploying
+- 4 layers remain: UI Foundation (E), UI Features (E), Vector Memory (F), Production (G)
