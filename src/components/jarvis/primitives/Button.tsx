@@ -1,6 +1,6 @@
 'use client';
 
-import { type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive' | 'icon';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -39,7 +39,7 @@ function Spinner() {
   );
 }
 
-export function Button({
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
   variant = 'primary',
   size = 'md',
   loading = false,
@@ -48,14 +48,16 @@ export function Button({
   className = '',
   disabled,
   ...rest
-}: ButtonProps) {
+}, ref) {
   const isIconOnly = variant === 'icon';
 
   return (
     <button
+      ref={ref}
       className={`
         inline-flex items-center justify-center gap-2
         transition-colors disabled:opacity-40 disabled:cursor-not-allowed
+        focus-visible:ring-2 focus-visible:ring-cyan-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 focus-visible:outline-none
         ${variantClasses[variant]}
         ${isIconOnly ? '' : sizeClasses[size]}
         ${loading ? 'pointer-events-none' : ''}
@@ -68,4 +70,4 @@ export function Button({
       {children}
     </button>
   );
-}
+});

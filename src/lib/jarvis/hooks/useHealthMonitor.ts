@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/lib/jarvis/stores/toastStore';
 
@@ -25,6 +25,8 @@ interface HealthResponse {
 
 export function useHealthMonitor(): void {
   const router = useRouter();
+  const routerRef = useRef(router);
+  routerRef.current = router;
 
   useEffect(() => {
     // Only run once per browser session
@@ -36,7 +38,7 @@ export function useHealthMonitor(): void {
         const res = await fetch('/api/jarvis/health');
         if (!res.ok) return; // Silent on fetch error
         const health: HealthResponse = await res.json();
-        const action = { label: 'Details', onClick: () => router.push('/jarvis/app/settings') };
+        const action = { label: 'Details', onClick: () => routerRef.current.push('/jarvis/app/settings') };
 
         // Check anomalies — most critical wins, only ONE toast
         if (!health.db.connected) {
@@ -72,5 +74,5 @@ export function useHealthMonitor(): void {
     }, DELAY_MS);
 
     return () => clearTimeout(timeout);
-  }, [router]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- must run exactly once; router accessed via ref
 }

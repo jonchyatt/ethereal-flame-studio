@@ -57,9 +57,13 @@ export function Toast({ variant, message, action, duration, onDismiss }: ToastPr
     touchStartRef.current = null;
   }, [onDismiss]);
 
+  const ariaRole = variant === 'error' || variant === 'warning' ? 'alert' : 'status';
+
   return (
     <div
       ref={toastRef}
+      role={ariaRole}
+      aria-live={ariaRole === 'alert' ? 'assertive' : 'polite'}
       className={`
         relative flex items-start gap-3
         bg-zinc-900/95 backdrop-blur-xl border border-white/10 border-l-4 ${borderColor}
@@ -84,6 +88,7 @@ export function Toast({ variant, message, action, duration, onDismiss }: ToastPr
       <button
         onClick={onDismiss}
         className="absolute top-2 right-2 text-white/30 hover:text-white/60 transition-colors"
+        aria-label="Dismiss notification"
       >
         <X className="w-3.5 h-3.5" />
       </button>

@@ -35,9 +35,10 @@ interface TutorialActions {
   setSkillLevel: (level: TutorialState['skillLevel']) => void;
 }
 
-type TutorialStore = TutorialState & TutorialActions & {
-  totalCompleted: number;
-};
+type TutorialStore = TutorialState & TutorialActions;
+
+/** Selector: derive totalCompleted from progress (do NOT use a getter inside Zustand state) */
+export const selectTotalCompleted = (s: TutorialState) => Object.keys(s.progress).length;
 
 // ── Store ──────────────────────────────────────────────────────────────────
 
@@ -50,10 +51,6 @@ export const useTutorialStore = create<TutorialStore>()(
       skillLevel: 'beginner',
       spotlight: null,
       suggestedNext: null,
-
-      get totalCompleted() {
-        return Object.keys(get().progress).length;
-      },
 
       startLesson: (lessonId) =>
         set({ currentLesson: lessonId, currentStep: 0, spotlight: null }),

@@ -8,6 +8,7 @@
  */
 
 import { create } from 'zustand';
+import { useShellStore } from './shellStore';
 
 export interface ChatMessage {
   id: string;
@@ -77,7 +78,12 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   closePanel: () => set({ isPanelOpen: false }),
   setActiveTool: (tool) => set({ activeTool: tool }),
   clearMessages: () => set({ messages: [], activeTool: null }),
-  openWithMessage: (message) => set({ isPanelOpen: true, queuedMessage: message }),
+  openWithMessage: (message) => {
+    set({ isPanelOpen: true, queuedMessage: message });
+    // Also open the new shell's chat panel — shellStore.isChatOpen is what ChatOverlay reads
+    const shell = useShellStore.getState();
+    if (!shell.isChatOpen) shell.toggleChat();
+  },
   consumeQueuedMessage: () => {
     const msg = get().queuedMessage;
     if (msg) set({ queuedMessage: null });

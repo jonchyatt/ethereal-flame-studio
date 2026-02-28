@@ -28,6 +28,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     console.error('[ErrorBoundary] Component stack:', info.componentStack);
   }
 
+  handleRetry = () => {
+    this.setState({ hasError: false, error: null });
+  };
+
   handleReload = () => {
     window.location.reload();
   };
@@ -45,9 +49,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               {this.state.error.message}
             </p>
           )}
-          <Button variant="primary" size="md" onClick={this.handleReload}>
-            Reload Jarvis
-          </Button>
+          <div className="flex gap-3">
+            <Button variant="secondary" size="md" onClick={this.handleRetry}>
+              Try Again
+            </Button>
+            <Button variant="primary" size="md" onClick={this.handleReload}>
+              Reload Jarvis
+            </Button>
+          </div>
         </div>
       );
     }

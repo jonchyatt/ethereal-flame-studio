@@ -1,6 +1,7 @@
 'use client';
 
 import { type ReactNode } from 'react';
+import { DOMAIN_COLORS } from '@/lib/jarvis/domains';
 
 type BadgeVariant = 'status' | 'count' | 'domain';
 type BadgeStatus = 'critical' | 'warning' | 'success' | 'info' | 'inactive';
@@ -49,10 +50,11 @@ export function Badge({
   }
 
   if (variant === 'domain' && domainColor) {
+    const colors = DOMAIN_COLORS[domainColor];
     return (
       <span
         className={`
-          bg-${domainColor}-500/10 text-${domainColor}-400
+          ${colors ? `${colors.bgSubtle} ${colors.text}` : 'bg-white/10 text-white/50'}
           rounded-full px-2 py-0.5
           ${size === 'sm' ? 'text-xs' : 'text-sm'}
           ${className}

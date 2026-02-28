@@ -31,7 +31,6 @@ const ICON_MAP: Record<string, LucideIcon> = {
 export function DomainRail() {
   const router = useRouter();
   const pathname = usePathname();
-  const activeDomain = useShellStore((s) => s.activeDomain);
   const setActiveDomain = useShellStore((s) => s.setActiveDomain);
   const domains = useActiveDomains();
 

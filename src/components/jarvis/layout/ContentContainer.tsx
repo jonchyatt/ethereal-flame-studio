@@ -23,8 +23,6 @@ export function ContentContainer({
     <div
       className={`
         w-full mx-auto px-4 md:px-6 lg:px-8
-        pt-[6.5rem] pb-20 md:pt-16 md:pb-4
-        md:pl-20
         ${maxWidthClasses[maxWidth]}
         ${className}
       `.trim().replace(/\s+/g, ' ')}
