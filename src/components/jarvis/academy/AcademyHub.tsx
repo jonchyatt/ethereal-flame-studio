@@ -11,7 +11,7 @@ import {
   getLessonCount,
   TUTORIAL_TIERS,
 } from '@/lib/jarvis/curriculum/tutorialLessons';
-import { useTutorialStore } from '@/lib/jarvis/stores/tutorialStore';
+import { useTutorialStore, selectTotalCompleted } from '@/lib/jarvis/stores/tutorialStore';
 import { useTutorialEngineContext } from '@/components/jarvis/layout/JarvisShell';
 
 // ── Progress Ring ─────────────────────────────────────────────────────────
@@ -71,7 +71,7 @@ export function AcademyHub() {
   const allLessons = useMemo(() => getAllLessons(), []);
   const { total } = useMemo(() => getLessonCount(), []);
   const suggestedLesson = useMemo(() => getSuggestedLesson(progress), [progress]);
-  const totalCompleted = useMemo(() => Object.keys(progress).length, [progress]);
+  const totalCompleted = useTutorialStore(selectTotalCompleted);
 
   // Group lessons by tier
   const lessonsByTier = useMemo(() => {

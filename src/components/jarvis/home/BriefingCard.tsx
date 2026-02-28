@@ -39,11 +39,8 @@ export function BriefingCard() {
 
   return (
     <Card variant="glass" padding="md">
-      {/* Header — tap to expand */}
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between"
-      >
+      {/* Header */}
+      <div className="w-full flex items-center justify-between">
         <div className="flex items-center gap-2">
           <FileText className="w-4 h-4 text-cyan-400" />
           <span className="text-xs font-medium text-white/60 uppercase tracking-wide">
@@ -61,14 +58,23 @@ export function BriefingCard() {
             onClick={handleRefresh}
             className="p-1 rounded-lg hover:bg-white/10 transition-colors"
             title="Refresh briefing"
+            aria-label="Refresh briefing"
           >
-            <RefreshCw className={`w-3 h-3 text-white/30 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3 h-3 text-white/30 ${refreshing ? 'animate-spin' : ''}`} aria-hidden="true" />
           </button>
-          <ChevronDown
-            className={`w-4 h-4 text-white/40 transition-transform ${expanded ? 'rotate-180' : ''}`}
-          />
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="p-1 rounded-lg hover:bg-white/10 transition-colors"
+            aria-expanded={expanded}
+            aria-label={expanded ? 'Collapse briefing' : 'Expand briefing'}
+          >
+            <ChevronDown
+              className={`w-4 h-4 text-white/40 transition-transform ${expanded ? 'rotate-180' : ''}`}
+              aria-hidden="true"
+            />
+          </button>
         </div>
-      </button>
+      </div>
 
       {/* Content */}
       <div

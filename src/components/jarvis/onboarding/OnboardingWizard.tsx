@@ -21,7 +21,6 @@ import {
   Zap,
   DollarSign,
   Target,
-  Clock,
   Sun,
   Moon,
 } from 'lucide-react';
@@ -269,7 +268,7 @@ export function OnboardingWizard() {
                 relative bg-black/60 backdrop-blur-md rounded-xl p-4
                 border transition-all duration-200
                 ${isActive
-                  ? `border-${domain.color}-500/40 shadow-lg shadow-${domain.color}-500/10`
+                  ? `${colors.border} shadow-lg ${colors.shadow}`
                   : 'border-white/10 hover:border-white/20'
                 }
                 ${isLocked ? '' : 'cursor-pointer'}
@@ -531,7 +530,7 @@ export function OnboardingWizard() {
             {/* Sleep zone (wraps around midnight) */}
             <div
               className="absolute top-0 bottom-0 bg-violet-500/20"
-              style={{ left: `${sleepStart}%`, right: `${100 - 100}%` }}
+              style={{ left: `${sleepStart}%`, right: '0%' }}
             />
             <div
               className="absolute top-0 bottom-0 bg-violet-500/20"
@@ -581,13 +580,14 @@ export function OnboardingWizard() {
   const renderStep6 = () => (
     <div className="flex flex-col gap-6 max-w-lg mx-auto">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-white">Here&apos;s what Jarvis knows right now</h2>
+        <h2 className="text-2xl font-bold text-white">Here&apos;s what a day with Jarvis looks like</h2>
       </div>
 
       <Card variant="glass" padding="lg">
         <p className="text-lg font-medium text-white mb-4">
-          {getGreeting()}, Jonathan
+          {getGreeting()}
         </p>
+        <p className="text-xs text-white/30 uppercase tracking-wider mb-3">Example briefing</p>
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
             <ListTodo className="w-4 h-4 text-cyan-400 shrink-0" />
@@ -607,7 +607,7 @@ export function OnboardingWizard() {
           </div>
         </div>
         <p className="text-sm text-white/40 mt-4 italic">
-          You&apos;re off to a great start. Jarvis is ready when you are.
+          Your real data will appear once your sources sync.
         </p>
       </Card>
 
@@ -676,7 +676,7 @@ export function OnboardingWizard() {
 
         {/* Navigation bar (steps 2-5) */}
         {(showBackButton || showContinue) && (
-          <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-md border-t border-white/5 px-5 py-4 flex items-center justify-between safe-area-pb">
+          <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-md border-t border-white/5 px-5 py-4 flex items-center justify-between safe-area-bottom">
             {showBackButton ? (
               <Button variant="ghost" onClick={back}>
                 <ChevronLeft className="w-4 h-4 mr-1" /> Back

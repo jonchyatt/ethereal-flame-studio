@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { Card } from '@/components/jarvis/primitives';
-import { usePersonalStore, type JournalEntry } from '@/lib/jarvis/stores/personalStore';
+import { usePersonalStore, getToday, type JournalEntry } from '@/lib/jarvis/stores/personalStore';
 
 const MOOD_EMOJI: Record<NonNullable<JournalEntry['mood']>, string> = {
   great: '😊',
@@ -12,8 +12,6 @@ const MOOD_EMOJI: Record<NonNullable<JournalEntry['mood']>, string> = {
 };
 
 const MOOD_OPTIONS: NonNullable<JournalEntry['mood']>[] = ['great', 'good', 'okay', 'rough'];
-
-const TODAY = '2026-02-26';
 
 function formatDate(date: string): string {
   const d = new Date(date + 'T00:00:00');
@@ -58,7 +56,7 @@ export function JournalView() {
       {/* Entries */}
       <div className="space-y-3">
         {journal.map((entry, index) => {
-          const isToday = entry.date === TODAY;
+          const isToday = entry.date === getToday();
 
           return (
             <div

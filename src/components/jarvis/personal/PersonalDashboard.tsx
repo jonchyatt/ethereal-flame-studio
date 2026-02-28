@@ -14,13 +14,18 @@ import { TodaySnapshot } from './TodaySnapshot';
 import { SubProgramCard } from './SubProgramCard';
 
 export function PersonalDashboard() {
-  const { todayStats, events, journal, goals, health, bills } = usePersonalStore();
+  const todayStats = usePersonalStore((s) => s.todayStats);
+  const events = usePersonalStore((s) => s.events);
+  const journal = usePersonalStore((s) => s.journal);
+  const goals = usePersonalStore((s) => s.goals);
+  const health = usePersonalStore((s) => s.health);
+  const bills = usePersonalStore((s) => s.bills);
 
   const todayEvents = events.filter((e) => e.isToday).length;
   const today = new Date().toISOString().split('T')[0];
   const hasJournalEntry = journal.some((j) => j.date === today);
   const hasOverdueBills = bills.some((b) => b.status === 'overdue');
-  const hasIncompletHabits = todayStats.habitsDone < todayStats.habitsTotal;
+  const hasIncompleteHabits = todayStats.habitsDone < todayStats.habitsTotal;
 
   const subPrograms = [
     {
@@ -38,7 +43,7 @@ export function PersonalDashboard() {
       icon: Zap,
       route: '/jarvis/app/personal/habits',
       stat: `${todayStats.habitsDone}/${todayStats.habitsTotal} done`,
-      warn: hasIncompletHabits,
+      warn: hasIncompleteHabits,
       critical: false,
     },
     {

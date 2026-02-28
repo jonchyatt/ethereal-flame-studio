@@ -27,13 +27,13 @@ export function getDomainById(id: string): Domain | undefined {
  * Maps domain color names to Tailwind class fragments for dynamic usage.
  * Use these when you need to construct classes from domain.color at runtime.
  */
-export const DOMAIN_COLORS: Record<string, { text: string; bg: string; bgSubtle: string }> = {
-  cyan: { text: 'text-cyan-400', bg: 'bg-cyan-500', bgSubtle: 'bg-cyan-500/15' },
-  violet: { text: 'text-violet-400', bg: 'bg-violet-500', bgSubtle: 'bg-violet-500/15' },
-  orange: { text: 'text-orange-400', bg: 'bg-orange-500', bgSubtle: 'bg-orange-500/15' },
-  emerald: { text: 'text-emerald-400', bg: 'bg-emerald-500', bgSubtle: 'bg-emerald-500/15' },
-  rose: { text: 'text-rose-400', bg: 'bg-rose-500', bgSubtle: 'bg-rose-500/15' },
-  sky: { text: 'text-sky-400', bg: 'bg-sky-500', bgSubtle: 'bg-sky-500/15' },
-  amber: { text: 'text-amber-400', bg: 'bg-amber-500', bgSubtle: 'bg-amber-500/15' },
-  indigo: { text: 'text-indigo-400', bg: 'bg-indigo-500', bgSubtle: 'bg-indigo-500/15' },
+export const DOMAIN_COLORS: Record<string, { text: string; bg: string; bgSubtle: string; border: string; shadow: string }> = {
+  cyan: { text: 'text-cyan-400', bg: 'bg-cyan-500', bgSubtle: 'bg-cyan-500/15', border: 'border-cyan-500/40', shadow: 'shadow-cyan-500/10' },
+  violet: { text: 'text-violet-400', bg: 'bg-violet-500', bgSubtle: 'bg-violet-500/15', border: 'border-violet-500/40', shadow: 'shadow-violet-500/10' },
+  orange: { text: 'text-orange-400', bg: 'bg-orange-500', bgSubtle: 'bg-orange-500/15', border: 'border-orange-500/40', shadow: 'shadow-orange-500/10' },
+  emerald: { text: 'text-emerald-400', bg: 'bg-emerald-500', bgSubtle: 'bg-emerald-500/15', border: 'border-emerald-500/40', shadow: 'shadow-emerald-500/10' },
+  rose: { text: 'text-rose-400', bg: 'bg-rose-500', bgSubtle: 'bg-rose-500/15', border: 'border-rose-500/40', shadow: 'shadow-rose-500/10' },
+  sky: { text: 'text-sky-400', bg: 'bg-sky-500', bgSubtle: 'bg-sky-500/15', border: 'border-sky-500/40', shadow: 'shadow-sky-500/10' },
+  amber: { text: 'text-amber-400', bg: 'bg-amber-500', bgSubtle: 'bg-amber-500/15', border: 'border-amber-500/40', shadow: 'shadow-amber-500/10' },
+  indigo: { text: 'text-indigo-400', bg: 'bg-indigo-500', bgSubtle: 'bg-indigo-500/15', border: 'border-indigo-500/40', shadow: 'shadow-indigo-500/10' },
 };

@@ -1,32 +1,11 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
-import {
-  Home,
-  User,
-  Flame,
-  Dna,
-  Dice6,
-  TrendingUp,
-  Landmark,
-  Building2,
-  Settings,
-} from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { DOMAIN_COLORS } from '@/lib/jarvis/domains';
+import { DomainIcon } from '@/components/jarvis/home/DomainIcon';
 import { useShellStore } from '@/lib/jarvis/stores/shellStore';
 import { useActiveDomains } from '@/lib/jarvis/stores/settingsStore';
-
-const ICON_MAP: Record<string, LucideIcon> = {
-  Home,
-  User,
-  Flame,
-  Dna,
-  Dice6,
-  TrendingUp,
-  Landmark,
-  Building2,
-};
 
 export function DomainRail() {
   const router = useRouter();
@@ -53,10 +32,8 @@ export function DomainRail() {
       <nav className="fixed left-0 right-0 top-14 h-12 bg-zinc-950/80 backdrop-blur-xl border-b border-white/10 z-40 md:hidden">
         <div className="flex items-center justify-center h-full gap-1 px-4 overflow-x-auto">
           {domains.map((domain) => {
-            const Icon = ICON_MAP[domain.icon];
             const isActive = getIsActive(domain.id, domain.route);
             const colors = DOMAIN_COLORS[domain.color];
-            if (!Icon) return null;
 
             return (
               <button
@@ -72,7 +49,7 @@ export function DomainRail() {
                 aria-label={domain.name}
                 title={domain.name}
               >
-                <Icon className="w-5 h-5" />
+                <DomainIcon name={domain.icon} className="w-5 h-5" />
               </button>
             );
           })}
@@ -84,10 +61,8 @@ export function DomainRail() {
         {/* Domain icons */}
         <div className="flex flex-col items-center gap-2 flex-1">
           {domains.map((domain) => {
-            const Icon = ICON_MAP[domain.icon];
             const isActive = getIsActive(domain.id, domain.route);
             const colors = DOMAIN_COLORS[domain.color];
-            if (!Icon) return null;
 
             return (
               <button
@@ -102,7 +77,7 @@ export function DomainRail() {
                 `}
                 aria-label={domain.name}
               >
-                <Icon className="w-5 h-5" />
+                <DomainIcon name={domain.icon} className="w-5 h-5" />
                 {/* Tooltip */}
                 <span className="absolute left-full ml-3 px-2 py-1 text-xs text-white bg-zinc-800 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
                   {domain.name}

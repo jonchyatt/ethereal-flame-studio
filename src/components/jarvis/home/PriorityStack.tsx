@@ -2,7 +2,6 @@
 
 import { CheckCircle } from 'lucide-react';
 import { Card } from '@/components/jarvis/primitives';
-import { Button } from '@/components/jarvis/primitives';
 import { useHomeStore, type UrgencyLevel } from '@/lib/jarvis/stores/homeStore';
 import { getDomainById, DOMAIN_COLORS } from '@/lib/jarvis/domains';
 import { DomainIcon } from './DomainIcon';
@@ -67,11 +66,9 @@ export function PriorityStack() {
                   )}
                 </div>
 
-                {/* Quick action */}
-                {item.quickActionLabel && (
-                  <Button variant="ghost" size="sm" className="flex-shrink-0 text-xs">
-                    {item.quickActionLabel}
-                  </Button>
+                {/* Urgency indicator */}
+                {item.urgency === 'critical' && (
+                  <span className="text-xs text-red-400/70 flex-shrink-0">Urgent</span>
                 )}
               </div>
             </Card>

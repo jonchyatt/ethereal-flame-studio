@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import { GraduationCap, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/jarvis/primitives/Card';
-import { useTutorialStore } from '@/lib/jarvis/stores/tutorialStore';
+import { useTutorialStore, selectTotalCompleted } from '@/lib/jarvis/stores/tutorialStore';
 import { getSuggestedLesson, getLessonCount } from '@/lib/jarvis/curriculum/tutorialLessons';
 
 function MiniProgressRing({
@@ -50,7 +50,7 @@ function MiniProgressRing({
 export function AcademyProgress() {
   const progress = useTutorialStore((s) => s.progress);
   const { total } = useMemo(() => getLessonCount(), []);
-  const completed = useMemo(() => Object.keys(progress).length, [progress]);
+  const completed = useTutorialStore(selectTotalCompleted);
   const suggested = useMemo(() => getSuggestedLesson(progress), [progress]);
   const allComplete = completed === total;
 

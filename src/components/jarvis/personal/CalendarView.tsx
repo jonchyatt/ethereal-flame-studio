@@ -4,8 +4,13 @@ import { useMemo } from 'react';
 import { Card } from '@/components/jarvis/primitives';
 import { usePersonalStore } from '@/lib/jarvis/stores/personalStore';
 
-function formatTime(iso: string): string {
-  const d = new Date(iso);
+function formatTime(time: string): string {
+  if (!time) return '';
+  // If already a formatted time string (e.g., "10:00 AM"), return as-is
+  if (/\d{1,2}:\d{2}\s*(AM|PM)/i.test(time)) return time;
+  // Try parsing as ISO/date string
+  const d = new Date(time);
+  if (isNaN(d.getTime())) return time;
   return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 

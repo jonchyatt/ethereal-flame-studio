@@ -70,7 +70,7 @@ export interface TodayStats {
 
 // ── Computed Stats ─────────────────────────────────────────────────────────
 
-function getToday(): string {
+export function getToday(): string {
   return new Date().toISOString().split('T')[0];
 }
 

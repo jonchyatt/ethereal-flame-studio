@@ -3,9 +3,7 @@
 import { useMemo } from 'react';
 import { Check } from 'lucide-react';
 import { Card } from '@/components/jarvis/primitives';
-import { usePersonalStore, type PersonalTask } from '@/lib/jarvis/stores/personalStore';
-
-const TODAY = '2026-02-26';
+import { usePersonalStore, getToday, type PersonalTask } from '@/lib/jarvis/stores/personalStore';
 const PRIORITY_ORDER: Record<PersonalTask['priority'], number> = { high: 0, medium: 1, low: 2 };
 const PRIORITY_DOT: Record<PersonalTask['priority'], string> = {
   high: 'bg-amber-400',
@@ -81,12 +79,13 @@ export function TasksList() {
   const toggleTask = usePersonalStore((s) => s.toggleTask);
 
   const groups = useMemo(() => {
+    const today = getToday();
     const overdue = sortByPriority(tasks.filter((t) => !t.completed && t.overdue));
     const dueToday = sortByPriority(
-      tasks.filter((t) => !t.completed && !t.overdue && t.dueDate === TODAY),
+      tasks.filter((t) => !t.completed && !t.overdue && t.dueDate === today),
     );
     const upcoming = sortByPriority(
-      tasks.filter((t) => !t.completed && !t.overdue && t.dueDate > TODAY),
+      tasks.filter((t) => !t.completed && !t.overdue && t.dueDate > today),
     );
     const completed = tasks.filter((t) => t.completed);
     return { overdue, dueToday, upcoming, completed };

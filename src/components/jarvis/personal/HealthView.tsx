@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { Dumbbell, UtensilsCrossed, Moon } from 'lucide-react';
 import { Card } from '@/components/jarvis/primitives';
-import { usePersonalStore, type HealthItem } from '@/lib/jarvis/stores/personalStore';
+import { usePersonalStore, getToday, type HealthItem } from '@/lib/jarvis/stores/personalStore';
 
 const TYPE_CONFIG: Record<
   HealthItem['type'],
@@ -33,7 +33,7 @@ export function HealthView() {
   }, [health]);
 
   const todayCount = useMemo(
-    () => health.filter((h) => h.date === '2026-02-26').length,
+    () => health.filter((h) => h.date === getToday()).length,
     [health],
   );
 
