@@ -24,10 +24,10 @@ import {
 } from './queries/memoryEntries';
 import { observeAndInfer } from './preferenceInference';
 import { type PatternType } from './queries/observations';
+import { sql } from 'drizzle-orm';
 import { getDb, memoryEntries } from './db';
 import { logEvent, getRecentToolInvocations, type ToolInvocationData } from './queries/dailyLogs';
 import { trackErrorPattern } from '../resilience/errorTracking';
-import { dualSearch } from './vectorSearch';
 import { findConsolidationCandidates, executeConsolidation, synthesizeMergedMemory } from './consolidation';
 
 export type MemoryToolName =
@@ -368,6 +368,13 @@ async function handleDeleteAll(
   const db = getDb();
   await db.delete(memoryEntries);
 
+  // Clean up embeddings table to prevent orphaned vectors
+  try {
+    await db.run(sql.raw('DELETE FROM memory_embeddings'));
+  } catch {
+    // memory_embeddings table may not exist yet — nothing to clean
+  }
+
   return JSON.stringify({
     success: true,
     message: `Permanently deleted ${count} memory(ies). Memory is now empty.`,
@@ -496,7 +503,7 @@ async function handleSearchMemories(
     return JSON.stringify({ error: 'query is required' });
   }
 
-  const results = await dualSearch(query, limit);
+  const results = await findMemoriesMatching(query, limit);
 
   if (results.length === 0) {
     return JSON.stringify({
@@ -540,8 +547,11 @@ async function handleConsolidateMemories(
       return JSON.stringify({ error: 'No valid group IDs provided in confirm_ids' });
     }
 
+    // Parse optional pre-synthesized merge contents (from preview phase, avoids double API calls)
+    const mergedContentsRaw = input.merged_contents as Record<string, string> | undefined;
+
     // Parse keepId-removeId from each groupId and build candidates
-    const candidates: Array<{ keepId: number; removeId: number; keepContent: string; removeContent: string }> = [];
+    const candidates: Array<{ keepId: number; removeId: number; keepContent: string; removeContent: string; mergedContent?: string }> = [];
 
     for (const groupId of groupIds) {
       const parts = groupId.split('-').map(s => parseInt(s.trim(), 10));
@@ -560,6 +570,7 @@ async function handleConsolidateMemories(
         removeId,
         keepContent: keepEntry.content,
         removeContent: removeEntry.content,
+        mergedContent: mergedContentsRaw?.[groupId],
       });
     }
 

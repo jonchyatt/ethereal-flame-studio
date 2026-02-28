@@ -15,6 +15,15 @@ import { getSessionMessages, getSessionMessageCount } from './queries/messages';
 
 const SUMMARIZATION_MIN_MESSAGES = 15;
 
+// Lazy Anthropic singleton — prevents redundant client instantiation per call
+let _anthropic: Anthropic | null = null;
+function getAnthropicClient(): Anthropic {
+  if (!_anthropic) {
+    _anthropic = new Anthropic();
+  }
+  return _anthropic;
+}
+
 /**
  * Summarize a session's conversation and store the result.
  *
@@ -48,32 +57,37 @@ export async function triggerSummarization(sessionId: number): Promise<void> {
     .join('\n');
 
   // Call Claude Haiku for summarization
-  const anthropic = new Anthropic();
-  const response = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 256,
-    system: 'You are a conversation summarizer. Output ONLY the summary, nothing else.',
-    messages: [{
-      role: 'user',
-      content: `Summarize this conversation between a user and their AI assistant Jarvis. Focus on key topics discussed, decisions made, tasks mentioned, and important facts learned. 2-4 sentences.\n\n${transcript}`,
-    }],
-  });
+  try {
+    const client = getAnthropicClient();
+    const response = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 256,
+      system: 'You are a conversation summarizer. Output ONLY the summary, nothing else.',
+      messages: [{
+        role: 'user',
+        content: `Summarize this conversation between a user and their AI assistant Jarvis. Focus on key topics discussed, decisions made, tasks mentioned, and important facts learned. 2-4 sentences.\n\n${transcript}`,
+      }],
+    });
 
-  const summary = response.content
-    .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-    .map(b => b.text)
-    .join('')
-    .trim();
+    const summary = response.content
+      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+      .map(b => b.text)
+      .join('')
+      .trim();
 
-  if (!summary) return;
+    if (!summary) return;
 
-  // Save summary to session
-  await db
-    .update(sessions)
-    .set({ summary })
-    .where(eq(sessions.id, sessionId));
+    // Save summary to session
+    await db
+      .update(sessions)
+      .set({ summary })
+      .where(eq(sessions.id, sessionId));
 
-  console.log(`[Summarization] Session ${sessionId} summarized: ${summary.length} chars`);
+    console.log(`[Summarization] Session ${sessionId} summarized: ${summary.length} chars`);
+  } catch (err) {
+    console.error(`[Summarization] Failed for session ${sessionId}:`, err);
+    // Don't rethrow — summarization failure shouldn't break other operations
+  }
 }
 
 /**

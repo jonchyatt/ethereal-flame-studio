@@ -6,7 +6,7 @@ Milestone: v4.0 Brain Swap & Personal Domain
 Phase: G of G (Integration & Polish) — COMPLETE
 Plan: G-04 complete (Production Hardening & Day-One Readiness)
 Status: Milestone complete — v4.0 shipped
-Last activity: 2026-02-28 — "Best work" audit Layer 4 (UI Features) complete
+Last activity: 2026-02-28 — "Best work" audit Layer 5 (Vector Memory) complete
 
 Progress:
 - Milestone: [##########] 100% (All phases A-G complete)
@@ -266,12 +266,12 @@ Deep 5-agent audit revealed:
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: "Best work" audit — Layer 4 (UI Features) complete
-Next action: Continue audit — Layer 5: Vector Memory (embeddings, vector search, consolidation)
-Resume file: .paul/HANDOFF-2026-02-28-c.md
+Stopped at: "Best work" audit — Layer 5 (Vector Memory) complete
+Next action: Continue audit — Layer 6: Production (API routes, cron jobs, health endpoint, middleware)
+Resume file: .paul/HANDOFF-2026-02-28-d.md
 Resume context:
-- Layers 1-4 all audited and committed (commits 0d4dcec, 150b7d3, ff860d0, 1c2270f)
-- Layer 4: 85 findings across 41 files, 13 fixes implemented (7 CRITICALs + 4 HIGHs)
-- Recurring pattern: dynamic Tailwind classes (found in L3 Badge + L4 OnboardingWizard)
-- Systemic issues documented: inline style duplication, zero loading/empty states, accessibility debt
-- 2 layers remain: Vector Memory (F), Production (G)
+- Layers 1-5 all audited and committed
+- Layer 5: 46 findings across 20 files, 8 fixes implemented (2 CRITICALs, 4 HIGHs, 2 MEDIUMs)
+- Key fixes: embedding orphan cleanup, double synthesis elimination, search routing, concurrent backfill guard
+- Systemic patterns documented: in-memory BM25 (should use FTS5), sequential embedding API calls (should batch), circular deps solved by require()
+- 1 layer remains: Production (G)

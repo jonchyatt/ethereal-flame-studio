@@ -21,6 +21,9 @@ import {
 } from './queries/memoryEntries';
 import type { MemoryEntry } from './schema';
 
+// Guard against concurrent backfill triggers from parallel dualSearch calls
+let _backfillInProgress = false;
+
 /**
  * Search memory embeddings using vector similarity.
  * Returns memory IDs with distance scores (lower = more similar).
@@ -123,10 +126,12 @@ export async function dualSearch(
   }
 
   // Trigger lazy backfill if vector search returned fewer results than expected
-  if (vectorResults.length < Math.min(fetchLimit, 3)) {
-    backfillEmbeddings().catch(err =>
-      console.error('[Memory] Background backfill failed:', err)
-    );
+  // Guard prevents concurrent backfills from parallel dualSearch calls
+  if (!_backfillInProgress && vectorResults.length < Math.min(fetchLimit, 3)) {
+    _backfillInProgress = true;
+    backfillEmbeddings()
+      .catch(err => console.error('[Memory] Background backfill failed:', err))
+      .finally(() => { _backfillInProgress = false; });
   }
 
   return entries;

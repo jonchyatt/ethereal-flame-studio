@@ -11,6 +11,15 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { sql } from 'drizzle-orm';
 import { getDb } from './db';
+
+// Lazy Anthropic singleton — prevents redundant client instantiation per call
+let _anthropic: Anthropic | null = null;
+function getAnthropicClient(): Anthropic {
+  if (!_anthropic) {
+    _anthropic = new Anthropic();
+  }
+  return _anthropic;
+}
 import { isVectorSearchAvailable, ensureEmbeddingsTable, generateAndStoreEmbedding } from './embeddings';
 import {
   getMemoryEntries,
@@ -138,10 +147,10 @@ export async function synthesizeMergedMemory(
   contentB: string
 ): Promise<string> {
   try {
-    const anthropic = new Anthropic();
-    const response = await anthropic.messages.create({
+    const client = getAnthropicClient();
+    const response = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 128,
+      max_tokens: 256,
       system: 'You merge similar memory entries into one concise fact. Output ONLY the merged memory, nothing else. Preserve all specific details (times, names, quantities). Keep it to 1-2 sentences max.',
       messages: [{
         role: 'user',
@@ -164,20 +173,22 @@ export async function synthesizeMergedMemory(
 
 /**
  * Execute consolidation on confirmed candidate pairs.
- * For each pair: synthesize merged content, update kept entry, soft-delete removed entry.
+ * For each pair: use provided merged content (or synthesize if not provided),
+ * update kept entry, soft-delete removed entry.
  *
  * @param candidates - Array of candidate pairs to merge
  * @returns Stats on merged/failed counts
  */
 export async function executeConsolidation(
-  candidates: Array<{ keepId: number; removeId: number; keepContent: string; removeContent: string }>
+  candidates: Array<{ keepId: number; removeId: number; keepContent: string; removeContent: string; mergedContent?: string }>
 ): Promise<{ merged: number; failed: number }> {
   let merged = 0;
   let failed = 0;
 
   for (const candidate of candidates) {
     try {
-      const synthesized = await synthesizeMergedMemory(candidate.keepContent, candidate.removeContent);
+      // Use pre-synthesized content from preview if available, otherwise synthesize
+      const synthesized = candidate.mergedContent || await synthesizeMergedMemory(candidate.keepContent, candidate.removeContent);
       await updateMemoryContent(candidate.keepId, synthesized);
       await softDeleteMemoryEntry(candidate.removeId);
       console.log(`[Consolidation] Merged #${candidate.keepId} + #${candidate.removeId} → "${synthesized.slice(0, 50)}..."`);
