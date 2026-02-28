@@ -13,6 +13,10 @@ import { getOrCreateSession } from '@/lib/jarvis/memory/queries/sessions';
 import { getJarvisConfig } from '@/lib/jarvis/config';
 import { backfillSummarization } from '@/lib/jarvis/memory/summarization';
 
+// Tool loops can require multiple Claude API round-trips
+export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
+
 // Context window monitoring (GUARD-05)
 const MAX_CONTEXT_TOKENS = 100_000;
 const WARN_THRESHOLD_PERCENT = 80;

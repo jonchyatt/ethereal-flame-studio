@@ -19,13 +19,16 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: 'Telegram disabled' }, { status: 404 });
   }
 
-  // Verify Telegram secret token
+  // Verify Telegram secret token — MUST be configured in production
   const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
-  if (secret) {
-    const provided = request.headers.get('X-Telegram-Bot-Api-Secret-Token');
-    if (provided !== secret) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  if (!secret) {
+    console.error('[Telegram] TELEGRAM_WEBHOOK_SECRET not configured');
+    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+  }
+
+  const provided = request.headers.get('X-Telegram-Bot-Api-Secret-Token');
+  if (provided !== secret) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {

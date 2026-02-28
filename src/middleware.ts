@@ -67,11 +67,19 @@ export function middleware(request: NextRequest) {
   // Check if this is a Jarvis API request
   const isJarvisApiRequest = pathname.startsWith('/api/jarvis/');
 
-  // Telegram webhook has its own auth (X-Telegram-Bot-Api-Secret-Token) — skip Jarvis auth
-  const isTelegramWebhook = pathname === '/api/jarvis/telegram';
+  // Routes that handle their own authentication — skip Jarvis auth:
+  // - Telegram webhook: uses X-Telegram-Bot-Api-Secret-Token
+  // - Reflect cron: uses Authorization: Bearer <CRON_SECRET> (Vercel Cron)
+  // - Health endpoint: read-only aggregate stats, no auth required
+  const selfAuthRoutes = [
+    '/api/jarvis/telegram',
+    '/api/jarvis/reflect',
+    '/api/jarvis/health',
+  ];
+  const hasSelfAuth = selfAuthRoutes.includes(pathname);
 
-  // Validate authentication for Jarvis API requests (except Telegram webhook)
-  if (isJarvisApiRequest && !isTelegramWebhook) {
+  // Validate authentication for Jarvis API requests (except self-auth routes)
+  if (isJarvisApiRequest && !hasSelfAuth) {
     const authError = validateJarvisAuth(request);
     if (authError) {
       return authError;

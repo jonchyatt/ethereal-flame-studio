@@ -8,14 +8,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PollyClient, SynthesizeSpeechCommand } from '@aws-sdk/client-polly';
 
-// Initialize Polly client
-const polly = new PollyClient({
-  region: process.env.AWS_REGION || 'us-east-2',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-  },
-});
+export const maxDuration = 15;
+
+// Lazy singleton — avoids creating client with empty credentials at import time
+let _polly: PollyClient | null = null;
+function getPollyClient(): PollyClient {
+  if (!_polly) {
+    _polly = new PollyClient({
+      region: process.env.AWS_REGION || 'us-east-2',
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+      },
+    });
+  }
+  return _polly;
+}
 
 // Neural voices that sound natural and warm (NOT butler-like)
 // Matthew = warm US male, Joanna = warm US female
@@ -48,7 +56,7 @@ export async function POST(request: NextRequest) {
       TextType: 'text',
     });
 
-    const response = await polly.send(command);
+    const response = await getPollyClient().send(command);
 
     if (!response.AudioStream) {
       throw new Error('No audio stream returned from Polly');

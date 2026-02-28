@@ -40,11 +40,11 @@ export async function POST(request: Request): Promise<Response> {
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('[TaskAPI] Error:', error);
 
+    // Don't leak internal error details (Notion SDK errors can contain tokens/URLs)
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: 'Failed to update task' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

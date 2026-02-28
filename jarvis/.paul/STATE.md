@@ -6,7 +6,7 @@ Milestone: v4.0 Brain Swap & Personal Domain
 Phase: G of G (Integration & Polish) — COMPLETE
 Plan: G-04 complete (Production Hardening & Day-One Readiness)
 Status: Milestone complete — v4.0 shipped
-Last activity: 2026-02-28 — "Best work" audit Layer 5 (Vector Memory) complete
+Last activity: 2026-02-28 — "Best work" audit Layer 6 (Production) complete
 
 Progress:
 - Milestone: [##########] 100% (All phases A-G complete)
@@ -266,12 +266,12 @@ Deep 5-agent audit revealed:
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: "Best work" audit — Layer 5 (Vector Memory) complete
-Next action: Continue audit — Layer 6: Production (API routes, cron jobs, health endpoint, middleware)
-Resume file: .paul/HANDOFF-2026-02-28-d.md
+Stopped at: "Best work" audit — ALL 6 LAYERS COMPLETE
+Next action: Milestone audit complete — decide v4.1 scope
+Resume file: N/A (audit complete)
 Resume context:
-- Layers 1-5 all audited and committed
-- Layer 5: 46 findings across 20 files, 8 fixes implemented (2 CRITICALs, 4 HIGHs, 2 MEDIUMs)
-- Key fixes: embedding orphan cleanup, double synthesis elimination, search routing, concurrent backfill guard
-- Systemic patterns documented: in-memory BM25 (should use FTS5), sequential embedding API calls (should batch), circular deps solved by require()
-- 1 layer remains: Production (G)
+- All 6 layers audited and committed
+- Layer 6: 15 findings across 16 files, 7 fixes implemented (2 CRITICALs, 4 HIGHs, 1 MEDIUM)
+- Key fixes: cron route unblocked from middleware (self-improvement was DEAD in prod), health endpoint auth exempted, maxDuration on chat/briefing/TTS routes, Telegram webhook auth hardened, task error sanitized, Polly lazy init
+- Systemic patterns documented: STT in-memory sessions on serverless (fundamentally broken but voice inactive), SSE secret in query params (acceptable for single-user)
+- "Best work" audit complete across all layers

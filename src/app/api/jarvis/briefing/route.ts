@@ -20,6 +20,10 @@ import {
   buildWeeklyReviewData as buildWeeklyReviewFromNotion,
 } from '@/lib/jarvis/executive/BriefingBuilder';
 
+// Notion API calls can be slow, especially on cold starts
+export const maxDuration = 30;
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type') || 'morning';
