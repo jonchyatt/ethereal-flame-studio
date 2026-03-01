@@ -8,7 +8,7 @@ Milestones in progress:
 
 Phase J: Plan J-01 COMPLETE, ready for J-02
 Phase K: Plan K-01 COMPLETE, ready for K-02
-Last activity: 2026-03-01 — K-01 Core Academy Engine shipped (3 tools + GitHub reader + system prompt)
+Last activity: 2026-03-01 — Multi-calendar deployed, Notion DBs created, Google Calendar connected, v4.3 onboarding captured
 
 Progress:
 - v4.2: [██░░░░░░░░] 25% (1 of 4 plans)
@@ -28,7 +28,7 @@ Goal: Complete meal planning pipeline — conversational recipe management, week
 
 Key context:
 - J-01 Backend Foundation COMPLETE — 7 tools deployed, all schemas/filters/formatters built
-- Human blocker remains: Jonathan must create Pantry DB in Notion + set 5 env vars in Vercel
+- Human blocker CLEARED: Pantry + Shopping List DBs created, 5 env vars set in Vercel
 - Tools gracefully degrade until databases are configured
 - Vision input framework captured as new requirement (camera → image recognition → tool calls)
 - Model switching (Haiku ↔ Sonnet) for vision tasks captured as requirement
@@ -96,21 +96,21 @@ New requirements captured (vision input):
 | Pantry + Shopping List DBs created | J-01 blocker cleared | 5 env vars ready to set in Vercel |
 
 ### Git State
-Last commit: (pending K-01 commit)
+Last commit: b595bde
 Branch: master
 Feature branches merged: none (developed directly on master)
 
 ## Session Continuity
 
-Last session: 2026-03-01
-Stopped at: J-01 unified, loop complete
-Next action: J-02 (Briefing Integration) or K-02 (Deep Visopscreen Curriculum)
-Resume files:
-- .paul/phases/J-meal-planning/J-01-SUMMARY.md
-- .paul/phases/K-jarvis-academy/K-01-SUMMARY.md
+Last session: 2026-03-01 (session 2)
+Stopped at: All blockers cleared, clean pause point
+Next action: /paul:plan for J-02 (Briefing Integration)
+Resume file: .paul/HANDOFF-2026-03-01-session2.md
 Resume context:
-- J-01 loop fully closed: SUMMARY written, all 7 AC pass, 1 deviation documented
-- K-01 complete: 3 academy tools, GitHub reader, system prompt enhancement, 5 new files + 4 modified
-- K-01 human blocker: Jonathan must create GitHub PAT + set GITHUB_TOKEN/GITHUB_OWNER in Vercel
+- J-01 blocker CLEARED: Pantry + Shopping List DBs created in Notion, 5 env vars set in Vercel
+- Google Calendar connected: service account created, 2 calendars shared (personal + family), env vars set
+- Multi-calendar code deployed (comma-separated GOOGLE_CALENDAR_ID support)
+- v4.3 Guided Onboarding requirements fully captured in PROJECT.md (curriculum architecture + 7 modules)
+- Key v4.3 decisions: self-paced modules, curriculum backbone + conversational delivery, wife test = acceptance criterion
 - J-02 scope: MealPlanSummary interface, BriefingBuilder integration, store wiring
-- K-02 scope: Deep Visopscreen curriculum, topic-to-file mapping, teaching notes per area
+- K-02 available but blocked by GITHUB_TOKEN (Jonathan must create GitHub PAT)
