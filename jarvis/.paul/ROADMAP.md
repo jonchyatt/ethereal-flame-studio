@@ -117,6 +117,19 @@
 
 ---
 
+## Phase H: Google Calendar Integration
+
+**Goal:** Import Google Calendar events into Jarvis via service account — real schedule awareness across all briefings, chat, and UI
+
+**What changes:**
+- H-01: GoogleCalendarClient (service account JWT auth, native fetch, zero dependencies) + BriefingBuilder enrichment (all 4 builder functions) + query_calendar chat tool + transform pipeline
+
+**Depends on:** Phase G (production infrastructure stable)
+
+**Status:** Planning
+
+---
+
 ## Dependency Graph
 
 ```
@@ -153,6 +166,7 @@ Improve)  Memory)
 | E | Mobile-First UI Redesign | In progress (E-06 complete, E-07+ remaining) |
 | F | Vector Memory | Complete |
 | G | Integration & Polish | Complete |
+| H | Google Calendar Integration | Planning |
 
 ---
 

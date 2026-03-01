@@ -3,14 +3,14 @@
 ## Current Position
 
 Milestone: v4.0 Brain Swap & Personal Domain
-Phase: G of G (Integration & Polish) — COMPLETE
-Plan: G-04 complete (Production Hardening & Day-One Readiness)
-Status: Milestone complete — v4.0 shipped
-Last activity: 2026-02-28 — "Best work" audit Layer 6 (Production) complete
+Phase: H of H (Google Calendar Integration) — Planning
+Plan: H-01 created, awaiting approval
+Status: PLAN created, ready for APPLY
+Last activity: 2026-02-28 — Created H-01-PLAN.md (Google Calendar service account import)
 
 Progress:
-- Milestone: [##########] 100% (All phases A-G complete)
-- Phase G: [##########] 100% (G-01 + G-02 + G-03 + G-04 complete)
+- Milestone: [#########░] 93% (A-G complete, H planning)
+- Phase H: [░░░░░░░░░░] 0%
 
 ## Phase G Sub-Plan Progress (REDESIGNED)
 
@@ -24,7 +24,7 @@ Progress:
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [v4.0 MILESTONE COMPLETE]
+  ✓        ○        ○     [Plan created, awaiting approval]
 ```
 
 ## Phase E Sub-Phase Progress
@@ -266,12 +266,14 @@ Deep 5-agent audit revealed:
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: "Best work" audit — ALL 6 LAYERS COMPLETE
-Next action: Milestone audit complete — decide v4.1 scope
-Resume file: N/A (audit complete)
+Stopped at: H-01 plan audit complete — 3 issues found and corrected in plan
+Next action: Review corrected H-01 plan, then run /paul:apply H-01
+Resume file: .paul/HANDOFF-2026-02-28-f.md
 Resume context:
-- All 6 layers audited and committed
-- Layer 6: 15 findings across 16 files, 7 fixes implemented (2 CRITICALs, 4 HIGHs, 1 MEDIUM)
-- Key fixes: cron route unblocked from middleware (self-improvement was DEAD in prod), health endpoint auth exempted, maxDuration on chat/briefing/TTS routes, Telegram webhook auth hardened, task error sanitized, Polly lazy init
-- Systemic patterns documented: STT in-memory sessions on serverless (fundamentally broken but voice inactive), SSE secret in query params (acceptable for single-user)
-- "Best work" audit complete across all layers
+- H-01 plan AUDITED + CORRECTED (3 fixes: RFC 3339 compliance, evening wrap bug, MCP mode gap)
+- Fix 1: Added getTimezoneOffsetString() utility — all time boundaries now RFC 3339 compliant
+- Fix 2: Evening wrap calendar.today was using tomorrowTasks (pre-existing bug) — corrected to today's tasks
+- Fix 3: MCP mode now includes calendarTools — query_calendar works in both modes
+- Verification checklist expanded from 15 to 19 checks
+- Checkpoint: Jonathan needs Google Cloud service account before real data flows (or skip — graceful degradation)
+- No code changes this session — only plan file edits
