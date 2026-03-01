@@ -1,8 +1,8 @@
-# Jarvis v4.0 — Brain Swap & Life Manager UI
+# Jarvis — Self-Improving Life Manager
 
 ## What This Is
 
-A self-improving, genius-level life manager that replaces Jarvis's custom Claude API backend with Claude Code SDK while preserving all intelligence gems, and rebuilds the UI as an elegant responsive interface for desktop and mobile.
+A self-improving, genius-level life manager built on Anthropic API + MCP Connector with 17 preserved intelligence gems, a 3-layer self-improvement loop, vector memory, and a mobile-first domain OS UI. Currently in v4.2 (Meal Planning & Kitchen Intelligence).
 
 ## Core Value
 
@@ -58,6 +58,11 @@ MOBILE-FIRST UI (new)
 | Chat-first bill editing over UI form | update_bill covers all needs without form state/validation/API routes — Phase I |
 | navigate_to_payment NOT in WRITE_TOOLS | Opens browser tab, no Notion mutation — avoids wasteful refresh — Phase I |
 | JSON action pattern for payment | Follows open_notion_panel pattern: { action, url, title } — Phase I |
+| v4.2 = focused meal planning only | Ships faster, follows v4.1 single-phase pattern — Phase J |
+| Conversational-first (tools before UI) | Databases are empty — chat tools populate data, then UI visualizes it — Phase J |
+| generate_shopping_list as killer feature | Meal plan ingredients minus pantry stock = what to buy — Phase J |
+| Pantry upsert, not delete | "We're out of milk" = quantity 0, preserves the item for re-stocking — Phase J |
+| Sequential J-01→J-04 ordering | Each plan builds on the previous, proven pipeline from v4.1 — Phase J |
 
 ## Validated Requirements
 
@@ -81,3 +86,16 @@ MOBILE-FIRST UI (new)
 - ✓ navigate_to_payment chat tool for browser-tab payment — Phase I
 - ✓ create_bill enhanced with service_link — Phase I
 - ✓ Chat bill queries include [Pay here] links — Phase I
+
+## v4.2 Requirements (Meal Planning & Kitchen Intelligence)
+
+- ○ Conversational recipe creation with ingredient auto-linking — Phase J
+- ○ Meal plan querying by day/meal type — Phase J
+- ○ Pantry inventory tracking with upsert pattern — Phase J
+- ○ Smart shopping list generation (meal plan ingredients - pantry stock) — Phase J
+- ○ Shopping list operations (query, check all, clear checked) — Phase J
+- ○ Graceful degradation when meal databases not configured — Phase J
+- ○ Meals in morning briefing with shopping list count — Phase J
+- ○ Visual weekly planner UI with 4-tab layout — Phase J
+- ○ Chat CTAs on every empty state — Phase J
+- ○ Prep time awareness in briefing text — Phase J

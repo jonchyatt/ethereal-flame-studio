@@ -1,190 +1,143 @@
-# Roadmap: Jarvis v4.1 Bill Payment & Beyond
+# Roadmap: Jarvis v4.2 Meal Planning & Kitchen Intelligence
 
-**Milestone:** v4.1
+**Milestone:** v4.2
 **Status:** In progress
-**Phases:** 9 (A through I)
-**Previous milestone:** v4.0 Brain Swap & Personal Domain — COMPLETE
-**Research:** `.paul/research/v4-intelligence-audit.md`
+**Phases:** 1 (J — Meal Planning Pipeline)
+**Previous milestones:**
+- v4.0 Brain Swap & Personal Domain — COMPLETE (Phases A-G)
+- v4.1 Bill Payment & Beyond — COMPLETE (Phases H-I)
 
 ---
 
-## Phase A: Intelligence Audit (COMPLETE)
+## Previous Milestones (Complete)
 
-**Goal:** Understand what Jarvis has before changing anything
-
-**Deliverable:** Research document auditing Jarvis, Agent Zero, and ClaudeClaw
-
-**Status:** COMPLETE — 17 gems identified, Option D recommended
-
----
-
-## Phase B: SDK Integration
-
-**Goal:** Replace chatProcessor.ts tool loop with Claude Code SDK `query()` while preserving the intelligence layer
-
-**What changes:**
-- New: `query()` call replaces custom Anthropic API + tool iteration loop
-- New: `.mcp.json` for Notion MCP server (replaces direct SDK calls)
-- Preserved: System prompt assembly, memory injection, personality
-- Preserved: Side effects (dashboard refresh, panel open, captures)
-
-**Key risk:** Jarvis runs on Vercel (serverless). Claude Code SDK may need adaptation for serverless context. Research needed during planning.
-
-**Depends on:** Phase A (complete)
-
-**Status:** COMPLETE — B-01-SUMMARY.md
+| Phase | Name | Milestone | Status |
+|-------|------|-----------|--------|
+| A | Intelligence Audit | v4.0 | Complete |
+| B | SDK Integration | v4.0 | Complete |
+| C | Memory & Intelligence Preservation | v4.0 | Complete |
+| D | Self-Improvement Loop | v4.0 | Complete |
+| E | Mobile-First UI Redesign | v4.0 | Complete (E-01–E-06) |
+| F | Vector Memory | v4.0 | Complete |
+| G | Integration & Polish | v4.0 | Complete |
+| H | Google Calendar Integration | v4.1 | Complete |
+| I | Bill Payment Pipeline | v4.1 | Complete |
 
 ---
 
-## Phase C: Memory & Intelligence Preservation
+## Current Milestone: v4.2
 
-**Goal:** Ensure all 17 gems survive the SDK swap and work with the new brain
+**Theme:** Make meal planning effortless — save recipes conversationally, plan weekly meals, track pantry inventory, and generate smart shopping lists that subtract what you already have.
 
-**What changes:**
-- Adapt memory retrieval + scoring to prepend to SDK prompt
-- Preserve preference inference pipeline
-- Preserve conversation summarization + backfill
-- Adapt fuzzy title resolution for MCP tool results
-- Preserve error self-healing loop
+**Why now:** The Notion Life OS has three empty-shell databases (Recipes, Weekly Meal Plan, Ingredients) and ~70% of the backend infrastructure already exists. The codebase has tool definitions, schemas, interfaces, query builders, and formatters. What's missing is the remaining tools, the UI, briefing integration, and the killer feature: pantry-aware shopping list generation.
 
-**Depends on:** Phase B
-
-**Status:** COMPLETE — C-01-SUMMARY.md
+**Who uses this:** Jonathan and his wife, daily. Same UX standard as Bill Payment — immediately obvious, polished, zero friction.
 
 ---
 
-## Phase D: Self-Improvement Loop
+## Phase J: Meal Planning & Kitchen Intelligence
 
-**Goal:** Port Agent Zero's critic → evaluate → evolve cycle to Jarvis
+**Goal:** Complete meal planning pipeline — conversational recipe management, weekly meal planning, pantry tracking, and smart shopping list generation through natural language.
 
-**What changes:**
-- New: Conversation evaluation with 5-dimension rubric
-- New: Behavior evolution with versioned rules and rollback
-- Upgrade: Existing preference inference pipeline enhanced with A0 patterns
-- New: Reflection scheduling (time-based or interaction-count triggered)
+**Plans:**
 
-**Depends on:** Phase C (memory system must be stable first)
+| Plan | Name | Scope | Status |
+|------|------|-------|--------|
+| J-01 | Backend Foundation | Schemas + 7 tools + system prompt | Not started |
+| J-02 | Briefing Integration | Types + BriefingBuilder + store + fetch | Not started |
+| J-03 | Frontend UI | Route + MealsView + 4 tabs | Not started |
+| J-04 | Polish & Intelligence | Chat CTAs + prep time + shopping intelligence | Not started |
 
-**Status:** COMPLETE — D-01 (evaluator + behavior rules) + D-02 (reflection loop + meta-evaluator)
+**Ordering rationale:** Databases are empty. Conversational tools (J-01) ship first so Jonathan can populate data by talking to Jarvis. Briefing (J-02) makes that data visible in morning briefings. UI (J-03) gives the visual weekly planner experience. Polish (J-04) ties it all together with chat CTAs and prep time awareness.
 
----
+**Blocker:** Jonathan must create the Pantry database in Notion and set env vars before J-01 execution. Existing databases (Recipes, Meal Plan, Ingredients) need Jarvis integration access confirmed.
 
-## Phase E: Mobile-First UI Redesign
+**Pre-written plan:** Full J-01 plan exists at `~/.claude/plans/compiled-drifting-cherny.md`. J-02 through J-04 have summaries. All need migration to `.paul/phases/J-meal-planning/` and verification against current codebase (post-audit code may have shifted).
 
-**Goal:** Elegant responsive interface that works beautifully on both desktop and mobile
+### J-01: Backend Foundation
 
-**What changes:**
-- New: Clean chat + voice interface (primary interaction)
-- New: Dashboard with tasks, habits, bills, scheduling
-- Preserved: NotionPanel overlay system
-- Archived: 3D orb (kept in codebase, removed from main UI)
-- Design: No Figma/design plugins — built with taste and iteration
+**Scope:** 7 new Claude tools, enhanced schemas, system prompt update
 
-**Depends on:** Phase B (needs SDK integration for chat to work)
-**Parallel with:** Phase C and D (UI is independent of memory/self-improvement internals)
+**Key deliverables:**
+- `PANTRY_PROPS` + `SHOPPING_LIST_PROPS` constants and interfaces
+- `buildMealPlanFilter()`, `buildPantryFilter()`, `buildShoppingListFilter()`
+- `formatPantryResults()`, `formatShoppingListResults()`, `parsePantryResults()`
+- 7 tools: `query_meal_plan`, `create_recipe`, `query_shopping_list`, `update_pantry`, `query_pantry`, `generate_shopping_list`, `clear_shopping_list`
+- `findOrCreateIngredients()` helper for recipe-ingredient auto-linking
+- `generate_shopping_list` = killer feature (meal plan ingredients - pantry stock = shopping list)
+- Graceful degradation when databases not configured
 
-**Status:** In progress — E-01 thru E-06 complete (Command Palette shipped), E-07+ remaining
+### J-02: Briefing Integration
 
----
+**Scope:** Meals appear in morning briefings and feed the personal store
 
-## Phase F: Vector Memory
+**Key deliverables:**
+- `MealPlanSummary` interface + `meals` field in `BriefingData`
+- Meal plan + shopping list count queries in `buildMorningBriefing()` parallel fetch
+- `transformMeals()` in useJarvisFetch + `personalStore.setMeals()`
 
-**Goal:** Add semantic search alongside existing BM25 keyword search
+### J-03: Frontend UI
 
-**What changes:**
-- New: Embedding-based memory search ("remember when we talked about...")
-- New: Memory consolidation (merge similar memories)
-- Upgrade: Dual retrieval — BM25 for exact, vector for semantic
+**Scope:** Dedicated `/personal/meals` page with 4-tab layout
 
-**Depends on:** Phase C (memory system must be preserved first)
+**Key deliverables:**
+- `MealsView.tsx` container with tab navigation
+- `WeeklyPlannerTab.tsx` — 7-day grid (desktop) / accordion (mobile)
+- `RecipeBrowserTab.tsx` — filterable recipe gallery
+- `ShoppingListTab.tsx` — grouped checklist
+- `PantryTab.tsx` — categorized inventory with low-stock warnings
+- Amber-themed glassmorphism, chat CTAs on every empty state
 
-**Status:** COMPLETE — F-01 (Vector Search + Dual Retrieval) + F-02 (Memory Consolidation)
+### J-04: Polish & Intelligence
 
----
+**Scope:** Chat CTAs, prep time awareness, shopping intelligence
 
-## Phase G: Integration & Polish
-
-**Goal:** End-to-end verification, edge case handling, production hardening
-
-**What changes:**
-- G-01: Brain activation (enableMemoryLoading ON)
-- G-02: Live data pipeline (Home + Personal with real Notion data)
-- G-03: Executive bridge (Scheduler + mode-aware toasts)
-- G-04: Production hardening (ErrorBoundary, fetch retry, health observatory, memory backfill, CRON hardening)
-
-**Depends on:** All prior phases
-
-**Status:** COMPLETE
-
----
-
-## Phase H: Google Calendar Integration
-
-**Goal:** Import Google Calendar events into Jarvis via service account — real schedule awareness across all briefings, chat, and UI
-
-**What changes:**
-- H-01: GoogleCalendarClient (service account JWT auth, native fetch, zero dependencies) + BriefingBuilder enrichment (all 3 builder functions) + query_calendar chat tool + transform pipeline
-
-**Depends on:** Phase G (production infrastructure stable)
-
-**Status:** COMPLETE — H-01-SUMMARY.md (commit e22249a)
-
----
-
-## Phase I: Bill Payment Pipeline
-
-**Goal:** Make bill payment effortless — surface payment links, enable one-tap pay, and let Jarvis update bills via chat. This is the feature that makes Jarvis indispensable for daily life.
-
-**What changes:**
-- I-01: Full pipeline — serviceLink flows from Notion through BriefingBuilder → stores → UI, Pay Now button in BillsList, update_bill + navigate_to_payment chat tools, create_bill enhanced with service_link
-- Fix: SUBSCRIPTION_PROPS import missing in toolExecutor.ts (build-breaking)
-
-**Depends on:** Phase H (production infrastructure + live data pipeline stable)
-
-**Status:** COMPLETE — I-01-SUMMARY.md (1/1 plans)
+**Key deliverables:**
+- Empty state buttons open chat with contextual prompts
+- Prep time calculation: recipe prepTime + cookTime → suggest start time
+- Shopping list grouping by store category
+- Briefing enrichment: "Chicken Stir-Fry for dinner — start prep around 5:30 PM"
 
 ---
 
 ## Dependency Graph
 
 ```
-Phase A (Research) ← COMPLETE
+Phase J (Meal Planning)
     │
-    ▼
-Phase B (SDK Integration)
-    │
-    ├──────────────────┐
-    ▼                  ▼
-Phase C (Memory)    Phase E (UI) — parallel
-    │
-    ├───────┐
-    ▼       ▼
-Phase D   Phase F
-(Self-    (Vector
-Improve)  Memory)
-    │       │
-    └───┬───┘
-        ▼
-    Phase G (Polish)
+    ├── J-01: Backend Foundation (tools + schemas)
+    │     │
+    │     ▼
+    ├── J-02: Briefing Integration (meals in morning briefing)
+    │     │
+    │     ▼
+    ├── J-03: Frontend UI (visual weekly planner)
+    │     │
+    │     ▼
+    └── J-04: Polish & Intelligence (chat CTAs + prep time)
 ```
+
+Sequential: each plan builds on the previous.
 
 ---
 
 ## Progress
 
-| Phase | Name | Status |
-|-------|------|--------|
-| A | Intelligence Audit | Complete |
-| B | SDK Integration | Complete |
-| C | Memory & Intelligence Preservation | Complete |
-| D | Self-Improvement Loop | Complete |
-| E | Mobile-First UI Redesign | In progress (E-06 complete, E-07+ remaining) |
-| F | Vector Memory | Complete |
-| G | Integration & Polish | Complete |
-| H | Google Calendar Integration | Complete |
-| I | Bill Payment Pipeline | Complete |
+| Phase | Name | Plans | Status | Completed |
+|-------|------|-------|--------|-----------|
+| J | Meal Planning & Kitchen Intelligence | 0/4 | Not started | - |
 
 ---
 
-*Created: 2026-02-25*
-*Milestone: v4.1 Bill Payment & Beyond*
+## Future Concepts (Not In This Milestone)
+
+- **Intelligence Evolution** — Situation-behavior mappings, deterministic satisfaction, effectiveness scoring, rule graduation (`concepts/intelligence-evolution-v41.md`)
+- **Jarvis Academy** — Dynamic code-aware teaching engine (`concepts/jarvis-academy.md`)
+- **Domain Expansion** — 6 empty domains need content (Ethereal Flame, Reset Biology, CritFailVlogs, Visopscreen, Satori Living, Entity Building)
+- **Write-back Mutations** — Notion updates from UI (currently local-only)
+- **Shell Convergence** — Unify `/jarvis` and `/jarvis/app`
+
+---
+
+*Created: 2026-02-28*
+*Milestone: v4.2 Meal Planning & Kitchen Intelligence*

@@ -2,36 +2,52 @@
 
 ## Current Position
 
-Milestone: v4.1 Bill Payment & Beyond — COMPLETE
-Phase: I of I (Bill Payment Pipeline) — COMPLETE
-Plan: I-01 — complete (SUMMARY written)
-Status: Milestone v4.1 complete
-Last activity: 2026-02-28 — Phase I complete, milestone v4.1 done
+Milestone: v4.2 Meal Planning & Kitchen Intelligence
+Phase: J of J (Meal Planning Pipeline)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-02-28 — Milestone v4.2 created
 
 Progress:
-- Milestone: [##########] 100% (all phases complete)
-- Phase I: [##########] 100% (I-01 unified)
+- Milestone: [░░░░░░░░░░] 0% (0 of 4 plans)
+- Phase J: [░░░░░░░░░░] 0%
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [Loop complete — Phase I done, v4.1 milestone complete]
+  ○        ○        ○     [Ready for first PLAN — J-01 Backend Foundation]
 ```
 
-## Current Phase: I — Bill Payment Pipeline
+## Current Phase: J — Meal Planning & Kitchen Intelligence
 
-Goal: Make bill payment effortless — surface payment links, enable one-tap pay, update bills via chat.
+Goal: Complete meal planning pipeline — conversational recipe management, weekly meal planning, pantry tracking, and smart shopping list generation through natural language.
 
 Key context:
+- Pre-written plan exists at `~/.claude/plans/compiled-drifting-cherny.md` — needs migration to PAUL phases directory and verification against current codebase
+- ~70% backend infrastructure already exists (query_recipes, add_to_meal_plan, schemas, formatters)
+- Databases are empty shells — conversational tools ship first (J-01) so data can be populated by talking to Jarvis
 - Wife will use this feature — must be immediately obvious, polished, zero friction
-- Plan migrated from `~/.claude/plans/linear-finding-emerson.md` (other instance saved in wrong location)
-- BUILD-BREAKING BUG found and fixed in plan: SUBSCRIPTION_PROPS not imported in toolExecutor.ts
-- 9 files modified across 3 tasks (pipeline, UI, chat tools)
-- Plan verified line-by-line against live codebase
+- Blocker: Jonathan must create Pantry database in Notion + set env vars before J-01 execution
+- 4 sequential plans: Backend → Briefing → UI → Polish
 
-## Completed Phases
+Plans:
+| Plan | Name | Status |
+|------|------|--------|
+| J-01 | Backend Foundation | Not started |
+| J-02 | Briefing Integration | Not started |
+| J-03 | Frontend UI | Not started |
+| J-04 | Polish & Intelligence | Not started |
+
+## Completed Milestones
+
+### v4.1 Bill Payment & Beyond — COMPLETE
+
+- Phase H: Google Calendar Integration — COMPLETE (H-01)
+- Phase I: Bill Payment Pipeline — COMPLETE (I-01)
+
+### v4.0 Brain Swap & Personal Domain — COMPLETE
 
 - Phase A: Intelligence Audit — COMPLETE (17 gems identified)
 - Phase B: SDK Integration — COMPLETE (Anthropic API + MCP Connector)
@@ -40,75 +56,43 @@ Key context:
 - Phase E: Mobile-First UI — COMPLETE (core shell + personal domain, E-01 through E-06)
 - Phase F: Vector Memory — COMPLETE (F-01 dual retrieval + F-02 consolidation)
 - Phase G: Integration & Polish — COMPLETE (G-01 through G-04)
-- Phase H: Google Calendar Integration — COMPLETE (H-01)
 
-## Milestone v4.0 Summary (COMPLETE)
+## Honest Gaps (Future milestones)
 
-8 phases, 30+ plans, shipped over ~4 days:
-- Brain: Anthropic API + MCP Connector, dual-path architecture
-- Intelligence: 3-layer self-improvement (evaluate → reflect → meta-evaluate)
-- Memory: Turso/libsql with BM25 + vector dual retrieval, consolidation
-- UI: Mobile-first domain OS (shell, home, personal dashboard, 7 sub-views, academy, command palette, onboarding)
-- Executive: Live data pipeline, scheduler, mode-aware toasts, health monitor
-- Production: ErrorBoundary, fetch retry, CRON hardening, middleware auth fixes
-- Calendar: Google Calendar service account integration across all briefings + chat
-- Audit: 6-layer "best work" audit (175+ findings, 56+ fixes)
-
-## Honest Gaps (v4.1+ scope)
-
-- E-07+: 6 empty domains (only Personal has content)
+- 6 empty domains (only Personal has content)
 - Journal + Health sub-pages: no API data, show empty
 - Write-back mutations: local-only (Notion doesn't update)
-- Voice pipeline absent from new shell (text-first by design)
+- Voice pipeline absent from new shell
 - Old shell (/jarvis) not converged with new (/jarvis/app)
-- Google Calendar requires service account setup (graceful degradation active)
+- Intelligence Evolution concepts documented but not executed
+- Jarvis Academy concept documented but not executed
 
 ## Accumulated Context
 
-### Key Phase I Decisions
+### Key Decisions
 
 | Decision | Phase | Impact |
 |----------|-------|--------|
-| Single plan (I-01) covers full pipeline | Phase I | 3 tasks: pipeline → UI → chat tools |
-| SUBSCRIPTION_PROPS import bug caught pre-execution | Phase I | Would have been a build-breaking deployment |
-| Pay Now button gets cyan bg tint | Phase I | Visual prominence over Mark Paid (wife UX) |
-| create_bill enhanced with service_link | Phase I | Bills created via chat get payment links from day one |
-| navigate_to_payment returns JSON action | Phase I | Consistent with open_notion_panel pattern |
+| v4.2 = focused meal planning only | Milestone | Ships faster, follows v4.1 pattern |
+| 4 sequential plans (Backend → Briefing → UI → Polish) | Phase J | Same proven pipeline as Bill Payment |
+| Pre-written plan needs migration + verification | Phase J | Code shifted during 6-layer audit |
+| Pantry DB is human-action blocker | J-01 | Jonathan creates in Notion before execution |
+| generate_shopping_list is the killer feature | J-01 | Meal plan ingredients - pantry stock = shopping list |
 
 ### Git State
 Last commit: f1c140b
 Branch: master
 Feature branches merged: none (developed directly on master)
 
-## Upcoming: Phase J — Meal Planning & Kitchen Intelligence
-
-**Status:** Full PAUL-format plan written by planning instance, not yet in phases directory
-
-**Plan location:** `C:\Users\jonch\.claude\plans\compiled-drifting-cherny.md`
-**Target directory:** `jarvis/.paul/phases/J-meal-planning/`
-
-4 sub-plans:
-- J-01: Backend Foundation (7 new tools, schemas, system prompt) — FULL PLAN READY
-- J-02: Briefing Integration (types, BriefingBuilder, store, fetch) — summary written
-- J-03: Frontend UI (route, MealsView, 4 tabs) — summary written
-- J-04: Polish & Intelligence (chat CTAs, prep time, shopping) — summary written
-
-Key context:
-- ~70% backend infrastructure already exists (query_recipes, add_to_meal_plan, schemas, formatters)
-- Databases are EMPTY shells — conversational tools ship first (J-01)
-- Wife will use this — must be beautiful and practical
-- Pantry tracking requested (shopping list = meal plan ingredients - pantry stock)
-- Notion setup needed before execution (Pantry DB, env vars)
-
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: v4.1 milestone complete — all work committed and pushed (f1c140b)
-Next action: `/paul:milestone` when ready for v4.2 (Meal Planning)
-Resume file: .paul/HANDOFF-2026-02-28-v41-complete.md
+Stopped at: v4.2 milestone created — ROADMAP, STATE, PROJECT updated, Phase J directory ready
+Next action: /paul:plan for Phase J (J-01 Backend Foundation)
+Resume file: .paul/HANDOFF-2026-02-28-v42-milestone.md
 Resume context:
-- v4.1 milestone COMPLETE — Phase I (Bill Payment Pipeline) shipped
-- Commit f1c140b pushed to master, auto-deploying
-- Phase J (Meal Planning) plan pre-written at ~/.claude/plans/compiled-drifting-cherny.md
-- Jonathan must create Pantry database in Notion before J-01 can execute
-- Intelligence Evolution + Jarvis Academy concepts ready for future milestones
+- v4.2 milestone created — Meal Planning & Kitchen Intelligence
+- Pre-written plan at ~/.claude/plans/compiled-drifting-cherny.md needs migration into PAUL (renumber I→J, verify against post-audit codebase)
+- Jonathan must create Pantry database in Notion + set env vars before J-01 can execute
+- Phase J has 4 plans: J-01 Backend → J-02 Briefing → J-03 UI → J-04 Polish
+- No code changes this session — only PAUL planning files modified
