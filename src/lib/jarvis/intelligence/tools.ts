@@ -351,6 +351,120 @@ export const notionTools: ToolDefinition[] = [
       required: ['day_of_week', 'meal_type', 'recipe_name']
     }
   },
+  // =========================================================================
+  // Meal Planning Tools (Phase J)
+  // =========================================================================
+  {
+    name: 'query_meal_plan',
+    description: 'Check what meals are planned. Use when the user asks "what\'s for dinner?", "what\'s on the meal plan?", "what are we eating this week?", or any question about planned meals.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        day_of_week: {
+          type: 'string',
+          description: 'Filter by day. Omit to see the full week.',
+          enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        },
+        meal_type: {
+          type: 'string',
+          description: 'Filter by meal type.',
+          enum: ['Breakfast', 'Lunch', 'Dinner']
+        }
+      }
+    }
+  },
+  {
+    name: 'create_recipe',
+    description: 'Save a new recipe to the recipe database. Use when the user shares a recipe, says "save this recipe", "remember this recipe", or describes a dish they want to keep. Extract all details from their description.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: 'Recipe name' },
+        category: { type: 'string', description: 'Meal category', enum: ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Dessert'] },
+        difficulty: { type: 'string', description: 'Cooking difficulty', enum: ['Easy', 'Medium', 'Hard'] },
+        prep_time: { type: 'number', description: 'Prep time in minutes' },
+        cook_time: { type: 'number', description: 'Cook time in minutes' },
+        kcal: { type: 'number', description: 'Calories per serving (if known)' },
+        url: { type: 'string', description: 'Recipe URL or source link (if from web)' },
+        favourite: { type: 'boolean', description: 'Mark as favourite' },
+        tags: { type: 'string', description: 'Comma-separated tags (e.g., "quick,healthy,meal-prep")' },
+        ingredients: { type: 'string', description: 'Comma-separated ingredient names (e.g., "chicken breast, soy sauce, garlic, rice")' }
+      },
+      required: ['name']
+    }
+  },
+  {
+    name: 'query_shopping_list',
+    description: 'Check the shopping list. Use when the user asks "what do I need to buy?", "what\'s on the shopping list?", "grocery list", or anything about shopping.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        show_checked: {
+          type: 'boolean',
+          description: 'Include already-checked items. Default false (only show unchecked).'
+        }
+      }
+    }
+  },
+  {
+    name: 'update_pantry',
+    description: 'Update pantry inventory. Use when the user says "we bought X", "add X to pantry", "we\'re out of X", "we have X", or mentions restocking groceries. Set quantity to 0 for items they\'ve run out of.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        item_name: { type: 'string', description: 'Ingredient/item name' },
+        quantity: { type: 'number', description: 'Amount in stock (use 0 for out-of-stock)' },
+        unit: { type: 'string', description: 'Unit of measurement', enum: ['g', 'kg', 'oz', 'lb', 'ml', 'L', 'cups', 'pieces', 'cans', 'bottles'] },
+        category: { type: 'string', description: 'Storage category', enum: ['Produce', 'Dairy', 'Meat', 'Pantry Staples', 'Frozen', 'Spices', 'Beverages', 'Condiments', 'Grains', 'Other'] },
+        expiry_date: { type: 'string', description: 'Expiry date in YYYY-MM-DD format (for perishables)' }
+      },
+      required: ['item_name', 'quantity']
+    }
+  },
+  {
+    name: 'query_pantry',
+    description: 'Check what\'s in the pantry/kitchen inventory. Use when the user asks "what do we have?", "do we have eggs?", "what\'s in the fridge?", "what\'s running low?", or asks about available ingredients.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        category: { type: 'string', description: 'Filter by category', enum: ['Produce', 'Dairy', 'Meat', 'Pantry Staples', 'Frozen', 'Spices', 'Beverages', 'Condiments', 'Grains', 'Other'] },
+        low_stock_only: { type: 'boolean', description: 'Only show items at or below their low stock threshold' },
+        search: { type: 'string', description: 'Search for a specific item by name' }
+      }
+    }
+  },
+  {
+    name: 'generate_shopping_list',
+    description: 'Generate a smart shopping list from the meal plan. Queries all planned recipes\' ingredients, subtracts what\'s already in the pantry, and adds only what\'s needed to the shopping list. Use when the user says "generate shopping list", "what do I need to buy for this week?", or "make a grocery list from the meal plan".',
+    input_schema: {
+      type: 'object',
+      properties: {
+        days: {
+          type: 'string',
+          description: 'Comma-separated days to generate for (e.g., "Monday,Tuesday,Wednesday"). Omit for the full week.'
+        },
+        check_pantry: {
+          type: 'boolean',
+          description: 'Subtract pantry stock from needed ingredients. Default true.'
+        }
+      }
+    }
+  },
+  {
+    name: 'clear_shopping_list',
+    description: 'Manage shopping list items. Use when the user says "clear checked items", "mark everything as bought", or "reset shopping list".',
+    input_schema: {
+      type: 'object',
+      properties: {
+        action: {
+          type: 'string',
+          description: 'What to do',
+          enum: ['check_all', 'clear_checked']
+        }
+      },
+      required: ['action']
+    }
+  },
   {
     name: 'get_subscriptions',
     description: 'Get active subscriptions with payment links. Use when user asks about bills to pay, subscriptions, recurring payments, or monthly costs.',

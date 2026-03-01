@@ -13,7 +13,7 @@
 export interface CachedItem {
   id: string;
   title: string;
-  type: 'task' | 'bill' | 'project' | 'goal' | 'habit' | 'recipe';
+  type: 'task' | 'bill' | 'project' | 'goal' | 'habit' | 'recipe' | 'mealPlan';
   cachedAt: number;
 }
 

@@ -34,6 +34,9 @@ export const LIFE_OS_DATABASES = {
   mealPlan: process.env.NOTION_MEAL_PLAN_DATA_SOURCE_ID || '',
   subscriptions: process.env.NOTION_SUBSCRIPTIONS_DATA_SOURCE_ID || '',
   ingredients: process.env.NOTION_INGREDIENTS_DATA_SOURCE_ID || '',
+  // Meal Planning (Phase J)
+  pantry: process.env.NOTION_PANTRY_DATA_SOURCE_ID || '',
+  shoppingList: process.env.NOTION_SHOPPING_LIST_DATA_SOURCE_ID || '',
 } as const;
 
 // Database IDs for creates (API-post-page) - different from data_source_id!
@@ -42,6 +45,10 @@ export const LIFE_OS_DATABASE_IDS = {
   subscriptions: process.env.NOTION_SUBSCRIPTIONS_DATABASE_ID || '',
   mealPlan: process.env.NOTION_MEAL_PLAN_DATABASE_ID || '',
   shoppingList: process.env.NOTION_SHOPPING_LIST_DATABASE_ID || '',
+  // Meal Planning (Phase J)
+  pantry: process.env.NOTION_PANTRY_DATABASE_ID || '',
+  ingredients: process.env.NOTION_INGREDIENTS_DATABASE_ID || '',
+  recipes: process.env.NOTION_RECIPES_DATABASE_ID || '',
 } as const;
 
 /**
@@ -173,10 +180,27 @@ export const INGREDIENT_PROPS = {
 } as const;
 
 /**
- * Shopping List database property names
+ * Shopping List database property names (enhanced Phase J)
  */
 export const SHOPPING_LIST_PROPS = {
-  title: 'Name', // Title property
+  title: 'Name',
+  quantity: 'Quantity',
+  unit: 'Unit',
+  category: 'Category',
+  checked: 'Checked',
+  source: 'Source',
+} as const;
+
+/**
+ * Pantry database property names (Phase J)
+ */
+export const PANTRY_PROPS = {
+  title: 'Name',
+  quantity: 'Quantity',
+  unit: 'Unit',
+  category: 'Category',
+  expiryDate: 'Expiry Date',
+  lowStockThreshold: 'Low Stock Threshold',
 } as const;
 
 // =============================================================================
@@ -288,6 +312,32 @@ export interface MealPlanProperties {
   dayOfWeek: string | null;
   timeOfDay: string | null;
   setting: string | null;
+}
+
+/**
+ * Pantry item properties from Notion (Phase J)
+ */
+export interface PantryProperties {
+  id: string;
+  title: string;
+  quantity: number;
+  unit: string | null;
+  category: string | null;
+  expiryDate: string | null;
+  lowStockThreshold: number;
+}
+
+/**
+ * Shopping list item properties from Notion (Phase J)
+ */
+export interface ShoppingListProperties {
+  id: string;
+  title: string;
+  quantity: number | null;
+  unit: string | null;
+  category: string | null;
+  checked: boolean;
+  source: string | null;
 }
 
 /**
@@ -1194,6 +1244,147 @@ export function formatMealPlanResults(result: unknown): string {
   });
 
   return formatted.join('\n');
+}
+
+// =============================================================================
+// Phase J: Meal Planning Query Builders & Formatters
+// =============================================================================
+
+/**
+ * Build a filter for meal plan queries
+ */
+export function buildMealPlanFilter(options: {
+  dayOfWeek?: string;
+  timeOfDay?: string;
+}): { filter?: { and: NotionFilter[] } } {
+  const filters: NotionFilter[] = [];
+  if (options.dayOfWeek) {
+    filters.push({
+      property: MEAL_PLAN_PROPS.dayOfWeek,
+      select: { equals: options.dayOfWeek },
+    });
+  }
+  if (options.timeOfDay) {
+    filters.push({
+      property: MEAL_PLAN_PROPS.timeOfDay,
+      rich_text: { contains: options.timeOfDay },
+    });
+  }
+  return filters.length > 0 ? { filter: { and: filters } } : {};
+}
+
+/**
+ * Build a filter for pantry queries
+ */
+export function buildPantryFilter(options: {
+  category?: string;
+  search?: string;
+}): { filter?: { and: NotionFilter[] } } {
+  const filters: NotionFilter[] = [];
+  if (options.category) {
+    filters.push({
+      property: PANTRY_PROPS.category,
+      select: { equals: options.category },
+    });
+  }
+  if (options.search) {
+    filters.push({
+      property: PANTRY_PROPS.title,
+      title: { contains: options.search },
+    });
+  }
+  return filters.length > 0 ? { filter: { and: filters } } : {};
+}
+
+/**
+ * Build a filter for shopping list queries
+ */
+export function buildShoppingListFilter(options: {
+  showChecked?: boolean;
+}): { filter?: { property: string; checkbox: { equals: boolean } } } | Record<string, never> {
+  if (options.showChecked === false) {
+    return {
+      filter: {
+        property: SHOPPING_LIST_PROPS.checked,
+        checkbox: { equals: false },
+      },
+    };
+  }
+  return {};
+}
+
+/**
+ * Format pantry results for speech output
+ */
+export function formatPantryResults(result: unknown): string {
+  const pages = (result as { results?: unknown[] })?.results || [];
+  if (pages.length === 0) return 'Pantry is empty.';
+
+  const formatted = pages.map((page: unknown) => {
+    const p = page as { properties: Record<string, unknown>; id: string };
+    const title = extractTitle(p.properties[PANTRY_PROPS.title]);
+    const quantity = extractNumber(p.properties[PANTRY_PROPS.quantity]);
+    const unit = extractSelect(p.properties[PANTRY_PROPS.unit]);
+    const category = extractSelect(p.properties[PANTRY_PROPS.category]);
+    const threshold = extractNumber(p.properties[PANTRY_PROPS.lowStockThreshold]);
+    const lowStock = threshold > 0 && quantity <= threshold;
+
+    let line = `- ${title}: ${quantity}`;
+    if (unit && unit !== 'Unknown') line += ` ${unit}`;
+    if (category && category !== 'Unknown') line += ` (${category})`;
+    if (lowStock) line += ' — LOW STOCK';
+    line += ` [id:${p.id}]`;
+    return line;
+  });
+
+  return formatted.join('\n');
+}
+
+/**
+ * Format shopping list results for speech output
+ */
+export function formatShoppingListResults(result: unknown): string {
+  const pages = (result as { results?: unknown[] })?.results || [];
+  if (pages.length === 0) return 'Shopping list is empty.';
+
+  const formatted = pages.map((page: unknown) => {
+    const p = page as { properties: Record<string, unknown>; id: string };
+    const title = extractTitle(p.properties[SHOPPING_LIST_PROPS.title]);
+    const quantity = extractNumber(p.properties[SHOPPING_LIST_PROPS.quantity]);
+    const unit = extractSelect(p.properties[SHOPPING_LIST_PROPS.unit]);
+    const category = extractSelect(p.properties[SHOPPING_LIST_PROPS.category]);
+    const checked = extractCheckbox(p.properties[SHOPPING_LIST_PROPS.checked]);
+
+    const quantityStr = quantity > 0 ? `${quantity}${unit && unit !== 'Unknown' ? ` ${unit}` : ''}` : '';
+    let line = `- [${checked ? 'x' : ' '}] ${title}`;
+    if (quantityStr) line += ` (${quantityStr})`;
+    if (category && category !== 'Unknown') line += ` — ${category}`;
+    line += ` [id:${p.id}]`;
+    return line;
+  });
+
+  return formatted.join('\n');
+}
+
+/**
+ * Parse pantry results into structured data (for generate_shopping_list)
+ */
+export function parsePantryResults(result: unknown): PantryProperties[] {
+  const pages = (result as { results?: unknown[] })?.results || [];
+  return pages.map((page: unknown) => {
+    const p = page as { properties: Record<string, unknown>; id: string };
+    const unitVal = extractSelect(p.properties[PANTRY_PROPS.unit]);
+    const categoryVal = extractSelect(p.properties[PANTRY_PROPS.category]);
+    return {
+      id: p.id,
+      title: extractTitle(p.properties[PANTRY_PROPS.title]),
+      quantity: extractNumber(p.properties[PANTRY_PROPS.quantity]),
+      unit: unitVal !== 'Unknown' ? unitVal : null,
+      category: categoryVal !== 'Unknown' ? categoryVal : null,
+      expiryDate: extractDate(p.properties[PANTRY_PROPS.expiryDate]),
+      lowStockThreshold: extractNumber(p.properties[PANTRY_PROPS.lowStockThreshold]),
+    };
+  });
 }
 
 // Helper extractors for new property types

@@ -7,7 +7,7 @@
  * - Write: Create tasks, update status, mark bills paid, pause tasks, add project items
  */
 
-import { queryDatabase, createPage, updatePage, retrievePage } from './NotionClient';
+import { queryDatabase, createPage, updatePage, retrievePage, archivePage } from './NotionClient';
 import { handleRecurringTaskCompletion } from './recurringHook';
 import {
   LIFE_OS_DATABASES,
@@ -40,6 +40,14 @@ import {
   INGREDIENT_PROPS,
   SHOPPING_LIST_PROPS,
   SUBSCRIPTION_PROPS,
+  // Phase J: Meal Planning
+  buildMealPlanFilter,
+  buildPantryFilter,
+  buildShoppingListFilter,
+  formatPantryResults,
+  formatShoppingListResults,
+  parsePantryResults,
+  PANTRY_PROPS,
 } from './schemas';
 import {
   cacheResults,
@@ -136,6 +144,21 @@ function summarizeNotionContext(
       return `Paused "${input.task_id}"`;
     case 'add_project_item':
       return `Added "${input.item}" to ${input.project_id}`;
+    // Phase J: Meal Planning
+    case 'query_meal_plan':
+      return `Queried meal plan${input.day_of_week ? ` for ${input.day_of_week}` : ''}`;
+    case 'create_recipe':
+      return `Created recipe: "${input.name}"`;
+    case 'query_shopping_list':
+      return 'Queried shopping list';
+    case 'update_pantry':
+      return `Updated pantry: "${input.item_name}" → ${input.quantity}`;
+    case 'query_pantry':
+      return `Queried pantry${input.search ? ` for "${input.search}"` : ''}`;
+    case 'generate_shopping_list':
+      return 'Generated shopping list from meal plan';
+    case 'clear_shopping_list':
+      return `Shopping list: ${input.action}`;
     default:
       // Query tools
       return `Queried ${toolName.replace('query_', '')}`;
@@ -628,6 +651,277 @@ async function executeNotionToolInner(
       return response;
     }
 
+    // =========================================================================
+    // MEAL PLANNING TOOLS (Phase J)
+    // =========================================================================
+
+    case 'query_meal_plan': {
+      const dataSourceId = LIFE_OS_DATABASES.mealPlan;
+      if (!dataSourceId) {
+        return 'Meal plan database is not configured. Please set NOTION_MEAL_PLAN_DATA_SOURCE_ID.';
+      }
+
+      const filterOptions = buildMealPlanFilter({
+        dayOfWeek: input.day_of_week as string | undefined,
+        timeOfDay: input.meal_type as string | undefined,
+      });
+
+      const result = await queryDatabase(dataSourceId, filterOptions);
+      cacheQueryResults(result, 'mealPlan');
+      return formatMealPlanResults(result);
+    }
+
+    case 'create_recipe': {
+      const databaseId = LIFE_OS_DATABASE_IDS.recipes;
+      if (!databaseId) {
+        return 'Recipes database is not configured. Please set NOTION_RECIPES_DATABASE_ID.';
+      }
+
+      const name = input.name as string;
+      const properties: Record<string, unknown> = {
+        [RECIPE_PROPS.title]: { title: [{ text: { content: name } }] },
+      };
+
+      if (input.category) properties[RECIPE_PROPS.category] = { select: { name: input.category as string } };
+      if (input.difficulty) properties[RECIPE_PROPS.difficulty] = { select: { name: input.difficulty as string } };
+      if (input.prep_time) properties[RECIPE_PROPS.prepTime] = { number: input.prep_time as number };
+      if (input.cook_time) properties[RECIPE_PROPS.cookTime] = { number: input.cook_time as number };
+      if (input.kcal) properties[RECIPE_PROPS.kcal] = { number: input.kcal as number };
+      if (input.url) properties[RECIPE_PROPS.url] = { url: input.url as string };
+      if (input.favourite !== undefined) properties[RECIPE_PROPS.favourite] = { checkbox: input.favourite as boolean };
+      if (input.tags) {
+        const tags = (input.tags as string).split(',').map(t => ({ name: t.trim() }));
+        properties[RECIPE_PROPS.tags] = { multi_select: tags };
+      }
+
+      // Handle ingredients: find-or-create each in Ingredients DB, then set relation
+      let ingredientCount = 0;
+      if (input.ingredients) {
+        const ingredientNames = (input.ingredients as string).split(',').map(i => i.trim()).filter(Boolean);
+        const ingredientPageIds = await findOrCreateIngredients(ingredientNames);
+        if (ingredientPageIds.length > 0) {
+          properties[RECIPE_PROPS.ingredients] = { relation: ingredientPageIds.map(id => ({ id })) };
+          ingredientCount = ingredientPageIds.length;
+        }
+      }
+
+      await createPage(databaseId, properties);
+      return `Saved recipe: "${name}"${ingredientCount > 0 ? ` (${ingredientCount} ingredients linked)` : ''}`;
+    }
+
+    case 'query_shopping_list': {
+      const dataSourceId = LIFE_OS_DATABASES.shoppingList;
+      if (!dataSourceId) {
+        return 'Shopping list database is not configured. Please set NOTION_SHOPPING_LIST_DATA_SOURCE_ID.';
+      }
+
+      const filterOptions = buildShoppingListFilter({
+        showChecked: (input.show_checked as boolean) ?? false,
+      });
+
+      const result = await queryDatabase(dataSourceId, filterOptions);
+      return formatShoppingListResults(result);
+    }
+
+    case 'update_pantry': {
+      const dataSourceId = LIFE_OS_DATABASES.pantry;
+      const databaseId = LIFE_OS_DATABASE_IDS.pantry;
+      if (!dataSourceId || !databaseId) {
+        return 'Pantry database is not configured. Please set NOTION_PANTRY_DATA_SOURCE_ID and NOTION_PANTRY_DATABASE_ID.';
+      }
+
+      const itemName = input.item_name as string;
+      const quantity = input.quantity as number;
+
+      // Search for existing item by exact name (Notion title filter is case-insensitive)
+      const searchResult = await queryDatabase(dataSourceId, {
+        filter: { property: PANTRY_PROPS.title, title: { equals: itemName } },
+      });
+      const existingPages = (searchResult as { results?: unknown[] })?.results || [];
+
+      const properties: Record<string, unknown> = {
+        [PANTRY_PROPS.quantity]: { number: quantity },
+      };
+      if (input.unit) properties[PANTRY_PROPS.unit] = { select: { name: input.unit as string } };
+      if (input.category) properties[PANTRY_PROPS.category] = { select: { name: input.category as string } };
+      if (input.expiry_date) properties[PANTRY_PROPS.expiryDate] = { date: { start: input.expiry_date as string } };
+
+      if (existingPages.length > 0) {
+        const existingId = (existingPages[0] as { id: string }).id;
+        await updatePage(existingId, properties);
+        return `Updated pantry: ${itemName} → ${quantity}${input.unit ? ` ${input.unit}` : ''}`;
+      } else {
+        properties[PANTRY_PROPS.title] = { title: [{ text: { content: itemName } }] };
+        await createPage(databaseId, properties);
+        return `Added to pantry: ${itemName} — ${quantity}${input.unit ? ` ${input.unit}` : ''}`;
+      }
+    }
+
+    case 'query_pantry': {
+      const dataSourceId = LIFE_OS_DATABASES.pantry;
+      if (!dataSourceId) {
+        return 'Pantry database is not configured. Please set NOTION_PANTRY_DATA_SOURCE_ID.';
+      }
+
+      const filterOptions = buildPantryFilter({
+        category: input.category as string | undefined,
+        search: input.search as string | undefined,
+      });
+
+      const result = await queryDatabase(dataSourceId, filterOptions);
+
+      // Client-side low stock filtering (Notion can't compare two properties)
+      if (input.low_stock_only) {
+        const parsed = parsePantryResults(result);
+        const lowStock = parsed.filter(p => p.lowStockThreshold > 0 && p.quantity <= p.lowStockThreshold);
+        if (lowStock.length === 0) return 'No items are running low.';
+        return lowStock.map(p =>
+          `- ${p.title}: ${p.quantity}${p.unit ? ` ${p.unit}` : ''} (threshold: ${p.lowStockThreshold})`
+        ).join('\n');
+      }
+
+      return formatPantryResults(result);
+    }
+
+    case 'generate_shopping_list': {
+      const mealPlanSourceId = LIFE_OS_DATABASES.mealPlan;
+      const shoppingListDbId = LIFE_OS_DATABASE_IDS.shoppingList;
+      const shoppingListSourceId = LIFE_OS_DATABASES.shoppingList;
+      if (!mealPlanSourceId) return 'Meal plan database is not configured. Please set NOTION_MEAL_PLAN_DATA_SOURCE_ID.';
+      if (!shoppingListDbId) return 'Shopping list database is not configured. Please set NOTION_SHOPPING_LIST_DATABASE_ID.';
+
+      // 1. Query meal plan for specified days (or all)
+      const days = input.days ? (input.days as string).split(',').map(d => d.trim()) : [];
+      let mealPlanFilter = {};
+      if (days.length === 1) {
+        mealPlanFilter = buildMealPlanFilter({ dayOfWeek: days[0] });
+      }
+      const mealPlanResult = await queryDatabase(mealPlanSourceId, mealPlanFilter);
+      let mealPages = (mealPlanResult as { results?: unknown[] })?.results || [];
+
+      // Client-side filter if multiple specific days requested
+      if (days.length > 1) {
+        mealPages = mealPages.filter((page: unknown) => {
+          const p = page as { properties: Record<string, unknown> };
+          const day = extractSelectFromProp(p.properties[MEAL_PLAN_PROPS.dayOfWeek]);
+          return days.includes(day);
+        });
+      }
+
+      if (mealPages.length === 0) return 'No meals planned. Add meals to your plan first.';
+
+      // 2. For each meal with a recipe relation, get ingredient names
+      const allIngredientNames = new Set<string>();
+      for (const page of mealPages) {
+        const p = page as { properties: Record<string, unknown> };
+        const recipeRelation = p.properties[MEAL_PLAN_PROPS.recipes] as
+          { relation?: Array<{ id: string }> } | undefined;
+        if (recipeRelation?.relation) {
+          for (const rel of recipeRelation.relation) {
+            const names = await getIngredientNamesForRecipe(rel.id);
+            names.forEach(n => allIngredientNames.add(n.toLowerCase()));
+          }
+        }
+      }
+
+      if (allIngredientNames.size === 0) return 'Planned meals have no linked recipes with ingredients. Save recipes with ingredients first.';
+
+      // 3. Check pantry (if enabled, default true)
+      const checkPantry = (input.check_pantry as boolean) !== false;
+      let skippedFromPantry = 0;
+      const neededItems: string[] = [];
+      const pantrySourceId = LIFE_OS_DATABASES.pantry;
+
+      if (checkPantry && pantrySourceId) {
+        const pantryResult = await queryDatabase(pantrySourceId, {});
+        const pantryItems = parsePantryResults(pantryResult);
+        const pantryMap = new Map(pantryItems.map(p => [p.title.toLowerCase(), p]));
+
+        for (const ingredient of allIngredientNames) {
+          const inPantry = pantryMap.get(ingredient);
+          if (inPantry && inPantry.quantity > 0) {
+            skippedFromPantry++;
+          } else {
+            neededItems.push(ingredient);
+          }
+        }
+      } else {
+        neededItems.push(...allIngredientNames);
+      }
+
+      if (neededItems.length === 0) {
+        return `You have everything you need! All ${allIngredientNames.size} ingredients are in your pantry.`;
+      }
+
+      // 4. Check existing shopping list to avoid duplicates
+      let existingNames = new Set<string>();
+      if (shoppingListSourceId) {
+        const existingList = await queryDatabase(shoppingListSourceId, {});
+        const existingPages = (existingList as { results?: unknown[] })?.results || [];
+        existingNames = new Set(
+          existingPages.map((p: unknown) => {
+            const page = p as { properties: Record<string, unknown> };
+            return extractTitleFromProperty(page.properties[SHOPPING_LIST_PROPS.title])?.toLowerCase() || '';
+          }).filter(Boolean)
+        );
+      }
+
+      // 5. Write needed items to shopping list
+      let addedCount = 0;
+      for (const item of neededItems) {
+        if (existingNames.has(item)) continue;
+        try {
+          await createPage(shoppingListDbId, {
+            [SHOPPING_LIST_PROPS.title]: { title: [{ text: { content: item } }] },
+            [SHOPPING_LIST_PROPS.checked]: { checkbox: false },
+            [SHOPPING_LIST_PROPS.source]: { select: { name: 'Meal Plan' } },
+          });
+          addedCount++;
+        } catch (error) {
+          console.warn('[ToolExecutor] Failed to add shopping list item:', { item, error });
+        }
+      }
+
+      const skippedExisting = neededItems.length - addedCount;
+      let response = `Added ${addedCount} item${addedCount !== 1 ? 's' : ''} to your shopping list`;
+      if (skippedFromPantry > 0) response += ` (skipped ${skippedFromPantry} already in pantry)`;
+      if (skippedExisting > 0) response += ` (${skippedExisting} already on list)`;
+      return response + '.';
+    }
+
+    case 'clear_shopping_list': {
+      const dataSourceId = LIFE_OS_DATABASES.shoppingList;
+      if (!dataSourceId) return 'Shopping list database is not configured. Please set NOTION_SHOPPING_LIST_DATA_SOURCE_ID.';
+
+      const action = input.action as string;
+
+      if (action === 'check_all') {
+        const result = await queryDatabase(dataSourceId, {
+          filter: { property: SHOPPING_LIST_PROPS.checked, checkbox: { equals: false } },
+        });
+        const pages = (result as { results?: unknown[] })?.results || [];
+        for (const page of pages) {
+          const p = page as { id: string };
+          await updatePage(p.id, { [SHOPPING_LIST_PROPS.checked]: { checkbox: true } });
+        }
+        return `Marked ${pages.length} item${pages.length !== 1 ? 's' : ''} as bought.`;
+      }
+
+      if (action === 'clear_checked') {
+        const result = await queryDatabase(dataSourceId, {
+          filter: { property: SHOPPING_LIST_PROPS.checked, checkbox: { equals: true } },
+        });
+        const pages = (result as { results?: unknown[] })?.results || [];
+        for (const page of pages) {
+          const p = page as { id: string };
+          await archivePage(p.id);
+        }
+        return `Cleared ${pages.length} checked item${pages.length !== 1 ? 's' : ''} from shopping list.`;
+      }
+
+      return 'Unknown action. Use "check_all" or "clear_checked".';
+    }
+
     case 'get_subscriptions': {
       const dataSourceId = LIFE_OS_DATABASES.subscriptions;
       if (!dataSourceId) {
@@ -769,6 +1063,7 @@ const TITLE_PROPS: Record<CachedItem['type'], string> = {
   goal: 'Goal',       // Goals database uses 'Goal'
   habit: 'Habit',     // Habits database uses 'Habit'
   recipe: 'Name',     // Recipes database uses 'Name'
+  mealPlan: 'Name',   // Meal Plan database uses 'Name'
 };
 
 /**
@@ -974,27 +1269,84 @@ function dedupeNames(names: string[]): string[] {
   return Array.from(seen.values());
 }
 
+/**
+ * Extract select value from a Notion property (local helper for toolExecutor)
+ */
+function extractSelectFromProp(prop: unknown): string {
+  const p = prop as { status?: { name?: string }; select?: { name?: string } };
+  return p?.status?.name || p?.select?.name || 'Unknown';
+}
+
+/**
+ * Find or create ingredient pages in the Ingredients database.
+ * Returns an array of page IDs for relation linking.
+ */
+async function findOrCreateIngredients(names: string[]): Promise<string[]> {
+  const ingredientDbId = LIFE_OS_DATABASE_IDS.ingredients;
+  const ingredientSourceId = LIFE_OS_DATABASES.ingredients;
+  if (!ingredientDbId || !ingredientSourceId) return [];
+
+  const ids: string[] = [];
+  for (const name of dedupeNames(names)) {
+    try {
+      // Try to find existing ingredient by exact name
+      const searchResult = await queryDatabase(ingredientSourceId, {
+        filter: { property: INGREDIENT_PROPS.title, title: { equals: name } },
+      });
+      const pages = (searchResult as { results?: Array<{ id: string }> })?.results || [];
+
+      if (pages.length > 0) {
+        ids.push(pages[0].id);
+      } else {
+        // Create new ingredient
+        const newPage = await createPage(ingredientDbId, {
+          [INGREDIENT_PROPS.title]: { title: [{ text: { content: name } }] },
+        });
+        ids.push((newPage as { id: string }).id);
+      }
+    } catch (error) {
+      console.warn(`[ToolExecutor] Failed to find/create ingredient "${name}":`, error);
+    }
+  }
+  return ids;
+}
+
 async function addItemsToShoppingList(
-  items: string[]
+  items: Array<string | { name: string; quantity?: number; unit?: string; category?: string }>
 ): Promise<{ attempted: boolean; created: number }> {
   const databaseId = LIFE_OS_DATABASE_IDS.shoppingList;
   if (!databaseId) {
     return { attempted: false, created: 0 };
   }
 
-  const uniqueItems = dedupeNames(items).slice(0, MAX_SHOPPING_LIST_ITEMS);
-  let created = 0;
+  const uniqueNames = new Set<string>();
+  const uniqueItems: typeof items = [];
+  for (const item of items) {
+    const name = typeof item === 'string' ? item : item.name;
+    const key = name.trim().toLowerCase();
+    if (!key || uniqueNames.has(key)) continue;
+    uniqueNames.add(key);
+    uniqueItems.push(item);
+  }
 
-  for (const item of uniqueItems) {
+  let created = 0;
+  for (const item of uniqueItems.slice(0, MAX_SHOPPING_LIST_ITEMS)) {
+    const name = typeof item === 'string' ? item : item.name;
     try {
-      await createPage(databaseId, {
-        [SHOPPING_LIST_PROPS.title]: {
-          title: [{ text: { content: item } }],
-        },
-      });
+      const properties: Record<string, unknown> = {
+        [SHOPPING_LIST_PROPS.title]: { title: [{ text: { content: name } }] },
+        [SHOPPING_LIST_PROPS.checked]: { checkbox: false },
+        [SHOPPING_LIST_PROPS.source]: { select: { name: 'Meal Plan' } },
+      };
+      if (typeof item !== 'string') {
+        if (item.quantity) properties[SHOPPING_LIST_PROPS.quantity] = { number: item.quantity };
+        if (item.unit) properties[SHOPPING_LIST_PROPS.unit] = { select: { name: item.unit } };
+        if (item.category) properties[SHOPPING_LIST_PROPS.category] = { select: { name: item.category } };
+      }
+      await createPage(databaseId, properties);
       created += 1;
     } catch (error) {
-      console.warn('[ToolExecutor] Failed to add shopping list item:', { item, error });
+      console.warn('[ToolExecutor] Failed to add shopping list item:', { name, error });
     }
   }
 

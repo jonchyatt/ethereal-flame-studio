@@ -287,8 +287,10 @@ If the user's request involves an affected service, mention it briefly: "Notion 
 
   // Capabilities section
   sections.push(`CAPABILITIES:
-- Notion integration: tasks, bills, projects, goals, habits
+- Notion integration: tasks, bills, projects, goals, habits, recipes, meal plan, shopping list, pantry
 - Create tasks, mark complete, pause tasks, mark bills paid
+- Meal planning: save recipes, plan weekly meals, generate shopping lists, track pantry inventory
+- Smart shopping: generates list from meal plan ingredients minus what's already in the pantry
 - Query any of your Life OS databases by voice
 - Time awareness and conversation memory
 - Tutorial system: "start tutorial", "teach me about X", "what can you do?"`);

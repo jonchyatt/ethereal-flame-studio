@@ -170,6 +170,34 @@ export async function updatePage(
 }
 
 /**
+ * Archive a Notion page (soft delete)
+ *
+ * @param pageId - The page ID to archive
+ * @returns The archived page
+ */
+export async function archivePage(pageId: string): Promise<unknown> {
+  const client = getNotionClient();
+  const breaker = getBreaker('notion');
+
+  console.log('[Notion] Archiving page:', pageId);
+
+  const response = await breaker.execute(() =>
+    withRetry(
+      () => client.pages.update({
+        page_id: pageId,
+        archived: true,
+      }),
+      'notion',
+      { maxAttempts: 3, initialDelayMs: 500 }
+    )
+  );
+
+  console.log('[Notion] Page archived:', (response as { id: string }).id);
+
+  return response;
+}
+
+/**
  * Retrieve a Notion page by ID
  *
  * @param pageId - The page ID to retrieve
