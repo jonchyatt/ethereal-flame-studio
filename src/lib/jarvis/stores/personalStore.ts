@@ -27,6 +27,7 @@ export interface PersonalBill {
   dueDate: string;
   status: 'overdue' | 'due_soon' | 'paid' | 'upcoming';
   category: string;
+  serviceLink?: string | null;
 }
 
 export interface CalendarEvent {

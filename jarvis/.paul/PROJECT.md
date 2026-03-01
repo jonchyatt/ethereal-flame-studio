@@ -55,6 +55,9 @@ MOBILE-FIRST UI (new)
 | Opus for reflection ($3/month) | Best reasoning for the brain that improves the brain — Phase D |
 | Three-layer self-improvement | L1 Haiku critic, L2 Opus reflection, L3 Opus meta-evaluation — Phase D |
 | enableSelfImprovement ON by default | Self-improvement active immediately, opt-out via env var — Phase D |
+| Chat-first bill editing over UI form | update_bill covers all needs without form state/validation/API routes — Phase I |
+| navigate_to_payment NOT in WRITE_TOOLS | Opens browser tab, no Notion mutation — avoids wasteful refresh — Phase I |
+| JSON action pattern for payment | Follows open_notion_panel pattern: { action, url, title } — Phase I |
 
 ## Validated Requirements
 
@@ -72,3 +75,9 @@ MOBILE-FIRST UI (new)
 - ✓ Google Calendar integration via service account — Phase H
 - ✓ All briefing types enriched with real calendar data — Phase H
 - ✓ query_calendar chat tool for schedule queries — Phase H
+- ✓ serviceLink end-to-end pipeline (Notion → BriefingBuilder → stores → UI) — Phase I
+- ✓ Pay Now button with payment portal navigation — Phase I
+- ✓ update_bill chat tool for bill property editing — Phase I
+- ✓ navigate_to_payment chat tool for browser-tab payment — Phase I
+- ✓ create_bill enhanced with service_link — Phase I
+- ✓ Chat bill queries include [Pay here] links — Phase I

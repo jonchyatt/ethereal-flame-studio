@@ -5,7 +5,7 @@
  *
  * Notion Tools (11 total, via SDK):
  * - 5 Read tools: query_tasks, query_bills, query_projects, query_goals, query_habits
- * - 6 Write tools: create_task, create_bill, update_task_status, mark_bill_paid, pause_task, add_project_item
+ * - 8 Write tools: create_task, create_bill, update_task_status, mark_bill_paid, update_bill, navigate_to_payment, pause_task, add_project_item
  *
  * Memory Tools (5 total, via local DB):
  * - remember_fact, forget_fact, list_memories, delete_all_memories, restore_memory
@@ -35,7 +35,7 @@ export interface ToolDefinition {
  * Notion tool definitions for Life OS integration
  *
  * 5 Read tools: query_tasks, query_bills, query_projects, query_goals, query_habits
- * 6 Write tools: create_task, create_bill, update_task_status, mark_bill_paid, pause_task, add_project_item
+ * 8 Write tools: create_task, create_bill, update_task_status, mark_bill_paid, update_bill, navigate_to_payment, pause_task, add_project_item
  */
 export const notionTools: ToolDefinition[] = [
   {
@@ -122,6 +122,10 @@ export const notionTools: ToolDefinition[] = [
           type: 'string',
           description: 'Payment frequency',
           enum: ['Monthly', 'Yearly', 'Weekly', 'Quarterly']
+        },
+        service_link: {
+          type: 'string',
+          description: 'URL to the bill\'s payment portal (e.g., https://netflix.com/account)'
         }
       },
       required: ['title']
@@ -155,6 +159,45 @@ export const notionTools: ToolDefinition[] = [
         bill_id: {
           type: 'string',
           description: 'The Notion bill ID to mark as paid'
+        }
+      },
+      required: ['bill_id']
+    }
+  },
+  {
+    name: 'update_bill',
+    description: 'Update an existing bill or subscription. Use when user wants to change a bill\'s amount, due date, frequency, category, payment link, or name.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        bill_id: {
+          type: 'string',
+          description: 'The bill name or Notion ID to update'
+        },
+        title: {
+          type: 'string',
+          description: 'New name for the bill'
+        },
+        amount: {
+          type: 'number',
+          description: 'New amount in dollars'
+        },
+        due_date: {
+          type: 'string',
+          description: 'New due date in YYYY-MM-DD format'
+        },
+        frequency: {
+          type: 'string',
+          description: 'Payment frequency',
+          enum: ['Monthly', 'Yearly', 'Weekly', 'Quarterly']
+        },
+        category: {
+          type: 'string',
+          description: 'Bill category (e.g., Utilities, Entertainment, Insurance, Healthcare)'
+        },
+        service_link: {
+          type: 'string',
+          description: 'URL to the payment portal where user can pay this bill'
         }
       },
       required: ['bill_id']
@@ -320,6 +363,20 @@ export const notionTools: ToolDefinition[] = [
           enum: ['active', 'cancelled', 'all']
         }
       }
+    }
+  },
+  {
+    name: 'navigate_to_payment',
+    description: 'Open a bill\'s payment portal in the user\'s browser. Use when user says "pay my [bill]", "go pay [bill]", or "open payment for [bill]".',
+    input_schema: {
+      type: 'object',
+      properties: {
+        bill_name: {
+          type: 'string',
+          description: 'The bill or subscription name to pay'
+        }
+      },
+      required: ['bill_name']
     }
   },
   {

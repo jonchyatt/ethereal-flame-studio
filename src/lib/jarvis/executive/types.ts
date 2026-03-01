@@ -81,6 +81,7 @@ export interface BillSummary {
   title: string;
   amount: number;
   dueDate: string | null;
+  serviceLink?: string | null;
 }
 
 /**

@@ -26,6 +26,7 @@ import {
   buildTaskProperties,
   buildTaskStatusUpdate,
   buildBillProperties,
+  buildBillUpdateProperties,
   buildBillPaidUpdate,
   buildTaskPauseUpdate,
   // Phase 16: Feature Pack
@@ -38,6 +39,7 @@ import {
   RECIPE_PROPS,
   INGREDIENT_PROPS,
   SHOPPING_LIST_PROPS,
+  SUBSCRIPTION_PROPS,
 } from './schemas';
 import {
   cacheResults,
@@ -126,6 +128,10 @@ function summarizeNotionContext(
       return `Updated "${input.task_id}" to ${input.new_status}`;
     case 'mark_bill_paid':
       return `Marked "${input.bill_id}" as paid`;
+    case 'update_bill':
+      return `Updated bill "${input.bill_id}"`;
+    case 'navigate_to_payment':
+      return `Opening payment for "${input.bill_name}"`;
     case 'pause_task':
       return `Paused "${input.task_id}"`;
     case 'add_project_item':
@@ -253,6 +259,7 @@ async function executeNotionToolInner(
         due_date: input.due_date as string | undefined,
         category: input.category as string | undefined,
         frequency: input.frequency as string | undefined,
+        service_link: input.service_link as string | undefined,
       });
 
       await createPage(databaseId, properties);
@@ -265,6 +272,9 @@ async function executeNotionToolInner(
       }
       if (input.due_date) {
         response += ` due ${input.due_date}`;
+      }
+      if (input.service_link) {
+        response += ' with payment link';
       }
       return response;
     }
@@ -354,7 +364,8 @@ async function executeNotionToolInner(
 
     case 'mark_bill_paid': {
       // If bill_id looks like a title (not UUID), try to find it
-      let billId = input.bill_id as string;
+      const originalBillName = input.bill_id as string;
+      let billId = originalBillName;
 
       if (!isValidUUID(billId)) {
         // First try the cache
@@ -384,7 +395,56 @@ async function executeNotionToolInner(
       // Trigger dashboard refresh after bill paid
 
 
-      return 'Marked the bill as paid.';
+      return `Marked "${originalBillName}" as paid.`;
+    }
+
+    case 'update_bill': {
+      const originalName = input.bill_id as string;
+      let billId = originalName;
+
+      if (!isValidUUID(billId)) {
+        let foundId = findBillByTitle(billId);
+
+        if (!foundId) {
+          console.log('[ToolExecutor] Bill not in cache, auto-querying subscriptions to populate cache');
+          const dataSourceId = LIFE_OS_DATABASES.subscriptions;
+          if (dataSourceId) {
+            const result = await queryDatabase(dataSourceId, {});
+            cacheQueryResults(result, 'bill');
+            foundId = findBillByTitle(billId);
+          }
+        }
+
+        if (!foundId) {
+          return `I couldn't find a bill matching "${billId}". Try the exact name as it appears in Notion.`;
+        }
+        billId = foundId;
+      }
+
+      const properties = buildBillUpdateProperties({
+        title: input.title as string | undefined,
+        amount: input.amount as number | undefined,
+        due_date: input.due_date as string | undefined,
+        frequency: input.frequency as string | undefined,
+        category: input.category as string | undefined,
+        service_link: input.service_link as string | undefined,
+      });
+
+      if (Object.keys(properties).length === 0) {
+        return 'No changes specified. Tell me what to update (amount, due date, frequency, category, or payment link).';
+      }
+
+      await updatePage(billId, properties);
+
+      const changes: string[] = [];
+      if (input.title) changes.push(`name to "${input.title}"`);
+      if (input.amount !== undefined) changes.push(`amount to $${(input.amount as number).toFixed(2)}`);
+      if (input.due_date) changes.push(`due date to ${input.due_date}`);
+      if (input.frequency) changes.push(`frequency to ${input.frequency}`);
+      if (input.category) changes.push(`category to ${input.category}`);
+      if (input.service_link) changes.push('payment link updated');
+
+      return `Updated "${originalName}": ${changes.join(', ')}.`;
     }
 
     case 'pause_task': {
@@ -581,6 +641,44 @@ async function executeNotionToolInner(
       const result = await queryDatabase(dataSourceId, filterOptions);
 
       return formatSubscriptionResults(result);
+    }
+
+    case 'navigate_to_payment': {
+      const billName = input.bill_name as string;
+      const dataSourceId = LIFE_OS_DATABASES.subscriptions;
+      if (!dataSourceId) {
+        return 'Subscriptions database is not configured. Please set NOTION_SUBSCRIPTIONS_DATA_SOURCE_ID.';
+      }
+
+      let foundId = findBillByTitle(billName);
+      if (!foundId) {
+        console.log('[ToolExecutor] Bill not in cache, auto-querying subscriptions');
+        const result = await queryDatabase(dataSourceId, {});
+        cacheQueryResults(result, 'bill');
+        foundId = findBillByTitle(billName);
+      }
+
+      if (!foundId) {
+        return `I couldn't find a subscription matching "${billName}". Try the exact name as it appears in your Notion subscriptions.`;
+      }
+
+      const page = await retrievePage(foundId);
+      const props = (page as { properties: Record<string, unknown> }).properties;
+
+      const urlProp = props[SUBSCRIPTION_PROPS.serviceLink] as { url?: string } | undefined;
+      const serviceLink = urlProp?.url || null;
+      const titleProp = props[SUBSCRIPTION_PROPS.title] as { title?: Array<{ plain_text?: string }> } | undefined;
+      const title = titleProp?.title?.[0]?.plain_text || billName;
+
+      if (!serviceLink) {
+        return `Found "${title}" but it doesn't have a payment link saved. You can say "update ${title} payment link to https://..." to add one.`;
+      }
+
+      return JSON.stringify({
+        action: 'open_payment',
+        url: serviceLink,
+        title,
+      });
     }
 
     case 'create_recurring_task': {

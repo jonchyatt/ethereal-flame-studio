@@ -580,6 +580,7 @@ export function formatBillResults(result: unknown): string {
     const frequency = extractSelect(p.properties[SUBSCRIPTION_PROPS.frequency]);
     const status = extractSelect(p.properties[SUBSCRIPTION_PROPS.status]);
     const startDate = extractDate(p.properties[SUBSCRIPTION_PROPS.startDate]);
+    const serviceLink = extractUrl(p.properties[SUBSCRIPTION_PROPS.serviceLink]);
 
     let line = `- ${title}`;
     if (fees > 0) {
@@ -593,6 +594,9 @@ export function formatBillResults(result: unknown): string {
     }
     if (startDate) {
       line += ` - Start: ${formatDateForSpeech(startDate)}`;
+    }
+    if (serviceLink) {
+      line += ` - [Pay here](${serviceLink})`;
     }
     line += ` [id:${p.id}]`;
     return line;
@@ -883,6 +887,54 @@ export function buildBillPaidUpdate(): Record<string, unknown> {
 }
 
 /**
+ * Build Notion properties for updating an existing bill/subscription.
+ * Only includes properties that are provided (partial update).
+ */
+export function buildBillUpdateProperties(input: {
+  title?: string;
+  amount?: number;
+  due_date?: string;
+  frequency?: string;
+  category?: string;
+  service_link?: string;
+}): Record<string, unknown> {
+  const properties: Record<string, unknown> = {};
+
+  if (input.title !== undefined) {
+    properties[SUBSCRIPTION_PROPS.title] = {
+      title: [{ text: { content: input.title } }],
+    };
+  }
+  if (input.amount !== undefined) {
+    properties[SUBSCRIPTION_PROPS.fees] = {
+      number: input.amount,
+    };
+  }
+  if (input.due_date !== undefined) {
+    properties[SUBSCRIPTION_PROPS.startDate] = {
+      date: { start: input.due_date },
+    };
+  }
+  if (input.frequency !== undefined) {
+    properties[SUBSCRIPTION_PROPS.frequency] = {
+      select: { name: input.frequency },
+    };
+  }
+  if (input.category !== undefined) {
+    properties[SUBSCRIPTION_PROPS.category] = {
+      select: { name: input.category },
+    };
+  }
+  if (input.service_link !== undefined) {
+    properties[SUBSCRIPTION_PROPS.serviceLink] = {
+      url: input.service_link,
+    };
+  }
+
+  return properties;
+}
+
+/**
  * Build Notion properties object for bill/subscription creation.
  * Routes to the Subscriptions Database (the user's actual bills tracker).
  */
@@ -892,6 +944,7 @@ export function buildBillProperties(input: {
   due_date?: string;
   category?: string;
   frequency?: string;
+  service_link?: string;
 }): Record<string, unknown> {
   const properties: Record<string, unknown> = {
     [SUBSCRIPTION_PROPS.title]: {
@@ -920,6 +973,12 @@ export function buildBillProperties(input: {
   if (input.frequency) {
     properties[SUBSCRIPTION_PROPS.frequency] = {
       select: { name: input.frequency },
+    };
+  }
+
+  if (input.service_link) {
+    properties[SUBSCRIPTION_PROPS.serviceLink] = {
+      url: input.service_link,
     };
   }
 

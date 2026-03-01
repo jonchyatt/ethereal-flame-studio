@@ -185,6 +185,7 @@ function transformBills(data: BriefingData): PersonalBill[] {
       dueDate: bill.dueDate ?? '',
       status,
       category: '',
+      serviceLink: bill.serviceLink,
     };
   });
 }

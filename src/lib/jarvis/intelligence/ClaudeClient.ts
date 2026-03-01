@@ -15,6 +15,7 @@ const WRITE_TOOLS = [
   'create_task',
   'update_task_status',
   'mark_bill_paid',
+  'update_bill',
   'pause_task',
   'add_project_item',
   'open_notion_panel',
@@ -149,6 +150,16 @@ export class ClaudeClient {
                 } else if (toolName === 'close_notion_panel') {
                   console.log('[ClaudeClient] Closing Notion panel');
                   useNotionPanelStore.getState().closePanel();
+                } else if (toolName === 'navigate_to_payment' && isSuccess) {
+                  try {
+                    const parsed = JSON.parse(result);
+                    if (parsed.action === 'open_payment') {
+                      console.log('[ClaudeClient] Opening payment portal:', parsed.title);
+                      window.open(parsed.url, '_blank', 'noopener,noreferrer');
+                    }
+                  } catch {
+                    // Not JSON — tool returned an error string (e.g., no payment link), skip
+                  }
                 } else if (toolName === 'start_lesson' && isSuccess) {
                   try {
                     const parsed = JSON.parse(result);

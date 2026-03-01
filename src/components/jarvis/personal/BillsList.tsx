@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { Card, Badge, Button } from '@/components/jarvis/primitives';
+import { ExternalLink } from 'lucide-react';
 import { usePersonalStore, type PersonalBill } from '@/lib/jarvis/stores/personalStore';
 
 function formatCurrency(n: number): string {
@@ -92,15 +93,27 @@ function BillRow({
       </div>
 
       {!isPaid && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full mt-2"
-          onClick={() => onMarkPaid(bill.id)}
-          data-tutorial-id={markPaidTutorialId}
-        >
-          Mark Paid
-        </Button>
+        <div className="flex gap-2 mt-2">
+          {bill.serviceLink && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex-1 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-300"
+              onClick={() => window.open(bill.serviceLink!, '_blank', 'noopener,noreferrer')}
+            >
+              Pay Now <ExternalLink className="w-3 h-3 ml-1 inline" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className={bill.serviceLink ? 'flex-1' : 'w-full'}
+            onClick={() => onMarkPaid(bill.id)}
+            data-tutorial-id={markPaidTutorialId}
+          >
+            Mark Paid
+          </Button>
+        </div>
       )}
     </div>
   );

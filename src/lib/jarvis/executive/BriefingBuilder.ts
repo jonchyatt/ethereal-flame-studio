@@ -85,6 +85,14 @@ function extractNumber(prop: unknown): number {
 }
 
 /**
+ * Extract URL value
+ */
+function extractUrl(prop: unknown): string | null {
+  const p = prop as { url?: string };
+  return p?.url || null;
+}
+
+/**
  * Extract checkbox value
  */
 function extractCheckbox(prop: unknown): boolean | null {
@@ -400,6 +408,7 @@ function parseBillResults(
     const startDateRaw = extractDate(p.properties[SUBSCRIPTION_PROPS.startDate]);
     const startDate = startDateRaw ? startDateRaw.split('T')[0] : null;
     const status = extractSelect(p.properties[SUBSCRIPTION_PROPS.status]);
+    const serviceLink = extractUrl(p.properties[SUBSCRIPTION_PROPS.serviceLink]);
 
     return {
       id: p.id,
@@ -407,6 +416,7 @@ function parseBillResults(
       amount: extractNumber(p.properties[SUBSCRIPTION_PROPS.fees]),
       dueDate: startDate,
       status,
+      serviceLink,
     };
   });
 
@@ -427,6 +437,7 @@ function parseBillResults(
     title: bill.title,
     amount: bill.amount,
     dueDate: bill.dueDate,
+    serviceLink: bill.serviceLink,
   }));
 }
 

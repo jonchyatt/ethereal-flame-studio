@@ -141,7 +141,7 @@
 
 **Depends on:** Phase H (production infrastructure + live data pipeline stable)
 
-**Status:** Planning — I-01-PLAN.md ready for approval
+**Status:** COMPLETE — I-01-SUMMARY.md (1/1 plans)
 
 ---
 
@@ -182,7 +182,7 @@ Improve)  Memory)
 | F | Vector Memory | Complete |
 | G | Integration & Polish | Complete |
 | H | Google Calendar Integration | Complete |
-| I | Bill Payment Pipeline | Planning |
+| I | Bill Payment Pipeline | Complete |
 
 ---
 
