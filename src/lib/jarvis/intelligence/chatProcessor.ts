@@ -4,7 +4,7 @@
  * v4.0: Delegates tool execution to sdkBrain.ts (the new brain module).
  * This file remains the orchestrator responsible for:
  * - Agent Zero routing (Gem #8: complex query detection)
- * - Tool executor routing (3-way: Notion/Memory/Tutorial)
+ * - Tool executor routing (5-way: Notion/Memory/Tutorial/Calendar/Academy)
  * - Fire-and-forget message persistence
  * - Summarization triggers
  *
@@ -21,10 +21,12 @@
 import { think } from './sdkBrain';
 import { notionTools, memoryTools, calendarTools } from './tools';
 import { tutorialTools } from '../tutorial/tutorialTools';
+import { academyTools, academyToolNames } from '../academy/academyTools';
 import { executeNotionTool } from '../notion/toolExecutor';
 import { executeMemoryTool } from '../memory/toolExecutor';
 import { executeTutorialTool } from '../tutorial/toolExecutor';
 import { executeCalendarTool } from '../google/calendarToolExecutor';
+import { executeAcademyTool } from '../academy/toolExecutor';
 import { handleRecurringTaskCompletion } from '../notion/recurringHook';
 import { evaluateConversation } from './evaluator';
 import { shouldReflect, runReflection } from './reflectionLoop';
@@ -33,10 +35,10 @@ import { triggerSummarization } from '../memory/summarization';
 import { getJarvisConfig } from '../config';
 import { sendMessage as sendToAgentZero, getStatus as getAgentZeroStatus } from '../agentZero/client';
 
-const allTools = [...notionTools, ...calendarTools, ...memoryTools, ...tutorialTools];
+const allTools = [...notionTools, ...calendarTools, ...memoryTools, ...tutorialTools, ...academyTools];
 
-// Local-only tools (memory, tutorial) — these are always executed locally even when MCP is enabled
-const localOnlyTools = [...memoryTools, ...tutorialTools];
+// Local-only tools (memory, tutorial, academy) — these are always executed locally even when MCP is enabled
+const localOnlyTools = [...memoryTools, ...tutorialTools, ...academyTools];
 
 // Tool name sets for routing
 const memoryToolNames = new Set([
@@ -117,9 +119,11 @@ function isComplexQuery(text: string): boolean {
 /**
  * Route a tool call to the correct executor.
  *
- * 3-way routing preserves existing tool execution logic:
+ * 5-way routing preserves existing tool execution logic:
  * - Tutorial tools → executeTutorialTool
  * - Memory tools → executeMemoryTool (with sessionId for audit logging)
+ * - Calendar tools → executeCalendarTool
+ * - Academy tools → executeAcademyTool
  * - Everything else → executeNotionTool (with sessionId for audit logging)
  */
 function createToolExecutor(sessionId: number) {
@@ -135,6 +139,10 @@ function createToolExecutor(sessionId: number) {
 
     if (calendarToolNames.has(name)) {
       return executeCalendarTool(name, input);
+    }
+
+    if (academyToolNames.has(name)) {
+      return executeAcademyTool(name, input);
     }
 
     return executeNotionTool(name, input, sessionId);

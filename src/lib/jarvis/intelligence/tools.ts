@@ -1,7 +1,7 @@
 /**
  * Tool Definitions for Jarvis
  *
- * Defines Claude tool schemas for Notion, Memory, and Tutorial operations.
+ * Defines Claude tool schemas for Notion, Memory, Tutorial, and Academy operations.
  *
  * Notion Tools (11 total, via SDK):
  * - 5 Read tools: query_tasks, query_bills, query_projects, query_goals, query_habits
@@ -583,7 +583,8 @@ export const calendarTools: ToolDefinition[] = [
 // Import for local use + re-export for external consumers
 import { memoryTools } from './memoryTools';
 import { tutorialTools } from '../tutorial/tutorialTools';
-export { memoryTools, tutorialTools };
+import { academyTools } from '../academy/academyTools';
+export { memoryTools, tutorialTools, academyTools };
 
 /**
  * Get all available tools for Claude
@@ -593,6 +594,7 @@ export function getAllTools(): ToolDefinition[] {
     ...notionTools,
     ...calendarTools,
     ...memoryTools,
-    ...tutorialTools
+    ...tutorialTools,
+    ...academyTools,
   ];
 }

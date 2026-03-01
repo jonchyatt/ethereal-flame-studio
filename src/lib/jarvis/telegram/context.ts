@@ -18,6 +18,7 @@ import {
 import { loadConversationHistory } from '../memory/queries/messages';
 import { loadBehaviorRulesForPrompt } from '../intelligence/behaviorRules';
 import { getServiceHealth } from '../resilience/CircuitBreaker';
+import { isAcademyConfigured } from '../academy/githubReader';
 import type { SystemPromptContext } from '../intelligence/systemPrompt';
 
 export interface ContextOptions {
@@ -120,5 +121,6 @@ export async function buildSystemPromptContext(
     conversationHistory,
     serviceHealth,
     behaviorRules,
+    academyConfigured: isAcademyConfigured(),
   };
 }

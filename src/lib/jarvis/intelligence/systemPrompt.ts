@@ -33,6 +33,8 @@ export interface SystemPromptContext {
   serviceHealth?: Record<string, 'degraded' | 'down'>;
   /** Behavioral rules from self-improvement (Phase D) */
   behaviorRules?: string[];
+  /** Whether Academy (project teaching) is configured */
+  academyConfigured?: boolean;
 }
 
 /**
@@ -293,7 +295,32 @@ If the user's request involves an affected service, mention it briefly: "Notion 
 - Smart shopping: generates list from meal plan ingredients minus what's already in the pantry
 - Query any of your Life OS databases by voice
 - Time awareness and conversation memory
-- Tutorial system: "start tutorial", "teach me about X", "what can you do?"`);
+- Tutorial system: "start tutorial", "teach me about X", "what can you do?"
+- Academy: teach about Visopscreen and Creator Workflow by reading the actual source code`);
+
+  // Academy — Project Teaching (when configured)
+  if (context.academyConfigured) {
+    sections.push(`ACADEMY \u2014 PROJECT TEACHING:
+You can teach Jonathan about his projects by reading their actual source code. Available projects:
+- Visopscreen \u2014 Options screening, analysis, and strategy building tool (14 strategies, 5 data sources, regime detection)
+- Creator Workflow \u2014 Video production and multi-platform publishing pipeline (render, recut, publish, thumbnails)
+
+When Jonathan asks about how something works in his projects:
+1. Use academy_explore_project FIRST to understand the project structure and context
+2. Use academy_read_files to read the relevant source code \u2014 ALWAYS read code before explaining
+3. Explain clearly \u2014 what the code does, how data flows, what the user sees when using it
+4. Help distinguish bugs from misunderstanding \u2014 if something looks broken, say so directly
+5. When you find bugs, issues, or dead code, call them out clearly so they can be fixed together
+6. Use academy_search_code to find where functions, variables, or patterns are defined
+
+Teaching approach:
+- Read code BEFORE explaining. Never guess about implementation details.
+- Start with the big picture (architecture, data flow) then zoom into specifics
+- Connect code to user experience: "this function runs when you click the Find Trades button"
+- For large files (1000+ lines), read in chunks \u2014 use line_start/line_end to focus on relevant sections
+- When teaching a workflow, trace the full path: user action \u2192 event handler \u2192 data processing \u2192 display
+- If you find something confusing in the code, say so \u2014 it might be a real issue worth fixing`);
+  }
 
   // Interaction style — adapted to client type
   if (isVoice) {

@@ -43,7 +43,7 @@
 
 | Plan | Name | Scope | Status |
 |------|------|-------|--------|
-| J-01 | Backend Foundation | Schemas + 7 tools + system prompt | Not started |
+| J-01 | Backend Foundation | Schemas + 7 tools + system prompt | Complete |
 | J-02 | Briefing Integration | Types + BriefingBuilder + store + fetch | Not started |
 | J-03 | Frontend UI | Route + MealsView + 4 tabs | Not started |
 | J-04 | Polish & Intelligence | Chat CTAs + prep time + shopping intelligence | Not started |
@@ -125,14 +125,39 @@ Sequential: each plan builds on the previous.
 
 | Phase | Name | Plans | Status | Completed |
 |-------|------|-------|--------|-----------|
-| J | Meal Planning & Kitchen Intelligence | 0/4 | Not started | - |
+| J | Meal Planning & Kitchen Intelligence | 1/4 | In progress | J-01 |
+
+---
+
+## Next Milestone: v4.3 — Guided Onboarding ("Wife-Ready Experience")
+
+**Vision:** Jarvis becomes a patient, emotionally intelligent teacher. Jonathan's wife opens the app cold, knows nothing, and Jarvis walks her step-by-step through every feature — framing each as mental load removed. Progressive day-by-day curriculum, conversational teaching through chat, micro-celebrations, zero jargon. If she can use it with zero help from Jonathan, the product is ready.
+
+**Depends on:** v4.2 complete (all features stable before teaching them)
+**Full requirements:** See PROJECT.md v4.3 section
+
+---
+
+## Phase K: Jarvis Academy — Codebase Teaching Engine
+
+**Goal:** Give Jarvis the ability to read, understand, and teach about Jonathan's project codebases through conversation. Read actual source code via GitHub API, explain how things work, find bugs together.
+
+**Plans:**
+
+| Plan | Name | Scope | Status |
+|------|------|-------|--------|
+| K-01 | Core Academy Engine | 3 tools + GitHub reader + project registry + system prompt | Complete |
+| K-02 | Deep Visopscreen Curriculum | Expanded manifest, topic-to-file mapping, teaching notes | Not started |
+| K-03 | Creator Workflow + Multi-Domain | Creator expansion, template for adding new projects | Not started |
+| K-04 | Academy UI + Intelligence | Progress page, DB-backed tracking, teaching effectiveness | Not started |
+
+**Blocker:** Jonathan must create GitHub PAT and set GITHUB_TOKEN + GITHUB_OWNER in Vercel.
 
 ---
 
 ## Future Concepts (Not In This Milestone)
 
 - **Intelligence Evolution** — Situation-behavior mappings, deterministic satisfaction, effectiveness scoring, rule graduation (`concepts/intelligence-evolution-v41.md`)
-- **Jarvis Academy** — Dynamic code-aware teaching engine (`concepts/jarvis-academy.md`)
 - **Domain Expansion** — 6 empty domains need content (Ethereal Flame, Reset Biology, CritFailVlogs, Visopscreen, Satori Living, Entity Building)
 - **Write-back Mutations** — Notion updates from UI (currently local-only)
 - **Shell Convergence** — Unify `/jarvis` and `/jarvis/app`
@@ -140,4 +165,4 @@ Sequential: each plan builds on the previous.
 ---
 
 *Created: 2026-02-28*
-*Milestone: v4.2 Meal Planning & Kitchen Intelligence*
+*Milestones: v4.2 Meal Planning & Kitchen Intelligence, v4.3 Academy Engine*
