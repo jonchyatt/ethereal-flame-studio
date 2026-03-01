@@ -64,3 +64,11 @@ MOBILE-FIRST UI (new)
 - ✓ Self-improvement: conversation evaluation — Phase D
 - ✓ Self-improvement: reflection loop with rule evolution — Phase D
 - ✓ Self-improvement: meta-evaluation health monitoring — Phase D
+- ✓ Vector memory with dual retrieval (BM25 + semantic) — Phase F
+- ✓ Memory consolidation (merge similar memories) — Phase F
+- ✓ Mobile-first UI with domain OS architecture — Phase E (core shell + personal domain)
+- ✓ Brain activation + live data pipeline + executive bridge — Phase G
+- ✓ Production hardening (ErrorBoundary, retry, health, CRON) — Phase G
+- ✓ Google Calendar integration via service account — Phase H
+- ✓ All briefing types enriched with real calendar data — Phase H
+- ✓ query_calendar chat tool for schedule queries — Phase H
