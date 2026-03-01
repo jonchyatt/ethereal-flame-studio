@@ -8,7 +8,8 @@
  *
  * Environment variables:
  * - GOOGLE_CALENDAR_SERVICE_ACCOUNT_JSON: Full JSON key file contents
- * - GOOGLE_CALENDAR_ID: Calendar ID (usually an email address)
+ * - GOOGLE_CALENDAR_ID: Calendar ID(s) — single email or comma-separated for multiple calendars
+ *   e.g., "jonathan@gmail.com" or "jonathan@gmail.com,family123@group.calendar.google.com"
  */
 
 import crypto from 'crypto';
@@ -195,34 +196,12 @@ interface GCalResponse {
 const calendarBreaker = getBreaker('google-calendar');
 
 /**
- * Query Google Calendar events within a time range
- *
- * @param options.timeMin - RFC 3339 datetime (e.g., "2026-02-28T00:00:00-05:00")
- * @param options.timeMax - RFC 3339 datetime (e.g., "2026-02-28T23:59:59-05:00")
- * @param options.timezone - IANA timezone for all-day event interpretation
- * @param options.maxResults - Maximum events to return (default 50)
- * @param options.calendarId - Calendar ID (defaults to GOOGLE_CALENDAR_ID env)
+ * Fetch events from a single calendar ID
  */
-export async function queryGoogleCalendarEvents(options: {
-  timeMin: string;
-  timeMax: string;
-  timezone?: string;
-  maxResults?: number;
-  calendarId?: string;
-}): Promise<GoogleCalendarEvent[]> {
-  const config = getServiceAccountConfig();
-  if (!config) return [];
-
-  const calendarId = options.calendarId || process.env.GOOGLE_CALENDAR_ID;
-  if (!calendarId) return [];
-
-  // Warn if time boundaries lack timezone offset (common mistake)
-  if (options.timeMin.includes('T') && !options.timeMin.match(/[+-]\d{2}:\d{2}$/) && !options.timeMin.endsWith('Z')) {
-    console.warn('[GoogleCalendar] timeMin lacks RFC 3339 timezone offset — may be interpreted as UTC');
-  }
-
-  console.log(`[GoogleCalendar] Fetching events ${options.timeMin} → ${options.timeMax}`);
-
+async function fetchSingleCalendar(
+  calendarId: string,
+  options: { timeMin: string; timeMax: string; timezone?: string; maxResults?: number }
+): Promise<GoogleCalendarEvent[]> {
   return calendarBreaker.execute(async () => {
     return withRetry(async () => {
       const token = await getAccessToken();
@@ -248,7 +227,7 @@ export async function queryGoogleCalendarEvents(options: {
       // Auth failures: log clearly, don't retry, return empty
       if (response.status === 401 || response.status === 403) {
         const text = await response.text();
-        console.error(`[GoogleCalendar] Auth failed (${response.status}): ${text.slice(0, 200)}`);
+        console.error(`[GoogleCalendar] Auth failed for "${calendarId}" (${response.status}): ${text.slice(0, 200)}`);
         console.error('[GoogleCalendar] Check service account permissions — calendar must be shared with the service account email');
         return [];
       }
@@ -261,7 +240,7 @@ export async function queryGoogleCalendarEvents(options: {
       const data: GCalResponse = await response.json();
       const items = data.items || [];
 
-      const events: GoogleCalendarEvent[] = items.map((item) => ({
+      return items.map((item) => ({
         id: item.id,
         title: item.summary || 'Untitled',
         startTime: item.start.dateTime || item.start.date || '',
@@ -270,9 +249,64 @@ export async function queryGoogleCalendarEvents(options: {
         location: item.location || null,
         description: item.description ? item.description.slice(0, 200) : null,
       }));
-
-      console.log(`[GoogleCalendar] Found ${events.length} events`);
-      return events;
     }, 'google-calendar', { maxAttempts: 2, initialDelayMs: 500 });
   });
+}
+
+/**
+ * Query Google Calendar events within a time range
+ * Supports multiple calendars via comma-separated GOOGLE_CALENDAR_ID
+ *
+ * @param options.timeMin - RFC 3339 datetime (e.g., "2026-02-28T00:00:00-05:00")
+ * @param options.timeMax - RFC 3339 datetime (e.g., "2026-02-28T23:59:59-05:00")
+ * @param options.timezone - IANA timezone for all-day event interpretation
+ * @param options.maxResults - Maximum events to return per calendar (default 50)
+ * @param options.calendarId - Calendar ID override (defaults to GOOGLE_CALENDAR_ID env, supports comma-separated)
+ */
+export async function queryGoogleCalendarEvents(options: {
+  timeMin: string;
+  timeMax: string;
+  timezone?: string;
+  maxResults?: number;
+  calendarId?: string;
+}): Promise<GoogleCalendarEvent[]> {
+  const config = getServiceAccountConfig();
+  if (!config) return [];
+
+  const rawIds = options.calendarId || process.env.GOOGLE_CALENDAR_ID;
+  if (!rawIds) return [];
+
+  // Support comma-separated calendar IDs
+  const calendarIds = rawIds.split(',').map(id => id.trim()).filter(Boolean);
+  if (calendarIds.length === 0) return [];
+
+  // Warn if time boundaries lack timezone offset (common mistake)
+  if (options.timeMin.includes('T') && !options.timeMin.match(/[+-]\d{2}:\d{2}$/) && !options.timeMin.endsWith('Z')) {
+    console.warn('[GoogleCalendar] timeMin lacks RFC 3339 timezone offset — may be interpreted as UTC');
+  }
+
+  console.log(`[GoogleCalendar] Fetching events from ${calendarIds.length} calendar(s): ${options.timeMin} → ${options.timeMax}`);
+
+  // Fetch all calendars in parallel, merge results
+  const results = await Promise.allSettled(
+    calendarIds.map(id => fetchSingleCalendar(id, options))
+  );
+
+  const allEvents: GoogleCalendarEvent[] = [];
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      allEvents.push(...result.value);
+    }
+    // Rejected calendars silently skipped — errors already logged in fetchSingleCalendar
+  }
+
+  // Sort merged events: all-day first, then by start time
+  allEvents.sort((a, b) => {
+    if (a.allDay && !b.allDay) return -1;
+    if (!a.allDay && b.allDay) return 1;
+    return a.startTime.localeCompare(b.startTime);
+  });
+
+  console.log(`[GoogleCalendar] Found ${allEvents.length} events across ${calendarIds.length} calendar(s)`);
+  return allEvents;
 }

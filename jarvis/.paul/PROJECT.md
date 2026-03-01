@@ -63,6 +63,15 @@ MOBILE-FIRST UI (new)
 | generate_shopping_list as killer feature | Meal plan ingredients minus pantry stock = what to buy — Phase J |
 | Pantry upsert, not delete | "We're out of milk" = quantity 0, preserves the item for re-stocking — Phase J |
 | Sequential J-01→J-04 ordering | Each plan builds on the previous, proven pipeline from v4.1 — Phase J |
+| Native chat vision over separate endpoint | Claude sees image + has tools in same turn — no separate vision API needed. User sends photo in chat, Claude calls update_pantry directly — Phase J |
+| Reusable vision framework | Image input not pantry-specific — same pipeline works for receipts, documents, any domain. Design generic, not meal-locked — Phase J |
+| Model switching for vision | Haiku default (cheap), Sonnet toggle for better recognition. User controls from app settings. Same pattern applies to all vision tasks — Phase J |
+| Reset Biology pattern as reference | GPT-4o-mini vision proven in nutrition tracking (sharp compression, low-detail mode, ~$0.00001/image). Jarvis uses Claude native vision instead but borrows compression + cost tracking patterns — Phase J |
+| v4.3 = Guided Onboarding milestone | Teaching requires stability — teach AFTER all features work, not while building. Cross-cutting scope (tasks through meals) deserves its own milestone — v4.3 |
+| Jarvis-as-teacher over tutorial UI | Jarvis teaches conversationally through chat, not through static tooltip tutorials. She talks to Jarvis, Jarvis walks her through — v4.3 |
+| Progressive disclosure by day | Don't dump all features. Day 1: briefing + tasks. Day 2: bills. Day 3: meals + shopping. Confidence before complexity — v4.3 |
+| Wife test as product test | If she can use Jarvis cold with zero help from Jonathan, the product is ready. This is the acceptance criterion for v4.3 — v4.3 |
+| Zero jargon in teaching | No "Notion", "database", "tool", "query". Just "your tasks", "your meals", "your shopping list". Emotional framing: each feature removes mental load — v4.3 |
 
 ## Validated Requirements
 
@@ -99,3 +108,50 @@ MOBILE-FIRST UI (new)
 - ○ Visual weekly planner UI with 4-tab layout — Phase J
 - ○ Chat CTAs on every empty state — Phase J
 - ○ Prep time awareness in briefing text — Phase J
+- ○ Vision input framework: camera → image recognition → tool calls (reusable across domains) — Phase J
+- ○ Model tier switching (Haiku ↔ Sonnet) for vision tasks, controllable from app settings — Phase J
+- ○ Pantry photo capture: snap groceries → recognize items → bulk update_pantry — Phase J
+
+## v4.3 Requirements (Guided Onboarding — "Wife-Ready Experience")
+
+**Vision:** Jonathan's wife opens Jarvis for the first time. She knows nothing about how it works. Jarvis itself becomes her patient, emotionally intelligent guide — walking her step-by-step through every feature, framing each as mental load removed, building confidence before complexity. If she can use it cold with zero help from Jonathan, the product is ready.
+
+**Primary user:** Jonathan's wife (non-technical, first-time user, managing household + life)
+**Core metaphor:** Jarvis removes emotional and mental load — every feature is framed as "one less thing to carry"
+**Architecture:** Structured curriculum (the backbone) delivered through natural conversation (the mechanism). Jarvis has a lesson plan. It knows what to teach, in what order, what's been covered, what's next. Conversation is how it delivers — but the curriculum ensures nothing gets missed.
+
+### Curriculum Architecture
+- ○ Defined curriculum with specific learning objectives per feature — what she must understand, what she must try, what confirms mastery
+- ○ Ordered lesson progression with prerequisites — can't learn meal planning before she's comfortable with basic chat interaction
+- ○ Curriculum state tracked per user — Jarvis knows: lessons completed, current lesson, next lesson, skipped/deferred lessons
+- ○ Each lesson has: objective, emotional hook (why this matters), guided walkthrough, interactive exercise, success confirmation, bridge to next lesson
+- ○ Jarvis can assess understanding before advancing — "Before we move on, try asking me about your tasks for today"
+- ○ Curriculum is complete and auditable — every feature of Jarvis has a lesson, no gaps, no features left untaught
+
+### Curriculum Content (Modules — User Controls the Pace)
+- ○ Self-paced: user can complete the entire curriculum in one sitting (2-3 hours) or spread across days — their choice
+- ○ After each module, Jarvis offers: "Ready for the next one?" — she continues or stops, picks up exactly where she left off
+- ○ Module 1 — Welcome: Jarvis introduces itself, learns her name, sets expectations (~5 min)
+- ○ Module 2 — Morning Briefing + Tasks: "This is what your morning looks like now" — briefing walkthrough, adding a task, completing a task
+- ○ Module 3 — Calendar + Habits: "Jarvis already knows your schedule" — calendar queries, habit tracking
+- ○ Module 4 — Bill Pay: "You'll never miss a payment again" — bill overview, payment navigation, due dates
+- ○ Module 5 — Meal Planning + Recipes: "What's for dinner? Jarvis knows" — meal queries, recipe creation
+- ○ Module 6 — Shopping + Pantry: "The killer feature" — generate shopping list, pantry tracking, grocery workflow
+- ○ Module 7 — Graduation: recap, "you're ready", open-ended confidence
+
+### Conversational Delivery
+- ○ Jarvis teaches through chat, not tooltips — "Try saying 'what's on my plate today'" → she does → Jarvis celebrates
+- ○ Emotional framing on every lesson: each feature introduced as mental load reduction ("You'll never have to remember bill due dates again")
+- ○ Interactive verification: after teaching, Jarvis asks her to try it, confirms success, bridges to next topic
+- ○ Micro-celebrations: positive reinforcement at each milestone ("You just set up your first meal plan!")
+- ○ Zero jargon: no Notion, database, tool, query — just "your tasks", "your meals", "your shopping list"
+- ○ Gentle re-engagement: if she hasn't continued the curriculum, Jarvis nudges — "Ready for the next thing? I think you'll love this one"
+- ○ "Ask me anything" escape hatch: at any point she can just ask Jarvis naturally — curriculum pauses, resumes when ready
+
+### System Requirements
+- ○ Progressive UI unlocking: don't show all tabs/features at once — reveal as curriculum reaches each feature
+- ○ Curriculum completion tracking visible to user: she can see her progress, what she's learned, what's coming
+- ○ Contextual re-teaching: if she hasn't used a feature in a while, Jarvis gently reminds and re-offers guidance
+- ○ Complete feature coverage: tasks, calendar, habits, bills, meal planning, recipes, pantry, shopping lists, briefings — every feature has a lesson
+- ○ Existing tutorial infrastructure reuse: tutorialStore, lessonRegistry, action bus, AcademyHub — upgrade from static scripts to curriculum-driven conversational teaching
+- ○ Curriculum data persisted: survives app close, page refresh, device switch — she picks up where she left off
