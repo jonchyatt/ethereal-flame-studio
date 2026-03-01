@@ -110,9 +110,14 @@ export interface GoalSummary {
 export interface CalendarEvent {
   id: string;
   title: string;
-  time: string; // Formatted time like "9:00 AM"
-  isUpcoming: boolean; // Within the next hour
-  sourceTaskId?: string; // If derived from a task
+  time: string;              // Formatted start time like "9:00 AM" or "All day"
+  endTime?: string;          // Formatted end time like "10:00 AM"
+  isUpcoming: boolean;       // Within the next hour
+  allDay?: boolean;          // True for all-day events
+  location?: string;         // Event location
+  source: 'notion' | 'google';  // Where this event came from
+  sourceTaskId?: string;     // If derived from a Notion task
+  googleEventId?: string;    // If from Google Calendar
 }
 
 /**

@@ -35,6 +35,9 @@ export interface CalendarEvent {
   startTime: string;
   endTime: string;
   isToday: boolean;
+  allDay?: boolean;
+  location?: string;
+  source?: 'notion' | 'google';
 }
 
 export interface JournalEntry {

@@ -203,8 +203,11 @@ function transformCalendar(data: BriefingData): StoreCalendarEvent[] {
     id: event.id,
     title: event.title,
     startTime: event.time,
-    endTime: '',
+    endTime: event.endTime || '',
     isToday: true,
+    allDay: event.allDay,
+    location: event.location,
+    source: event.source,
   }));
 }
 

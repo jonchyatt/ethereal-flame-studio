@@ -19,11 +19,12 @@
  */
 
 import { think } from './sdkBrain';
-import { notionTools, memoryTools } from './tools';
+import { notionTools, memoryTools, calendarTools } from './tools';
 import { tutorialTools } from '../tutorial/tutorialTools';
 import { executeNotionTool } from '../notion/toolExecutor';
 import { executeMemoryTool } from '../memory/toolExecutor';
 import { executeTutorialTool } from '../tutorial/toolExecutor';
+import { executeCalendarTool } from '../google/calendarToolExecutor';
 import { handleRecurringTaskCompletion } from '../notion/recurringHook';
 import { evaluateConversation } from './evaluator';
 import { shouldReflect, runReflection } from './reflectionLoop';
@@ -32,7 +33,7 @@ import { triggerSummarization } from '../memory/summarization';
 import { getJarvisConfig } from '../config';
 import { sendMessage as sendToAgentZero, getStatus as getAgentZeroStatus } from '../agentZero/client';
 
-const allTools = [...notionTools, ...memoryTools, ...tutorialTools];
+const allTools = [...notionTools, ...calendarTools, ...memoryTools, ...tutorialTools];
 
 // Local-only tools (memory, tutorial) — these are always executed locally even when MCP is enabled
 const localOnlyTools = [...memoryTools, ...tutorialTools];
@@ -60,6 +61,10 @@ const tutorialToolNames = new Set([
   'get_curriculum_status',
   'start_lesson',
   'complete_lesson',
+]);
+
+const calendarToolNames = new Set([
+  'query_calendar',
 ]);
 
 export interface ChatMessage {
@@ -126,6 +131,10 @@ function createToolExecutor(sessionId: number) {
 
     if (memoryToolNames.has(name)) {
       return executeMemoryTool(name, input, sessionId);
+    }
+
+    if (calendarToolNames.has(name)) {
+      return executeCalendarTool(name, input);
     }
 
     return executeNotionTool(name, input, sessionId);
@@ -210,9 +219,9 @@ export async function processChatMessage(options: ProcessChatOptions): Promise<P
   }
 
   try {
-    // When MCP is enabled, only pass local tools (memory/tutorial) — Notion tools come from MCP
+    // When MCP is enabled, only pass local tools + calendar — Notion tools come from MCP
     const toolsForBrain = config.enableMcpConnector && config.notionOAuthToken
-      ? localOnlyTools
+      ? [...localOnlyTools, ...calendarTools]
       : allTools;
 
     // Delegate to sdkBrain for tool execution

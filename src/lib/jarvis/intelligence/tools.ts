@@ -382,6 +382,33 @@ export const notionTools: ToolDefinition[] = [
   }
 ];
 
+// =============================================================================
+// Calendar Tools (Phase H: Google Calendar Integration)
+// =============================================================================
+
+/**
+ * Calendar tool definitions for Google Calendar integration
+ *
+ * 1 Read tool: query_calendar
+ */
+export const calendarTools: ToolDefinition[] = [
+  {
+    name: 'query_calendar',
+    description: 'Check upcoming calendar events from Google Calendar. Use when the user asks about their schedule, meetings, appointments, availability, free time, what\'s on their calendar, or potential scheduling conflicts.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        timeframe: {
+          type: 'string',
+          description: 'Time range to check',
+          enum: ['today', 'tomorrow', 'this_week', 'next_week']
+        }
+      },
+      required: ['timeframe']
+    }
+  }
+];
+
 // Import for local use + re-export for external consumers
 import { memoryTools } from './memoryTools';
 import { tutorialTools } from '../tutorial/tutorialTools';
@@ -393,6 +420,7 @@ export { memoryTools, tutorialTools };
 export function getAllTools(): ToolDefinition[] {
   return [
     ...notionTools,
+    ...calendarTools,
     ...memoryTools,
     ...tutorialTools
   ];

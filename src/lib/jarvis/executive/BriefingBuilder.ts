@@ -41,6 +41,12 @@ import {
   HABIT_PROPS,
   GOAL_PROPS,
 } from '../notion/schemas';
+import {
+  queryGoogleCalendarEvents,
+  isGoogleCalendarConfigured,
+  getTimezoneOffsetString,
+  type GoogleCalendarEvent,
+} from '../google/GoogleCalendarClient';
 
 // =============================================================================
 // Raw Data Extraction Helpers
@@ -98,16 +104,23 @@ export async function buildMorningBriefing(timezone?: string): Promise<BriefingD
   console.log('[BriefingBuilder] Building morning briefing data...', { timezone });
 
   try {
+    // Timezone-safe date boundaries for Google Calendar (RFC 3339 compliant)
+    const todayStr = getTodayInTimezone(timezone);
+    const tzOffset = getTimezoneOffsetString(timezone);
+    const gcalTodayStart = `${todayStr}T00:00:00${tzOffset}`;
+    const gcalTodayEnd = `${todayStr}T23:59:59${tzOffset}`;
+
     // Parallel queries for all data sources using Phase 4 MCP tools
     // Note: Using 'all' filter instead of 'today' to show all pending tasks
     // since many tasks may not have dates set in the 'Do Dates' field
-    const [todayTasksResult, overdueTasksResult, billsResult, habitsResult, goalsResult] =
+    const [todayTasksResult, overdueTasksResult, billsResult, habitsResult, goalsResult, googleResult] =
       await Promise.all([
         queryNotionRaw('tasks', { filter: 'all', status: 'pending', timezone }),
         queryNotionRaw('tasks', { filter: 'overdue', status: 'pending', timezone }),
         queryNotionRaw('bills', { timeframe: 'this_week', unpaidOnly: true, timezone }),
         queryNotionRaw('habits', { frequency: 'all' }),
         queryNotionRaw('goals', { status: 'active' }),
+        fetchGoogleCalendarEventsSafe(gcalTodayStart, gcalTodayEnd, timezone),
       ]);
 
     // Parse task results with client-side status filtering
@@ -131,7 +144,9 @@ export async function buildMorningBriefing(timezone?: string): Promise<BriefingD
 
     // Derive calendar events from tasks with specific times
     const allTodayTasks = [...todayTasks, ...overdueTasks.filter((t) => t.dueDate && isToday(parseISO(t.dueDate)))];
-    const calendarEvents = deriveCalendarEvents(allTodayTasks);
+    const notionCalendarEvents = deriveCalendarEvents(allTodayTasks);
+    const googleCalendarEvents = transformGoogleCalendarEvents(googleResult);
+    const calendarEvents = mergeCalendarEvents(notionCalendarEvents, googleCalendarEvents);
 
     // Get life area insights for gentle awareness nudges
     const lifeAreaTracker = getLifeAreaTracker();
@@ -168,6 +183,8 @@ export async function buildMorningBriefing(timezone?: string): Promise<BriefingD
       habits: habits.length,
       goals: goals.length,
       calendarEvents: calendarEvents.length,
+      calendarFromNotion: notionCalendarEvents.length,
+      calendarFromGoogle: googleCalendarEvents.length,
       neglectedAreas: lifeAreaInsights.neglectedAreas.length,
     });
 
@@ -473,6 +490,7 @@ function deriveCalendarEvents(tasks: TaskSummary[]): CalendarEvent[] {
         title: t.title,
         time: format(eventTime, 'h:mm a'), // "9:00 AM"
         isUpcoming,
+        source: 'notion' as const,
         sourceTaskId: t.id,
       };
     })
@@ -535,6 +553,13 @@ export async function buildEveningWrapData(timezone?: string): Promise<EveningWr
   console.log('[BriefingBuilder] Building evening wrap data...', { timezone });
 
   try {
+    // Timezone-safe date boundaries for Google Calendar (RFC 3339 compliant)
+    const todayStr = getTodayInTimezone(timezone);
+    const tomorrowStr = getDateInTimezone(1, timezone);
+    const tzOffset = getTimezoneOffsetString(timezone);
+    const gcalTodayStart = `${todayStr}T00:00:00${tzOffset}`;
+    const gcalTomorrowEnd = `${tomorrowStr}T23:59:59${tzOffset}`;
+
     // Parallel queries for all data sources
     const [
       completedTasksResult,
@@ -544,6 +569,7 @@ export async function buildEveningWrapData(timezone?: string): Promise<EveningWr
       billsResult,
       habitsResult,
       goalsResult,
+      googleResult,
     ] = await Promise.all([
       queryNotionRaw('tasks', { filter: 'today', status: 'completed', timezone }),
       queryNotionRaw('tasks', { filter: 'today', status: 'pending', timezone }),
@@ -552,6 +578,7 @@ export async function buildEveningWrapData(timezone?: string): Promise<EveningWr
       queryNotionRaw('bills', { timeframe: 'this_week', unpaidOnly: true, timezone }),
       queryNotionRaw('habits', { frequency: 'all' }),
       queryNotionRaw('goals', { status: 'active' }),
+      fetchGoogleCalendarEventsSafe(gcalTodayStart, gcalTomorrowEnd, timezone),
     ]);
 
     // Parse task results with client-side status filtering
@@ -563,8 +590,23 @@ export async function buildEveningWrapData(timezone?: string): Promise<EveningWr
     // Build day review
     const dayReview = buildDayReview(completedTasks, pendingTasks);
 
-    // Build tomorrow preview
-    const tomorrow = buildTomorrowPreview(tomorrowTasks);
+    // Split Google events into today and tomorrow
+    const googleTodayRaw = googleResult.filter((e) => e.startTime.startsWith(todayStr) || (e.allDay && e.startTime === todayStr));
+    const googleTomorrowRaw = googleResult.filter((e) => e.startTime.startsWith(tomorrowStr) || (e.allDay && e.startTime === tomorrowStr));
+    const googleTodayEvents = transformGoogleCalendarEvents(googleTodayRaw);
+    const googleTomorrowEvents = transformGoogleCalendarEvents(googleTomorrowRaw);
+
+    // TODAY's events: Notion today tasks (FIX: was using tomorrowTasks) + Google today events
+    const notionTodayEvents = deriveCalendarEvents([...completedTasks, ...pendingTasks]);
+    const calendarTodayEvents = mergeCalendarEvents(notionTodayEvents, googleTodayEvents);
+
+    // TOMORROW's events: Notion tomorrow tasks + Google tomorrow events
+    const notionTomorrowEvents = deriveCalendarEventsForTomorrow(tomorrowTasks);
+    const tomorrowCalendarEvents = mergeCalendarEvents(notionTomorrowEvents, googleTomorrowEvents);
+    const tomorrow: TomorrowPreviewData = {
+      tasks: tomorrowTasks,
+      events: tomorrowCalendarEvents,
+    };
 
     // Build week summary
     const weekSummary = analyzeWeekLoad(weekTasks);
@@ -579,7 +621,6 @@ export async function buildEveningWrapData(timezone?: string): Promise<EveningWr
     const habits = parseHabitResults(habitsResult);
     const streakSummary = buildStreakSummary(habits);
     const goals = parseGoalResults(goalsResult);
-    const calendarEvents = deriveCalendarEvents(tomorrowTasks);
 
     const eveningWrapData: EveningWrapData = {
       // Base BriefingData
@@ -599,7 +640,7 @@ export async function buildEveningWrapData(timezone?: string): Promise<EveningWr
         active: goals,
       },
       calendar: {
-        today: calendarEvents,
+        today: calendarTodayEvents,
       },
       // Evening wrap specific
       dayReview,
@@ -612,6 +653,8 @@ export async function buildEveningWrapData(timezone?: string): Promise<EveningWr
       pendingToday: pendingTasks.length,
       tomorrowTasks: tomorrowTasks.length,
       completionRate: dayReview.completionRate,
+      calendarTodayFromGoogle: googleTodayEvents.length,
+      calendarTomorrowFromGoogle: googleTomorrowEvents.length,
     });
 
     return eveningWrapData;
@@ -675,6 +718,7 @@ function deriveCalendarEventsForTomorrow(tasks: TaskSummary[]): CalendarEvent[] 
         title: t.title,
         time: format(eventTime, 'h:mm a'),
         isUpcoming: false, // Not upcoming since it's tomorrow
+        source: 'notion' as const,
         sourceTaskId: t.id,
       };
     })
@@ -683,6 +727,70 @@ function deriveCalendarEventsForTomorrow(tasks: TaskSummary[]): CalendarEvent[] 
       const timeB = b.time.replace(/[^0-9:]/g, '');
       return timeA.localeCompare(timeB);
     });
+}
+
+// =============================================================================
+// Google Calendar Integration Helpers
+// =============================================================================
+
+/**
+ * Transform Google Calendar API events into the briefing CalendarEvent format
+ */
+function transformGoogleCalendarEvents(events: GoogleCalendarEvent[]): CalendarEvent[] {
+  const now = new Date();
+  const oneHourFromNow = addHours(now, 1);
+
+  return events.map((e) => {
+    const start = new Date(e.startTime);
+    const end = new Date(e.endTime);
+    const isUpcoming = !e.allDay && isWithinInterval(start, { start: now, end: oneHourFromNow });
+
+    return {
+      id: `gcal-${e.id}`,
+      title: e.title,
+      time: e.allDay ? 'All day' : format(start, 'h:mm a'),
+      endTime: e.allDay ? undefined : format(end, 'h:mm a'),
+      isUpcoming,
+      allDay: e.allDay,
+      location: e.location ?? undefined,
+      source: 'google' as const,
+      googleEventId: e.id,
+    };
+  });
+}
+
+/**
+ * Merge Notion-derived and Google Calendar events, sorted by time
+ */
+function mergeCalendarEvents(notionEvents: CalendarEvent[], googleEvents: CalendarEvent[]): CalendarEvent[] {
+  const merged = [...notionEvents, ...googleEvents];
+  return merged.sort((a, b) => {
+    // All-day events float to top
+    if (a.allDay && !b.allDay) return -1;
+    if (!a.allDay && b.allDay) return 1;
+    // Both all-day: alphabetical
+    if (a.allDay && b.allDay) return a.title.localeCompare(b.title);
+    // Both timed: sort by time string
+    return a.time.localeCompare(b.time);
+  });
+}
+
+/**
+ * Fetch Google Calendar events with full error containment
+ * NEVER throws — returns empty array on any failure
+ */
+async function fetchGoogleCalendarEventsSafe(
+  timeMin: string,
+  timeMax: string,
+  timezone?: string,
+): Promise<GoogleCalendarEvent[]> {
+  if (!isGoogleCalendarConfigured()) return [];
+  try {
+    return await queryGoogleCalendarEvents({ timeMin, timeMax, timezone });
+  } catch (error) {
+    console.error('[BriefingBuilder] Google Calendar fetch failed, continuing without:', error);
+    return [];
+  }
 }
 
 /**
@@ -761,6 +869,13 @@ export async function buildWeeklyReviewData(timezone?: string): Promise<WeeklyRe
     const fourteenDaysFromNow = addDays(now, 14);
     const twentyEightDaysFromNow = addDays(now, 28);
 
+    // Timezone-safe week boundaries for Google Calendar (RFC 3339 compliant)
+    const todayStr = getTodayInTimezone(timezone);
+    const weekEndStr = getDateInTimezone(7, timezone);
+    const tzOffset = getTimezoneOffsetString(timezone);
+    const gcalWeekStart = `${todayStr}T00:00:00${tzOffset}`;
+    const gcalWeekEnd = `${weekEndStr}T23:59:59${tzOffset}`;
+
     // Parallel queries for all data sources
     const [
       completedTasksResult,
@@ -768,6 +883,7 @@ export async function buildWeeklyReviewData(timezone?: string): Promise<WeeklyRe
       upcomingWeekTasksResult,
       horizonTasksResult,
       horizonBillsResult,
+      googleResult,
     ] = await Promise.all([
       // Retrospective: completed tasks in last 7 days
       queryNotionRaw('tasks', { filter: 'all', status: 'completed', timezone }),
@@ -779,6 +895,8 @@ export async function buildWeeklyReviewData(timezone?: string): Promise<WeeklyRe
       queryNotionRaw('tasks', { filter: 'all', status: 'pending', timezone }),
       // Horizon scan: bills due in next month
       queryNotionRaw('bills', { timeframe: 'this_month', unpaidOnly: true, timezone }),
+      // Google Calendar: events for upcoming week
+      fetchGoogleCalendarEventsSafe(gcalWeekStart, gcalWeekEnd, timezone),
     ]);
 
     // Parse and filter retrospective data (last 7 days)
@@ -809,7 +927,9 @@ export async function buildWeeklyReviewData(timezone?: string): Promise<WeeklyRe
     // Parse upcoming week data
     const upcomingWeekTasks = parseTaskResults(upcomingWeekTasksResult, 'all');
     const weekAnalysis = analyzeWeekLoad(upcomingWeekTasks);
-    const calendarEvents = deriveCalendarEvents(upcomingWeekTasks);
+    const notionCalendarEvents = deriveCalendarEvents(upcomingWeekTasks);
+    const googleCalendarEvents = transformGoogleCalendarEvents(googleResult);
+    const calendarEvents = mergeCalendarEvents(notionCalendarEvents, googleCalendarEvents);
 
     // Parse horizon data (14-28 days out)
     const allPendingTasks = parseTaskResults(horizonTasksResult, 'pending');
