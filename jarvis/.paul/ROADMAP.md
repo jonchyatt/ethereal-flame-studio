@@ -1,8 +1,9 @@
-# Roadmap: Jarvis v4.0 Brain Swap & Life Manager UI
+# Roadmap: Jarvis v4.1 Bill Payment & Beyond
 
-**Milestone:** v4.0
-**Status:** COMPLETE (All phases A-H complete)
-**Phases:** 8 (A through H)
+**Milestone:** v4.1
+**Status:** In progress
+**Phases:** 9 (A through I)
+**Previous milestone:** v4.0 Brain Swap & Personal Domain — COMPLETE
 **Research:** `.paul/research/v4-intelligence-audit.md`
 
 ---
@@ -130,6 +131,20 @@
 
 ---
 
+## Phase I: Bill Payment Pipeline
+
+**Goal:** Make bill payment effortless — surface payment links, enable one-tap pay, and let Jarvis update bills via chat. This is the feature that makes Jarvis indispensable for daily life.
+
+**What changes:**
+- I-01: Full pipeline — serviceLink flows from Notion through BriefingBuilder → stores → UI, Pay Now button in BillsList, update_bill + navigate_to_payment chat tools, create_bill enhanced with service_link
+- Fix: SUBSCRIPTION_PROPS import missing in toolExecutor.ts (build-breaking)
+
+**Depends on:** Phase H (production infrastructure + live data pipeline stable)
+
+**Status:** Planning — I-01-PLAN.md ready for approval
+
+---
+
 ## Dependency Graph
 
 ```
@@ -167,8 +182,9 @@ Improve)  Memory)
 | F | Vector Memory | Complete |
 | G | Integration & Polish | Complete |
 | H | Google Calendar Integration | Complete |
+| I | Bill Payment Pipeline | Planning |
 
 ---
 
 *Created: 2026-02-25*
-*Milestone: v4.0 Brain Swap & Personal Domain*
+*Milestone: v4.1 Bill Payment & Beyond*

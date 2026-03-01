@@ -2,23 +2,34 @@
 
 ## Current Position
 
-Milestone: v4.0 Brain Swap & Personal Domain — COMPLETE
-Phase: H of H (Google Calendar Integration) — COMPLETE
-Plan: H-01 UNIFIED — loop closed
-Status: Milestone complete, all phases A-H done
-Last activity: 2026-02-28 — Phase H unified, milestone v4.0 complete
+Milestone: v4.1 Bill Payment & Beyond
+Phase: I of I (Bill Payment Pipeline)
+Plan: I-01 — awaiting approval
+Status: Plan created, ready for review
+Last activity: 2026-02-28 — Phase I plan migrated from Claude Code plans, refined, verified
 
 Progress:
-- Milestone: [##########] 100% (A-H complete)
-- Phase H: [##########] 100% (H-01 unified)
+- Milestone: [#░░░░░░░░░] 10% (I planning)
+- Phase I: [#░░░░░░░░░] 10% (I-01 plan written)
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [Loop complete — milestone done]
+  ✓        ○        ○     [Plan written, awaiting approval + execution]
 ```
+
+## Current Phase: I — Bill Payment Pipeline
+
+Goal: Make bill payment effortless — surface payment links, enable one-tap pay, update bills via chat.
+
+Key context:
+- Wife will use this feature — must be immediately obvious, polished, zero friction
+- Plan migrated from `~/.claude/plans/linear-finding-emerson.md` (other instance saved in wrong location)
+- BUILD-BREAKING BUG found and fixed in plan: SUBSCRIPTION_PROPS not imported in toolExecutor.ts
+- 9 files modified across 3 tasks (pipeline, UI, chat tools)
+- Plan verified line-by-line against live codebase
 
 ## Completed Phases
 
@@ -31,7 +42,7 @@ PLAN ──▶ APPLY ──▶ UNIFY
 - Phase G: Integration & Polish — COMPLETE (G-01 through G-04)
 - Phase H: Google Calendar Integration — COMPLETE (H-01)
 
-## Milestone v4.0 Summary
+## Milestone v4.0 Summary (COMPLETE)
 
 8 phases, 30+ plans, shipped over ~4 days:
 - Brain: Anthropic API + MCP Connector, dual-path architecture
@@ -43,7 +54,7 @@ PLAN ──▶ APPLY ──▶ UNIFY
 - Calendar: Google Calendar service account integration across all briefings + chat
 - Audit: 6-layer "best work" audit (175+ findings, 56+ fixes)
 
-## Honest Gaps (v4.1 scope)
+## Honest Gaps (v4.1+ scope)
 
 - E-07+: 6 empty domains (only Personal has content)
 - Journal + Health sub-pages: no API data, show empty
@@ -54,30 +65,50 @@ PLAN ──▶ APPLY ──▶ UNIFY
 
 ## Accumulated Context
 
-### Key Phase H Decisions
+### Key Phase I Decisions
 
 | Decision | Phase | Impact |
 |----------|-------|--------|
-| Service account over OAuth | Phase H | Single-user read-only, zero callback routes |
-| Native crypto over googleapis SDK | Phase H | Zero new dependencies |
-| MCP mode: [...localOnlyTools, ...calendarTools] | Phase H | Calendar works in both MCP and non-MCP modes |
-| configError flag (parse once, fail permanently) | Phase H | Efficient failure mode on warm Vercel instances |
-| 4-way tool routing (tutorial → memory → calendar → notion) | Phase H | Clean separation of tool categories |
+| Single plan (I-01) covers full pipeline | Phase I | 3 tasks: pipeline → UI → chat tools |
+| SUBSCRIPTION_PROPS import bug caught pre-execution | Phase I | Would have been a build-breaking deployment |
+| Pay Now button gets cyan bg tint | Phase I | Visual prominence over Mark Paid (wife UX) |
+| create_bill enhanced with service_link | Phase I | Bills created via chat get payment links from day one |
+| navigate_to_payment returns JSON action | Phase I | Consistent with open_notion_panel pattern |
 
 ### Git State
-Last commit: e787f0a
+Last commit: c8ca7ac
 Branch: master
 Feature branches merged: none (developed directly on master)
+
+## Upcoming: Phase J — Meal Planning & Kitchen Intelligence
+
+**Status:** Full PAUL-format plan written by planning instance, not yet in phases directory
+
+**Plan location:** `C:\Users\jonch\.claude\plans\compiled-drifting-cherny.md`
+**Target directory:** `jarvis/.paul/phases/J-meal-planning/`
+
+4 sub-plans:
+- J-01: Backend Foundation (7 new tools, schemas, system prompt) — FULL PLAN READY
+- J-02: Briefing Integration (types, BriefingBuilder, store, fetch) — summary written
+- J-03: Frontend UI (route, MealsView, 4 tabs) — summary written
+- J-04: Polish & Intelligence (chat CTAs, prep time, shopping) — summary written
+
+Key context:
+- ~70% backend infrastructure already exists (query_recipes, add_to_meal_plan, schemas, formatters)
+- Databases are EMPTY shells — conversational tools ship first (J-01)
+- Wife will use this — must be beautiful and practical
+- Pantry tracking requested (shopping list = meal plan ingredients - pantry stock)
+- Notion setup needed before execution (Pantry DB, env vars)
 
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: v4.0 milestone complete — UNIFY + transition done, session paused
-Next action: /paul:complete-milestone or decide v4.1 scope
-Resume file: .paul/HANDOFF-2026-02-28-h.md
+Stopped at: I-01 plan refined with 4 improvements from "best work" review, ready for execution
+Next action: `/paul:apply jarvis/.paul/phases/I-bill-payment/I-01-PLAN.md`
+Resume file: .paul/HANDOFF-2026-02-28-plan-review.md
 Resume context:
-- v4.0 milestone fully complete (A-H), 2 commits pushed (c971d3a + e787f0a)
-- H-01 deep reconciliation: 7 AC, 19 checks, 0 deviations
-- 19 handoffs archived to .paul/handoffs/archive/
-- Concept docs ready for v4.1: intelligence-evolution-v41.md, jarvis-academy.md
-- Jonathan needs Google Cloud service account setup for live calendar data
+- I-01-PLAN.md fully written, verified, and refined — execute via /paul:apply
+- 4 improvements applied: navigate_to_payment removed from WRITE_TOOLS, ExternalLink icon on Pay Now, coaching error messages, mark_bill_paid includes bill name
+- BUILD-BREAKING BUG fixed in plan: SUBSCRIPTION_PROPS missing import in toolExecutor.ts
+- Phase J (Meal Planning) plan at ~/.claude/plans/compiled-drifting-cherny.md — migrate to PAUL after Phase I
+- Jonathan must create Pantry database in Notion before J-01 can execute
