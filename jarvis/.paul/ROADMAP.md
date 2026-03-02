@@ -149,7 +149,7 @@ Sequential: each plan builds on the previous.
 |------|------|-------|--------|
 | K-01 | Core Academy Engine | 3 tools + GitHub reader + project registry + system prompt | Complete |
 | K-02 | Deep Visopscreen Curriculum | Expanded manifest, topic-to-file mapping, teaching notes | Not started |
-| K-03 | Creator Workflow + Multi-Domain | Creator expansion, template for adding new projects | Not started |
+| K-03 | Creator Workflow + Multi-Domain | Creator expansion, template for adding new projects | Planning |
 | K-04 | Academy UI + Intelligence | Progress page, DB-backed tracking, teaching effectiveness | Not started |
 
 **Blocker:** Jonathan must create GitHub PAT and set GITHUB_TOKEN + GITHUB_OWNER in Vercel.
