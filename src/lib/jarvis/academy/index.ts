@@ -5,3 +5,6 @@ export { editFile, commitFiles } from './githubWriter';
 export type { EditFileResult, CommitFilesResult, FileChange } from './githubWriter';
 export { getAllProjects, getProject } from './projects';
 export type { CurriculumTopic, ProjectConfig } from './projects';
+export { getAllAcademyProgress, getProgressByProject, upsertAcademyProgress } from './queries';
+export { getNextSuggested } from './curriculum';
+export type { TopicProgress } from './curriculum';

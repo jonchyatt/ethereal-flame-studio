@@ -148,13 +148,19 @@ export async function evaluateConversation(
       ? `\n\nTOOLS USED (${toolsUsed.length} calls): ${toolsUsed.join(', ')}`
       : '';
 
+    // Teaching-enriched evaluation: when Academy tools were used, add teaching-specific criteria
+    const academyToolsUsed = toolsUsed?.filter(t => t.startsWith('academy_')) || [];
+    const teachingContext = academyToolsUsed.length > 0
+      ? `\n\nTEACHING CONTEXT: This was a teaching conversation using Academy tools (${academyToolsUsed.join(', ')}). In addition to the standard 5 dimensions, consider teaching quality: Was the explanation anchored in real code before abstractions? Was the pace appropriate? Did the teacher verify understanding before advancing? Were aha moments created from complexity?`
+      : '';
+
     const response = await anthropic.messages.create({
       model: MODEL_CRITIC,
       max_tokens: 1024,
       system: CRITIC_SYSTEM_PROMPT,
       messages: [{
         role: 'user',
-        content: `Evaluate this conversation:\n\n${transcript}${toolContext}`,
+        content: `Evaluate this conversation:\n\n${transcript}${toolContext}${teachingContext}`,
       }],
       tools: [EVALUATION_TOOL],
       tool_choice: { type: 'tool', name: 'submit_evaluation' },

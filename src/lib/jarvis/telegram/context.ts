@@ -19,6 +19,7 @@ import { loadConversationHistory } from '../memory/queries/messages';
 import { loadBehaviorRulesForPrompt } from '../intelligence/behaviorRules';
 import { getServiceHealth } from '../resilience/CircuitBreaker';
 import { isAcademyConfigured } from '../academy/githubReader';
+import { getAllAcademyProgress } from '../academy/queries';
 import { queryDatabase, retrievePage } from '../notion/NotionClient';
 import { LIFE_OS_DATABASES, MEAL_PLAN_PROPS, RECIPE_PROPS } from '../notion/schemas';
 import type { SystemPromptContext } from '../intelligence/systemPrompt';
@@ -203,7 +204,7 @@ export async function buildSystemPromptContext(
   let behaviorRules: string[] | undefined;
 
   // Launch all independent data fetches in parallel
-  const [memoryResult, historyResult, preferencesResult, rulesResult, mealContextResult] = await Promise.all([
+  const [memoryResult, historyResult, preferencesResult, rulesResult, mealContextResult, academyProgressResult] = await Promise.all([
     // 1. Memory retrieval + proactive surfacing
     config.enableMemoryLoading
       ? retrieveMemories({ maxTokens: config.memoryTokenBudget, maxEntries: config.maxMemories })
@@ -231,6 +232,12 @@ export async function buildSystemPromptContext(
     // 5. Weekly meal context (independent — one Notion query + 0-1 recipe lookups)
     fetchWeeklyMealContext(options?.timezone)
       .catch(err => { console.error('[Context] Meal context failed:', err); return null; }),
+
+    // 6. Academy progress (independent — for system prompt student progress section)
+    isAcademyConfigured()
+      ? getAllAcademyProgress()
+          .catch(err => { console.error('[Context] Academy progress failed:', err); return []; })
+      : Promise.resolve([]),
   ]);
 
   // Process memory results
@@ -284,5 +291,6 @@ export async function buildSystemPromptContext(
     behaviorRules,
     mealContext: mealContextResult || undefined,
     academyConfigured: isAcademyConfigured(),
+    academyProgress: academyProgressResult && academyProgressResult.length > 0 ? academyProgressResult : undefined,
   };
 }

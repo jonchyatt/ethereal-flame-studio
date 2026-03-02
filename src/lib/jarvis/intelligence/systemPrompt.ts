@@ -6,6 +6,8 @@
  */
 
 import { getAllProjects } from '../academy/projects';
+import { getNextSuggested } from '../academy/curriculum';
+import type { AcademyProgressRow } from '../memory/schema';
 
 /**
  * Context available when building the system prompt
@@ -39,6 +41,8 @@ export interface SystemPromptContext {
   mealContext?: string | null;
   /** Whether Academy (project teaching) is configured */
   academyConfigured?: boolean;
+  /** Student's academy progress for system prompt injection */
+  academyProgress?: AcademyProgressRow[];
 }
 
 /**
@@ -92,6 +96,73 @@ function formatDateISO(date: Date, timezone: string = 'UTC'): string {
     const day = date.getDate().toString().padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
+}
+
+/**
+ * Build the STUDENT PROGRESS section for the Academy prompt.
+ * Returns empty string if no progress exists.
+ */
+function buildStudentProgressSection(progress: AcademyProgressRow[] | undefined): string {
+  if (!progress || progress.length === 0) return '';
+
+  const projects = getAllProjects();
+  const sections: string[] = ['\nSTUDENT PROGRESS (your teaching memory):'];
+
+  // Group by project
+  const byProject = new Map<string, AcademyProgressRow[]>();
+  for (const row of progress) {
+    if (!byProject.has(row.projectId)) byProject.set(row.projectId, []);
+    byProject.get(row.projectId)!.push(row);
+  }
+
+  for (const [projectId, rows] of byProject) {
+    const project = projects.find(p => p.id === projectId);
+    const projectName = project?.name || projectId;
+    const totalTopics = project?.curriculum?.length || 0;
+
+    const completed = rows.filter(r => r.status === 'completed');
+    const explored = rows.filter(r => r.status === 'explored');
+    const remaining = Math.max(0, totalTopics - completed.length - explored.length);
+
+    sections.push(`${projectName}: ${completed.length} completed, ${explored.length} in progress, ${remaining} remaining`);
+
+    if (completed.length > 0) {
+      sections.push('Completed topics:');
+      for (const c of completed) {
+        const notes = c.teachingNotes ? ` — Notes: ${c.teachingNotes}` : '';
+        sections.push(`  - ${c.topicId}${notes}`);
+      }
+    }
+
+    if (explored.length > 0) {
+      sections.push('In progress:');
+      for (const e of explored) {
+        sections.push(`  - ${e.topicId} (session #${e.interactionCount})`);
+      }
+    }
+
+    // Next suggested
+    if (project?.curriculum) {
+      const progressMap: Record<string, { projectId: string; topicId: string; status: string }> = {};
+      for (const r of rows) {
+        progressMap[`${r.projectId}:${r.topicId}`] = { projectId: r.projectId, topicId: r.topicId, status: r.status };
+      }
+      const next = getNextSuggested(projectId, project.curriculum, progressMap);
+      if (next) {
+        const stars = '\u2605'.repeat(next.difficulty) + '\u2606'.repeat(5 - next.difficulty);
+        sections.push(`Next suggested: ${next.name} (${stars})`);
+      }
+    }
+  }
+
+  sections.push(`
+Use this to:
+- Never re-teach completed topics (reference them: "Remember when we covered X?")
+- Build on past knowledge ("This builds on the shape scoring we covered last time")
+- Adapt your teaching based on notes ("Last time, the pipeline metaphor worked well for you")
+`);
+
+  return sections.join('\n');
 }
 
 /**
@@ -311,8 +382,7 @@ If the user's request involves an affected service, mention it briefly: "Notion 
 - Smart shopping: generates list from meal plan ingredients minus what's already in the pantry
 - Query any of your Life OS databases by voice
 - Time awareness and conversation memory
-- Tutorial system: "start tutorial", "teach me about X", "what can you do?"
-- Academy: teach about ${getAllProjects().map(p => p.name).join(' and ')} by reading actual source code, and fix bugs by editing files and committing directly to GitHub`);
+- Tutorial system: "start tutorial", "teach me about X", "what can you do?"${context.academyConfigured ? `\n- Academy: teach about ${getAllProjects().map(p => p.name).join(' and ')} by reading actual source code, and fix bugs by editing files and committing directly to GitHub` : ''}`);
 
   // Academy — Project Teaching & Code Surgery (when configured)
   if (context.academyConfigured) {
@@ -331,6 +401,25 @@ You are not a code reader \u2014 you are a teacher who reads code. The differenc
 
 After teaching a significant concept or completing a walkthrough, use remember_fact to log what was covered: "Taught Jonathan about [topic] in [project] \u2014 covered [key files/concepts]" (category: work). This creates continuity across sessions.
 
+TEACHING VERIFICATION:
+After teaching a topic, verify understanding before marking complete:
+1. Ask ONE focused question that requires APPLYING the concept, not just repeating it
+   - For "P&L Curves": "If I add a second short call at a higher strike, what happens to the curve shape?"
+   - For "Data Sources": "If the TOS Excel file stops updating mid-session, what happens to the data pipeline?"
+   - For "Shape Scoring": "Why might a trade with lower max profit score higher than one with higher max profit?"
+2. If student answers correctly, celebrate briefly, then call academy_update_progress(status: "completed")
+3. If student struggles, re-explain from a different angle, ask a simpler question, try again
+4. It is OK to leave a topic as "explored" if the student needs more time
+5. Never inflate progress. "completed" means genuine understanding, not just exposure
+
+TEACHING SESSION FLOW:
+After completing a topic:
+1. Brief celebration: "You've got [topic] down."
+2. Record with academy_update_progress (include teaching_notes with approach + confidence)
+3. Use remember_fact to log: "Taught [student] about [topic] in [project] - [what was covered]"
+4. Bridge to next topic: "Ready for [next topic]? It builds on what we just covered - [connection]."
+5. If student declines, respect it. They will see the suggestion in their Academy page
+${buildStudentProgressSection(context.academyProgress)}
 READING CODE:
 1. Use academy_explore_project FIRST to understand project structure
 2. Use academy_read_files to read the actual source \u2014 NEVER guess about implementation

@@ -71,7 +71,11 @@ export async function readFile(
     }
     const data = await res.json();
     if (data.type !== 'file') throw new Error(`${filePath} is a directory, not a file. Use listDirectory instead.`);
-    rawContent = Buffer.from(data.content, 'base64').toString('utf-8');
+    // Guard: GitHub Contents API returns empty content for files >1MB
+    if (!data.content && data.size > 0) {
+      throw new Error(`${filePath} is too large (${Math.round(data.size / 1024)}KB). GitHub only returns content for files under 1MB. Try reading specific sections with line_start and line_end.`);
+    }
+    rawContent = Buffer.from(data.content || '', 'base64').toString('utf-8');
     setCache(cacheKey, rawContent);
   }
 

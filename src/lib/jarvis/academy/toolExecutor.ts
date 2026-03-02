@@ -8,6 +8,8 @@
 import { readFile, listDirectory, searchCode, isAcademyConfigured, getConfig, githubFetch } from './githubReader';
 import { editFile, commitFiles } from './githubWriter';
 import { getProject, getAllProjects } from './projects';
+import { upsertAcademyProgress, getProgressByProject } from './queries';
+import { getNextSuggested } from './curriculum';
 import type { ProjectConfig, CurriculumTopic } from './projects';
 
 /** Reject paths with traversal, query injection, or absolute paths */
@@ -55,6 +57,9 @@ export async function executeAcademyTool(
 
       case 'academy_edit_file':
         return await handleEditFile(project, input);
+
+      case 'academy_update_progress':
+        return await handleUpdateProgress(project, input);
 
       case 'academy_commit_files':
         return await handleCommitFiles(project, input);
@@ -325,6 +330,49 @@ ${fileList}
 **URL:** ${result.commitUrl}
 
 All files pushed to master atomically. Auto-deploy in ~30s. Re-read each file to verify.`;
+}
+
+async function handleUpdateProgress(
+  project: ProjectConfig,
+  input: Record<string, unknown>
+): Promise<string> {
+  const topicId = input.topic_id as string;
+  const status = input.status as 'explored' | 'completed';
+  const notes = input.teaching_notes as string | undefined;
+
+  // Validate topic exists in this project's curriculum
+  if (!project.curriculum || project.curriculum.length === 0) {
+    return `No curriculum defined for ${project.id}. Progress tracking requires a curriculum — use academy_explore_project to browse the code directly.`;
+  }
+  const topic = project.curriculum.find(t => t.id === topicId);
+  if (!topic) {
+    const validIds = project.curriculum.map(t => `"${t.id}"`).join(', ');
+    return `Unknown topic "${topicId}" for ${project.id}. Valid topics: ${validIds}`;
+  }
+
+  const row = await upsertAcademyProgress(project.id, topicId, {
+    status,
+    teachingNotes: notes,
+    incrementInteraction: true,
+  });
+
+  if (status === 'completed') {
+    // Suggest next topic for session flow
+    let nextTopic: CurriculumTopic | null = null;
+    if (project.curriculum) {
+      const allProgress = await getProgressByProject(project.id);
+      const progressMap: Record<string, { projectId: string; topicId: string; status: string }> = {};
+      for (const p of allProgress) {
+        progressMap[`${p.projectId}:${p.topicId}`] = { projectId: p.projectId, topicId: p.topicId, status: p.status };
+      }
+      nextTopic = getNextSuggested(project.id, project.curriculum, progressMap);
+    }
+    const nextHint = nextTopic
+      ? ` Next suggested topic: "${nextTopic.name}" (${nextTopic.category}).`
+      : ' All topics in this project completed!';
+    return `✓ "${topicId}" marked as completed for ${project.name}. Teaching notes saved.${nextHint}`;
+  }
+  return `"${topicId}" marked as explored for ${project.name}. Session #${row.interactionCount}.`;
 }
 
 function formatSize(bytes: number): string {

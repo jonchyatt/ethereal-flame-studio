@@ -138,6 +138,43 @@ old_content must match EXACTLY ONE location in the file. If it matches 0 or 2+, 
     },
   },
   {
+    name: 'academy_update_progress',
+    description: `Record teaching progress for a curriculum topic. Call this DURING teaching to track what was covered.
+
+WHEN TO CALL:
+- status "explored": When you START discussing a topic (first code file read, first concept explained)
+- status "completed": ONLY after the student demonstrates understanding — they can explain the concept back, answer your verification question correctly, or apply the concept to a new example
+
+NEVER mark "completed" just because you finished explaining. The student must show they understood.
+
+teaching_notes should include: (1) what approach you used, (2) what clicked for the student, (3) what was confusing, (4) your confidence in their understanding (high/medium/low).
+
+Example notes: "Used pipeline metaphor to explain data flow. Student immediately grasped 5-source→1-pipeline pattern after seeing data-sources.js routing. Confused briefly by File System Access API but understood after TOS demo analogy. Confidence: high."`,
+    input_schema: {
+      type: 'object',
+      properties: {
+        project: {
+          type: 'string',
+          description: `Project the topic belongs to. Options: ${projectOptions()}`,
+        },
+        topic_id: {
+          type: 'string',
+          description: 'Curriculum topic ID (e.g., "pnl-curves", "render-pipeline-overview"). Must be a valid topic from academy_list_topics.',
+        },
+        status: {
+          type: 'string',
+          enum: ['explored', 'completed'],
+          description: '"explored" = started teaching this topic. "completed" = student demonstrated understanding.',
+        },
+        teaching_notes: {
+          type: 'string',
+          description: 'Approach used, what clicked, what confused the student, confidence level. These notes help you teach better in future sessions.',
+        },
+      },
+      required: ['project', 'topic_id', 'status'],
+    },
+  },
+  {
     name: 'academy_commit_files',
     description: `Atomically commit surgical find-and-replace edits across multiple files in one commit. Use when a fix spans multiple files (e.g., renaming a function defined in one file and called in three others).
 

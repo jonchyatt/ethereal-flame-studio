@@ -11,7 +11,7 @@
  * - behavior_rules: Versioned behavioral rules from self-improvement (Phase D)
  */
 
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 /**
  * Memory entries - Facts that help Jarvis do its job
@@ -134,7 +134,33 @@ export const behaviorRules = sqliteTable('behavior_rules', {
   supersededAt: text('superseded_at'),      // null = current, ISO = when replaced
 });
 
+/**
+ * Academy Progress - Tracks student learning progress across curriculum topics
+ *
+ * Status lifecycle: not_started → explored → completed
+ * - explored: Student has started learning via chat (Jarvis began teaching)
+ * - completed: Jarvis verified understanding through conversation
+ *
+ * Uniqueness enforced at DB level via unique index on (project_id, topic_id).
+ */
+export const academyProgress = sqliteTable('academy_progress', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  projectId: text('project_id').notNull(),
+  topicId: text('topic_id').notNull(),
+  status: text('status').notNull().default('not_started'),
+  startedAt: text('started_at'),
+  completedAt: text('completed_at'),
+  interactionCount: integer('interaction_count').notNull().default(0),
+  teachingNotes: text('teaching_notes'),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
+}, (table) => [
+  uniqueIndex('academy_progress_project_topic_idx').on(table.projectId, table.topicId),
+]);
+
 // Type exports for use in queries
+export type AcademyProgressRow = typeof academyProgress.$inferSelect;
+export type NewAcademyProgressRow = typeof academyProgress.$inferInsert;
 export type MemoryEntry = typeof memoryEntries.$inferSelect;
 export type NewMemoryEntry = typeof memoryEntries.$inferInsert;
 export type Session = typeof sessions.$inferSelect;

@@ -1,11 +1,18 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { GraduationCap, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/jarvis/primitives/Card';
 import { useTutorialStore, selectTotalCompleted } from '@/lib/jarvis/stores/tutorialStore';
 import { getSuggestedLesson, getLessonCount } from '@/lib/jarvis/curriculum/tutorialLessons';
+import {
+  useAcademyStore,
+  selectTotalAcademyCompleted,
+  getTotalAcademyTopics,
+  getNextSuggested,
+} from '@/lib/jarvis/stores/academyStore';
+import { getAllProjects } from '@/lib/jarvis/academy/projects';
 
 function MiniProgressRing({
   completed,
@@ -36,7 +43,7 @@ function MiniProgressRing({
         cy={size / 2}
         r={radius}
         fill="none"
-        stroke={completed === total ? 'rgb(52 211 153)' : 'rgb(8 145 178)'}
+        stroke={completed === total && total > 0 ? 'rgb(52 211 153)' : 'rgb(8 145 178)'}
         strokeWidth={stroke}
         strokeDasharray={circumference}
         strokeDashoffset={offset}
@@ -48,11 +55,58 @@ function MiniProgressRing({
 }
 
 export function AcademyProgress() {
-  const progress = useTutorialStore((s) => s.progress);
-  const { total } = useMemo(() => getLessonCount(), []);
-  const completed = useTutorialStore(selectTotalCompleted);
-  const suggested = useMemo(() => getSuggestedLesson(progress), [progress]);
-  const allComplete = completed === total;
+  // Tutorial progress
+  const tutorialProgress = useTutorialStore((s) => s.progress);
+  const { total: tutorialTotal } = useMemo(() => getLessonCount(), []);
+  const tutorialCompleted = useTutorialStore(selectTotalCompleted);
+  const suggestedTutorial = useMemo(() => getSuggestedLesson(tutorialProgress), [tutorialProgress]);
+
+  // Curriculum progress
+  const academyProgress = useAcademyStore((s) => s.progress);
+  const isLoaded = useAcademyStore((s) => s.isLoaded);
+  const loadProgress = useAcademyStore((s) => s.loadProgress);
+  const academyCompleted = useAcademyStore(selectTotalAcademyCompleted);
+  const academyTotal = useMemo(() => getTotalAcademyTopics(), []);
+
+  // Load curriculum progress on every mount — server-side tool calls (academy_update_progress)
+  // update the DB without the client knowing, so we must refetch when returning to this page.
+  useEffect(() => { loadProgress(); }, [loadProgress]);
+
+  // Combined
+  const totalCompleted = tutorialCompleted + academyCompleted;
+  const totalItems = tutorialTotal + academyTotal;
+  const allComplete = totalCompleted === totalItems && totalItems > 0;
+
+  // Next suggestion logic
+  const nextLabel = useMemo(() => {
+    // Tutorials first
+    if (tutorialCompleted < tutorialTotal && suggestedTutorial) {
+      return suggestedTutorial.name;
+    }
+
+    // Curriculum topics — in-progress takes priority across all projects
+    const projects = getAllProjects().filter(p => p.curriculum && p.curriculum.length > 0);
+    for (const project of projects) {
+      if (!project.curriculum) continue;
+      const explored = project.curriculum.find(t =>
+        academyProgress[`${project.id}:${t.id}`]?.status === 'explored'
+      );
+      if (explored) {
+        const shortName = project.name.split(' \u2014 ')[0];
+        return `${explored.name} in ${shortName}`;
+      }
+    }
+    for (const project of projects) {
+      if (!project.curriculum) continue;
+      const next = getNextSuggested(project.id, project.curriculum, academyProgress);
+      if (next) {
+        const shortName = project.name.split(' \u2014 ')[0];
+        return `${next.name} in ${shortName}`;
+      }
+    }
+
+    return null;
+  }, [tutorialCompleted, tutorialTotal, suggestedTutorial, academyProgress]);
 
   return (
     <>
@@ -86,9 +140,9 @@ export function AcademyProgress() {
                 <span className="text-xs text-emerald-400 block">
                   All lessons complete!
                 </span>
-              ) : suggested ? (
+              ) : nextLabel ? (
                 <span className="text-xs text-white/50 block truncate">
-                  Next: {suggested.name}
+                  Next: {nextLabel}
                 </span>
               ) : (
                 <span className="text-xs text-white/50 block">
@@ -100,9 +154,9 @@ export function AcademyProgress() {
             {/* Progress */}
             <div className="flex items-center gap-2 shrink-0">
               <span className="text-xs text-white/40 font-medium tabular-nums">
-                {completed}/{total}
+                {totalCompleted}/{totalItems}
               </span>
-              <MiniProgressRing completed={completed} total={total} />
+              <MiniProgressRing completed={totalCompleted} total={totalItems} />
             </div>
 
             <ChevronRight className="w-4 h-4 text-white/20 shrink-0" />
