@@ -6,12 +6,12 @@ Milestones in progress:
 - v4.2 Meal Planning & Kitchen Intelligence (Phase J)
 - v4.3 Academy Engine (Phase K)
 
-Phase J: Plan J-01 COMPLETE, ready for J-02
+Phase J: J-03 COMPLETE, ready for J-04 PLAN
 Phase K: Plan K-01 COMPLETE, ready for K-02
-Last activity: 2026-03-01 — Multi-calendar deployed, Notion DBs created, Google Calendar connected, v4.3 onboarding captured
+Last activity: 2026-03-01 — J-03 Frontend UI unified (5 files + 4 quality fixes)
 
 Progress:
-- v4.2: [██░░░░░░░░] 25% (1 of 4 plans)
+- v4.2: [███████░░░] 75% (3 of 4 plans)
 - v4.3/K: [██░░░░░░░░] 25% (1 of 4 plans)
 
 ## Loop Position
@@ -19,7 +19,7 @@ Progress:
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [J-01 loop complete — ready for next PLAN]
+  ✓        ✓        ✓     [J-03 loop complete — ready for J-04 PLAN]
 ```
 
 ## Current Phase: J — Meal Planning & Kitchen Intelligence
@@ -28,18 +28,18 @@ Goal: Complete meal planning pipeline — conversational recipe management, week
 
 Key context:
 - J-01 Backend Foundation COMPLETE — 7 tools deployed, all schemas/filters/formatters built
+- J-02 Briefing Integration COMPLETE — full weekly meals + shopping list count in briefing pipeline
+- J-03 Frontend UI COMPLETE — /personal/meals route, 4-tab MealsView, dashboard card, store wiring
 - Human blocker CLEARED: Pantry + Shopping List DBs created, 5 env vars set in Vercel
 - Tools gracefully degrade until databases are configured
-- Vision input framework captured as new requirement (camera → image recognition → tool calls)
-- Model switching (Haiku ↔ Sonnet) for vision tasks captured as requirement
-- 3 remaining plans: Briefing → UI → Polish
+- 1 remaining plan: J-04 Polish & Intelligence
 
 Plans:
 | Plan | Name | Status |
 |------|------|--------|
 | J-01 | Backend Foundation | Complete |
-| J-02 | Briefing Integration | Not started |
-| J-03 | Frontend UI | Not started |
+| J-02 | Briefing Integration | Complete |
+| J-03 | Frontend UI | Complete |
 | J-04 | Polish & Intelligence | Not started |
 
 New requirements captured (vision input):
@@ -48,6 +48,20 @@ New requirements captured (vision input):
 - Pantry photo capture: snap groceries → recognize items → bulk update_pantry
 - Reference implementation: Reset Biology nutrition tracking (GPT-4o-mini, sharp compression)
 - Architectural decision: native chat vision (Claude sees image + has tools in same turn) over separate endpoint
+
+New requirements captured (J-04 — intelligent scaling):
+- Servings field wired end-to-end (MEAL_PLAN_PROPS → MealPlanSummary → PersonalMeal). Human action: add "Servings" number column to Notion Meal Plan DB.
+- Intelligent recipe scaling via Claude reasoning, NOT dumb multiplication. When servings changes: spices scale sub-linearly, proteins/carbs scale linearly, cooking times adjust for volume, equipment constraints noted.
+- generate_shopping_list should accept target servings override, pull recipe base servings + ingredients, pass to Claude for intelligent adjustment, return adjusted quantities + cooking notes.
+- Evening wrap / briefing meal text should mention servings when set ("Stir-Fry for 6 tonight").
+
+New requirements captured (J-04 — proactive meal timing intelligence):
+- Contextual meal reminders: Jarvis reasons about when to notify based on setting (Home=prep time, Dine-Out=travel+reservation, Takeout=order lead), current user activity, and household context
+- NOT fixed-offset timers — Claude reasons about the right moment from first principles
+- MVP: enrich system prompt with tonight's meal + prep context during any conversation (zero new infra)
+- Full vision: proactive notification channel (Telegram/push) for out-of-chat reminders
+- Learning loop: Phase D captures timing preferences as situational rules that sharpen over weeks ("Jonathan needs prep_time + 20min warning when coding", "wife prefers 30min heads-up")
+- Setting discriminator already exists in data model — three completely different temporal patterns from one field
 
 ## Completed Milestones
 
@@ -94,23 +108,27 @@ New requirements captured (vision input):
 | v4.3 = Guided Onboarding milestone | Milestone | Wife-ready experience — Jarvis teaches conversationally, progressive day-by-day curriculum, zero jargon |
 | Teach AFTER stability, not during build | Milestone | v4.3 depends on v4.2 complete — all features stable before teaching them |
 | Pantry + Shopping List DBs created | J-01 blocker cleared | 5 env vars ready to set in Vercel |
+| Servings field added to schema + pipeline | J-02 | Flows through entire pipeline, degrades to null until Notion column added |
+| Intelligent recipe scaling (not just multiply) | J-04 | Claude reasons about sub-linear spice scaling, cooking time changes, equipment |
+| Consistent onChat prop pattern for tab contents | J-03 | All tab content components receive callbacks as props, not read stores directly |
+| Empty days are interactive, not passive | J-03 | Day-specific CTA opens chat with contextual prompt |
+| Proactive meal timing = contextual reasoning, not timers | J-04 | Setting field discriminates Home/Dine-Out/Takeout temporal patterns |
 
 ### Git State
-Last commit: b595bde
+Last commit: b595bde (uncommitted: J-02 + J-03 + K-01 + quality fixes)
 Branch: master
 Feature branches merged: none (developed directly on master)
 
 ## Session Continuity
 
-Last session: 2026-03-01 (session 2)
-Stopped at: All blockers cleared, clean pause point
-Next action: /paul:plan for J-02 (Briefing Integration)
-Resume file: .paul/HANDOFF-2026-03-01-session2.md
+Last session: 2026-03-01 (session 6)
+Stopped at: J-03 UNIFIED + paused — ready for J-04 PLAN
+Next action: /paul:plan for J-04 (Polish & Intelligence)
+Resume file: .paul/HANDOFF-2026-03-01-session6.md
 Resume context:
-- J-01 blocker CLEARED: Pantry + Shopping List DBs created in Notion, 5 env vars set in Vercel
-- Google Calendar connected: service account created, 2 calendars shared (personal + family), env vars set
-- Multi-calendar code deployed (comma-separated GOOGLE_CALENDAR_ID support)
-- v4.3 Guided Onboarding requirements fully captured in PROJECT.md (curriculum architecture + 7 modules)
-- Key v4.3 decisions: self-paced modules, curriculum backbone + conversational delivery, wife test = acceptance criterion
-- J-02 scope: MealPlanSummary interface, BriefingBuilder integration, store wiring
-- K-02 available but blocked by GITHUB_TOKEN (Jonathan must create GitHub PAT)
+- J-03 complete with 4 quality fixes (interactive empty days, shopping badge, consistent props, explicit tutorial IDs)
+- v4.2 at 75% (3/4 plans)
+- J-04 has 3 requirement clusters: intelligent scaling, proactive meal timing, servings wiring
+- Proactive meal timing concept captured: contextual reasoning, setting discriminator, Phase D learning
+- Human action still pending: add "Servings" number column to Notion Meal Plan DB
+- Uncommitted work: J-02 + J-03 + K-01 + quality fixes (all on master)

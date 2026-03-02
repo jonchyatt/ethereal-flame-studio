@@ -5,6 +5,7 @@ import {
   Zap,
   Receipt,
   Calendar,
+  UtensilsCrossed,
   BookOpen,
   Target,
   Heart,
@@ -20,8 +21,11 @@ export function PersonalDashboard() {
   const goals = usePersonalStore((s) => s.goals);
   const health = usePersonalStore((s) => s.health);
   const bills = usePersonalStore((s) => s.bills);
+  const meals = usePersonalStore((s) => s.meals);
 
   const todayEvents = events.filter((e) => e.isToday).length;
+  const todayDayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+  const todayMeals = meals.filter((m) => m.dayOfWeek === todayDayName).length;
   const today = new Date().toISOString().split('T')[0];
   const hasJournalEntry = journal.some((j) => j.date === today);
   const hasOverdueBills = bills.some((b) => b.status === 'overdue');
@@ -61,6 +65,15 @@ export function PersonalDashboard() {
       icon: Calendar,
       route: '/jarvis/app/personal/calendar',
       stat: `${todayEvents} today`,
+      warn: false,
+      critical: false,
+    },
+    {
+      id: 'meals',
+      name: 'Meals & Kitchen',
+      icon: UtensilsCrossed,
+      route: '/jarvis/app/personal/meals',
+      stat: todayMeals > 0 ? `${todayMeals} planned today` : 'No meals planned',
       warn: false,
       critical: false,
     },

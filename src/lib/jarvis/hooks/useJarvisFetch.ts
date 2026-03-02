@@ -6,7 +6,7 @@ import { useHomeStore } from '@/lib/jarvis/stores/homeStore';
 import { usePersonalStore } from '@/lib/jarvis/stores/personalStore';
 import type { BriefingData } from '@/lib/jarvis/executive/types';
 import type { PriorityItem, DomainHealthItem, HealthStatus } from '@/lib/jarvis/stores/homeStore';
-import type { PersonalTask, PersonalHabit, PersonalBill, PersonalGoal } from '@/lib/jarvis/stores/personalStore';
+import type { PersonalTask, PersonalHabit, PersonalBill, PersonalGoal, PersonalMeal } from '@/lib/jarvis/stores/personalStore';
 import type { CalendarEvent as StoreCalendarEvent } from '@/lib/jarvis/stores/personalStore';
 
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
@@ -106,6 +106,25 @@ function transformBriefingSummary(data: BriefingData): string {
 
   if (data.goals.active.length > 0) {
     parts.push(`${data.goals.active.length} active goals`);
+  }
+
+  if (data.meals) {
+    const todayMeals = data.meals.today;
+    if (todayMeals.length === 1) {
+      const m = todayMeals[0];
+      const label = m.timeOfDay ? `${m.title} for ${m.timeOfDay.toLowerCase()}` : m.title;
+      parts.push(label);
+    } else if (todayMeals.length === 2) {
+      const labels = todayMeals.map(m =>
+        m.timeOfDay ? `${m.title} for ${m.timeOfDay.toLowerCase()}` : m.title
+      );
+      parts.push(labels.join(', '));
+    } else if (todayMeals.length > 2) {
+      parts.push(`${todayMeals.length} meals planned today`);
+    }
+    if (data.meals.shoppingListCount > 0) {
+      parts.push(`${data.meals.shoppingListCount} item${data.meals.shoppingListCount !== 1 ? 's' : ''} on shopping list`);
+    }
   }
 
   return parts.length > 0 ? parts.join('. ') + '.' : 'No data available yet.';
@@ -212,6 +231,19 @@ function transformCalendar(data: BriefingData): StoreCalendarEvent[] {
   }));
 }
 
+function transformMeals(data: BriefingData): PersonalMeal[] {
+  if (!data.meals) return [];
+  return data.meals.planned.map((meal) => ({
+    id: meal.id,
+    name: meal.title,
+    dayOfWeek: meal.dayOfWeek ?? '',
+    timeOfDay: meal.timeOfDay ?? '',
+    setting: meal.setting ?? '',
+    servings: meal.servings,
+    recipeIds: meal.recipeIds,
+  }));
+}
+
 // ── Standalone fetch function (callable from anywhere) ────────────────────
 
 const MAX_RETRIES = 3;
@@ -242,6 +274,8 @@ export async function refetchJarvisData(silent = false): Promise<void> {
       personalStore.setBills(transformBills(data));
       personalStore.setGoals(transformGoals(data));
       personalStore.setEvents(transformCalendar(data));
+      personalStore.setMeals(transformMeals(data));
+      personalStore.setShoppingListCount(data.meals?.shoppingListCount ?? 0);
       // Journal and Health: not available from briefing API — stays empty (honest)
 
       homeStore.setLoading(false);

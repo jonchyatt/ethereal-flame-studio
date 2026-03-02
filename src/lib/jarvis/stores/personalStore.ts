@@ -55,6 +55,16 @@ export interface PersonalGoal {
   category: string;
 }
 
+export interface PersonalMeal {
+  id: string;
+  name: string;
+  dayOfWeek: string;
+  timeOfDay: string;
+  setting: string;
+  servings: number | null;
+  recipeIds: string[];
+}
+
 export interface HealthItem {
   id: string;
   type: 'workout' | 'meal' | 'sleep';
@@ -104,6 +114,8 @@ interface PersonalState {
   journal: JournalEntry[];
   goals: PersonalGoal[];
   health: HealthItem[];
+  meals: PersonalMeal[];
+  shoppingListCount: number;
   todayStats: TodayStats;
 }
 
@@ -116,6 +128,8 @@ interface PersonalActions {
   setJournalMood: (id: string, mood: JournalEntry['mood']) => void;
   setGoals: (goals: PersonalGoal[]) => void;
   setHealth: (health: HealthItem[]) => void;
+  setMeals: (meals: PersonalMeal[]) => void;
+  setShoppingListCount: (count: number) => void;
   toggleTask: (id: string) => void;
   toggleHabit: (id: string) => void;
   markBillPaid: (id: string) => void;
@@ -131,6 +145,8 @@ export const usePersonalStore = create<PersonalStore>()((set) => ({
   journal: [],
   goals: [],
   health: [],
+  meals: [],
+  shoppingListCount: 0,
   todayStats: computeTodayStats([], [], []),
 
   setTasks: (tasks) =>
@@ -156,6 +172,8 @@ export const usePersonalStore = create<PersonalStore>()((set) => ({
     })),
   setGoals: (goals) => set({ goals }),
   setHealth: (health) => set({ health }),
+  setMeals: (meals) => set({ meals }),
+  setShoppingListCount: (count) => set({ shoppingListCount: count }),
 
   toggleTask: (id) =>
     set((state) => {

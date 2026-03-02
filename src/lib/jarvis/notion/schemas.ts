@@ -155,6 +155,7 @@ export const MEAL_PLAN_PROPS = {
   recipes: 'Recipes',      // Relation to Recipes database
   timeOfDay: 'Time of Day', // Rich text (Breakfast, Lunch, Dinner)
   setting: 'Setting',      // Select (e.g., Home, Dine-Out)
+  servings: 'Servings',    // Number (how many people this feeds)
 } as const;
 
 /**

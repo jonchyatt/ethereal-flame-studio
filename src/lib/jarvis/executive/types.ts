@@ -106,6 +106,19 @@ export interface GoalSummary {
 }
 
 /**
+ * Summary of a meal plan entry for briefing
+ */
+export interface MealPlanSummary {
+  id: string;
+  title: string;
+  dayOfWeek: string | null;
+  timeOfDay: string | null;
+  setting: string | null;
+  servings: number | null;
+  recipeIds: string[];
+}
+
+/**
  * Calendar event derived from tasks with specific due times
  */
 export interface CalendarEvent {
@@ -142,6 +155,11 @@ export interface BriefingData {
   };
   calendar: {
     today: CalendarEvent[];
+  };
+  meals?: {
+    planned: MealPlanSummary[];
+    today: MealPlanSummary[];
+    shoppingListCount: number;
   };
   lifeAreas?: {
     insights: LifeAreaInsights;

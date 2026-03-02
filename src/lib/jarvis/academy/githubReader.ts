@@ -25,7 +25,7 @@ function setCache(key: string, data: unknown): void {
   cache.set(key, { data, expires: Date.now() + CACHE_TTL });
 }
 
-function getConfig(): { token: string; owner: string } {
+export function getConfig(): { token: string; owner: string } {
   const token = process.env.GITHUB_TOKEN;
   const owner = process.env.GITHUB_OWNER;
   if (!token || !owner) {
@@ -34,7 +34,7 @@ function getConfig(): { token: string; owner: string } {
   return { token, owner };
 }
 
-async function githubFetch(path: string): Promise<Response> {
+export async function githubFetch(path: string): Promise<Response> {
   const { token } = getConfig();
   return fetch(`${GITHUB_API}${path}`, {
     headers: {
@@ -140,6 +140,15 @@ export async function searchCode(
   }
   const data = await res.json();
   return (data.items || []).map((item: { path: string }) => item.path);
+}
+
+/** Invalidate cache for a file and its parent directory after a write */
+export function invalidateCacheForFile(repo: string, filePath: string): void {
+  const { owner } = getConfig();
+  cache.delete(`file:${owner}/${repo}/${filePath}`);
+  // Also invalidate parent directory listing
+  const parentDir = filePath.includes('/') ? filePath.substring(0, filePath.lastIndexOf('/')) : '';
+  cache.delete(`dir:${owner}/${repo}/${parentDir}`);
 }
 
 /** Check if Academy is configured (GITHUB_TOKEN + GITHUB_OWNER are set) */

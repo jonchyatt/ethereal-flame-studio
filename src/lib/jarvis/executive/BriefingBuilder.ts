@@ -15,6 +15,7 @@ import type {
   HabitSummary,
   GoalSummary,
   CalendarEvent,
+  MealPlanSummary,
   CheckInType,
   CheckInProgress,
   EveningWrapData,
@@ -34,12 +35,14 @@ import {
   buildBillFilter,
   buildHabitFilter,
   buildGoalFilter,
+  buildShoppingListFilter,
   getTodayInTimezone,
   getDateInTimezone,
   TASK_PROPS,
   SUBSCRIPTION_PROPS,
   HABIT_PROPS,
   GOAL_PROPS,
+  MEAL_PLAN_PROPS,
 } from '../notion/schemas';
 import {
   queryGoogleCalendarEvents,
@@ -100,6 +103,22 @@ function extractCheckbox(prop: unknown): boolean | null {
   return typeof p?.checkbox === 'boolean' ? p.checkbox : null;
 }
 
+/**
+ * Extract rich_text value (joins all text segments)
+ */
+function extractRichText(prop: unknown): string {
+  const p = prop as { rich_text?: Array<{ plain_text?: string }> };
+  return p?.rich_text?.map(t => t.plain_text || '').join('') || '';
+}
+
+/**
+ * Extract relation IDs from a Relation property
+ */
+function extractRelationIds(prop: unknown): string[] {
+  const p = prop as { relation?: Array<{ id?: string }> };
+  return (p?.relation || []).filter(r => r.id).map(r => r.id!);
+}
+
 // =============================================================================
 // Briefing Data Builder
 // =============================================================================
@@ -117,11 +136,12 @@ export async function buildMorningBriefing(timezone?: string): Promise<BriefingD
     const tzOffset = getTimezoneOffsetString(timezone);
     const gcalTodayStart = `${todayStr}T00:00:00${tzOffset}`;
     const gcalTodayEnd = `${todayStr}T23:59:59${tzOffset}`;
+    const todayDayName = format(parseISO(todayStr), 'EEEE'); // "Monday", "Tuesday", etc.
 
     // Parallel queries for all data sources using Phase 4 MCP tools
     // Note: Using 'all' filter instead of 'today' to show all pending tasks
     // since many tasks may not have dates set in the 'Do Dates' field
-    const [todayTasksResult, overdueTasksResult, billsResult, habitsResult, goalsResult, googleResult] =
+    const [todayTasksResult, overdueTasksResult, billsResult, habitsResult, goalsResult, googleResult, allMealsResult, shoppingListCount] =
       await Promise.all([
         queryNotionRaw('tasks', { filter: 'all', status: 'pending', timezone }),
         queryNotionRaw('tasks', { filter: 'overdue', status: 'pending', timezone }),
@@ -129,6 +149,8 @@ export async function buildMorningBriefing(timezone?: string): Promise<BriefingD
         queryNotionRaw('habits', { frequency: 'all' }),
         queryNotionRaw('goals', { status: 'active' }),
         fetchGoogleCalendarEventsSafe(gcalTodayStart, gcalTodayEnd, timezone),
+        queryAllMealsSafe(),
+        queryShoppingListCountSafe(),
       ]);
 
     // Parse task results with client-side status filtering
@@ -149,6 +171,10 @@ export async function buildMorningBriefing(timezone?: string): Promise<BriefingD
 
     // Parse goal results
     const goals = parseGoalResults(goalsResult);
+
+    // Parse meal plan results — full weekly plan + today's subset
+    const allMeals = parseMealPlanResults(allMealsResult);
+    const todayMeals = allMeals.filter(m => m.dayOfWeek === todayDayName);
 
     // Derive calendar events from tasks with specific times
     const allTodayTasks = [...todayTasks, ...overdueTasks.filter((t) => t.dueDate && isToday(parseISO(t.dueDate)))];
@@ -179,6 +205,11 @@ export async function buildMorningBriefing(timezone?: string): Promise<BriefingD
       calendar: {
         today: calendarEvents,
       },
+      meals: {
+        planned: allMeals,
+        today: todayMeals,
+        shoppingListCount,
+      },
       lifeAreas: {
         insights: lifeAreaInsights,
       },
@@ -193,6 +224,9 @@ export async function buildMorningBriefing(timezone?: string): Promise<BriefingD
       calendarEvents: calendarEvents.length,
       calendarFromNotion: notionCalendarEvents.length,
       calendarFromGoogle: googleCalendarEvents.length,
+      mealsPlanned: allMeals.length,
+      mealsToday: todayMeals.length,
+      shoppingListItems: shoppingListCount,
       neglectedAreas: lifeAreaInsights.neglectedAreas.length,
     });
 
@@ -206,6 +240,7 @@ export async function buildMorningBriefing(timezone?: string): Promise<BriefingD
       habits: { active: [], streakSummary: 'Unable to load habit data.' },
       goals: { active: [] },
       calendar: { today: [] },
+      meals: { planned: [], today: [], shoppingListCount: 0 },
     };
   }
 }
@@ -326,6 +361,49 @@ async function queryNotionRaw(
     // Log but don't throw - return empty results so other queries can succeed
     console.error(`[BriefingBuilder] Error querying ${database}:`, error);
     return { results: [] };
+  }
+}
+
+// =============================================================================
+// Meal Plan & Shopping List Safe Queries
+// =============================================================================
+
+/**
+ * Query ALL meal plan entries (no day filter — recurring weekly plan, ~14-21 entries)
+ * Returns empty results if database not configured or on error
+ */
+async function queryAllMealsSafe(): Promise<unknown> {
+  const databaseId = LIFE_OS_DATABASES.mealPlan;
+  if (!databaseId) {
+    console.log('[BriefingBuilder] Meal plan database not configured, skipping');
+    return { results: [] };
+  }
+  try {
+    const result = await queryDatabase(databaseId);
+    console.log('[BriefingBuilder] Meal plan result count:', (result as { results?: unknown[] })?.results?.length || 0);
+    return result;
+  } catch (error) {
+    console.error('[BriefingBuilder] Error querying meal plan:', error);
+    return { results: [] };
+  }
+}
+
+/**
+ * Query unchecked shopping list items count
+ * Returns 0 if database not configured or on error
+ */
+async function queryShoppingListCountSafe(): Promise<number> {
+  const databaseId = LIFE_OS_DATABASES.shoppingList;
+  if (!databaseId) {
+    console.log('[BriefingBuilder] Shopping list database not configured, skipping');
+    return 0;
+  }
+  try {
+    const result = await queryDatabase(databaseId, buildShoppingListFilter({ showChecked: false }));
+    return (result as { results?: unknown[] })?.results?.length || 0;
+  } catch (error) {
+    console.error('[BriefingBuilder] Error querying shopping list:', error);
+    return 0;
   }
 }
 
@@ -470,6 +548,31 @@ function parseGoalResults(result: unknown): GoalSummary[] {
       title: extractTitle(p.properties[GOAL_PROPS.title]),
       status: extractSelect(p.properties[GOAL_PROPS.status]),
       progress: extractNumber(p.properties[GOAL_PROPS.progress]) || null,
+    };
+  });
+}
+
+/**
+ * Parse raw Notion meal plan results into MealPlanSummary[]
+ */
+function parseMealPlanResults(result: unknown): MealPlanSummary[] {
+  const pages = (result as { results?: unknown[] })?.results || [];
+  return pages.map((page: unknown) => {
+    const p = page as { properties: Record<string, unknown>; id: string };
+    const dayRaw = extractSelect(p.properties[MEAL_PLAN_PROPS.dayOfWeek]);
+    const settingRaw = extractSelect(p.properties[MEAL_PLAN_PROPS.setting]);
+    // timeOfDay is rich_text in Notion, try select first (fallback), then rich_text
+    const timeRaw = extractSelect(p.properties[MEAL_PLAN_PROPS.timeOfDay]);
+    const timeOfDay = (timeRaw !== 'Unknown' ? timeRaw : '') || extractRichText(p.properties[MEAL_PLAN_PROPS.timeOfDay]) || null;
+    const servingsRaw = extractNumber(p.properties[MEAL_PLAN_PROPS.servings]);
+    return {
+      id: p.id,
+      title: extractTitle(p.properties[MEAL_PLAN_PROPS.title]),
+      dayOfWeek: dayRaw !== 'Unknown' ? dayRaw : null,
+      timeOfDay,
+      setting: settingRaw !== 'Unknown' ? settingRaw : null,
+      servings: servingsRaw || null,
+      recipeIds: extractRelationIds(p.properties[MEAL_PLAN_PROPS.recipes]),
     };
   });
 }

@@ -5,16 +5,26 @@
  * results as clear text for Claude to read and teach from.
  */
 
-import { readFile, listDirectory, searchCode, isAcademyConfigured } from './githubReader';
+import { readFile, listDirectory, searchCode, isAcademyConfigured, getConfig, githubFetch } from './githubReader';
+import { editFile, commitFiles } from './githubWriter';
 import { getProject, getAllProjects } from './projects';
 import type { ProjectConfig } from './projects';
+
+/** Reject paths with traversal, query injection, or absolute paths */
+function validatePath(filePath: string): string | null {
+  if (!filePath || !filePath.trim()) return 'File path cannot be empty.';
+  if (filePath.includes('..')) return `Path "${filePath}" contains ".." traversal — rejected.`;
+  if (filePath.includes('?') || filePath.includes('#')) return `Path "${filePath}" contains query/fragment characters — rejected.`;
+  if (filePath.startsWith('/') || filePath.startsWith('\\')) return `Path "${filePath}" is absolute — use relative paths within the project.`;
+  return null; // Valid
+}
 
 export async function executeAcademyTool(
   toolName: string,
   input: Record<string, unknown>
 ): Promise<string> {
   if (!isAcademyConfigured()) {
-    return 'Academy is not configured. Jonathan needs to set GITHUB_TOKEN and GITHUB_OWNER in Vercel environment variables. See: https://github.com/settings/tokens for creating a fine-grained PAT with read-only repo access.';
+    return 'Academy is not configured. Jonathan needs to set GITHUB_TOKEN and GITHUB_OWNER in Vercel environment variables. See: https://github.com/settings/tokens for creating a fine-grained PAT with read-write repo access (Contents: read/write).';
   }
 
   const projectId = input.project as string;
@@ -40,11 +50,21 @@ export async function executeAcademyTool(
       case 'academy_search_code':
         return await handleSearchCode(project, input.query as string);
 
+      case 'academy_edit_file':
+        return await handleEditFile(project, input);
+
+      case 'academy_commit_files':
+        return await handleCommitFiles(project, input);
+
       default:
         return `Unknown academy tool: ${toolName}`;
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
+    // SHA conflicts and match failures contain retry instructions for Claude
+    if (message.includes('Re-read the file') || message.includes('SHA conflict')) {
+      return message;
+    }
     return `Academy error: ${message}`;
   }
 }
@@ -125,6 +145,119 @@ async function handleSearchCode(
 
   const pathList = paths.map(p => `  - ${p}`).join('\n');
   return `Found "${query}" in ${paths.length} file(s):\n${pathList}\n\nUse academy_read_files to read any of these files.`;
+}
+
+async function handleEditFile(
+  project: ProjectConfig,
+  input: Record<string, unknown>
+): Promise<string> {
+  const filePath = input.file_path as string;
+  const pathError = validatePath(filePath);
+  if (pathError) return `Error: ${pathError}`;
+
+  const oldContent = input.old_content as string;
+  const newContent = input.new_content as string;
+  const commitMessage = input.commit_message as string;
+  const proposedChange = input.proposed_change as string;
+
+  const fullPath = project.basePath ? `${project.basePath}/${filePath}` : filePath;
+  const result = await editFile(project.repo, fullPath, oldContent, newContent, commitMessage);
+
+  return `## Committed: ${result.path}
+
+**Change:** ${proposedChange}
+**Commit:** \`${result.commitSha.slice(0, 7)}\` — ${result.message}
+**URL:** ${result.commitUrl}
+
+Pushed to master. Auto-deploy in ~30s. Re-read the file with academy_read_files to verify.`;
+}
+
+async function handleCommitFiles(
+  project: ProjectConfig,
+  input: Record<string, unknown>
+): Promise<string> {
+  const filesInput = input.files as Array<{ file_path: string; old_content: string; new_content: string }>;
+  const commitMessage = input.commit_message as string;
+  const proposedChanges = input.proposed_changes as string;
+
+  if (!Array.isArray(filesInput) || filesInput.length === 0) {
+    return 'Error: files array is required and must not be empty.';
+  }
+
+  // Validate: no duplicate file paths (second replacement would overwrite first)
+  const seenPaths = new Set<string>();
+  for (const f of filesInput) {
+    if (seenPaths.has(f.file_path)) {
+      return `Error: "${f.file_path}" appears multiple times in files array. Each file can only be edited once per commit. Combine the changes into a single old_content/new_content pair.`;
+    }
+    seenPaths.add(f.file_path);
+  }
+
+  // Read each file, validate, and apply find-and-replace server-side
+  const { owner } = getConfig();
+  const files: Array<{ path: string; content: string }> = [];
+  for (const f of filesInput) {
+    const pathError = validatePath(f.file_path);
+    if (pathError) return `Error in ${f.file_path}: ${pathError}`;
+
+    const fullPath = project.basePath ? `${project.basePath}/${f.file_path}` : f.file_path;
+
+    if (!f.old_content || !f.old_content.trim()) {
+      return `Error: old_content cannot be empty for ${f.file_path}. Provide the exact text to find and replace.`;
+    }
+
+    if (f.old_content === f.new_content) {
+      return `Error: old_content and new_content are identical for ${f.file_path}. Nothing to change.`;
+    }
+
+    // Read the current file content from GitHub (raw, not the line-numbered readFile)
+    const res = await githubFetch(`/repos/${owner}/${project.repo}/contents/${fullPath}`);
+    if (!res.ok) {
+      if (res.status === 404) return `Error: File not found: ${f.file_path}`;
+      return `Error: GitHub API error ${res.status} reading ${f.file_path}`;
+    }
+    const data = await res.json();
+    if (data.type !== 'file') return `Error: ${f.file_path} is a directory`;
+
+    // Guard: GitHub Contents API returns empty content for files >1MB
+    if (!data.content && data.size > 0) {
+      return `Error: ${f.file_path} is too large (${Math.round(data.size / 1024)}KB). GitHub only returns content for files under 1MB.`;
+    }
+
+    const currentContent = Buffer.from(data.content || '', 'base64').toString('utf-8');
+
+    // Validate uniqueness
+    const occurrences = currentContent.split(f.old_content).length - 1;
+    if (occurrences === 0) {
+      throw new Error(
+        `old_content not found in ${f.file_path}. The file may have changed since you read it. ` +
+        `Re-read the file with academy_read_files to get the current content and try again.`
+      );
+    }
+    if (occurrences > 1) {
+      throw new Error(
+        `old_content found ${occurrences} times in ${f.file_path}. ` +
+        `Provide more surrounding context in old_content to make the match unique.`
+      );
+    }
+
+    // Apply replacement — function form prevents $ pattern interpretation
+    const updatedContent = currentContent.replace(f.old_content, () => f.new_content);
+    files.push({ path: fullPath, content: updatedContent });
+  }
+
+  const result = await commitFiles(project.repo, files, commitMessage);
+  const fileList = result.filesChanged.map(f => `  - ${f}`).join('\n');
+
+  return `## Multi-file Commit Complete
+
+**Changes:** ${proposedChanges}
+**Files (${result.filesChanged.length}):**
+${fileList}
+**Commit:** \`${result.commitSha.slice(0, 7)}\` — ${result.message}
+**URL:** ${result.commitUrl}
+
+All files pushed to master atomically. Auto-deploy in ~30s. Re-read each file to verify.`;
 }
 
 function formatSize(bytes: number): string {
