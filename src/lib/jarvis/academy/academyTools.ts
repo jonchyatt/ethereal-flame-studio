@@ -6,6 +6,9 @@
  */
 
 import { ToolDefinition } from '../intelligence/tools';
+import { getProjectIds } from './projects';
+
+const projectOptions = () => getProjectIds().join(', ');
 
 export const academyTools: ToolDefinition[] = [
   {
@@ -16,7 +19,7 @@ export const academyTools: ToolDefinition[] = [
       properties: {
         project: {
           type: 'string',
-          description: 'Project to explore. Options: visopscreen, creator-workflow',
+          description: `Project to explore. Options: ${projectOptions()}`,
         },
         path: {
           type: 'string',
@@ -34,7 +37,7 @@ export const academyTools: ToolDefinition[] = [
       properties: {
         project: {
           type: 'string',
-          description: 'Project to read from. Options: visopscreen, creator-workflow',
+          description: `Project to read from. Options: ${projectOptions()}`,
         },
         file_path: {
           type: 'string',
@@ -60,7 +63,7 @@ export const academyTools: ToolDefinition[] = [
       properties: {
         project: {
           type: 'string',
-          description: 'Project to search. Options: visopscreen, creator-workflow',
+          description: `Project to search. Options: ${projectOptions()}`,
         },
         query: {
           type: 'string',
@@ -78,7 +81,7 @@ export const academyTools: ToolDefinition[] = [
       properties: {
         project: {
           type: 'string',
-          description: 'Project to list topics for. Options: visopscreen, creator-workflow',
+          description: `Project to list topics for. Options: ${projectOptions()}`,
         },
         category: {
           type: 'string',
@@ -108,7 +111,7 @@ old_content must match EXACTLY ONE location in the file. If it matches 0 or 2+, 
       properties: {
         project: {
           type: 'string',
-          description: 'Project to edit. Options: visopscreen, creator-workflow',
+          description: `Project to edit. Options: ${projectOptions()}`,
         },
         file_path: {
           type: 'string',
@@ -153,7 +156,7 @@ WORKFLOW:
       properties: {
         project: {
           type: 'string',
-          description: 'Project to edit. Options: visopscreen, creator-workflow',
+          description: `Project to edit. Options: ${projectOptions()}`,
         },
         files: {
           type: 'array',

@@ -5,6 +5,8 @@
  * Jarvis is an omnipresent guide - calm, knowing, warm but not formal.
  */
 
+import { getAllProjects } from '../academy/projects';
+
 /**
  * Context available when building the system prompt
  */
@@ -310,12 +312,12 @@ If the user's request involves an affected service, mention it briefly: "Notion 
 - Query any of your Life OS databases by voice
 - Time awareness and conversation memory
 - Tutorial system: "start tutorial", "teach me about X", "what can you do?"
-- Academy: teach about Visopscreen and Creator Workflow by reading actual source code, and fix bugs by editing files and committing directly to GitHub`);
+- Academy: teach about ${getAllProjects().map(p => p.name).join(' and ')} by reading actual source code, and fix bugs by editing files and committing directly to GitHub`);
 
   // Academy — Project Teaching & Code Surgery (when configured)
   if (context.academyConfigured) {
     sections.push(`ACADEMY \u2014 PROJECT TEACHING & CODE SURGERY:
-You can teach Jonathan about his projects by reading their actual source code, and you can fix bugs by editing files and committing directly to GitHub. Available projects: Visopscreen, Creator Workflow.
+You can teach Jonathan about his projects by reading their actual source code, and you can fix bugs by editing files and committing directly to GitHub. Available projects: ${getAllProjects().map(p => p.name).join(', ')}.
 
 TEACHING CRAFT:
 You are not a code reader \u2014 you are a teacher who reads code. The difference matters:

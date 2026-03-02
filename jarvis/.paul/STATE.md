@@ -6,31 +6,31 @@ Milestones:
 - v4.2 Meal Planning & Kitchen Intelligence (Phase J) — COMPLETE
 - v4.3 Academy Engine (Phase K) — In progress
 
-Phase K: K-03 planned, awaiting approval
-Last activity: 2026-03-02 — Created K-03-PLAN.md (Creator Workflow + Multi-Domain)
+Phase K: K-03 applied, needs unify
+Last activity: 2026-03-02 — Applied K-03 (Creator Workflow curriculum + dynamic multi-domain)
 
 Progress:
 - v4.2: [██████████] 100% — COMPLETE (4 of 4 plans, all unified)
-- v4.3/K: [█████░░░░░] 50% (2 of 4 plans complete, K-03 planned)
+- v4.3/K: [███████░░░] 75% (3 of 4 plans complete, K-03 applied)
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ○        ○     [K-03 plan created, awaiting approval]
+  ✓        ✓        ○     [K-03 applied, needs unify]
 ```
 
 ## Current Phase: K — Jarvis Academy
 
-Goal: Give Jarvis the ability to read, understand, and teach about Jonathan's project codebases through conversation. K-01 (Core Academy Engine) complete — 6 tools deployed, GitHub reader/writer working, project registry set up. K-02 (Deep Visopscreen Curriculum) complete — 16 structured topics, list_topics tool, explore topic hints.
+Goal: Give Jarvis the ability to read, understand, and teach about Jonathan's project codebases through conversation. K-01 (Core Academy Engine) complete — 6 tools deployed, GitHub reader/writer working, project registry set up. K-02 (Deep Visopscreen Curriculum) complete — 16 structured topics, list_topics tool, explore topic hints. K-03 (Creator Workflow + Multi-Domain) complete — 12 Creator Workflow topics, all tool descriptions and system prompt now registry-driven.
 
 Plans:
 | Plan | Name | Status |
 |------|------|--------|
 | K-01 | Core Academy Engine | Complete |
 | K-02 | Deep Visopscreen Curriculum | Complete |
-| K-03 | Creator Workflow + Multi-Domain | Not started |
+| K-03 | Creator Workflow + Multi-Domain | Complete |
 | K-04 | Academy UI + Intelligence | Not started |
 
 Blocker: Jonathan must create GitHub PAT and set GITHUB_TOKEN + GITHUB_OWNER in Vercel.
@@ -69,7 +69,7 @@ Blocker: Jonathan must create GitHub PAT and set GITHUB_TOKEN + GITHUB_OWNER in 
 - Old shell (/jarvis) not converged with new (/jarvis/app)
 - Intelligence Evolution concepts documented but not executed
 - Vision input framework deferred to v4.4+
-- Jarvis Academy K-01+K-02 complete (6 tools, 16 topics), K-03-K-04 not executed
+- Jarvis Academy K-01 through K-03 complete (6 tools, 28 topics, dynamic multi-domain), K-04 not executed
 
 ## Accumulated Context
 
@@ -90,12 +90,11 @@ Feature branches merged: none (developed directly on master)
 
 ## Session Continuity
 
-Last session: 2026-03-02 (session 11)
-Stopped at: K-03 plan created, user reviewing topics before pause
-Next action: Approve K-03 plan, then /paul:apply
-Resume file: .paul/HANDOFF-2026-03-02.md
+Last session: 2026-03-02 (session 12)
+Stopped at: K-03 applied, needs unify
+Next action: /paul:unify K-03
+Resume file: .paul/phases/K-jarvis-academy/K-03-SUMMARY.md
 Resume context:
-- K-03 plan created with 2 tasks: 12 Creator Workflow topics + dynamic multi-domain support
-- Plan NOT yet approved — user was reviewing the 12-topic list
-- No code changes this session (plan-only)
+- K-03 applied: 12 Creator Workflow topics, dynamic tool descriptions, dynamic system prompt
+- All acceptance criteria verified (build passes, zero hard-coded project lists)
 - Human blockers still pending: GitHub PAT for Academy
