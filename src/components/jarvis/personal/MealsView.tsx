@@ -15,6 +15,7 @@ import {
   ChevronDown,
   UtensilsCrossed,
   Users,
+  Clock,
 } from 'lucide-react';
 import { usePersonalStore, type PersonalMeal } from '@/lib/jarvis/stores/personalStore';
 import { useChatStore } from '@/lib/jarvis/stores/chatStore';
@@ -105,6 +106,7 @@ function TabNav({
 function MealRow({ meal, isLast }: { meal: PersonalMeal; isLast: boolean }) {
   const TimeIcon = meal.timeOfDay ? TIME_ICONS[meal.timeOfDay] : null;
   const SettingIcon = meal.setting ? SETTING_ICONS[meal.setting] : null;
+  const totalTime = (meal.prepTime ?? 0) + (meal.cookTime ?? 0);
 
   return (
     <div
@@ -125,6 +127,12 @@ function MealRow({ meal, isLast }: { meal: PersonalMeal; isLast: boolean }) {
         <span className="flex items-center gap-1 text-xs text-white/40 flex-shrink-0">
           <Users size={12} />
           {meal.servings}
+        </span>
+      )}
+      {totalTime > 0 && (
+        <span className="flex items-center gap-1 text-xs text-white/40 flex-shrink-0">
+          <Clock size={12} />
+          {totalTime}m
         </span>
       )}
     </div>

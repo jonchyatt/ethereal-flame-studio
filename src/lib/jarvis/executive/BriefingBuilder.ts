@@ -43,6 +43,7 @@ import {
   HABIT_PROPS,
   GOAL_PROPS,
   MEAL_PLAN_PROPS,
+  RECIPE_PROPS,
 } from '../notion/schemas';
 import {
   queryGoogleCalendarEvents,
@@ -174,6 +175,7 @@ export async function buildMorningBriefing(timezone?: string): Promise<BriefingD
 
     // Parse meal plan results — full weekly plan + today's subset
     const allMeals = parseMealPlanResults(allMealsResult);
+    await resolveRecipeTimesForMeals(allMeals);
     const todayMeals = allMeals.filter(m => m.dayOfWeek === todayDayName);
 
     // Derive calendar events from tasks with specific times
@@ -573,8 +575,54 @@ function parseMealPlanResults(result: unknown): MealPlanSummary[] {
       setting: settingRaw !== 'Unknown' ? settingRaw : null,
       servings: servingsRaw || null,
       recipeIds: extractRelationIds(p.properties[MEAL_PLAN_PROPS.recipes]),
+      prepTime: null,
+      cookTime: null,
     };
   });
+}
+
+// =============================================================================
+// Recipe Time Resolution
+// =============================================================================
+
+/**
+ * Resolve recipe prep/cook times for meal plan entries.
+ * Queries the Recipes DB ONCE and merges times onto meal objects.
+ * Mutates the meals array in place. Never throws — failures leave times as null.
+ */
+async function resolveRecipeTimesForMeals(meals: MealPlanSummary[]): Promise<void> {
+  const allRecipeIds = new Set(meals.flatMap(m => m.recipeIds));
+  if (allRecipeIds.size === 0) return;
+
+  const recipesDbId = LIFE_OS_DATABASES.recipes;
+  if (!recipesDbId) return;
+
+  try {
+    const result = await queryDatabase(recipesDbId, {});
+    const pages = (result as { results?: unknown[] })?.results || [];
+
+    const recipeTimeMap = new Map<string, { prepTime: number | null; cookTime: number | null }>();
+    for (const page of pages) {
+      const p = page as { id: string; properties: Record<string, unknown> };
+      const prepRaw = extractNumber(p.properties[RECIPE_PROPS.prepTime]);
+      const cookRaw = extractNumber(p.properties[RECIPE_PROPS.cookTime]);
+      recipeTimeMap.set(p.id, {
+        prepTime: prepRaw || null,
+        cookTime: cookRaw || null,
+      });
+    }
+
+    for (const meal of meals) {
+      if (meal.recipeIds.length === 0) continue;
+      const times = recipeTimeMap.get(meal.recipeIds[0]);
+      if (times) {
+        meal.prepTime = times.prepTime;
+        meal.cookTime = times.cookTime;
+      }
+    }
+  } catch (error) {
+    console.warn('[BriefingBuilder] Recipe time resolution failed, continuing without times:', error);
+  }
 }
 
 // =============================================================================

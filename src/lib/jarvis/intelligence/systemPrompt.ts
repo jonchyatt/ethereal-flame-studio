@@ -33,6 +33,8 @@ export interface SystemPromptContext {
   serviceHealth?: Record<string, 'degraded' | 'down'>;
   /** Behavioral rules from self-improvement (Phase D) */
   behaviorRules?: string[];
+  /** This week's meal plan context for proactive awareness */
+  mealContext?: string | null;
   /** Whether Academy (project teaching) is configured */
   academyConfigured?: boolean;
 }
@@ -135,6 +137,18 @@ PERSONALITY:
   }
 
   sections.push(contextParts.join('\n'));
+
+  // Weekly meal context (when available)
+  if (context.mealContext) {
+    sections.push(`## THIS WEEK'S MEALS
+${context.mealContext}
+
+IMPORTANT: Do NOT volunteer meal information unprompted. This context is for YOUR reasoning, not for announcing. Use it when:
+- The user asks about evening plans, cooking, timing, or "what's for dinner"
+- The user discusses scheduling and meal prep time is relevant
+- You notice empty days and the user is in a meal-planning conversation
+For Home meals, think about when prep should start given the current time. For empty days, you can suggest filling them — but only when the conversation is about meals or planning.`);
+  }
 
   // Conversation style section
   sections.push(`CONVERSATION STYLE:

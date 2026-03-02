@@ -3,15 +3,15 @@
 ## Current Position
 
 Milestones in progress:
-- v4.2 Meal Planning & Kitchen Intelligence (Phase J)
+- v4.2 Meal Planning & Kitchen Intelligence (Phase J) — ALL PLANS COMPLETE, awaiting UNIFY
 - v4.3 Academy Engine (Phase K)
 
-Phase J: J-04 PLAN created, awaiting approval
+Phase J: J-04 APPLIED — all 4 plans executed, ready for UNIFY
 Phase K: Plan K-01 COMPLETE, ready for K-02
-Last activity: 2026-03-01 — Created J-04-PLAN.md (Polish & Intelligence)
+Last activity: 2026-03-01 — J-04 APPLIED (Polish & Intelligence — 3 tasks, 10 files)
 
 Progress:
-- v4.2: [███████░░░] 75% (3 of 4 plans, J-04 planned)
+- v4.2: [██████████] 100% (4 of 4 plans complete, awaiting unify)
 - v4.3/K: [██░░░░░░░░] 25% (1 of 4 plans)
 
 ## Loop Position
@@ -19,7 +19,7 @@ Progress:
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ○        ○     [J-04 plan created, awaiting approval]
+  ✓        ✓        ○     [J-04 applied, ready for UNIFY]
 ```
 
 ## Current Phase: J — Meal Planning & Kitchen Intelligence
@@ -30,9 +30,9 @@ Key context:
 - J-01 Backend Foundation COMPLETE — 7 tools deployed, all schemas/filters/formatters built
 - J-02 Briefing Integration COMPLETE — full weekly meals + shopping list count in briefing pipeline
 - J-03 Frontend UI COMPLETE — /personal/meals route, 4-tab MealsView, dashboard card, store wiring
+- J-04 Polish & Intelligence COMPLETE — recipe times, full-week chat context, Claude-reasoned shopping
 - Human blocker CLEARED: Pantry + Shopping List DBs created, 5 env vars set in Vercel
-- Tools gracefully degrade until databases are configured
-- 1 remaining plan: J-04 Polish & Intelligence
+- Human action still pending: add "Servings" number column to Notion Meal Plan DB
 
 Plans:
 | Plan | Name | Status |
@@ -40,7 +40,7 @@ Plans:
 | J-01 | Backend Foundation | Complete |
 | J-02 | Briefing Integration | Complete |
 | J-03 | Frontend UI | Complete |
-| J-04 | Polish & Intelligence | Planned (approved) |
+| J-04 | Polish & Intelligence | Complete |
 
 New requirements captured (vision input):
 - Vision input framework: camera → recognition → tool calls (reusable across domains)
@@ -113,21 +113,24 @@ New requirements captured (J-04 — proactive meal timing intelligence):
 | Consistent onChat prop pattern for tab contents | J-03 | All tab content components receive callbacks as props, not read stores directly |
 | Empty days are interactive, not passive | J-03 | Day-specific CTA opens chat with contextual prompt |
 | Proactive meal timing = contextual reasoning, not timers | J-04 | Setting field discriminates Home/Dine-Out/Takeout temporal patterns |
+| Recipes DB queried ONCE in BriefingBuilder | J-04 | Single query replaces 10-15 individual retrievePage calls |
+| Full-week meal context in system prompt | J-04 | Enables proactive empty-day suggestions, dinner timing reasoning |
+| Conservative pantry subtraction (same-unit only) | J-04 | No risky unit conversions between pantry and shopping |
 
 ### Git State
-Last commit: b595bde (uncommitted: J-02 + J-03 + K-01 + quality fixes)
+Last commit: b595bde (uncommitted: J-02 + J-03 + J-04 + K-01 + quality fixes)
 Branch: master
 Feature branches merged: none (developed directly on master)
 
 ## Session Continuity
 
-Last session: 2026-03-01 (session 7)
-Stopped at: J-04 PLAN created, self-critiqued (6 improvements), approved — ready for APPLY
-Next action: /paul:apply .paul/phases/J-meal-planning/J-04-PLAN.md
-Resume file: .paul/HANDOFF-2026-03-01-session7.md
+Last session: 2026-03-01 (session 8)
+Stopped at: J-04 APPLIED — all 3 tasks complete, build passes, ready for UNIFY
+Next action: /paul:unify .paul/phases/J-meal-planning/J-04-PLAN.md
+Resume file: .paul/HANDOFF-2026-03-01-session8.md
 Resume context:
-- J-04 plan approved with 6 self-critique improvements baked in
-- 3 tasks, 10 files, fully autonomous (no checkpoints)
-- Key improvements: single Recipes DB query, full-week system prompt, rich recipe context for Claude, itemized response, dashboard dinner stat, "don't announce" guardrail
-- Uncommitted work: J-02 + J-03 + K-01 + quality fixes (all on master)
+- J-04 fully applied: recipe detail pipeline, full-week chat context, Claude-reasoned shopping
+- All 10 files modified, build clean (zero errors)
+- Uncommitted work: J-02 + J-03 + J-04 + K-01 + quality fixes (all on master)
+- v4.2 milestone ready for completion after J-04 unify
 - Human action still pending: add "Servings" number column to Notion Meal Plan DB

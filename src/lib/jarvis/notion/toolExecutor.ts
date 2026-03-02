@@ -60,6 +60,16 @@ import {
 import { findNotionDatabase } from './notionUrls';
 import { logEvent, type ToolInvocationData } from '../memory/queries/dailyLogs';
 import { trackErrorPattern } from '../resilience/errorTracking';
+import Anthropic from '@anthropic-ai/sdk';
+
+// Lazy Anthropic singleton for Claude-reasoned shopping list
+let _shoppingAnthropicClient: Anthropic | null = null;
+function getShoppingAnthropicClient(): Anthropic {
+  if (!_shoppingAnthropicClient) {
+    _shoppingAnthropicClient = new Anthropic();
+  }
+  return _shoppingAnthropicClient;
+}
 
 /**
  * Execute a Notion tool call by routing to SDK
@@ -790,6 +800,8 @@ async function executeNotionToolInner(
       if (!mealPlanSourceId) return 'Meal plan database is not configured. Please set NOTION_MEAL_PLAN_DATA_SOURCE_ID.';
       if (!shoppingListDbId) return 'Shopping list database is not configured. Please set NOTION_SHOPPING_LIST_DATABASE_ID.';
 
+      const targetServings = input.target_servings as number | undefined;
+
       // 1. Query meal plan for specified days (or all)
       const days = input.days ? (input.days as string).split(',').map(d => d.trim()) : [];
       let mealPlanFilter = {};
@@ -810,50 +822,133 @@ async function executeNotionToolInner(
 
       if (mealPages.length === 0) return 'No meals planned. Add meals to your plan first.';
 
-      // 2. For each meal with a recipe relation, get ingredient names
+      // 2. For each meal with a recipe relation, get RICH recipe context
       const allIngredientNames = new Set<string>();
+      interface RecipeContext {
+        recipeName: string;
+        ingredientNames: string[];
+        servings: number | null;
+        category: string | null;
+        difficulty: string | null;
+        prepTime: number | null;
+        cookTime: number | null;
+      }
+      const recipeContexts: RecipeContext[] = [];
+
       for (const page of mealPages) {
         const p = page as { properties: Record<string, unknown> };
+        const titleProp = p.properties[MEAL_PLAN_PROPS.title] as { title?: Array<{ plain_text?: string }> } | undefined;
+        const recipeName = titleProp?.title?.[0]?.plain_text || 'Unknown meal';
+        const servingsProp = p.properties[MEAL_PLAN_PROPS.servings] as { number?: number } | undefined;
+        const mealServings = targetServings || servingsProp?.number || null;
         const recipeRelation = p.properties[MEAL_PLAN_PROPS.recipes] as
           { relation?: Array<{ id: string }> } | undefined;
+
+        const mealIngredients: string[] = [];
+        let mealCategory: string | null = null;
+        let mealDifficulty: string | null = null;
+        let mealPrepTime: number | null = null;
+        let mealCookTime: number | null = null;
+
         if (recipeRelation?.relation) {
           for (const rel of recipeRelation.relation) {
-            const names = await getIngredientNamesForRecipe(rel.id);
-            names.forEach(n => allIngredientNames.add(n.toLowerCase()));
+            const details = await getRecipeDetailsForShoppingList(rel.id);
+            details.ingredientNames.forEach(n => {
+              allIngredientNames.add(n.toLowerCase());
+              mealIngredients.push(n);
+            });
+            // Use first recipe's metadata
+            if (!mealCategory) mealCategory = details.category;
+            if (!mealDifficulty) mealDifficulty = details.difficulty;
+            if (!mealPrepTime) mealPrepTime = details.prepTime;
+            if (!mealCookTime) mealCookTime = details.cookTime;
           }
+        }
+
+        if (mealIngredients.length > 0) {
+          recipeContexts.push({
+            recipeName,
+            ingredientNames: mealIngredients,
+            servings: mealServings,
+            category: mealCategory,
+            difficulty: mealDifficulty,
+            prepTime: mealPrepTime,
+            cookTime: mealCookTime,
+          });
         }
       }
 
       if (allIngredientNames.size === 0) return 'Planned meals have no linked recipes with ingredients. Save recipes with ingredients first.';
 
-      // 3. Check pantry (if enabled, default true)
+      // 3. Call Claude Haiku for intelligent quantity reasoning
+      interface ClaudeShoppingItem {
+        name: string;
+        quantity: number;
+        unit: string;
+        category: string;
+      }
+      let claudeItems: ClaudeShoppingItem[] | null = null;
+
+      if (recipeContexts.length > 0) {
+        try {
+          const client = getShoppingAnthropicClient();
+          const quantityResponse = await client.messages.create({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 2048,
+            system: `You are a professional chef generating a consolidated shopping list. Given recipes with context, produce a shopping list with accurate quantities.
+
+Rules:
+1. Aggregate identical ingredients across recipes (e.g., onions needed for 2 recipes → combined total).
+2. Spices and seasonings scale SUB-LINEARLY — do NOT double garlic or cumin for double servings. Use chef's intuition.
+3. Proteins, carbs, and produce scale linearly with servings.
+4. Round to practical shopping quantities (nobody buys 2.3 onions — round to 3).
+5. Use common units: g, kg, ml, L, pieces, cans, bunches, heads, cloves, tbsp, tsp.
+6. Assign each item a category from EXACTLY these options: Produce, Dairy, Meat, Pantry Staples, Frozen, Spices, Beverages, Condiments, Grains, Other.
+
+Respond with ONLY a JSON array, no other text:
+[{"name": "...", "quantity": N, "unit": "...", "category": "..."}]`,
+            messages: [{
+              role: 'user',
+              content: `Generate a shopping list for these meals:\n\n${recipeContexts.map(r => {
+                let desc = `- ${r.recipeName}`;
+                if (r.servings) desc += ` (${r.servings} servings)`;
+                if (r.category) desc += ` [${r.category}]`;
+                if (r.prepTime || r.cookTime) desc += ` (${r.prepTime ?? 0}+${r.cookTime ?? 0}min)`;
+                desc += `: ${r.ingredientNames.join(', ')}`;
+                return desc;
+              }).join('\n')}`
+            }]
+          });
+
+          const textBlock = quantityResponse.content.find(b => b.type === 'text');
+          if (textBlock && textBlock.type === 'text') {
+            const raw = textBlock.text.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.every((item: unknown) => {
+              const i = item as Record<string, unknown>;
+              return typeof i.name === 'string' && typeof i.quantity === 'number' && typeof i.unit === 'string' && typeof i.category === 'string';
+            })) {
+              claudeItems = parsed as ClaudeShoppingItem[];
+            }
+          }
+        } catch (error) {
+          console.warn('[ToolExecutor] Claude shopping reasoning failed, using fallback:', error);
+          claudeItems = null;
+        }
+      }
+
+      // 4. Check pantry (if enabled, default true)
       const checkPantry = (input.check_pantry as boolean) !== false;
-      let skippedFromPantry = 0;
-      const neededItems: string[] = [];
       const pantrySourceId = LIFE_OS_DATABASES.pantry;
+      let pantryMap = new Map<string, { quantity: number; unit: string | null }>();
 
       if (checkPantry && pantrySourceId) {
         const pantryResult = await queryDatabase(pantrySourceId, {});
         const pantryItems = parsePantryResults(pantryResult);
-        const pantryMap = new Map(pantryItems.map(p => [p.title.toLowerCase(), p]));
-
-        for (const ingredient of allIngredientNames) {
-          const inPantry = pantryMap.get(ingredient);
-          if (inPantry && inPantry.quantity > 0) {
-            skippedFromPantry++;
-          } else {
-            neededItems.push(ingredient);
-          }
-        }
-      } else {
-        neededItems.push(...allIngredientNames);
+        pantryMap = new Map(pantryItems.map(p => [p.title.toLowerCase(), { quantity: p.quantity, unit: p.unit }]));
       }
 
-      if (neededItems.length === 0) {
-        return `You have everything you need! All ${allIngredientNames.size} ingredients are in your pantry.`;
-      }
-
-      // 4. Check existing shopping list to avoid duplicates
+      // 5. Check existing shopping list to avoid duplicates
       let existingNames = new Set<string>();
       if (shoppingListSourceId) {
         const existingList = await queryDatabase(shoppingListSourceId, {});
@@ -866,27 +961,111 @@ async function executeNotionToolInner(
         );
       }
 
-      // 5. Write needed items to shopping list
-      let addedCount = 0;
-      for (const item of neededItems) {
-        if (existingNames.has(item)) continue;
-        try {
-          await createPage(shoppingListDbId, {
-            [SHOPPING_LIST_PROPS.title]: { title: [{ text: { content: item } }] },
-            [SHOPPING_LIST_PROPS.checked]: { checkbox: false },
-            [SHOPPING_LIST_PROPS.source]: { select: { name: 'Meal Plan' } },
-          });
-          addedCount++;
-        } catch (error) {
-          console.warn('[ToolExecutor] Failed to add shopping list item:', { item, error });
-        }
-      }
+      // 6. Create shopping list items
+      if (claudeItems) {
+        // Claude-reasoned path: items with quantities
+        let addedCount = 0;
+        let skippedFromPantry = 0;
+        let skippedExisting = 0;
+        const addedItems: { name: string; quantity: number; unit: string; category: string }[] = [];
+        const skippedPantryNames: string[] = [];
 
-      const skippedExisting = neededItems.length - addedCount;
-      let response = `Added ${addedCount} item${addedCount !== 1 ? 's' : ''} to your shopping list`;
-      if (skippedFromPantry > 0) response += ` (skipped ${skippedFromPantry} already in pantry)`;
-      if (skippedExisting > 0) response += ` (${skippedExisting} already on list)`;
-      return response + '.';
+        for (const item of claudeItems) {
+          const lowerName = item.name.toLowerCase();
+
+          // Dedup against existing shopping list
+          if (existingNames.has(lowerName)) {
+            skippedExisting++;
+            continue;
+          }
+
+          // Quantitative pantry subtraction
+          if (checkPantry) {
+            const inPantry = pantryMap.get(lowerName);
+            if (inPantry && inPantry.quantity > 0) {
+              // Same-unit subtraction only
+              if (inPantry.unit && item.unit.toLowerCase() === inPantry.unit.toLowerCase()) {
+                const remaining = item.quantity - inPantry.quantity;
+                if (remaining <= 0) {
+                  skippedFromPantry++;
+                  skippedPantryNames.push(item.name);
+                  continue;
+                }
+                item.quantity = Math.ceil(remaining);
+              } else if (!inPantry.unit) {
+                // Pantry has no unit — skip if any quantity exists
+                skippedFromPantry++;
+                skippedPantryNames.push(item.name);
+                continue;
+              }
+              // Different units — keep Claude's full quantity (conservative)
+            }
+          }
+
+          try {
+            await createPage(shoppingListDbId, {
+              [SHOPPING_LIST_PROPS.title]: { title: [{ text: { content: item.name } }] },
+              [SHOPPING_LIST_PROPS.quantity]: { number: item.quantity },
+              [SHOPPING_LIST_PROPS.unit]: { select: { name: item.unit } },
+              [SHOPPING_LIST_PROPS.category]: { select: { name: item.category } },
+              [SHOPPING_LIST_PROPS.checked]: { checkbox: false },
+              [SHOPPING_LIST_PROPS.source]: { select: { name: 'Meal Plan' } },
+            });
+            addedCount++;
+            addedItems.push(item);
+          } catch (error) {
+            console.warn('[ToolExecutor] Failed to add shopping list item:', { item: item.name, error });
+          }
+        }
+
+        // Build itemized response
+        let response = `Added ${addedCount} item${addedCount !== 1 ? 's' : ''} to your shopping list:\n`;
+        response += addedItems.map(i => `- ${i.name}: ${i.quantity} ${i.unit} (${i.category})`).join('\n');
+        if (skippedFromPantry > 0) response += `\n\nSkipped ${skippedFromPantry} item${skippedFromPantry !== 1 ? 's' : ''} already in pantry: ${skippedPantryNames.join(', ')}`;
+        if (skippedExisting > 0) response += `\nSkipped ${skippedExisting} item${skippedExisting !== 1 ? 's' : ''} already on list`;
+        return response;
+
+      } else {
+        // Fallback path: name-only items (J-01 behavior)
+        let skippedFromPantry = 0;
+        const neededItems: string[] = [];
+
+        for (const ingredient of allIngredientNames) {
+          if (checkPantry) {
+            const inPantry = pantryMap.get(ingredient);
+            if (inPantry && inPantry.quantity > 0) {
+              skippedFromPantry++;
+              continue;
+            }
+          }
+          neededItems.push(ingredient);
+        }
+
+        if (neededItems.length === 0) {
+          return `You have everything you need! All ${allIngredientNames.size} ingredients are in your pantry.`;
+        }
+
+        let addedCount = 0;
+        for (const item of neededItems) {
+          if (existingNames.has(item)) continue;
+          try {
+            await createPage(shoppingListDbId, {
+              [SHOPPING_LIST_PROPS.title]: { title: [{ text: { content: item } }] },
+              [SHOPPING_LIST_PROPS.checked]: { checkbox: false },
+              [SHOPPING_LIST_PROPS.source]: { select: { name: 'Meal Plan' } },
+            });
+            addedCount++;
+          } catch (error) {
+            console.warn('[ToolExecutor] Failed to add shopping list item:', { item, error });
+          }
+        }
+
+        const skippedExisting = neededItems.length - addedCount;
+        let response = `Added ${addedCount} item${addedCount !== 1 ? 's' : ''} to your shopping list`;
+        if (skippedFromPantry > 0) response += ` (skipped ${skippedFromPantry} already in pantry)`;
+        if (skippedExisting > 0) response += ` (${skippedExisting} already on list)`;
+        return response + '.';
+      }
     }
 
     case 'clear_shopping_list': {
@@ -1224,6 +1403,47 @@ async function getIngredientNamesForRecipe(recipeId: string): Promise<string[]> 
   } catch (error) {
     console.warn('[ToolExecutor] Failed to load recipe ingredients:', error);
     return [];
+  }
+}
+
+interface RecipeDetails {
+  ingredientNames: string[];
+  category: string | null;
+  difficulty: string | null;
+  prepTime: number | null;
+  cookTime: number | null;
+}
+
+async function getRecipeDetailsForShoppingList(recipeId: string): Promise<RecipeDetails> {
+  if (!RECIPE_PROPS.ingredients) return { ingredientNames: [], category: null, difficulty: null, prepTime: null, cookTime: null };
+
+  try {
+    const page = await retrievePage(recipeId) as { properties?: Record<string, unknown> };
+    if (!page?.properties) return { ingredientNames: [], category: null, difficulty: null, prepTime: null, cookTime: null };
+
+    const props = page.properties;
+
+    // Extract ingredient relation IDs
+    const relationProp = props[RECIPE_PROPS.ingredients] as { relation?: Array<{ id: string }> } | undefined;
+    const ingredientIds = relationProp?.relation?.map(rel => rel.id).filter(Boolean) || [];
+    const ingredientNames = ingredientIds.length > 0 ? await resolveIngredientNames(ingredientIds) : [];
+
+    // Extract rich recipe context from the same page (zero additional API calls)
+    const categoryProp = props[RECIPE_PROPS.category] as { select?: { name?: string } } | undefined;
+    const difficultyProp = props[RECIPE_PROPS.difficulty] as { select?: { name?: string } } | undefined;
+    const prepTimeProp = props[RECIPE_PROPS.prepTime] as { number?: number } | undefined;
+    const cookTimeProp = props[RECIPE_PROPS.cookTime] as { number?: number } | undefined;
+
+    return {
+      ingredientNames,
+      category: categoryProp?.select?.name || null,
+      difficulty: difficultyProp?.select?.name || null,
+      prepTime: prepTimeProp?.number || null,
+      cookTime: cookTimeProp?.number || null,
+    };
+  } catch (error) {
+    console.warn('[ToolExecutor] Failed to load recipe details:', error);
+    return { ingredientNames: [], category: null, difficulty: null, prepTime: null, cookTime: null };
   }
 }
 

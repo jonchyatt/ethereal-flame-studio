@@ -25,7 +25,10 @@ export function PersonalDashboard() {
 
   const todayEvents = events.filter((e) => e.isToday).length;
   const todayDayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
-  const todayMeals = meals.filter((m) => m.dayOfWeek === todayDayName).length;
+  const todayMealsList = meals.filter((m) => m.dayOfWeek === todayDayName);
+  const todayMeals = todayMealsList.length;
+  const dinner = todayMealsList.find((m) => m.timeOfDay?.toLowerCase().includes('dinner'));
+  const dinnerTotalTime = dinner ? (dinner.prepTime ?? 0) + (dinner.cookTime ?? 0) : 0;
   const today = new Date().toISOString().split('T')[0];
   const hasJournalEntry = journal.some((j) => j.date === today);
   const hasOverdueBills = bills.some((b) => b.status === 'overdue');
@@ -73,7 +76,11 @@ export function PersonalDashboard() {
       name: 'Meals & Kitchen',
       icon: UtensilsCrossed,
       route: '/jarvis/app/personal/meals',
-      stat: todayMeals > 0 ? `${todayMeals} planned today` : 'No meals planned',
+      stat: dinner
+        ? `${dinner.name}${dinnerTotalTime > 0 ? ` — ${dinnerTotalTime}m` : ''}`
+        : todayMeals > 0
+          ? `${todayMeals} planned today`
+          : 'No meals planned',
       warn: false,
       critical: false,
     },

@@ -241,6 +241,8 @@ function transformMeals(data: BriefingData): PersonalMeal[] {
     setting: meal.setting ?? '',
     servings: meal.servings,
     recipeIds: meal.recipeIds,
+    prepTime: meal.prepTime ?? null,
+    cookTime: meal.cookTime ?? null,
   }));
 }
 

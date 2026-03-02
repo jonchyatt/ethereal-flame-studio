@@ -116,6 +116,8 @@ export interface MealPlanSummary {
   setting: string | null;
   servings: number | null;
   recipeIds: string[];
+  prepTime: number | null;
+  cookTime: number | null;
 }
 
 /**

@@ -442,6 +442,10 @@ export const notionTools: ToolDefinition[] = [
         check_pantry: {
           type: 'boolean',
           description: 'Subtract pantry stock from needed ingredients. Default true.'
+        },
+        target_servings: {
+          type: 'number',
+          description: 'Target servings to scale recipes to. Overrides individual meal plan servings for quantity calculations.'
         }
       }
     }

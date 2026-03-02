@@ -63,6 +63,8 @@ export interface PersonalMeal {
   setting: string;
   servings: number | null;
   recipeIds: string[];
+  prepTime: number | null;
+  cookTime: number | null;
 }
 
 export interface HealthItem {
