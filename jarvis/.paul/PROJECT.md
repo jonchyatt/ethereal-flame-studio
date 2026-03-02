@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A self-improving, genius-level life manager built on Anthropic API + MCP Connector with 17 preserved intelligence gems, a 3-layer self-improvement loop, vector memory, and a mobile-first domain OS UI. Currently in v4.2 (Meal Planning & Kitchen Intelligence).
+A self-improving, genius-level life manager built on Anthropic API + MCP Connector with 17 preserved intelligence gems, a 3-layer self-improvement loop, vector memory, and a mobile-first domain OS UI. v4.2 (Meal Planning) complete, entering v4.3 (Guided Onboarding).
 
 ## Core Value
 
@@ -96,21 +96,25 @@ MOBILE-FIRST UI (new)
 - ✓ create_bill enhanced with service_link — Phase I
 - ✓ Chat bill queries include [Pay here] links — Phase I
 
-## v4.2 Requirements (Meal Planning & Kitchen Intelligence)
+## v4.2 Requirements — VALIDATED (Meal Planning & Kitchen Intelligence)
 
-- ○ Conversational recipe creation with ingredient auto-linking — Phase J
-- ○ Meal plan querying by day/meal type — Phase J
-- ○ Pantry inventory tracking with upsert pattern — Phase J
-- ○ Smart shopping list generation (meal plan ingredients - pantry stock) — Phase J
-- ○ Shopping list operations (query, check all, clear checked) — Phase J
-- ○ Graceful degradation when meal databases not configured — Phase J
-- ○ Meals in morning briefing with shopping list count — Phase J
-- ○ Visual weekly planner UI with 4-tab layout — Phase J
-- ○ Chat CTAs on every empty state — Phase J
-- ○ Prep time awareness in briefing text — Phase J
-- ○ Vision input framework: camera → image recognition → tool calls (reusable across domains) — Phase J
-- ○ Model tier switching (Haiku ↔ Sonnet) for vision tasks, controllable from app settings — Phase J
-- ○ Pantry photo capture: snap groceries → recognize items → bulk update_pantry — Phase J
+- ✓ Conversational recipe creation with ingredient auto-linking — J-01
+- ✓ Meal plan querying by day/meal type — J-01
+- ✓ Pantry inventory tracking with upsert pattern — J-01
+- ✓ Smart shopping list generation (meal plan ingredients - pantry stock) — J-01
+- ✓ Shopping list operations (query, check all, clear checked) — J-01
+- ✓ Graceful degradation when meal databases not configured — J-01
+- ✓ Meals in morning briefing with shopping list count — J-02
+- ✓ Visual weekly planner UI with 4-tab layout — J-03
+- ✓ Chat CTAs on every empty state — J-03
+- ✓ Prep time awareness in briefing and dashboard — J-04
+- ✓ Claude-reasoned shopping quantities with intelligent scaling — J-04
+- ✓ Full-week meal awareness in every chat conversation — J-04
+
+### Deferred to v4.4+ (Vision — captured during J-04, not in original v4.2 scope)
+- ○ Vision input framework: camera → image recognition → tool calls (reusable across domains)
+- ○ Model tier switching (Haiku ↔ Sonnet) for vision tasks, controllable from app settings
+- ○ Pantry photo capture: snap groceries → recognize items → bulk update_pantry
 
 ## v4.3 Requirements (Guided Onboarding — "Wife-Ready Experience")
 
@@ -155,3 +159,6 @@ MOBILE-FIRST UI (new)
 - ○ Complete feature coverage: tasks, calendar, habits, bills, meal planning, recipes, pantry, shopping lists, briefings — every feature has a lesson
 - ○ Existing tutorial infrastructure reuse: tutorialStore, lessonRegistry, action bus, AcademyHub — upgrade from static scripts to curriculum-driven conversational teaching
 - ○ Curriculum data persisted: survives app close, page refresh, device switch — she picks up where she left off
+
+---
+*Last updated: 2026-03-01 after Phase J (v4.2 Meal Planning complete)*

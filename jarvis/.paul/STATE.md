@@ -2,16 +2,15 @@
 
 ## Current Position
 
-Milestones in progress:
-- v4.2 Meal Planning & Kitchen Intelligence (Phase J) — ALL PLANS COMPLETE, awaiting UNIFY
-- v4.3 Academy Engine (Phase K)
+Milestones:
+- v4.2 Meal Planning & Kitchen Intelligence (Phase J) — COMPLETE
+- v4.3 Academy Engine (Phase K) — In progress
 
-Phase J: J-04 APPLIED — all 4 plans executed, ready for UNIFY
-Phase K: Plan K-01 COMPLETE, ready for K-02
-Last activity: 2026-03-01 — J-04 APPLIED (Polish & Intelligence — 3 tasks, 10 files)
+Phase K: K-01 COMPLETE, K-02 not started
+Last activity: 2026-03-01 — v4.2 milestone complete, Phase J transitioned
 
 Progress:
-- v4.2: [██████████] 100% (4 of 4 plans complete, awaiting unify)
+- v4.2: [██████████] 100% — COMPLETE (4 of 4 plans, all unified)
 - v4.3/K: [██░░░░░░░░] 25% (1 of 4 plans)
 
 ## Loop Position
@@ -19,51 +18,34 @@ Progress:
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ○     [J-04 applied, ready for UNIFY]
+  ✓        ✓        ✓     [J-04 loop closed — v4.2 milestone complete]
 ```
 
-## Current Phase: J — Meal Planning & Kitchen Intelligence
+Ready for next loop: K-02
 
-Goal: Complete meal planning pipeline — conversational recipe management, weekly meal planning, pantry tracking, and smart shopping list generation through natural language.
+## Current Phase: K — Jarvis Academy
 
-Key context:
-- J-01 Backend Foundation COMPLETE — 7 tools deployed, all schemas/filters/formatters built
-- J-02 Briefing Integration COMPLETE — full weekly meals + shopping list count in briefing pipeline
-- J-03 Frontend UI COMPLETE — /personal/meals route, 4-tab MealsView, dashboard card, store wiring
-- J-04 Polish & Intelligence COMPLETE — recipe times, full-week chat context, Claude-reasoned shopping
-- Human blocker CLEARED: Pantry + Shopping List DBs created, 5 env vars set in Vercel
-- Human action still pending: add "Servings" number column to Notion Meal Plan DB
+Goal: Give Jarvis the ability to read, understand, and teach about Jonathan's project codebases through conversation. K-01 (Core Academy Engine) complete — 3 tools deployed, GitHub reader working, project registry set up.
 
 Plans:
 | Plan | Name | Status |
 |------|------|--------|
-| J-01 | Backend Foundation | Complete |
-| J-02 | Briefing Integration | Complete |
-| J-03 | Frontend UI | Complete |
-| J-04 | Polish & Intelligence | Complete |
+| K-01 | Core Academy Engine | Complete |
+| K-02 | Deep Visopscreen Curriculum | Not started |
+| K-03 | Creator Workflow + Multi-Domain | Not started |
+| K-04 | Academy UI + Intelligence | Not started |
 
-New requirements captured (vision input):
-- Vision input framework: camera → recognition → tool calls (reusable across domains)
-- Model tier switching (Haiku ↔ Sonnet) controllable from app settings
-- Pantry photo capture: snap groceries → recognize items → bulk update_pantry
-- Reference implementation: Reset Biology nutrition tracking (GPT-4o-mini, sharp compression)
-- Architectural decision: native chat vision (Claude sees image + has tools in same turn) over separate endpoint
-
-New requirements captured (J-04 — intelligent scaling):
-- Servings field wired end-to-end (MEAL_PLAN_PROPS → MealPlanSummary → PersonalMeal). Human action: add "Servings" number column to Notion Meal Plan DB.
-- Intelligent recipe scaling via Claude reasoning, NOT dumb multiplication. When servings changes: spices scale sub-linearly, proteins/carbs scale linearly, cooking times adjust for volume, equipment constraints noted.
-- generate_shopping_list should accept target servings override, pull recipe base servings + ingredients, pass to Claude for intelligent adjustment, return adjusted quantities + cooking notes.
-- Evening wrap / briefing meal text should mention servings when set ("Stir-Fry for 6 tonight").
-
-New requirements captured (J-04 — proactive meal timing intelligence):
-- Contextual meal reminders: Jarvis reasons about when to notify based on setting (Home=prep time, Dine-Out=travel+reservation, Takeout=order lead), current user activity, and household context
-- NOT fixed-offset timers — Claude reasons about the right moment from first principles
-- MVP: enrich system prompt with tonight's meal + prep context during any conversation (zero new infra)
-- Full vision: proactive notification channel (Telegram/push) for out-of-chat reminders
-- Learning loop: Phase D captures timing preferences as situational rules that sharpen over weeks ("Jonathan needs prep_time + 20min warning when coding", "wife prefers 30min heads-up")
-- Setting discriminator already exists in data model — three completely different temporal patterns from one field
+Blocker: Jonathan must create GitHub PAT and set GITHUB_TOKEN + GITHUB_OWNER in Vercel.
 
 ## Completed Milestones
+
+### v4.2 Meal Planning & Kitchen Intelligence — COMPLETE (2026-03-01)
+
+- Phase J: Meal Planning Pipeline — COMPLETE (J-01 through J-04)
+  - J-01: 7 tools deployed, schemas/filters/formatters built
+  - J-02: MealPlanSummary in briefing pipeline, store wiring, shopping list count
+  - J-03: /personal/meals route, 4-tab MealsView, dashboard card
+  - J-04: Recipe times, full-week chat context, Claude-reasoned shopping quantities
 
 ### v4.1 Bill Payment & Beyond — COMPLETE
 
@@ -88,6 +70,7 @@ New requirements captured (J-04 — proactive meal timing intelligence):
 - Voice pipeline absent from new shell
 - Old shell (/jarvis) not converged with new (/jarvis/app)
 - Intelligence Evolution concepts documented but not executed
+- Vision input framework deferred to v4.4+
 - Jarvis Academy K-01 complete (3 tools), K-02-K-04 not executed
 
 ## Accumulated Context
@@ -96,41 +79,26 @@ New requirements captured (J-04 — proactive meal timing intelligence):
 
 | Decision | Phase | Impact |
 |----------|-------|--------|
-| v4.2 = focused meal planning only | Milestone | Ships faster, follows v4.1 pattern |
-| 4 sequential plans (Backend → Briefing → UI → Polish) | Phase J | Same proven pipeline as Bill Payment |
-| Pre-written plan needs migration + verification | Phase J | Code shifted during 6-layer audit |
-| Pantry DB is human-action blocker | J-01 | Jonathan creates in Notion before execution |
-| generate_shopping_list is the killer feature | J-01 | Meal plan ingredients - pantry stock = shopping list |
-| archivePage added to NotionClient | J-01 | updatePage can't set archived:true — needed for clear_shopping_list |
-| Native chat vision over separate endpoint | Phase J | Claude sees image + has tools in same turn, no separate API |
-| Reusable vision framework | Phase J | Same pipeline works for receipts, documents, any domain |
-| Model switching for vision (Haiku ↔ Sonnet) | Phase J | User controls from app settings, applies to all vision tasks |
-| v4.3 = Guided Onboarding milestone | Milestone | Wife-ready experience — Jarvis teaches conversationally, progressive day-by-day curriculum, zero jargon |
-| Teach AFTER stability, not during build | Milestone | v4.3 depends on v4.2 complete — all features stable before teaching them |
-| Pantry + Shopping List DBs created | J-01 blocker cleared | 5 env vars ready to set in Vercel |
-| Servings field added to schema + pipeline | J-02 | Flows through entire pipeline, degrades to null until Notion column added |
-| Intelligent recipe scaling (not just multiply) | J-04 | Claude reasons about sub-linear spice scaling, cooking time changes, equipment |
-| Consistent onChat prop pattern for tab contents | J-03 | All tab content components receive callbacks as props, not read stores directly |
-| Empty days are interactive, not passive | J-03 | Day-specific CTA opens chat with contextual prompt |
-| Proactive meal timing = contextual reasoning, not timers | J-04 | Setting field discriminates Home/Dine-Out/Takeout temporal patterns |
 | Recipes DB queried ONCE in BriefingBuilder | J-04 | Single query replaces 10-15 individual retrievePage calls |
 | Full-week meal context in system prompt | J-04 | Enables proactive empty-day suggestions, dinner timing reasoning |
 | Conservative pantry subtraction (same-unit only) | J-04 | No risky unit conversions between pantry and shopping |
+| Claude Haiku for shopping reasoning | J-04 | $0.001/list generation for dramatically better output |
+| Vision requirements deferred to v4.4+ | Transition | Not original v4.2 scope — captured during research, moved to future |
 
 ### Git State
-Last commit: b595bde (uncommitted: J-02 + J-03 + J-04 + K-01 + quality fixes)
+Last commit: 86e70c9 (feat(jarvis): J-04 Polish & Intelligence)
 Branch: master
 Feature branches merged: none (developed directly on master)
 
 ## Session Continuity
 
-Last session: 2026-03-01 (session 8)
-Stopped at: J-04 APPLIED — all 3 tasks complete, build passes, ready for UNIFY
-Next action: /paul:unify .paul/phases/J-meal-planning/J-04-PLAN.md
-Resume file: .paul/HANDOFF-2026-03-01-session8.md
+Last session: 2026-03-01
+Stopped at: v4.2 milestone COMPLETE — Phase J transitioned
+Next action: /paul:plan for K-02 (Deep Visopscreen Curriculum) — or start v4.3 milestone work
+Resume file: .paul/ROADMAP.md
 Resume context:
-- J-04 fully applied: recipe detail pipeline, full-week chat context, Claude-reasoned shopping
-- All 10 files modified, build clean (zero errors)
-- Uncommitted work: J-02 + J-03 + J-04 + K-01 + quality fixes (all on master)
-- v4.2 milestone ready for completion after J-04 unify
+- v4.2 fully complete — all 4 plans unified, PROJECT.md evolved, ROADMAP.md updated
+- K-01 (Core Academy Engine) already complete — 3 tools, GitHub reader, project registry
+- K-02 through K-04 awaiting execution
 - Human action still pending: add "Servings" number column to Notion Meal Plan DB
+- Human action pending: GitHub PAT for Academy (GITHUB_TOKEN + GITHUB_OWNER in Vercel)

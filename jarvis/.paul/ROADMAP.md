@@ -1,8 +1,9 @@
 # Roadmap: Jarvis v4.2 Meal Planning & Kitchen Intelligence
 
 **Milestone:** v4.2
-**Status:** In progress
+**Status:** COMPLETE
 **Phases:** 1 (J — Meal Planning Pipeline)
+**Completed:** 2026-03-01
 **Previous milestones:**
 - v4.0 Brain Swap & Personal Domain — COMPLETE (Phases A-G)
 - v4.1 Bill Payment & Beyond — COMPLETE (Phases H-I)
@@ -46,7 +47,7 @@
 | J-01 | Backend Foundation | Schemas + 7 tools + system prompt | Complete |
 | J-02 | Briefing Integration | Types + BriefingBuilder + store + fetch | Complete |
 | J-03 | Frontend UI | Route + MealsView + 4 tabs + quality uplift | Complete |
-| J-04 | Polish & Intelligence | Chat CTAs + prep time + shopping intelligence | Not started |
+| J-04 | Polish & Intelligence | Recipe times + meal awareness + Claude shopping | Complete |
 
 **Ordering rationale:** Databases are empty. Conversational tools (J-01) ship first so Jonathan can populate data by talking to Jarvis. Briefing (J-02) makes that data visible in morning briefings. UI (J-03) gives the visual weekly planner experience. Polish (J-04) ties it all together with chat CTAs and prep time awareness.
 
@@ -125,7 +126,7 @@ Sequential: each plan builds on the previous.
 
 | Phase | Name | Plans | Status | Completed |
 |-------|------|-------|--------|-----------|
-| J | Meal Planning & Kitchen Intelligence | 3/4 | In progress | J-01, J-02, J-03 |
+| J | Meal Planning & Kitchen Intelligence | 4/4 | ✅ Complete | J-01, J-02, J-03, J-04 |
 
 ---
 
