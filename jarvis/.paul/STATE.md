@@ -93,7 +93,7 @@ Feature branches merged: none (developed directly on master)
 Last session: 2026-03-02 (session 12)
 Stopped at: K-03 unified, K-04 next
 Next action: /paul:plan K-04
-Resume file: .paul/phases/K-jarvis-academy/K-03-SUMMARY.md
+Resume file: .paul/HANDOFF-2026-03-02-session12.md
 Resume context:
 - K-03 complete: 12 Creator Workflow topics, dynamic multi-domain, all AC passed
 - K-04 (Academy UI + Intelligence) is the final plan in Phase K
