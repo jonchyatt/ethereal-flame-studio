@@ -8,7 +8,7 @@
 import { readFile, listDirectory, searchCode, isAcademyConfigured, getConfig, githubFetch } from './githubReader';
 import { editFile, commitFiles } from './githubWriter';
 import { getProject, getAllProjects } from './projects';
-import type { ProjectConfig } from './projects';
+import type { ProjectConfig, CurriculumTopic } from './projects';
 
 /** Reject paths with traversal, query injection, or absolute paths */
 function validatePath(filePath: string): string | null {
@@ -43,12 +43,15 @@ export async function executeAcademyTool(
         return await handleReadFiles(
           project,
           input.file_path as string,
-          input.line_start ? parseInt(input.line_start as string, 10) : undefined,
-          input.line_end ? parseInt(input.line_end as string, 10) : undefined
+          input.line_start ? Number(input.line_start) : undefined,
+          input.line_end ? Number(input.line_end) : undefined
         );
 
       case 'academy_search_code':
         return await handleSearchCode(project, input.query as string);
+
+      case 'academy_list_topics':
+        return handleListTopics(project, input.category as string | undefined);
 
       case 'academy_edit_file':
         return await handleEditFile(project, input);
@@ -113,7 +116,23 @@ ${project.complexAreas}
 ${dirList}`;
   }
 
-  return `## ${project.name} \u2014 /${path}\n\n${dirList}`;
+  let result = `## ${project.name} \u2014 /${path}\n\n${dirList}`;
+
+  // Append related topics if the project has curriculum and a specific path was requested
+  if (project.curriculum && project.curriculum.length > 0) {
+    const relatedTopics = project.curriculum.filter(topic =>
+      topic.keyFiles.some(kf => kf.path.startsWith(path))
+    );
+    if (relatedTopics.length > 0) {
+      const topicLines = relatedTopics.map(t => {
+        const stars = '\u2605'.repeat(t.difficulty) + '\u2606'.repeat(5 - t.difficulty);
+        return `- [${stars}] ${t.name} \u2014 ${t.description.split('.')[0]}`;
+      });
+      result += `\n\n## Related Topics\nFiles in this directory are covered by these teaching topics:\n${topicLines.join('\n')}`;
+    }
+  }
+
+  return result;
 }
 
 async function handleReadFiles(
@@ -145,6 +164,54 @@ async function handleSearchCode(
 
   const pathList = paths.map(p => `  - ${p}`).join('\n');
   return `Found "${query}" in ${paths.length} file(s):\n${pathList}\n\nUse academy_read_files to read any of these files.`;
+}
+
+function handleListTopics(
+  project: ProjectConfig,
+  categoryFilter?: string
+): string {
+  if (!project.curriculum || project.curriculum.length === 0) {
+    return `No structured curriculum available yet for ${project.id}. You can still explore and read code \u2014 use academy_explore_project to start.`;
+  }
+
+  // Group topics by category
+  const byCategory = new Map<string, CurriculumTopic[]>();
+  for (const topic of project.curriculum) {
+    if (categoryFilter && topic.category.toLowerCase() !== categoryFilter.toLowerCase()) continue;
+    if (!byCategory.has(topic.category)) byCategory.set(topic.category, []);
+    byCategory.get(topic.category)!.push(topic);
+  }
+
+  if (byCategory.size === 0) {
+    const allCategories = [...new Set(project.curriculum.map(t => t.category))];
+    return `No topics found in category "${categoryFilter}". Available categories: ${allCategories.join(', ')}`;
+  }
+
+  // Build topic name lookup for prerequisite display
+  const topicNames = new Map<string, string>();
+  for (const t of project.curriculum) topicNames.set(t.id, t.name);
+
+  const sections: string[] = [`# ${project.name} \u2014 Curriculum\n`];
+
+  for (const [category, topics] of byCategory) {
+    sections.push(`## ${category}\n`);
+    for (const t of topics) {
+      const stars = '\u2605'.repeat(t.difficulty) + '\u2606'.repeat(5 - t.difficulty);
+      let line = `[${stars}] **${t.name}** \u2014 ${t.description}`;
+      if (t.prerequisites.length > 0) {
+        const prereqNames = t.prerequisites
+          .map(id => topicNames.get(id) || id)
+          .join(', ');
+        line += `\n  _Requires: ${prereqNames}_`;
+      }
+      sections.push(line);
+    }
+    sections.push('');
+  }
+
+  sections.push('Ask me to teach you any topic, or start with the \u2605\u2606\u2606\u2606\u2606 topics if you\'re new.');
+
+  return sections.join('\n');
 }
 
 async function handleEditFile(

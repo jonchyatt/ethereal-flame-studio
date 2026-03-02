@@ -4,3 +4,4 @@ export { isAcademyConfigured, invalidateCacheForFile } from './githubReader';
 export { editFile, commitFiles } from './githubWriter';
 export type { EditFileResult, CommitFilesResult, FileChange } from './githubWriter';
 export { getAllProjects, getProject } from './projects';
+export type { CurriculumTopic, ProjectConfig } from './projects';

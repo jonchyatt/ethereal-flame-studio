@@ -1,8 +1,8 @@
 /**
  * Academy Tool Definitions
  *
- * Three tools that give Jarvis the ability to read and teach
- * about Jonathan's project codebases via GitHub API.
+ * Tools that give Jarvis the ability to read, teach, and fix
+ * Jonathan's project codebases via GitHub API.
  */
 
 import { ToolDefinition } from '../intelligence/tools';
@@ -41,11 +41,11 @@ export const academyTools: ToolDefinition[] = [
           description: 'File path within the project (e.g., "spread-analyzer.js" or "src/lib/creator/types.ts")',
         },
         line_start: {
-          type: 'string',
+          type: 'number',
           description: 'Starting line number (default: 1). Use for reading specific sections of large files.',
         },
         line_end: {
-          type: 'string',
+          type: 'number',
           description: 'Ending line number. Max 300 lines per read. If omitted, reads up to 300 lines from line_start.',
         },
       },
@@ -68,6 +68,24 @@ export const academyTools: ToolDefinition[] = [
         },
       },
       required: ['project', 'query'],
+    },
+  },
+  {
+    name: 'academy_list_topics',
+    description: 'List available teaching topics for a project, grouped by category with difficulty and prerequisites. Call this when the user asks what you can teach them, or to suggest a learning path. Returns structured curriculum with difficulty indicators and prerequisite chains so the user knows where to start.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        project: {
+          type: 'string',
+          description: 'Project to list topics for. Options: visopscreen, creator-workflow',
+        },
+        category: {
+          type: 'string',
+          description: 'Optional: filter to a specific category (e.g., "Screeners", "Core Concepts"). Omit to see all topics.',
+        },
+      },
+      required: ['project'],
     },
   },
   {

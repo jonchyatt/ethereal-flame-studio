@@ -6,8 +6,8 @@ Milestones:
 - v4.2 Meal Planning & Kitchen Intelligence (Phase J) — COMPLETE
 - v4.3 Academy Engine (Phase K) — In progress
 
-Phase K: K-02 PLAN created, awaiting approval
-Last activity: 2026-03-01 — K-02 plan created (Deep Visopscreen Curriculum)
+Phase K: K-02 APPLIED, awaiting UNIFY
+Last activity: 2026-03-01 — K-02 applied (Deep Visopscreen Curriculum)
 
 Progress:
 - v4.2: [██████████] 100% — COMPLETE (4 of 4 plans, all unified)
@@ -18,7 +18,7 @@ Progress:
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ○        ○     [K-02 plan created, awaiting approval]
+  ✓        ✓        ○     [K-02 applied, awaiting UNIFY]
 ```
 
 ## Current Phase: K — Jarvis Academy
@@ -29,7 +29,7 @@ Plans:
 | Plan | Name | Status |
 |------|------|--------|
 | K-01 | Core Academy Engine | Complete |
-| K-02 | Deep Visopscreen Curriculum | Not started |
+| K-02 | Deep Visopscreen Curriculum | Applied |
 | K-03 | Creator Workflow + Multi-Domain | Not started |
 | K-04 | Academy UI + Intelligence | Not started |
 
