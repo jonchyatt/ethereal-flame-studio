@@ -6,12 +6,12 @@ Milestones in progress:
 - v4.2 Meal Planning & Kitchen Intelligence (Phase J)
 - v4.3 Academy Engine (Phase K)
 
-Phase J: J-03 COMPLETE, ready for J-04 PLAN
+Phase J: J-04 PLAN created, awaiting approval
 Phase K: Plan K-01 COMPLETE, ready for K-02
-Last activity: 2026-03-01 — J-03 Frontend UI unified (5 files + 4 quality fixes)
+Last activity: 2026-03-01 — Created J-04-PLAN.md (Polish & Intelligence)
 
 Progress:
-- v4.2: [███████░░░] 75% (3 of 4 plans)
+- v4.2: [███████░░░] 75% (3 of 4 plans, J-04 planned)
 - v4.3/K: [██░░░░░░░░] 25% (1 of 4 plans)
 
 ## Loop Position
@@ -19,7 +19,7 @@ Progress:
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [J-03 loop complete — ready for J-04 PLAN]
+  ✓        ○        ○     [J-04 plan created, awaiting approval]
 ```
 
 ## Current Phase: J — Meal Planning & Kitchen Intelligence
@@ -40,7 +40,7 @@ Plans:
 | J-01 | Backend Foundation | Complete |
 | J-02 | Briefing Integration | Complete |
 | J-03 | Frontend UI | Complete |
-| J-04 | Polish & Intelligence | Not started |
+| J-04 | Polish & Intelligence | Planned (approved) |
 
 New requirements captured (vision input):
 - Vision input framework: camera → recognition → tool calls (reusable across domains)
@@ -121,14 +121,13 @@ Feature branches merged: none (developed directly on master)
 
 ## Session Continuity
 
-Last session: 2026-03-01 (session 6)
-Stopped at: J-03 UNIFIED + paused — ready for J-04 PLAN
-Next action: /paul:plan for J-04 (Polish & Intelligence)
-Resume file: .paul/HANDOFF-2026-03-01-session6.md
+Last session: 2026-03-01 (session 7)
+Stopped at: J-04 PLAN created, self-critiqued (6 improvements), approved — ready for APPLY
+Next action: /paul:apply .paul/phases/J-meal-planning/J-04-PLAN.md
+Resume file: .paul/HANDOFF-2026-03-01-session7.md
 Resume context:
-- J-03 complete with 4 quality fixes (interactive empty days, shopping badge, consistent props, explicit tutorial IDs)
-- v4.2 at 75% (3/4 plans)
-- J-04 has 3 requirement clusters: intelligent scaling, proactive meal timing, servings wiring
-- Proactive meal timing concept captured: contextual reasoning, setting discriminator, Phase D learning
-- Human action still pending: add "Servings" number column to Notion Meal Plan DB
+- J-04 plan approved with 6 self-critique improvements baked in
+- 3 tasks, 10 files, fully autonomous (no checkpoints)
+- Key improvements: single Recipes DB query, full-week system prompt, rich recipe context for Claude, itemized response, dashboard dinner stat, "don't announce" guardrail
 - Uncommitted work: J-02 + J-03 + K-01 + quality fixes (all on master)
+- Human action still pending: add "Servings" number column to Notion Meal Plan DB
