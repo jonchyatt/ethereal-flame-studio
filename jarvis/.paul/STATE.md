@@ -6,8 +6,8 @@ Milestones:
 - v4.2 Meal Planning & Kitchen Intelligence (Phase J) — COMPLETE
 - v4.3 Academy Engine (Phase K) — In progress
 
-Phase K: K-03 applied, needs unify
-Last activity: 2026-03-02 — Applied K-03 (Creator Workflow curriculum + dynamic multi-domain)
+Phase K: K-03 complete, K-04 next
+Last activity: 2026-03-02 — K-03 unified (Creator Workflow curriculum + dynamic multi-domain)
 
 Progress:
 - v4.2: [██████████] 100% — COMPLETE (4 of 4 plans, all unified)
@@ -18,7 +18,7 @@ Progress:
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ○     [K-03 applied, needs unify]
+  ✓        ✓        ✓     [K-03 loop complete — ready for K-04]
 ```
 
 ## Current Phase: K — Jarvis Academy
@@ -91,10 +91,10 @@ Feature branches merged: none (developed directly on master)
 ## Session Continuity
 
 Last session: 2026-03-02 (session 12)
-Stopped at: K-03 applied, needs unify
-Next action: /paul:unify K-03
+Stopped at: K-03 unified, K-04 next
+Next action: /paul:plan K-04
 Resume file: .paul/phases/K-jarvis-academy/K-03-SUMMARY.md
 Resume context:
-- K-03 applied: 12 Creator Workflow topics, dynamic tool descriptions, dynamic system prompt
-- All acceptance criteria verified (build passes, zero hard-coded project lists)
+- K-03 complete: 12 Creator Workflow topics, dynamic multi-domain, all AC passed
+- K-04 (Academy UI + Intelligence) is the final plan in Phase K
 - Human blockers still pending: GitHub PAT for Academy
