@@ -90,9 +90,9 @@ export function middleware(request: NextRequest) {
   const isJarvisSubdomain = hostname.startsWith('jarvis.');
 
   if (isJarvisSubdomain) {
-    // On jarvis subdomain: rewrite / to /jarvis
+    // On jarvis subdomain: rewrite / to /jarvis/app (dashboard)
     if (pathname === '/') {
-      return NextResponse.rewrite(new URL('/jarvis', request.url));
+      return NextResponse.rewrite(new URL('/jarvis/app', request.url));
     }
 
     // Rewrite /api/* to /api/jarvis/* (except already jarvis routes)
@@ -105,8 +105,10 @@ export function middleware(request: NextRequest) {
     // Allow static assets and other paths
   }
 
-  // On main domain: optionally block /jarvis routes if you want separation
-  // For now, allow both to coexist
+  // Main domain: redirect /jarvis → /jarvis/app (old voice orb is dead end)
+  if (pathname === '/jarvis') {
+    return NextResponse.redirect(new URL('/jarvis/app', request.url));
+  }
 
   return NextResponse.next();
 }

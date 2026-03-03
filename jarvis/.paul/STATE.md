@@ -3,10 +3,10 @@
 ## Current Position
 
 Milestone: v4.4 Guided Onboarding — Academy-Driven
-Phase: L-01 of 4 (Foundation) — Planning
-Plan: L-01-01 created, awaiting approval
-Status: PLAN created, ready for APPLY
-Last activity: 2026-03-02 — Created L-01-01-PLAN.md
+Phase: L-01 of 4 (Foundation) — Executing
+Plan: L-01-01 executed (3/3 tasks complete)
+Status: APPLY complete, ready for UNIFY
+Last activity: 2026-03-02 — Executed L-01-01-PLAN.md
 
 Progress:
 - v4.4/L: [░░░░░░░░░░] 0%
@@ -17,7 +17,7 @@ Progress:
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ○        ○     [Plan created, awaiting approval]
+  ✓        ✓        ○     [Executed, ready for UNIFY]
 ```
 
 ## Completed Milestones
@@ -56,10 +56,12 @@ PLAN ──▶ APPLY ──▶ UNIFY
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Plan L-01-01 created and approved, ready for APPLY
-Next action: /paul:apply to execute L-01-01-PLAN.md
+Stopped at: L-01-01 APPLY complete + self-audit (5 path fixes)
+Next action: /paul:unify to close the L-01-01 loop
 Resume file: .paul/HANDOFF-2026-03-02.md
 Resume context:
-- L-01-01 plan approved — 3 tasks: middleware redirect, jarvis curriculum, onboarding handoff
+- L-01-01 executed: middleware redirect, jarvis curriculum (8 topics), onboarding→academy handoff
+- Self-audit caught 5 wrong keyFile paths in curriculum — all fixed, all 12 verified on disk
+- basePath changed from 'jarvis/src/components/jarvis' to 'src' (no jarvis/ subdir exists)
 - L-01-02 not yet written — will cover Spotlight Bridge + Teaching Context
-- Concept doc at .paul/concepts/guided-onboarding-v44.md has full architecture
+- Build passes clean, no type errors

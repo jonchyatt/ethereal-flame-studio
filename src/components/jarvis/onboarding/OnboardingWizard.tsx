@@ -7,6 +7,7 @@ import { WIDGET_REGISTRY } from '@/lib/jarvis/widgets/registry';
 import { useSettingsStore, type NotificationSchedule } from '@/lib/jarvis/stores/settingsStore';
 import { useHomeStore } from '@/lib/jarvis/stores/homeStore';
 import { useTutorialStore } from '@/lib/jarvis/stores/tutorialStore';
+import { useAcademyStore } from '@/lib/jarvis/stores/academyStore';
 import { toast } from '@/lib/jarvis/stores/toastStore';
 import { DomainIcon } from '@/components/jarvis/home/DomainIcon';
 import { Button } from '@/components/jarvis/primitives/Button';
@@ -181,6 +182,8 @@ export function OnboardingWizard() {
   };
 
   const finishOnboarding = () => {
+    // Set Academy active project so Jarvis curriculum is ready on arrival
+    useAcademyStore.getState().setActiveProject('jarvis');
     const store = settingsStore.getState();
     // Activate selected domains
     selections.activeDomains.forEach((id) => {
@@ -211,7 +214,6 @@ export function OnboardingWizard() {
   };
 
   const startTour = () => {
-    useTutorialStore.getState().setSuggestedNext('tasks-basics');
     finishOnboarding();
   };
 

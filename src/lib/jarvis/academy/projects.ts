@@ -20,6 +20,10 @@ export interface CurriculumTopic {
   }>;
   prerequisites: string[];
   conceptsIntroduced: string[];
+  /** data-tutorial-id values for DOM highlighting (same-origin teaching) */
+  spotlightTargets?: string[];
+  /** Same-origin verification steps for interactive teaching */
+  verificationSteps?: Array<{ type: 'route' | 'store' | 'action'; check: string }>;
 }
 
 export interface ProjectConfig {
@@ -522,6 +526,177 @@ export const ACADEMY_PROJECTS: Record<string, ProjectConfig> = {
         ],
         prerequisites: ['frame-capture', 'ffmpeg-encoding'],
         conceptsIntroduced: ['cubemap-capture', 'equirectangular-projection', 'stereo-over-under', 'spatial-metadata', 'ipd-parallax', 'cube-face-resolution'],
+      },
+    ],
+  },
+  jarvis: {
+    id: 'jarvis',
+    name: 'How to Use Jarvis',
+    repo: 'ethereal-flame-studio',
+    basePath: 'src',
+    description: 'Your personal OS — tasks, habits, bills, calendar, meals, and more. Learn how to navigate Jarvis, manage your daily life, and get the most out of every feature.',
+    techStack: 'Next.js (App Router), TypeScript, Tailwind CSS, Zustand stores, Anthropic Claude API, Notion API, glassmorphism dark UI.',
+    architecture: 'JarvisShell wraps all pages with DomainRail (desktop sidebar) + BottomTabBar (mobile). Home shows PriorityStack. Personal domain has sub-programs: Tasks, Habits, Bills, Calendar, Meals, Journal, Goals, Health. Chat overlay provides conversational AI with tool-calling brain. Academy teaches about the system itself.',
+    workflows: `1. MORNING BRIEFING: Open chat → say "brief me" → Jarvis summarizes tasks, habits, bills, calendar, meals for the day
+2. TASK MANAGEMENT: Personal → Tasks → view grouped by urgency → tap to complete → Notion syncs
+3. HABIT TRACKING: Personal → Habits → daily check-ins → streak tracking → trend visualization
+4. BILL TRACKING: Personal → Bills → urgency-colored due dates → mark paid → payment history
+5. CALENDAR: Personal → Calendar → view events → understand schedule
+6. MEAL PLANNING: Personal → Meals → weekly meal plan → grocery lists → kitchen intelligence`,
+    complexAreas: `- NAVIGATION: Three-layer nav (DomainRail for domains, BottomTabBar for core actions, Command Palette for power users). Mobile collapses rail into bottom tabs.
+- CHAT BRAIN: Anthropic Claude with tool-calling. System prompt injected with user context, timezone, active rules. Tools for Notion CRUD, memory search, briefing generation.
+- DATA FLOW: Notion API → briefing endpoint → BriefingData → personalStore + homeStore. One fetch populates both stores.
+- ACADEMY: Same-origin teaching — Academy reads actual Jarvis source code and can spotlight UI elements for interactive lessons.`,
+    curriculum: [
+      // ── Tier 0: First Contact ─────────────────────────────────────
+      {
+        id: 'welcome-tour',
+        name: 'Meet Jarvis',
+        category: 'First Contact',
+        difficulty: 1,
+        description: 'What Jarvis is, what it does, and how it is organized. The shell layout, domain rail, bottom tabs, and home screen.',
+        teachingNotes: 'Start with the big picture: Jarvis is a personal operating system that connects every area of your life into one dashboard. The shell has three layers: JarvisShell wraps everything, DomainRail on the left (desktop) shows domain icons, BottomTabBar (mobile) provides Home/Chat/Academy quick access. Home shows PriorityStack — the most important items across all domains, sorted by urgency. The user should understand that each domain (Personal, Ethereal Flame, etc.) is a separate world with its own sub-programs, but Home aggregates the most urgent items from all of them. Point out the cyan glow on active nav items and the glassmorphism card style that runs through the entire UI.',
+        keyFiles: [
+          { path: 'components/jarvis/layout/JarvisShell.tsx', explanation: 'The outermost wrapper — renders DomainRail, BottomTabBar, and page content with proper chrome offsets' },
+          { path: 'components/jarvis/layout/DomainRail.tsx', explanation: 'Desktop sidebar — domain icons with active indicator, collapses on mobile' },
+          { path: 'components/jarvis/layout/BottomTabBar.tsx', explanation: 'Mobile navigation — Home, Chat, Academy tabs with badge indicators' },
+        ],
+        prerequisites: [],
+        conceptsIntroduced: ['jarvis-shell', 'domain-rail', 'bottom-tabs', 'priority-stack', 'glassmorphism-ui'],
+        spotlightTargets: ['domain-rail', 'bottom-tabs', 'home-priority-stack'],
+        verificationSteps: [
+          { type: 'route', check: '/jarvis/app' },
+        ],
+      },
+      {
+        id: 'navigation-basics',
+        name: 'Navigation — Rail, Tabs & Command Palette',
+        category: 'First Contact',
+        difficulty: 1,
+        description: 'How to move around Jarvis: Domain Rail for switching domains, Bottom Tabs for core actions, and Command Palette (Cmd+K) for power users.',
+        teachingNotes: 'Navigation has three tiers designed for different usage patterns. Domain Rail (desktop left sidebar) shows all active domains — click an icon to switch. The Personal domain (violet) is always on. Bottom Tabs (mobile) provide the three most-used actions: Home (priority view), Chat (AI assistant), Academy (learning). Command Palette (Cmd+K or Ctrl+K) is the power-user shortcut — type to search any page, domain, or action. The aha moment: you never need to memorize where things are, because Command Palette can find anything. Teach the user to try Cmd+K and type "tasks" or "bills" to jump directly. On mobile, the bottom tabs replace the domain rail entirely — the rail is hidden and domains are accessed through Home cards instead.',
+        keyFiles: [
+          { path: 'components/jarvis/layout/DomainRail.tsx', explanation: 'Desktop domain switching — icon list with active state, domain color indicators' },
+          { path: 'components/jarvis/layout/BottomTabBar.tsx', explanation: 'Mobile core navigation — Home/Chat/Academy with unread badges' },
+          { path: 'components/jarvis/layout/CommandPalette.tsx', explanation: 'Power-user search — Cmd+K overlay, fuzzy search across pages and actions' },
+        ],
+        prerequisites: ['welcome-tour'],
+        conceptsIntroduced: ['domain-switching', 'command-palette', 'mobile-navigation', 'desktop-rail'],
+        spotlightTargets: ['domain-rail-personal', 'bottom-tab-home', 'bottom-tab-chat', 'bottom-tab-academy'],
+        verificationSteps: [
+          { type: 'action', check: 'User can identify Domain Rail on desktop or Bottom Tabs on mobile' },
+        ],
+      },
+      // ── Tier 1: Your First Day ────────────────────────────────────
+      {
+        id: 'tasks-basics',
+        name: 'Tasks — View, Complete & Create',
+        category: 'Your First Day',
+        difficulty: 1,
+        description: 'How to view your tasks grouped by urgency, mark them complete, and understand how tasks flow from Notion into Jarvis.',
+        teachingNotes: 'Tasks are the most-used Personal sub-program. TasksList.tsx groups tasks by urgency: overdue (red), due today (amber), upcoming (default). Each task shows its title, due date, and project. Completing a task calls the Notion API to update the checkbox — this is one of the few write-back mutations that actually works. The data flows from Notion → /api/jarvis/briefing → personalStore.tasks. The user should understand that tasks come from their Notion Life OS and Jarvis is a window into that data. The urgency grouping uses getToday() for date comparison (fixed in the L4 audit — was hardcoded). Show the user how to tap a task to see details and hit the complete button.',
+        keyFiles: [
+          { path: 'components/jarvis/personal/TasksList.tsx', explanation: 'Task list UI — urgency grouping, completion toggle, empty state handling' },
+          { path: 'lib/jarvis/stores/personalStore.ts', explanation: 'Tasks state — populated from BriefingData, provides task items to the UI' },
+        ],
+        prerequisites: ['navigation-basics'],
+        conceptsIntroduced: ['task-completion', 'urgency-grouping', 'notion-sync', 'personal-sub-programs'],
+        spotlightTargets: ['home-domain-card-personal', 'personal-subprogram-tasks'],
+        verificationSteps: [
+          { type: 'route', check: '/jarvis/app/personal' },
+          { type: 'store', check: 'personalStore.tasks.length > 0' },
+        ],
+      },
+      {
+        id: 'habits-basics',
+        name: 'Habits — Track Daily & Build Streaks',
+        category: 'Your First Day',
+        difficulty: 1,
+        description: 'How to track daily habits, view your streaks, and understand the habit check-in workflow.',
+        teachingNotes: 'Habits are the second key Personal sub-program. HabitsList.tsx shows each habit with its current streak count and a daily check-in button. Streaks are the motivational core — seeing a number go up each day creates the "don\'t break the chain" effect. The data comes from Notion habit databases via the briefing endpoint. Each habit has a name, streak count, and last-completed date. The user should understand that checking in a habit records today\'s completion. Show how the streak number increments and how missing a day resets it. The habits widget on the Home screen shows the top streak habits as a quick glance.',
+        keyFiles: [
+          { path: 'components/jarvis/personal/HabitsList.tsx', explanation: 'Habit list UI — streak display, daily check-in button, trend visualization' },
+          { path: 'lib/jarvis/stores/personalStore.ts', explanation: 'Habits state — populated from BriefingData, provides habit items with streaks' },
+        ],
+        prerequisites: ['navigation-basics'],
+        conceptsIntroduced: ['habit-streaks', 'daily-check-in', 'streak-motivation'],
+        spotlightTargets: ['personal-subprogram-habits'],
+        verificationSteps: [
+          { type: 'route', check: '/jarvis/app/personal' },
+        ],
+      },
+      {
+        id: 'bills-basics',
+        name: 'Bills — Track Payments & Urgency Colors',
+        category: 'Your First Day',
+        difficulty: 2,
+        description: 'How to track bills, understand urgency color coding (overdue/due soon/upcoming), mark bills as paid, and view payment history.',
+        teachingNotes: 'Bills are color-coded by urgency — this is the key visual language. Red means overdue (past due date), amber means due within 3 days, default means upcoming. BillsList.tsx renders each bill with its name, amount, due date, and a "Mark Paid" button. The urgency colors match the task system for consistency. Bills come from Notion via the briefing endpoint. The user should understand that marking a bill paid records the payment date but the bill will reappear next cycle (recurring bills). The Home screen bill widget shows total amount due this week as a financial awareness glance. Teach the user to check bills at the start of each week.',
+        keyFiles: [
+          { path: 'components/jarvis/personal/BillsList.tsx', explanation: 'Bill list UI — urgency color coding, mark paid action, amount display' },
+          { path: 'lib/jarvis/stores/personalStore.ts', explanation: 'Bills state — populated from BriefingData, provides bill items with due dates and amounts' },
+        ],
+        prerequisites: ['navigation-basics'],
+        conceptsIntroduced: ['bill-urgency-colors', 'mark-paid', 'recurring-bills', 'financial-awareness'],
+        spotlightTargets: ['personal-subprogram-bills'],
+        verificationSteps: [
+          { type: 'route', check: '/jarvis/app/personal' },
+        ],
+      },
+      {
+        id: 'calendar-basics',
+        name: 'Calendar — View Events & Understand Your Schedule',
+        category: 'Your First Day',
+        difficulty: 1,
+        description: 'How to view your calendar events, understand the timeline view, and see what is coming up today and this week.',
+        teachingNotes: 'CalendarView.tsx shows events from Google Calendar via the Notion integration. Events display with time, title, and optional location. The view is timeline-based — events are ordered chronologically with visual time blocks. The user should understand that calendar data is read-only in Jarvis (no write-back to Google Calendar). The morning briefing includes today\'s events as part of the daily summary. Teach the user to use the calendar as a reference alongside tasks — "what meetings do I have today, and what tasks need to fit around them?" The formatTime function handles both 24h and pre-formatted time strings (fixed in L4 audit).',
+        keyFiles: [
+          { path: 'components/jarvis/personal/CalendarView.tsx', explanation: 'Calendar UI — timeline view, event cards with time/title/location, time formatting' },
+          { path: 'lib/jarvis/stores/personalStore.ts', explanation: 'Calendar state — populated from BriefingData, provides event items with times' },
+        ],
+        prerequisites: ['navigation-basics'],
+        conceptsIntroduced: ['calendar-timeline', 'event-display', 'schedule-awareness'],
+        spotlightTargets: ['personal-subprogram-calendar'],
+        verificationSteps: [
+          { type: 'route', check: '/jarvis/app/personal' },
+        ],
+      },
+      {
+        id: 'meals-basics',
+        name: 'Meals — Planning, Groceries & Kitchen Intelligence',
+        category: 'Your First Day',
+        difficulty: 2,
+        description: 'How to view your meal plan, check grocery lists, and use kitchen intelligence features for recipe suggestions and pantry management.',
+        teachingNotes: 'Meals is the newest Personal sub-program (v4.2). MealsView.tsx shows the weekly meal plan from Notion, with each day\'s meals listed. The grocery list aggregates ingredients across the week\'s meals. Kitchen intelligence uses the chat brain — you can ask Jarvis "what should I cook tonight?" and it considers what\'s in your pantry, your meal plan, and your preferences. The user should understand that meal data comes from Notion databases and the grocery list is auto-generated from planned meals. Teach the user to check meals at the start of the week for planning, and use the chat for spontaneous meal ideas. The meal planning pipeline was built in v4.2 with full Notion integration.',
+        keyFiles: [
+          { path: 'components/jarvis/personal/MealsView.tsx', explanation: 'Meals UI — weekly plan display, grocery list, meal cards with recipe info' },
+          { path: 'lib/jarvis/stores/personalStore.ts', explanation: 'Meals state — populated from BriefingData, provides meal plan and grocery items' },
+        ],
+        prerequisites: ['navigation-basics'],
+        conceptsIntroduced: ['meal-planning', 'grocery-lists', 'kitchen-intelligence', 'weekly-plan'],
+        spotlightTargets: ['personal-subprogram-meals'],
+        verificationSteps: [
+          { type: 'route', check: '/jarvis/app/personal' },
+        ],
+      },
+      {
+        id: 'morning-briefing',
+        name: 'Morning Briefing — "Brief Me"',
+        category: 'Your First Day',
+        difficulty: 1,
+        description: 'How to ask Jarvis for your daily executive summary — tasks, habits, bills, calendar, and meals in one concise briefing.',
+        teachingNotes: 'The morning briefing is Jarvis\'s signature feature. Open the chat (bottom tab or Cmd+K → "chat") and type "brief me" or "good morning." The brain\'s briefing tool aggregates data from all Personal sub-programs into a concise executive summary: overdue tasks, today\'s tasks, habit streaks, bills due, calendar events, and meal plan. The briefing is generated by the /api/jarvis/briefing endpoint which fetches from Notion, then the brain formats it conversationally. The user should make this their daily ritual — open Jarvis, say "brief me," scan the summary, then dive into specific areas that need attention. The briefing respects timezone (client → system prompt) so "today" is always correct. This is the entry point to a productive day with Jarvis.',
+        keyFiles: [
+          { path: 'app/api/jarvis/briefing/route.ts', explanation: 'Briefing API endpoint — fetches from Notion APIs, aggregates tasks/habits/bills/calendar/meals into structured BriefingData' },
+          { path: 'components/jarvis/layout/ChatOverlay.tsx', explanation: 'Chat UI — bottom sheet (mobile) or side panel (desktop), message input, streaming responses' },
+        ],
+        prerequisites: ['tasks-basics'],
+        conceptsIntroduced: ['morning-briefing', 'executive-summary', 'chat-brain', 'daily-ritual'],
+        spotlightTargets: ['bottom-tab-chat', 'chat-input'],
+        verificationSteps: [
+          { type: 'route', check: '/jarvis/app' },
+          { type: 'action', check: 'User opens chat and sends "brief me"' },
+        ],
       },
     ],
   },
