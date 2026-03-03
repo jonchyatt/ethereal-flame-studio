@@ -1,7 +1,46 @@
 # Roadmap: Jarvis
 
-**Current milestone:** None active — v4.3 just completed
-**Next milestone:** Run /paul:discuss-milestone or /paul:milestone to define
+**Current milestone:** v4.4 Guided Onboarding — Academy-Driven
+**Status:** In Progress
+
+---
+
+## Current Milestone
+
+**v4.4 Guided Onboarding — Academy-Driven**
+Status: In Progress
+Phases: 0 of 4 complete
+
+| Phase | Name | Plans | Status | Completed |
+|-------|------|-------|--------|-----------|
+| L-01 | Foundation | 01 created | Planning | - |
+| L-02 | Live Walkthrough Pass 1 | TBD | Not started | - |
+| L-03 | Live Walkthrough Pass 2 | TBD | Not started | - |
+| L-04 | Polish + Wife Test | TBD | Not started | - |
+
+### Phase L-01: Foundation
+
+Focus: Front door redirect (`/jarvis` → `/jarvis/app`), Jarvis curriculum in Academy registry, Academy-Spotlight bridge, Onboarding → Academy handoff, enhanced same-origin teaching context.
+
+Plans: TBD (defined during /paul:plan)
+
+### Phase L-02: Live Walkthrough Pass 1
+
+Focus: Jonathan clears localStorage and walks through fresh — Onboarding Wizard → Welcome Tour → Tasks → Habits → Bills. Every bug and friction point documented. Fixes applied in real-time.
+
+Plans: TBD (defined during /paul:plan)
+
+### Phase L-03: Live Walkthrough Pass 2
+
+Focus: Continue walkthrough — Calendar → Meals → Morning Briefing → Chat Mastery. Verify Pass 1 fixes. New issues documented and fixed.
+
+Plans: TBD (defined during /paul:plan)
+
+### Phase L-04: Polish + Wife Test
+
+Focus: Final bug fixes, clear all state, fresh walkthrough end-to-end. Exit criteria: wife can open the URL cold and get guided through everything with zero help.
+
+Plans: TBD (defined during /paul:plan)
 
 ---
 
@@ -68,23 +107,20 @@ Phases A through G. See `.paul/milestones/` for full archives.
 
 ---
 
-## Next Milestone
+## Open Blockers
 
-Run `/paul:discuss-milestone` or `/paul:milestone` to define the next milestone.
-
-**Candidate directions:**
-- **Guided Onboarding** — Wife-ready experience (deferred from v4.3 scope)
-- **Intelligence Evolution** — Situation-behavior mappings, effectiveness scoring
-- **Vision Input** — Camera → recognition → tool calls
-- **Domain Expansion** — Content for 6 empty domains
+None.
 
 ---
 
-## Open Blockers
+## Parked for Future Milestones
 
-- **GitHub PAT:** Jonathan must create PAT and set GITHUB_TOKEN + GITHUB_OWNER in Vercel for Academy to function in prod
+- Intelligence Evolution — `concepts/intelligence-evolution-v41.md`
+- Vision Input — `concepts/jarvis-vision-research/00-SYNTHESIS.md`
+- Domain Expansion — 6 empty domains need content
+- Voice Pipeline — old orb not converged with new shell
 
 ---
 
 *Created: 2026-02-28*
-*Updated: 2026-03-02 — v4.3 milestone complete*
+*Updated: 2026-03-02 — v4.4 milestone formalized*

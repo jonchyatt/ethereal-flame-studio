@@ -2,21 +2,22 @@
 
 ## Current Position
 
-Milestone: Awaiting next milestone
-Phase: None active
-Plan: None
-Status: Milestone v4.3 Academy Engine complete — ready for next
-Last activity: 2026-03-02 — Milestone v4.3 completed
+Milestone: v4.4 Guided Onboarding — Academy-Driven
+Phase: L-01 of 4 (Foundation) — Planning
+Plan: L-01-01 created, awaiting approval
+Status: PLAN created, ready for APPLY
+Last activity: 2026-03-02 — Created L-01-01-PLAN.md
 
 Progress:
-- v4.3/K: [██████████] 100% — COMPLETE
+- v4.4/L: [░░░░░░░░░░] 0%
+- Phase L-01: [░░░░░░░░░░] 0%
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ○        ○        ○     [Milestone complete - ready for next]
+  ✓        ○        ○     [Plan created, awaiting approval]
 ```
 
 ## Completed Milestones
@@ -50,13 +51,15 @@ PLAN ──▶ APPLY ──▶ UNIFY
 - Voice pipeline absent from new shell
 - Old shell (/jarvis) not converged with new (/jarvis/app)
 - Intelligence Evolution concepts documented but not executed
-- Vision input framework deferred to v4.4+
-- GitHub PAT not yet configured (Academy tools non-functional until set)
-- Guided Onboarding (wife-ready experience) deferred from v4.3
+- Vision input framework deferred to v4.5+
 
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Milestone v4.3 Academy Engine complete
-Next action: /paul:discuss-milestone or /paul:milestone
-Resume file: .paul/MILESTONES.md
+Stopped at: Plan L-01-01 created and approved, ready for APPLY
+Next action: /paul:apply to execute L-01-01-PLAN.md
+Resume file: .paul/HANDOFF-2026-03-02.md
+Resume context:
+- L-01-01 plan approved — 3 tasks: middleware redirect, jarvis curriculum, onboarding handoff
+- L-01-02 not yet written — will cover Spotlight Bridge + Teaching Context
+- Concept doc at .paul/concepts/guided-onboarding-v44.md has full architecture
