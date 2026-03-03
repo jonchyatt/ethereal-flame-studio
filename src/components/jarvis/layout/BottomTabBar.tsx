@@ -53,8 +53,8 @@ export function BottomTabBar() {
         }
         .fab-glow { animation: fabGlow 3s ease-in-out infinite; }
       `}</style>
-      <nav data-tutorial-id="bottom-tabs" className="fixed bottom-0 left-0 right-0 h-16 bg-zinc-950/80 backdrop-blur-xl border-t border-white/10 z-50 md:hidden safe-area-bottom">
-        <div className="flex items-center justify-around h-full">
+      <nav data-tutorial-id="bottom-tabs" className="fixed bottom-0 left-0 right-0 bg-zinc-950/80 backdrop-blur-xl border-t border-white/10 z-50 md:hidden pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-center justify-around h-16">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = getIsActive(tab);
