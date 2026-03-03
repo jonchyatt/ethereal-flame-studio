@@ -9,6 +9,7 @@ import { useHomeStore } from '@/lib/jarvis/stores/homeStore';
 import { useTutorialStore } from '@/lib/jarvis/stores/tutorialStore';
 import { useAcademyStore } from '@/lib/jarvis/stores/academyStore';
 import { useChatStore } from '@/lib/jarvis/stores/chatStore';
+import { useShellStore } from '@/lib/jarvis/stores/shellStore';
 import { toast } from '@/lib/jarvis/stores/toastStore';
 import { DomainIcon } from '@/components/jarvis/home/DomainIcon';
 import { Button } from '@/components/jarvis/primitives/Button';
@@ -216,11 +217,21 @@ export function OnboardingWizard() {
 
   const startTour = () => {
     finishOnboarding();
-    // Open chat with guided tour message — triggers Claude to begin welcome-tour with spotlights
-    // Must be AFTER finishOnboarding() so the shell chrome is visible when chat opens
-    setTimeout(() => {
-      useChatStore.getState().openWithMessage('Start my guided tour of Jarvis');
-    }, 500);
+    // Poll for shell mount instead of blind 500ms timeout — fires as soon as JarvisShell renders
+    const startedAt = Date.now();
+    const checkShellReady = () => {
+      if (useShellStore.getState().shellMounted) {
+        useChatStore.getState().openWithMessage('Start my guided tour of Jarvis');
+        return;
+      }
+      if (Date.now() - startedAt > 5000) {
+        console.warn('[OnboardingWizard] Shell mount timeout — opening chat anyway');
+        useChatStore.getState().openWithMessage('Start my guided tour of Jarvis');
+        return;
+      }
+      setTimeout(checkShellReady, 100);
+    };
+    setTimeout(checkShellReady, 300);
   };
 
   const next = () => setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));

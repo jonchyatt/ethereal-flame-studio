@@ -48,6 +48,14 @@ export function JarvisShell({ children }: JarvisShellProps) {
     }
   }, [onboarded, isOnboarding, router]);
 
+  // Signal shell readiness so OnboardingWizard can wait for mount
+  useEffect(() => {
+    if (!isOnboarding) {
+      useShellStore.getState().setShellMounted(true);
+      return () => useShellStore.getState().setShellMounted(false);
+    }
+  }, [isOnboarding]);
+
   // Global Cmd+K / Ctrl+K listener
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
