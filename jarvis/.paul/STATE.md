@@ -3,21 +3,21 @@
 ## Current Position
 
 Milestone: v4.4 Guided Onboarding — Academy-Driven
-Phase: L-02 of 4 (Live Walkthrough Pass 1)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-02 — Phase L-01 complete, transitioned to Phase L-02
+Phase: L-02 of 4 (Live Walkthrough Pass 1) — In Progress
+Plan: L-02-01 COMPLETE, ready for next plan
+Status: L-02-01 applied and unified
+Last activity: 2026-03-02 — L-02-01 Pre-Walkthrough Diagnostic Fixes applied (commit 7065ff9)
 
 Progress:
 - v4.4/L: [███░░░░░░░] ~25% (1 of 4 phases complete)
-- Phase L-02: [░░░░░░░░░░] not started
+- Phase L-02: [███░░░░░░░] ~25% (1 plan complete, live walkthrough next)
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ○        ○        ○     [Ready for next PLAN]
+  ✓        ✓        ✓     [L-02-01 complete, ready for L-02-02]
 ```
 
 ## Completed Phases (v4.4)
@@ -68,23 +68,31 @@ PLAN ──▶ APPLY ──▶ UNIFY
 - Same-origin vs cross-origin: spotlights only for Jarvis project
 - 500ms setTimeout for startTour → openWithMessage (wait for router.push + shell mount)
 
+### Decisions (L-02 Planning)
+- Fix SpotlightOverlay globally (querySelectorAll + visible-filter) rather than per-component unique IDs
+- Fix ID references in curriculum/prompt to match DOM, not the other way around
+- Wire academyStore.activeProject into AcademyHub for onboarding → Academy flow
+
 ### Concerns
-- Dual-render querySelector: both mobile/desktop DomainRail get same data-tutorial-id; querySelector finds first (mobile, hidden on desktop) → zero-dimension rect. L-02 will test.
-- PriorityStack has dual IDs (empty Card + populated ul) — only one renders at a time, should be fine
+- Dual-render querySelector: RESOLVED in L-02-01 (querySelectorAll + visible-element filter)
+- PriorityStack has dual IDs (empty Card + populated ul) — only one renders at a time, handled by new querySelectorAll approach
+- `bottom-tab-academy` mismatch: RESOLVED in L-02-01 (fixed to `bottom-tab-learn`)
+- `tasks-first-checkbox-0` mismatch: RESOLVED in L-02-01 (fixed to `tasks-first-checkbox`)
+- 500ms setTimeout timing: still untested — will surface during live walkthrough (L-02-02)
 
 ### Git State
-Last commit: 503e191
+Last commit: 7065ff9
 Branch: master
 Feature branches merged: none
 
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: L-01 unified + transitioned, L-02 ready to plan
-Next action: /paul:plan for Phase L-02
+Stopped at: L-02-01 loop complete, session paused
+Next action: /paul:plan for L-02-02 (live walkthrough checkpoint — Jonathan walks through fresh)
 Resume file: .paul/HANDOFF-2026-03-02.md
 Resume context:
-- L-01 Foundation complete: redirect, curriculum, spotlight bridge, teaching prompt, tour initiation
-- L-02 is Live Walkthrough Pass 1: Jonathan walks through fresh, fixes what breaks
-- Known concerns to test: dual-render querySelector, 500ms setTimeout timing
-- L-02 is fundamentally different: live testing with real-time fixes, not infrastructure code
+- L-02-01 COMPLETE: SpotlightOverlay hardened (querySelectorAll + visible-filter), ID mismatches fixed (2), AcademyHub tab wired
+- Deployed to production (commit 7065ff9)
+- Next is L-02-02: Jonathan clears localStorage, walks through onboarding fresh, we fix what breaks in real-time
+- 500ms setTimeout timing still untested — will surface during live walkthrough
