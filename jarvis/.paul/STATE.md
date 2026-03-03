@@ -3,21 +3,21 @@
 ## Current Position
 
 Milestone: v4.4 Guided Onboarding — Academy-Driven
-Phase: L-01 of 4 (Foundation) — Executing
-Plan: L-01-01 executed (3/3 tasks complete)
-Status: APPLY complete, ready for UNIFY
-Last activity: 2026-03-02 — Executed L-01-01-PLAN.md
+Phase: L-01 of 4 (Foundation) — In Progress
+Plan: L-01-01 complete (unified)
+Status: Loop closed, ready for next PLAN
+Last activity: 2026-03-02 — Unified L-01-01
 
 Progress:
-- v4.4/L: [░░░░░░░░░░] 0%
-- Phase L-01: [░░░░░░░░░░] 0%
+- v4.4/L: [██░░░░░░░░] ~10%
+- Phase L-01: [██░░░░░░░░] plan 1 of N complete
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ○     [Executed, ready for UNIFY]
+  ✓        ✓        ✓     [Loop complete - ready for next PLAN]
 ```
 
 ## Completed Milestones
@@ -56,12 +56,13 @@ PLAN ──▶ APPLY ──▶ UNIFY
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: L-01-01 APPLY complete + self-audit (5 path fixes)
-Next action: /paul:unify to close the L-01-01 loop
+Stopped at: L-01-01 loop fully closed (PLAN ✓ APPLY ✓ UNIFY ✓)
+Next action: /paul:plan for L-01-02 (Spotlight Bridge + Teaching Context)
 Resume file: .paul/HANDOFF-2026-03-02.md
 Resume context:
-- L-01-01 executed: middleware redirect, jarvis curriculum (8 topics), onboarding→academy handoff
-- Self-audit caught 5 wrong keyFile paths in curriculum — all fixed, all 12 verified on disk
-- basePath changed from 'jarvis/src/components/jarvis' to 'src' (no jarvis/ subdir exists)
-- L-01-02 not yet written — will cover Spotlight Bridge + Teaching Context
-- Build passes clean, no type errors
+- L-01-01 shipped and unified: redirect, 8-topic curriculum, onboarding→academy handoff
+- L-01-02 next: Spotlight Bridge (DOM highlighting) + Enhanced Teaching Context
+- spotlightTargets defined on topics but data-tutorial-id attributes not yet on DOM elements
+- startTour() needs differentiation from finishOnboarding() in Plan 02
+- STATE.md + SUMMARY uncommitted (PAUL metadata only)
+- Build passes clean
