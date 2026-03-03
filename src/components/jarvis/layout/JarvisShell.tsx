@@ -35,6 +35,15 @@ export function JarvisShell({ children }: JarvisShellProps) {
   const router = useRouter();
   const onboarded = useSettingsStore((s) => s.onboarded);
   const isOnboarding = pathname === ONBOARDING_PATH;
+
+  // ?reset=true — clear localStorage and restart onboarding (remove before shipping to wife)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('reset') === 'true') {
+      localStorage.clear();
+      window.location.replace('/jarvis/app/onboarding');
+    }
+  }, []);
   const tutorialEngine = useTutorialEngine();
   useJarvisFetch(); // Central data pipeline — populates homeStore + personalStore
   useExecutiveBridge(); // Scheduler → mode-aware toasts + proactive chat triggers
