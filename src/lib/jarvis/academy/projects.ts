@@ -582,7 +582,7 @@ export const ACADEMY_PROJECTS: Record<string, ProjectConfig> = {
         ],
         prerequisites: ['welcome-tour'],
         conceptsIntroduced: ['domain-switching', 'command-palette', 'mobile-navigation', 'desktop-rail'],
-        spotlightTargets: ['domain-rail-personal', 'bottom-tab-home', 'bottom-tab-chat', 'bottom-tab-academy'],
+        spotlightTargets: ['domain-rail-personal', 'bottom-tab-home', 'bottom-tab-chat', 'bottom-tab-learn'],
         verificationSteps: [
           { type: 'action', check: 'User can identify Domain Rail on desktop or Bottom Tabs on mobile' },
         ],

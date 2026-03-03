@@ -105,7 +105,13 @@ export function AcademyHub() {
 
   // Tab state
   const projects = useMemo(() => getAllProjects().filter(p => p.curriculum && p.curriculum.length > 0), []);
-  const [activeTab, setActiveTab] = useState<string>('tutorials');
+  const storeActiveProject = useAcademyStore((s) => s.activeProject);
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    if (storeActiveProject && projects.some(p => p.id === storeActiveProject)) {
+      return storeActiveProject;
+    }
+    return 'tutorials';
+  });
 
   // Group lessons by tier
   const lessonsByTier = useMemo(() => {

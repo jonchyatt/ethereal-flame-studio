@@ -12,6 +12,23 @@ interface Rect {
 
 const PADDING = 4;
 
+/**
+ * Find the first visible element matching a data-tutorial-id.
+ * Uses querySelectorAll to handle dual-render layouts (e.g., DomainRail
+ * renders BOTH mobile + desktop navs). Filters for non-zero dimensions
+ * to skip hidden variants.
+ */
+function findVisibleElement(elementId: string): Element | null {
+  const candidates = document.querySelectorAll(
+    `[data-tutorial-id="${elementId}"]`
+  );
+  for (const el of candidates) {
+    const r = el.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) return el;
+  }
+  return null;
+}
+
 export function SpotlightOverlay() {
   const spotlight = useTutorialStore((s) => s.spotlight);
   const clearSpotlight = useTutorialStore((s) => s.clearSpotlight);
@@ -23,17 +40,33 @@ export function SpotlightOverlay() {
       setRect(null);
       return;
     }
-    const el = document.querySelector(`[data-tutorial-id="${spotlight.elementId}"]`);
+
+    const el = findVisibleElement(spotlight.elementId);
     if (!el) {
       setRect(null);
       return;
     }
-    const r = el.getBoundingClientRect();
-    setRect({
-      top: r.top - PADDING,
-      left: r.left - PADDING,
-      width: r.width + PADDING * 2,
-      height: r.height + PADDING * 2,
+
+    // Scroll into view if off-viewport, then measure after paint settles
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    // Double-RAF: first RAF fires at next paint, second fires after
+    // the browser has actually composited the scroll position change
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const r = el.getBoundingClientRect();
+        // Re-check visibility after scroll (element might have been removed)
+        if (r.width === 0 && r.height === 0) {
+          setRect(null);
+          return;
+        }
+        setRect({
+          top: r.top - PADDING,
+          left: r.left - PADDING,
+          width: r.width + PADDING * 2,
+          height: r.height + PADDING * 2,
+        });
+      });
     });
   }, [spotlight]);
 

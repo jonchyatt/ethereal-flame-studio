@@ -435,9 +435,9 @@ Flow:
 5. Continue teaching conversationally
 
 Available spotlight targets:
-- Navigation: domain-rail, domain-rail-personal, bottom-tabs, bottom-tab-home, bottom-tab-chat, bottom-tab-academy, home-priority-stack
+- Navigation: domain-rail, domain-rail-personal, bottom-tabs, bottom-tab-home, bottom-tab-chat, bottom-tab-learn, home-priority-stack
 - Personal features: home-domain-card-personal, personal-subprogram-tasks, personal-subprogram-habits, personal-subprogram-bills, personal-subprogram-calendar, personal-subprogram-meals
-- Task detail: tasks-summary, tasks-first-checkbox-0
+- Task detail: tasks-summary, tasks-first-checkbox
 - Habit detail: habits-progress
 - Bill detail: bills-summary
 - Chat: chat-input, chat-send
