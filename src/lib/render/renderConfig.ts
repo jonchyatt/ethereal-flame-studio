@@ -107,7 +107,7 @@ export const RenderConfigSchema = z.object({
     cameraOrbitHeight: z.number().optional(),
     cameraLookAtOrb: z.boolean().optional(),
     // Orb placement
-    orbAnchorMode: z.enum(['viewer', 'world']).optional(),
+    orbAnchorMode: z.enum(['viewer', 'world', 'orbit']).optional(),
     orbDistance: z.number().optional(),
     orbHeight: z.number().optional(),
     orbSideOffset: z.number().optional(),
@@ -232,7 +232,7 @@ export interface RenderConfigVisualState {
   cameraOrbitRadius: number;
   cameraOrbitHeight: number;
   cameraLookAtOrb: boolean;
-  orbAnchorMode: 'viewer' | 'world';
+  orbAnchorMode: 'viewer' | 'world' | 'orbit';
   orbDistance: number;
   orbHeight: number;
   orbSideOffset: number;

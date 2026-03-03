@@ -73,7 +73,7 @@ interface VisualState {
   vrComfortMode: boolean;
   vrDebugOverlayEnabled: boolean;
   // Orb placement
-  orbAnchorMode: 'viewer' | 'world';
+  orbAnchorMode: 'viewer' | 'world' | 'orbit';
   orbDistance: number;
   orbHeight: number;
   orbSideOffset: number;
@@ -179,7 +179,7 @@ interface VisualState {
   setVrComfortMode: (enabled: boolean) => void;
   setVrDebugOverlayEnabled: (enabled: boolean) => void;
   // Orb placement actions
-  setOrbAnchorMode: (mode: 'viewer' | 'world') => void;
+  setOrbAnchorMode: (mode: 'viewer' | 'world' | 'orbit') => void;
   setOrbDistance: (value: number) => void;
   setOrbHeight: (value: number) => void;
   setOrbSideOffset: (value: number) => void;

@@ -64,7 +64,7 @@ export interface TemplateSettings {
   skyboxPoleLogoAutoScale: boolean;
   vrComfortMode: boolean;
   vrDebugOverlayEnabled: boolean;
-  orbAnchorMode: 'viewer' | 'world';
+  orbAnchorMode: 'viewer' | 'world' | 'orbit';
   orbDistance: number;
   orbHeight: number;
   orbSideOffset: number;

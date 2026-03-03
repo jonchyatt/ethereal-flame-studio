@@ -32,6 +32,9 @@ export function CameraRig({ enabled }: { enabled: boolean }) {
   useFrame((_, delta) => {
     if (!enabled) return;
 
+    // In orbit mode, OrbitControls handles everything — CameraRig is a no-op
+    if (orbAnchorMode === "orbit") return;
+
     if (orbAnchorMode === "viewer") {
       camera.getWorldDirection(forward);
       forward.normalize();

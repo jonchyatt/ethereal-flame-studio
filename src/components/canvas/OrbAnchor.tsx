@@ -24,7 +24,9 @@ export function OrbAnchor() {
   useFrame(() => {
     if (!groupRef.current) return;
 
-    if (orbAnchorMode === "viewer") {
+    if (orbAnchorMode === "orbit") {
+      groupRef.current.position.set(0, 0, 0);
+    } else if (orbAnchorMode === "viewer") {
       camera.getWorldDirection(forward);
       forward.normalize();
       up.copy(camera.up).normalize();

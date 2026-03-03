@@ -73,7 +73,7 @@ export interface RenderVisualConfig {
   cameraOrbitRadius?: number;
   cameraOrbitHeight?: number;
   cameraLookAtOrb?: boolean;
-  orbAnchorMode?: 'viewer' | 'world';
+  orbAnchorMode?: 'viewer' | 'world' | 'orbit';
   orbDistance?: number;
   orbHeight?: number;
   orbSideOffset?: number;

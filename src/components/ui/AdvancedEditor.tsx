@@ -772,7 +772,7 @@ export function AdvancedEditor() {
                   }
                 `}
               >
-                Viewer Anchored
+                Viewer
               </button>
               <button
                 onClick={() => setOrbAnchorMode('world')}
@@ -784,15 +784,34 @@ export function AdvancedEditor() {
                   }
                 `}
               >
-                World Anchored
+                World
+              </button>
+              <button
+                onClick={() => setOrbAnchorMode('orbit')}
+                className={`
+                  px-3 py-2 rounded text-sm flex-1
+                  ${orbAnchorMode === 'orbit'
+                    ? 'bg-purple-500/50 text-white border border-purple-400/50'
+                    : 'bg-white/10 text-white/60 border border-white/20'
+                  }
+                `}
+              >
+                Orbit
               </button>
             </div>
             <p className="text-white/40 text-xs mt-2">
-              Tip: <span className="text-white/70">World Anchored</span> places the orb inside the scene/video skybox.
+              {orbAnchorMode === 'orbit'
+                ? <><span className="text-purple-300">Orbit</span> — drag to rotate around the orb. Dense core + swirling particles for 3D sculpture feel.</>
+                : <><span className="text-white/70">World</span> places the orb in the scene. <span className="text-white/70">Viewer</span> locks it to your gaze.</>
+              }
             </p>
           </div>
 
-          {orbAnchorMode === 'viewer' ? (
+          {orbAnchorMode === 'orbit' ? (
+            <p className="text-white/40 text-xs italic">
+              Orb is centered at origin. Drag to orbit around it. Scroll to zoom.
+            </p>
+          ) : orbAnchorMode === 'viewer' ? (
             <>
               <div>
                 <label className="flex justify-between text-white/60 text-xs mb-1">
@@ -943,7 +962,11 @@ export function AdvancedEditor() {
                   {cameraOrbitRenderOnly ? 'ON' : 'OFF'}
                 </button>
               </div>
-              {orbAnchorMode !== 'world' && (
+              {orbAnchorMode === 'orbit' ? (
+                <p className="text-white/40 text-xs">
+                  Auto-orbit is for video rendering. In <span className="text-purple-300">Orbit</span> anchor mode, you control the camera directly.
+                </p>
+              ) : orbAnchorMode !== 'world' && (
                 <p className="text-white/40 text-xs">
                   Orbit works best with <span className="text-white/70">World Anchored</span> orb.
                 </p>

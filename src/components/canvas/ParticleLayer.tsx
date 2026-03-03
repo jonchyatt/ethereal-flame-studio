@@ -283,6 +283,7 @@ export function ParticleLayer({
 
     // Read global audio dynamics from store — cached to avoid re-deriving per frame per layer
     const storeState = useVisualStore.getState();
+    const isOrbitMode = storeState.orbAnchorMode === 'orbit';
     let dyn = cachedDynamicsRef.current;
     if (!dyn || dyn.storeRef !== storeState) {
       dyn = {
@@ -363,7 +364,9 @@ export function ParticleLayer({
 
         if (isFlameMode) {
           // FLAME: 3D organic blob respawn
-          const centerBias = Math.pow(Math.random(), 0.5);
+          // Orbit mode: pow(2.5) packs particles toward center for volume
+          // Default: pow(0.5) spreads toward edges
+          const centerBias = Math.pow(Math.random(), isOrbitMode ? 2.5 : 0.5);
           const baseRadius = spawnRadius * centerBias * 1.2;
 
           // 3D blob effect
@@ -389,19 +392,46 @@ export function ParticleLayer({
           birthPositions[i * 3 + 1] = basePosY + asymY + blobY;
           birthPositions[i * 3 + 2] = basePosZ + asymZ + blobZ;
 
-          // Random velocity direction
-          const randomPhi = Math.acos(2 * Math.random() - 1);
-          const randomTheta = Math.random() * Math.PI * 2;
-          const dirX = Math.sin(randomPhi) * Math.cos(randomTheta);
-          const dirY = Math.sin(randomPhi) * Math.sin(randomTheta);
-          const dirZ = Math.cos(randomPhi);
-          const velSpeed = speed * (0.3 + Math.random() * 0.7);
-          velocities[i * 3] = dirX * velSpeed;
-          velocities[i * 3 + 1] = dirY * velSpeed;
-          velocities[i * 3 + 2] = dirZ * velSpeed;
+          if (isOrbitMode) {
+            // Orbit mode: tangential velocity — particles swirl within the volume
+            // Cross the birth position with a random axis to get tangential direction
+            const bpx = birthPositions[i * 3];
+            const bpy = birthPositions[i * 3 + 1];
+            const bpz = birthPositions[i * 3 + 2];
+            // Use a random up-ish axis for cross product
+            const axPhi = Math.acos(2 * Math.random() - 1);
+            const axTheta = Math.random() * Math.PI * 2;
+            const axX = Math.sin(axPhi) * Math.cos(axTheta);
+            const axY = Math.sin(axPhi) * Math.sin(axTheta);
+            const axZ = Math.cos(axPhi);
+            // Cross product: birthPos x axis = tangent
+            let tx = bpy * axZ - bpz * axY;
+            let ty = bpz * axX - bpx * axZ;
+            let tz = bpx * axY - bpy * axX;
+            const tLen = Math.sqrt(tx * tx + ty * ty + tz * tz) || 1;
+            tx /= tLen; ty /= tLen; tz /= tLen;
+            // Slow swirl + tiny radial drift outward
+            const swirlSpeed = speed * 0.3 * (0.5 + Math.random() * 0.5);
+            const radialDrift = speed * 0.05;
+            const rpLen = Math.sqrt(bpx * bpx + bpy * bpy + bpz * bpz) || 1;
+            velocities[i * 3] = tx * swirlSpeed + (bpx / rpLen) * radialDrift;
+            velocities[i * 3 + 1] = ty * swirlSpeed + (bpy / rpLen) * radialDrift;
+            velocities[i * 3 + 2] = tz * swirlSpeed + (bpz / rpLen) * radialDrift;
+          } else {
+            // Random velocity direction
+            const randomPhi = Math.acos(2 * Math.random() - 1);
+            const randomTheta = Math.random() * Math.PI * 2;
+            const dirX = Math.sin(randomPhi) * Math.cos(randomTheta);
+            const dirY = Math.sin(randomPhi) * Math.sin(randomTheta);
+            const dirZ = Math.cos(randomPhi);
+            const velSpeed = speed * (0.3 + Math.random() * 0.7);
+            velocities[i * 3] = dirX * velSpeed;
+            velocities[i * 3 + 1] = dirY * velSpeed;
+            velocities[i * 3 + 2] = dirZ * velSpeed;
+          }
         } else {
-          // Default/Mist: same 3D organic blob respawn
-          const centerBias = Math.pow(Math.random(), 0.5);
+          // Default/Mist: 3D organic blob respawn
+          const centerBias = Math.pow(Math.random(), isOrbitMode ? 2.5 : 0.5);
           const baseRadius = spawnRadius * centerBias * 1.2;
 
           // 3D blob effect
@@ -427,16 +457,39 @@ export function ParticleLayer({
           birthPositions[i * 3 + 1] = basePosY + asymY + blobY;
           birthPositions[i * 3 + 2] = basePosZ + asymZ + blobZ;
 
-          // Random velocity direction
-          const velPhi = Math.acos(2 * Math.random() - 1);
-          const velTheta = Math.random() * Math.PI * 2;
-          const velDirX = Math.sin(velPhi) * Math.cos(velTheta);
-          const velDirY = Math.sin(velPhi) * Math.sin(velTheta);
-          const velDirZ = Math.cos(velPhi);
-          const velSpeed = speed * (0.3 + Math.random() * 0.7);
-          velocities[i * 3] = velDirX * velSpeed;
-          velocities[i * 3 + 1] = velDirY * velSpeed;
-          velocities[i * 3 + 2] = velDirZ * velSpeed;
+          if (isOrbitMode) {
+            // Orbit mode: tangential swirl for mist too
+            const bpx = birthPositions[i * 3];
+            const bpy = birthPositions[i * 3 + 1];
+            const bpz = birthPositions[i * 3 + 2];
+            const axPhi = Math.acos(2 * Math.random() - 1);
+            const axTheta = Math.random() * Math.PI * 2;
+            const axX = Math.sin(axPhi) * Math.cos(axTheta);
+            const axY = Math.sin(axPhi) * Math.sin(axTheta);
+            const axZ = Math.cos(axPhi);
+            let tx = bpy * axZ - bpz * axY;
+            let ty = bpz * axX - bpx * axZ;
+            let tz = bpx * axY - bpy * axX;
+            const tLen = Math.sqrt(tx * tx + ty * ty + tz * tz) || 1;
+            tx /= tLen; ty /= tLen; tz /= tLen;
+            const swirlSpeed = speed * 0.25 * (0.5 + Math.random() * 0.5);
+            const radialDrift = speed * 0.03;
+            const rpLen = Math.sqrt(bpx * bpx + bpy * bpy + bpz * bpz) || 1;
+            velocities[i * 3] = tx * swirlSpeed + (bpx / rpLen) * radialDrift;
+            velocities[i * 3 + 1] = ty * swirlSpeed + (bpy / rpLen) * radialDrift;
+            velocities[i * 3 + 2] = tz * swirlSpeed + (bpz / rpLen) * radialDrift;
+          } else {
+            // Random velocity direction
+            const velPhi = Math.acos(2 * Math.random() - 1);
+            const velTheta = Math.random() * Math.PI * 2;
+            const velDirX = Math.sin(velPhi) * Math.cos(velTheta);
+            const velDirY = Math.sin(velPhi) * Math.sin(velTheta);
+            const velDirZ = Math.cos(velPhi);
+            const velSpeed = speed * (0.3 + Math.random() * 0.7);
+            velocities[i * 3] = velDirX * velSpeed;
+            velocities[i * 3 + 1] = velDirY * velSpeed;
+            velocities[i * 3 + 2] = velDirZ * velSpeed;
+          }
         }
 
         // Reset birth time

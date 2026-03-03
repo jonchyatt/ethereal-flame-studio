@@ -96,8 +96,9 @@ export default function Home() {
 
   const effectiveSkyboxRotation = isVRMode && vrComfortMode ? 0 : skyboxRotationSpeed;
   const effectiveSkyboxDrift = isVRMode && vrComfortMode ? 0 : skyboxDriftSpeed;
-  const orbitActive = !isVRMode && cameraOrbitEnabled && (!cameraOrbitRenderOnly || renderMode.isActive);
-  const lookAtActive = !isVRMode && cameraLookAtOrb;
+  const isOrbitMode = orbAnchorMode === 'orbit';
+  const orbitActive = !isVRMode && !isOrbitMode && cameraOrbitEnabled && (!cameraOrbitRenderOnly || renderMode.isActive);
+  const lookAtActive = !isVRMode && !isOrbitMode && cameraLookAtOrb;
   const lockOrbitToOrb = orbAnchorMode === 'world';
   const pickCursorX =
     skyboxPatchPickCursorX >= 0
@@ -223,13 +224,24 @@ export default function Home() {
         {/* CameraRig applies look-at/orbit in non-VR mode */}
         <CameraRig enabled={!isVRMode} />
 
-        {/* OrbitControls disabled in VR or when camera rig is active */}
-        {!isVRMode && (
+        {/* OrbitControls: in orbit mode, targets origin with damping for sculpture feel */}
+        {!isVRMode && isOrbitMode && (
+          <OrbitControls
+            enabled
+            enableDamping
+            dampingFactor={0.08}
+            minDistance={3}
+            maxDistance={25}
+            target={[0, 0, 0]}
+          />
+        )}
+        {/* OrbitControls: default free-look when no camera rig is active */}
+        {!isVRMode && !isOrbitMode && (
           <OrbitControls
             enabled={!orbitActive && !lookAtActive && !lockOrbitToOrb}
           />
         )}
-        {!isVRMode && lockOrbitToOrb && (
+        {!isVRMode && !isOrbitMode && lockOrbitToOrb && (
           <DragLookControls enabled />
         )}
         <Suspense fallback={null}>
