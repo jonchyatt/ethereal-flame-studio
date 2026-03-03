@@ -29,7 +29,7 @@ export function DomainRail() {
   return (
     <>
       {/* Mobile: Horizontal rail below header */}
-      <nav className="fixed left-0 right-0 top-14 h-12 bg-zinc-950/80 backdrop-blur-xl border-b border-white/10 z-40 md:hidden">
+      <nav data-tutorial-id="domain-rail" className="fixed left-0 right-0 top-14 h-12 bg-zinc-950/80 backdrop-blur-xl border-b border-white/10 z-40 md:hidden">
         <div className="flex items-center justify-center h-full gap-1 px-4 overflow-x-auto">
           {domains.map((domain) => {
             const isActive = getIsActive(domain.id, domain.route);
@@ -38,6 +38,7 @@ export function DomainRail() {
             return (
               <button
                 key={domain.id}
+                data-tutorial-id={`domain-rail-${domain.id}`}
                 onClick={() => handleDomainClick(domain.id, domain.route)}
                 className={`
                   flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl transition-all duration-200 hover:scale-110
@@ -57,7 +58,7 @@ export function DomainRail() {
       </nav>
 
       {/* Desktop: Vertical rail on left */}
-      <nav className="fixed left-0 top-0 bottom-0 w-16 bg-zinc-950/80 backdrop-blur-xl border-r border-white/10 z-40 hidden md:flex md:flex-col md:items-center md:py-4 md:gap-2">
+      <nav data-tutorial-id="domain-rail" className="fixed left-0 top-0 bottom-0 w-16 bg-zinc-950/80 backdrop-blur-xl border-r border-white/10 z-40 hidden md:flex md:flex-col md:items-center md:py-4 md:gap-2">
         {/* Domain icons */}
         <div className="flex flex-col items-center gap-2 flex-1">
           {domains.map((domain) => {
@@ -67,6 +68,7 @@ export function DomainRail() {
             return (
               <button
                 key={domain.id}
+                data-tutorial-id={`domain-rail-${domain.id}`}
                 onClick={() => handleDomainClick(domain.id, domain.route)}
                 className={`
                   relative w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-200 hover:scale-110 group

@@ -115,6 +115,33 @@ export const tutorialTools: ToolDefinition[] = [
       },
       required: ['lesson_id']
     }
+  },
+  {
+    name: 'spotlight_element',
+    description: 'Highlight a UI element for the student during same-origin teaching. Use when guiding the user to find or interact with a specific part of the Jarvis interface. The element must have a data-tutorial-id attribute matching the elementId.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        element_id: {
+          type: 'string',
+          description: 'The data-tutorial-id of the DOM element to highlight (e.g., "home-domain-card-personal", "bottom-tab-chat")'
+        },
+        style: {
+          type: 'string',
+          enum: ['pulse', 'ring'],
+          description: 'Animation style — "pulse" for action targets (click me), "ring" for informational highlights (look at this)'
+        }
+      },
+      required: ['element_id', 'style']
+    }
+  },
+  {
+    name: 'clear_spotlight',
+    description: 'Remove the current spotlight highlight. Use after the student has found or interacted with the highlighted element, or when transitioning to a new teaching point.',
+    input_schema: {
+      type: 'object',
+      properties: {}
+    }
   }
 ];
 

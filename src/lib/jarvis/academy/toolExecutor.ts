@@ -209,6 +209,9 @@ function handleListTopics(
           .join(', ');
         line += `\n  _Requires: ${prereqNames}_`;
       }
+      if (t.spotlightTargets && t.spotlightTargets.length > 0) {
+        line += `\n  _Spotlight targets: ${t.spotlightTargets.join(', ')}_`;
+      }
       sections.push(line);
     }
     sections.push('');

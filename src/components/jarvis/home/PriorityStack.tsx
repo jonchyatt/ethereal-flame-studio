@@ -20,7 +20,7 @@ export function PriorityStack() {
 
   if (sorted.length === 0) {
     return (
-      <Card variant="glass" padding="md">
+      <Card variant="glass" padding="md" data-tutorial-id="home-priority-stack">
         <div className="flex items-center gap-3 text-white/50">
           <CheckCircle className="w-5 h-5 text-green-400" />
           <span className="text-sm">All clear — nothing urgent right now</span>
@@ -38,7 +38,7 @@ export function PriorityStack() {
         }
         .priority-enter { animation: fadeInUp 400ms ease-out both; }
       `}</style>
-      <ul role="list" className="space-y-2">
+      <ul role="list" data-tutorial-id="home-priority-stack" className="space-y-2">
         {sorted.map((item, index) => {
           const domain = getDomainById(item.domainId);
           const colors = domain ? DOMAIN_COLORS[domain.color] : null;

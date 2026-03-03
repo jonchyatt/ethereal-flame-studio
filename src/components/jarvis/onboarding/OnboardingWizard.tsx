@@ -8,6 +8,7 @@ import { useSettingsStore, type NotificationSchedule } from '@/lib/jarvis/stores
 import { useHomeStore } from '@/lib/jarvis/stores/homeStore';
 import { useTutorialStore } from '@/lib/jarvis/stores/tutorialStore';
 import { useAcademyStore } from '@/lib/jarvis/stores/academyStore';
+import { useChatStore } from '@/lib/jarvis/stores/chatStore';
 import { toast } from '@/lib/jarvis/stores/toastStore';
 import { DomainIcon } from '@/components/jarvis/home/DomainIcon';
 import { Button } from '@/components/jarvis/primitives/Button';
@@ -215,6 +216,11 @@ export function OnboardingWizard() {
 
   const startTour = () => {
     finishOnboarding();
+    // Open chat with guided tour message — triggers Claude to begin welcome-tour with spotlights
+    // Must be AFTER finishOnboarding() so the shell chrome is visible when chat opens
+    setTimeout(() => {
+      useChatStore.getState().openWithMessage('Start my guided tour of Jarvis');
+    }, 500);
   };
 
   const next = () => setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));

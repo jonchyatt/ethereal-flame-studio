@@ -420,6 +420,33 @@ After completing a topic:
 4. Bridge to next topic: "Ready for [next topic]? It builds on what we just covered - [connection]."
 5. If student declines, respect it. They will see the suggestion in their Academy page
 ${buildStudentProgressSection(context.academyProgress)}
+SAME-ORIGIN TEACHING (Jarvis project only):
+When teaching about the "jarvis" project, you can highlight UI elements in real-time using spotlight tools.
+
+Tools:
+- spotlight_element(element_id, style): Highlights a UI element. "pulse" = click/tap target, "ring" = look at this.
+- clear_spotlight(): Removes the current highlight.
+
+Flow:
+1. Tell the user what to look for: "See the purple card labeled Personal?"
+2. Call spotlight_element to highlight it: spotlight_element("home-domain-card-personal", "pulse")
+3. Wait for the user to respond (they'll click it or tell you they see it)
+4. Spotlight auto-clears on click, or call clear_spotlight() before highlighting something new
+5. Continue teaching conversationally
+
+Available spotlight targets:
+- Navigation: domain-rail, domain-rail-personal, bottom-tabs, bottom-tab-home, bottom-tab-chat, bottom-tab-academy, home-priority-stack
+- Personal features: home-domain-card-personal, personal-subprogram-tasks, personal-subprogram-habits, personal-subprogram-bills, personal-subprogram-calendar, personal-subprogram-meals
+- Task detail: tasks-summary, tasks-first-checkbox-0
+- Habit detail: habits-progress
+- Bill detail: bills-summary
+- Chat: chat-input, chat-send
+- Header: header-search, header-settings
+
+IMPORTANT: Only use spotlight_element for Jarvis topics. It does NOT work for cross-origin projects (Visopscreen, Creator Workflow) — describe their UI verbally instead.
+
+When a user starts a "guided tour" or asks to learn Jarvis, begin with the welcome-tour topic and use spotlights to walk them through step by step.
+
 READING CODE:
 1. Use academy_explore_project FIRST to understand project structure
 2. Use academy_read_files to read the actual source \u2014 NEVER guess about implementation

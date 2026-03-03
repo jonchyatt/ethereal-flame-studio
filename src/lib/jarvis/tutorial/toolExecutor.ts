@@ -270,6 +270,28 @@ export async function executeTutorialTool(
       };
     }
 
+    case 'spotlight_element': {
+      const elementId = input.element_id as string;
+      const style = input.style as string;
+      if (!elementId || typeof elementId !== 'string') {
+        return { success: false, error: 'element_id is required and must be a non-empty string.' };
+      }
+      if (style !== 'pulse' && style !== 'ring') {
+        return { success: false, error: 'style must be "pulse" or "ring".' };
+      }
+      return {
+        success: true,
+        content: `Spotlight set on "${elementId}" (${style}). The UI will highlight this element for the student.`,
+      };
+    }
+
+    case 'clear_spotlight': {
+      return {
+        success: true,
+        content: 'Spotlight cleared.',
+      };
+    }
+
     default:
       return {
         success: false,
@@ -292,5 +314,7 @@ export function isTutorialTool(toolName: string): boolean {
     'get_curriculum_status',
     'start_lesson',
     'complete_lesson',
+    'spotlight_element',
+    'clear_spotlight',
   ].includes(toolName);
 }

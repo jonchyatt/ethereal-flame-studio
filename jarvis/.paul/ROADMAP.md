@@ -13,7 +13,7 @@ Phases: 0 of 4 complete
 
 | Phase | Name | Plans | Status | Completed |
 |-------|------|-------|--------|-----------|
-| L-01 | Foundation | 01 created | Planning | - |
+| L-01 | Foundation | 01 complete, 02 created | Planning | - |
 | L-02 | Live Walkthrough Pass 1 | TBD | Not started | - |
 | L-03 | Live Walkthrough Pass 2 | TBD | Not started | - |
 | L-04 | Polish + Wife Test | TBD | Not started | - |

@@ -160,6 +160,15 @@ export function ChatOverlay() {
             const event = JSON.parse(json);
 
             if (event.type === 'tool_use') {
+              // Spotlight bridge: apply spotlight side-effects from SSE stream
+              if (event.tool_name === 'spotlight_element' && event.tool_input) {
+                useTutorialStore.getState().setSpotlight({
+                  elementId: event.tool_input.element_id,
+                  type: event.tool_input.style || 'pulse',
+                });
+              } else if (event.tool_name === 'clear_spotlight') {
+                useTutorialStore.getState().clearSpotlight();
+              }
               setActiveTool(event.tool_name);
             } else if (event.type === 'tool_result') {
               setActiveTool(null);

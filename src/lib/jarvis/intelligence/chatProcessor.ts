@@ -63,6 +63,8 @@ const tutorialToolNames = new Set([
   'get_curriculum_status',
   'start_lesson',
   'complete_lesson',
+  'spotlight_element',
+  'clear_spotlight',
 ]);
 
 const calendarToolNames = new Set([

@@ -3,21 +3,21 @@
 ## Current Position
 
 Milestone: v4.4 Guided Onboarding — Academy-Driven
-Phase: L-01 of 4 (Foundation) — In Progress
-Plan: L-01-01 complete (unified)
-Status: Loop closed, ready for next PLAN
-Last activity: 2026-03-02 — Unified L-01-01
+Phase: L-01 of 4 (Foundation) — Executing
+Plan: L-01-02 applied successfully
+Status: APPLY complete, ready for UNIFY
+Last activity: 2026-03-02 — Applied L-01-02 (Spotlight Bridge + Teaching Context + startTour)
 
 Progress:
-- v4.4/L: [██░░░░░░░░] ~10%
-- Phase L-01: [██░░░░░░░░] plan 1 of N complete
+- v4.4/L: [███░░░░░░░] ~20%
+- Phase L-01: [████░░░░░░] plan 2 of N applied
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [Loop complete - ready for next PLAN]
+  ✓        ✓        ○     [Applied, awaiting unify]
 ```
 
 ## Completed Milestones
@@ -56,13 +56,11 @@ PLAN ──▶ APPLY ──▶ UNIFY
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: L-01-01 loop fully closed (PLAN ✓ APPLY ✓ UNIFY ✓)
-Next action: /paul:plan for L-01-02 (Spotlight Bridge + Teaching Context)
+Stopped at: L-01-02 APPLY complete, session paused
+Next action: Run /paul:unify to reconcile L-01-02 plan vs actual
 Resume file: .paul/HANDOFF-2026-03-02.md
 Resume context:
-- L-01-01 shipped and unified: redirect, 8-topic curriculum, onboarding→academy handoff
-- L-01-02 next: Spotlight Bridge (DOM highlighting) + Enhanced Teaching Context
-- spotlightTargets defined on topics but data-tutorial-id attributes not yet on DOM elements
-- startTour() needs differentiation from finishOnboarding() in Plan 02
-- STATE.md + SUMMARY uncommitted (PAUL metadata only)
-- Build passes clean
+- L-01-02 applied: 2 tasks, 10 files, all verification checks pass, build clean
+- Architecture: spotlight_element tool → SSE event → ChatOverlay bridge → tutorialStore → SpotlightOverlay
+- startTour differentiated from Skip (openWithMessage with 500ms delay)
+- Known gap: dual-render querySelector may target hidden variant on opposite viewport — L-02 will test
