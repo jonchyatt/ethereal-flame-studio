@@ -14,6 +14,7 @@ export interface CompletionRecord {
 export interface SpotlightTarget {
   elementId: string;
   type: 'pulse' | 'ring';
+  narration?: string;
 }
 
 interface TutorialState {
@@ -23,6 +24,7 @@ interface TutorialState {
   skillLevel: 'beginner' | 'intermediate' | 'advanced';
   spotlight: SpotlightTarget | null;
   suggestedNext: string | null;
+  isNarrationEnabled: boolean;
 }
 
 interface TutorialActions {
@@ -33,6 +35,7 @@ interface TutorialActions {
   clearSpotlight: () => void;
   setSuggestedNext: (lessonId: string | null) => void;
   setSkillLevel: (level: TutorialState['skillLevel']) => void;
+  toggleNarration: () => void;
 }
 
 type TutorialStore = TutorialState & TutorialActions;
@@ -51,6 +54,7 @@ export const useTutorialStore = create<TutorialStore>()(
       skillLevel: 'beginner',
       spotlight: null,
       suggestedNext: null,
+      isNarrationEnabled: true,
 
       startLesson: (lessonId) =>
         set({ currentLesson: lessonId, currentStep: 0, spotlight: null }),
@@ -77,12 +81,14 @@ export const useTutorialStore = create<TutorialStore>()(
       clearSpotlight: () => set({ spotlight: null }),
       setSuggestedNext: (lessonId) => set({ suggestedNext: lessonId }),
       setSkillLevel: (level) => set({ skillLevel: level }),
+      toggleNarration: () => set((s) => ({ isNarrationEnabled: !s.isNarrationEnabled })),
     }),
     {
       name: 'jarvis-tutorials',
       partialize: (state) => ({
         progress: state.progress,
         skillLevel: state.skillLevel,
+        isNarrationEnabled: state.isNarrationEnabled,
       }),
     }
   )

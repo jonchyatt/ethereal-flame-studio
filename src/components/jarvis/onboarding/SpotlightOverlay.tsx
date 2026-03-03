@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { Volume2, VolumeX } from 'lucide-react';
 import { useTutorialStore } from '@/lib/jarvis/stores/tutorialStore';
 
 interface Rect {
@@ -60,12 +61,16 @@ function findVisibleElement(elementId: string): Element | null {
 export function SpotlightOverlay() {
   const spotlight = useTutorialStore((s) => s.spotlight);
   const clearSpotlight = useTutorialStore((s) => s.clearSpotlight);
+  const isNarrationEnabled = useTutorialStore((s) => s.isNarrationEnabled);
+  const toggleNarration = useTutorialStore((s) => s.toggleNarration);
   const [rect, setRect] = useState<Rect | null>(null);
   const [laserPath, setLaserPath] = useState<LaserPath | null>(null);
   const [laserPosition, setLaserPosition] = useState<Point | null>(null);
   const rafRef = useRef<number>(0);
   const laserPointRef = useRef<Point | null>(null);
   const lastElementIdRef = useRef<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     const elementId = spotlight?.elementId ?? null;
@@ -78,6 +83,63 @@ export function SpotlightOverlay() {
       setLaserPosition(null);
     }
   }, [spotlight]);
+
+  // Play narration when a spotlight with text arrives
+  useEffect(() => {
+    // Stop any in-flight audio first
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
+    }
+
+    if (!spotlight?.narration || !isNarrationEnabled) return;
+
+    let cancelled = false;
+
+    fetch('/api/jarvis/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: spotlight.narration }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`TTS ${res.status}`);
+        return res.blob();
+      })
+      .then((blob) => {
+        if (cancelled) return;
+        const url = URL.createObjectURL(blob);
+        audioUrlRef.current = url;
+        const audio = new Audio(url);
+        audioRef.current = audio;
+        audio.play().catch(() => {
+          // Autoplay policy may block on first interaction — silent fail
+        });
+        audio.addEventListener('ended', () => {
+          URL.revokeObjectURL(url);
+          audioUrlRef.current = null;
+          audioRef.current = null;
+        }, { once: true });
+      })
+      .catch(() => {
+        // Narration is enhancement — never block the tutorial flow
+      });
+
+    return () => {
+      cancelled = true;
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+        audioUrlRef.current = null;
+      }
+    };
+  }, [spotlight?.narration, isNarrationEnabled]);
 
   const measure = useCallback(() => {
     if (!spotlight) {
@@ -166,7 +228,7 @@ export function SpotlightOverlay() {
     return () => document.removeEventListener('click', onClick, true);
   }, [spotlight, clearSpotlight]);
 
-  if (!spotlight || !rect) return null;
+  if (!spotlight) return null;
 
   const isPulse = spotlight.type === 'pulse';
   const dx = laserPath ? laserPath.target.x - laserPath.start.x : 0;
@@ -194,63 +256,83 @@ export function SpotlightOverlay() {
           50% { opacity: 0.95; }
         }
       `}</style>
-      {laserPath && lineLength > 8 && (
-        <div
-          className="fixed pointer-events-none"
-          style={{
-            top: laserPath.start.y - 1,
-            left: laserPath.start.x,
-            width: lineLength,
-            height: 2,
-            background:
-              'linear-gradient(90deg, rgba(255,75,75,0.8) 0%, rgba(255,75,75,0.12) 100%)',
-            transformOrigin: '0 50%',
-            transform: `rotate(${lineAngle}deg)`,
-            zIndex: 9998,
-            animation: 'laser-line-fade 1.4s ease-in-out infinite',
-          }}
-        />
-      )}
-      {laserPosition && (
-        <div
-          className="fixed pointer-events-none"
-          style={{
-            top: 0,
-            left: 0,
-            transform: `translate(${laserPosition.x - 8}px, ${laserPosition.y - 8}px)`,
-            transition: 'transform 650ms cubic-bezier(0.2, 0.9, 0.2, 1)',
-            zIndex: 10000,
-          }}
-        >
+
+      {/* Narration mute toggle — visible whenever a spotlight is active */}
+      <button
+        onClick={toggleNarration}
+        className="fixed top-4 right-4 w-8 h-8 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-black/80 transition-colors pointer-events-auto"
+        style={{ zIndex: 10001 }}
+        title={isNarrationEnabled ? 'Mute narration' : 'Unmute narration'}
+        aria-label={isNarrationEnabled ? 'Mute narration' : 'Unmute narration'}
+      >
+        {isNarrationEnabled
+          ? <Volume2 className="w-4 h-4" />
+          : <VolumeX className="w-4 h-4" />
+        }
+      </button>
+
+      {/* Visual spotlight elements — only rendered once rect is measured */}
+      {rect && (
+        <>
+          {laserPath && lineLength > 8 && (
+            <div
+              className="fixed pointer-events-none"
+              style={{
+                top: laserPath.start.y - 1,
+                left: laserPath.start.x,
+                width: lineLength,
+                height: 2,
+                background:
+                  'linear-gradient(90deg, rgba(255,75,75,0.8) 0%, rgba(255,75,75,0.12) 100%)',
+                transformOrigin: '0 50%',
+                transform: `rotate(${lineAngle}deg)`,
+                zIndex: 9998,
+                animation: 'laser-line-fade 1.4s ease-in-out infinite',
+              }}
+            />
+          )}
+          {laserPosition && (
+            <div
+              className="fixed pointer-events-none"
+              style={{
+                top: 0,
+                left: 0,
+                transform: `translate(${laserPosition.x - 8}px, ${laserPosition.y - 8}px)`,
+                transition: 'transform 650ms cubic-bezier(0.2, 0.9, 0.2, 1)',
+                zIndex: 10000,
+              }}
+            >
+              <div
+                style={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: 9999,
+                  background:
+                    'radial-gradient(circle, rgba(255,255,255,0.98) 0%, rgba(255,108,108,0.98) 34%, rgba(255,32,32,0.95) 65%, rgba(255,32,32,0.2) 100%)',
+                  animation: 'laser-dot-pulse 1.1s ease-in-out infinite',
+                }}
+              />
+            </div>
+          )}
           <div
+            className="fixed pointer-events-none rounded-lg"
             style={{
-              width: 16,
-              height: 16,
-              borderRadius: 9999,
-              background:
-                'radial-gradient(circle, rgba(255,255,255,0.98) 0%, rgba(255,108,108,0.98) 34%, rgba(255,32,32,0.95) 65%, rgba(255,32,32,0.2) 100%)',
-              animation: 'laser-dot-pulse 1.1s ease-in-out infinite',
+              top: rect.top,
+              left: rect.left,
+              width: rect.width,
+              height: rect.height,
+              zIndex: 9999,
+              border: isPulse
+                ? '2px solid rgba(255,78,78,0.95)'
+                : '2px solid rgba(255,120,120,0.95)',
+              boxShadow: isPulse
+                ? '0 0 0 1px rgba(255,255,255,0.5), 0 0 20px rgba(255,60,60,0.88), 0 0 50px rgba(255,60,60,0.35), 0 0 0 9999px rgba(0,0,0,0.28)'
+                : '0 0 0 1px rgba(255,255,255,0.45), 0 0 16px rgba(255,92,92,0.65), 0 0 34px rgba(255,92,92,0.28), 0 0 0 9999px rgba(0,0,0,0.24)',
+              animation: isPulse ? 'spotlight-target-pulse 1.4s ease-in-out infinite' : undefined,
             }}
           />
-        </div>
+        </>
       )}
-      <div
-        className="fixed pointer-events-none rounded-lg"
-        style={{
-          top: rect.top,
-          left: rect.left,
-          width: rect.width,
-          height: rect.height,
-          zIndex: 9999,
-          border: isPulse
-            ? '2px solid rgba(255,78,78,0.95)'
-            : '2px solid rgba(255,120,120,0.95)',
-          boxShadow: isPulse
-            ? '0 0 0 1px rgba(255,255,255,0.5), 0 0 20px rgba(255,60,60,0.88), 0 0 50px rgba(255,60,60,0.35), 0 0 0 9999px rgba(0,0,0,0.28)'
-            : '0 0 0 1px rgba(255,255,255,0.45), 0 0 16px rgba(255,92,92,0.65), 0 0 34px rgba(255,92,92,0.28), 0 0 0 9999px rgba(0,0,0,0.24)',
-          animation: isPulse ? 'spotlight-target-pulse 1.4s ease-in-out infinite' : undefined,
-        }}
-      />
     </>
   );
 }

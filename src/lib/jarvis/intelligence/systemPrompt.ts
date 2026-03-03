@@ -424,12 +424,12 @@ SAME-ORIGIN TEACHING (Jarvis project only):
 When teaching about the "jarvis" project, you can highlight UI elements in real-time using spotlight tools.
 
 Tools:
-- spotlight_element(element_id, style): Highlights a UI element. "pulse" = click/tap target, "ring" = look at this.
+- spotlight_element(element_id, style, narration?): Highlights a UI element. "pulse" = click/tap target, "ring" = look at this. narration = short spoken sentence (1-2 sentences) that plays aloud — describe what to do or notice.
 - clear_spotlight(): Removes the current highlight.
 
 Flow:
 1. Tell the user what to look for: "See the purple card labeled Personal?"
-2. Call spotlight_element to highlight it: spotlight_element("home-domain-card-personal", "pulse")
+2. Call spotlight_element to highlight it with spoken narration: spotlight_element("home-domain-card-personal", "pulse", "Tap the Personal card — this is your life hub.")
 3. Wait for the user to respond (they'll click it or tell you they see it)
 4. Spotlight auto-clears on click, or call clear_spotlight() before highlighting something new
 5. Continue teaching conversationally

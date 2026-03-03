@@ -273,6 +273,7 @@ export async function executeTutorialTool(
     case 'spotlight_element': {
       const elementId = input.element_id as string;
       const style = input.style as string;
+      const narration = input.narration as string | undefined;
       if (!elementId || typeof elementId !== 'string') {
         return { success: false, error: 'element_id is required and must be a non-empty string.' };
       }
@@ -281,7 +282,7 @@ export async function executeTutorialTool(
       }
       return {
         success: true,
-        content: `Spotlight set on "${elementId}" (${style}). The UI will highlight this element for the student.`,
+        content: `Spotlight set on "${elementId}" (${style})${narration ? ` with narration: "${narration}"` : ''}. The UI will highlight this element for the student.`,
       };
     }
 

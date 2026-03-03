@@ -130,6 +130,10 @@ export const tutorialTools: ToolDefinition[] = [
           type: 'string',
           enum: ['pulse', 'ring'],
           description: 'Animation style — "pulse" for action targets (click me), "ring" for informational highlights (look at this)'
+        },
+        narration: {
+          type: 'string',
+          description: 'Short spoken sentence (1-2 sentences max) that plays aloud when the spotlight appears. Describe what the user should do or notice. e.g. "Tap the Personal card — this is your life hub."'
         }
       },
       required: ['element_id', 'style']

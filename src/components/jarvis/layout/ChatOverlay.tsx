@@ -165,6 +165,7 @@ export function ChatOverlay() {
                 useTutorialStore.getState().setSpotlight({
                   elementId: event.tool_input.element_id,
                   type: event.tool_input.style || 'pulse',
+                  narration: event.tool_input.narration,
                 });
               } else if (event.tool_name === 'clear_spotlight') {
                 useTutorialStore.getState().clearSpotlight();
