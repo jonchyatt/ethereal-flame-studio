@@ -4,20 +4,20 @@
 
 Milestone: v4.4 Guided Onboarding — Academy-Driven
 Phase: L-02 of 4 (Live Walkthrough Pass 1) — In Progress
-Plan: L-02-01 COMPLETE, ready for next plan
-Status: L-02-01 applied and unified
-Last activity: 2026-03-02 — L-02-01 Pre-Walkthrough Diagnostic Fixes applied (commit 7065ff9)
+Plan: L-02-02 COMPLETE (code + walkthrough done), L-02-03 pending (fix 7 bugs found in walkthrough)
+Status: Walkthrough done, 7 bugs documented, fix pass next
+Last activity: 2026-03-03 — L-02 live walkthrough complete, bugs logged
 
 Progress:
-- v4.4/L: [███░░░░░░░] ~25% (1 of 4 phases complete)
-- Phase L-02: [███░░░░░░░] ~25% (1 plan complete, live walkthrough next)
+- v4.4/L: [███░░░░░░░] ~30% (1 of 4 phases complete)
+- Phase L-02: [█████░░░░░] ~50% (2 plans coded, live walkthrough next)
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [L-02-01 complete, ready for L-02-02]
+  ✓        ✓        ○     [L-02-02 complete, UNIFY deferred until L-02-03 bugs are fixed]
 ```
 
 ## Completed Phases (v4.4)
@@ -78,21 +78,24 @@ PLAN ──▶ APPLY ──▶ UNIFY
 - PriorityStack has dual IDs (empty Card + populated ul) — only one renders at a time, handled by new querySelectorAll approach
 - `bottom-tab-academy` mismatch: RESOLVED in L-02-01 (fixed to `bottom-tab-learn`)
 - `tasks-first-checkbox-0` mismatch: RESOLVED in L-02-01 (fixed to `tasks-first-checkbox`)
-- 500ms setTimeout timing: still untested — will surface during live walkthrough (L-02-02)
+- 500ms setTimeout timing: RESOLVED in L-02-02 (shellMounted polling replaces blind timeout)
 
 ### Git State
-Last commit: 7065ff9
+Last commit: 038e210
 Branch: master
 Feature branches merged: none
 
 ## Session Continuity
 
-Last session: 2026-03-02
-Stopped at: L-02-01 loop complete, session paused
-Next action: /paul:plan for L-02-02 (live walkthrough checkpoint — Jonathan walks through fresh)
-Resume file: .paul/HANDOFF-2026-03-02.md
+Last session: 2026-03-03
+Stopped at: L-02 walkthrough COMPLETE. 7 bugs found, documented in HANDOFF. L-02-03 fix pass is next.
+Next action: Plan L-02-03 — fix the 7 walkthrough bugs (see HANDOFF for full list)
+Resume file: .paul/HANDOFF-2026-03-03-L02-walkthrough.md
 Resume context:
-- L-02-01 COMPLETE: SpotlightOverlay hardened (querySelectorAll + visible-filter), ID mismatches fixed (2), AcademyHub tab wired
-- Deployed to production (commit 7065ff9)
-- Next is L-02-02: Jonathan clears localStorage, walks through onboarding fresh, we fix what breaks in real-time
-- 500ms setTimeout timing still untested — will surface during live walkthrough
+- Bug 1 CRITICAL: Chat h-[70vh] covers spotlight targets in portrait. Fix: h-[45vh]
+- Bug 2 CRITICAL: iOS autoplay blocked — audio never plays. Fix: unlock AudioContext on first send gesture
+- Bug 3 HIGH: Raw 529 overloaded_error JSON shown to user in chat
+- Bug 4 HIGH: No touch confirmation when tapping spotlight target
+- Bug 5 HIGH: Lesson system tools fail silently — Claude falls back to hand-explaining
+- Bug 6 MEDIUM: Three curriculum systems confuse Claude (tutorialLessons / lessonRegistry / projects)
+- Bug 7 MEDIUM: Chat overlay intercepts all pointer events — can't tap spotlighted elements behind it
