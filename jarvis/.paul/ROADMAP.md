@@ -9,11 +9,11 @@
 
 **v4.4 Guided Onboarding — Academy-Driven**
 Status: In Progress
-Phases: 0 of 4 complete
+Phases: 1 of 4 complete
 
 | Phase | Name | Plans | Status | Completed |
 |-------|------|-------|--------|-----------|
-| L-01 | Foundation | 01 complete, 02 created | Planning | - |
+| L-01 | Foundation | 2/2 complete | ✅ Complete | 2026-03-02 |
 | L-02 | Live Walkthrough Pass 1 | TBD | Not started | - |
 | L-03 | Live Walkthrough Pass 2 | TBD | Not started | - |
 | L-04 | Polish + Wife Test | TBD | Not started | - |

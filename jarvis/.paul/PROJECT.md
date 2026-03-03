@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A self-improving, genius-level life manager built on Anthropic API + MCP Connector with 17 preserved intelligence gems, a 3-layer self-improvement loop, vector memory, and a mobile-first domain OS UI. v4.3 (Academy Engine) complete — Jarvis can read, understand, and teach about Jonathan's codebases through conversation.
+A self-improving, genius-level life manager built on Anthropic API + MCP Connector with 17 preserved intelligence gems, a 3-layer self-improvement loop, vector memory, and a mobile-first domain OS UI. v4.3 (Academy Engine) complete. v4.4 (Guided Onboarding) Foundation phase shipped — Academy-Spotlight bridge enables same-origin visual teaching where Claude highlights real UI elements during conversation.
 
 ## Core Value
 
@@ -76,6 +76,10 @@ MOBILE-FIRST UI (new)
 | Jarvis-as-teacher over tutorial UI | Jarvis teaches conversationally through chat, not through static tooltip tutorials — v4.3 |
 | Wife test as product test | If she can use Jarvis cold with zero help from Jonathan, the product is ready — future onboarding milestone |
 | Zero jargon in teaching | No "Notion", "database", "tool", "query". Just "your tasks", "your meals" — future onboarding milestone |
+| Academy-as-onboarding framework | Same curriculum/teaching engine for codebase teaching AND user onboarding — v4.4 L-01 |
+| SSE spotlight bridge (tool_use interception) | ChatOverlay intercepts spotlight tool_use events and applies side-effects — no new API routes needed — v4.4 L-01 |
+| Same-origin vs cross-origin teaching | Spotlights only for Jarvis project (same-origin); cross-origin projects get verbal descriptions only — v4.4 L-01 |
+| /jarvis redirect to /jarvis/app | Old orb was dead end; redirect eliminates confusion without deleting old code — v4.4 L-01 |
 
 ## Validated Requirements
 
@@ -137,16 +141,16 @@ MOBILE-FIRST UI (new)
 
 ### Deferred to Future Milestone (Guided Onboarding — "Wife-Ready Experience")
 
-The original v4.3 vision was Guided Onboarding. During planning, the scope was refocused to Academy Engine (codebase teaching). The onboarding/wife-ready requirements below are deferred to a future milestone:
+The original v4.3 vision was Guided Onboarding. During planning, the scope was refocused to Academy Engine (codebase teaching). v4.4 picks up the onboarding work using Academy as the delivery framework. Status updated as L-01 Foundation ships:
 
-- ○ Progressive UI unlocking (reveal features as curriculum advances)
-- ○ 7-module wife onboarding curriculum (Welcome → Briefing → Calendar → Bills → Meals → Shopping → Graduation)
+- ◐ 8-topic Jarvis curriculum (Welcome → Tasks → Habits → Bills → Calendar → Meals → Briefing → Chat) — L-01 created data, L-02/L-03 will test
+- ◐ Interactive verification via spotlight teaching (Claude highlights UI + guides user) — L-01 bridge built, L-02 will live-test
+- ◐ Wife test as acceptance criterion — L-04 is the wife test
+- ○ Progressive UI unlocking (reveal features as curriculum advances) — may not be needed if teaching flow is smooth
 - ○ Emotional framing on every lesson (mental load reduction)
-- ○ Interactive verification (try it → Jarvis celebrates)
 - ○ Gentle re-engagement nudges
-- ○ Zero jargon throughout
+- ○ Zero jargon throughout — partially addressed in teaching prompt
 - ○ Contextual re-teaching for unused features
-- ○ Wife test as acceptance criterion
 
 ## Future Concepts (Not In Any Milestone)
 
@@ -154,7 +158,7 @@ The original v4.3 vision was Guided Onboarding. During planning, the scope was r
 - **Vision Input** — Camera → image recognition → tool calls (reusable across domains)
 - **Domain Expansion** — 6 empty domains need content
 - **Write-back Mutations** — Notion updates from UI (currently local-only)
-- **Shell Convergence** — Unify `/jarvis` and `/jarvis/app`
+- **Shell Convergence** — `/jarvis` now redirects to `/jarvis/app` (L-01); full old-shell removal deferred
 
 ---
-*Last updated: 2026-03-02 after Phase K (v4.3 Academy Engine complete)*
+*Last updated: 2026-03-02 after Phase L-01 (v4.4 Foundation complete)*
