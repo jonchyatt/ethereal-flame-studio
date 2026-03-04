@@ -36,11 +36,13 @@ interface ChatMessage {
 
 interface ChatRequest {
   messages: ChatMessage[];
+  /** Tier 1 vision: client's current app location, serialized as text */
+  appContext?: string;
 }
 
 export async function POST(request: Request): Promise<Response> {
   try {
-    const { messages } = (await request.json()) as ChatRequest;
+    const { messages, appContext } = (await request.json()) as ChatRequest;
 
     // Validate request
     if (!messages || !Array.isArray(messages)) {
@@ -70,6 +72,11 @@ export async function POST(request: Request): Promise<Response> {
     const promptContext = await buildSystemPromptContext(sessionId, { timezone: clientTimezone });
     const serverSystemPrompt = buildSystemPrompt(promptContext);
 
+    // Tier 1 vision: append current app location sent by client
+    const finalSystemPrompt = appContext
+      ? `${serverSystemPrompt}\n\n${appContext}`
+      : serverSystemPrompt;
+
     // Create SSE stream
     const stream = new ReadableStream({
       async start(controller) {
@@ -90,7 +97,7 @@ export async function POST(request: Request): Promise<Response> {
           // Process through shared chat processor with SSE callbacks
           const result = await processChatMessage({
             sessionId,
-            systemPrompt: serverSystemPrompt,
+            systemPrompt: finalSystemPrompt,
             messages,
             onToolUse: (name, input) => {
               const data = JSON.stringify({ type: 'tool_use', tool_name: name, tool_input: input });
