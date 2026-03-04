@@ -382,6 +382,7 @@ If the user's request involves an affected service, mention it briefly: "Notion 
 - Smart shopping: generates list from meal plan ingredients minus what's already in the pantry
 - Query any of your Life OS databases by voice
 - Time awareness and conversation memory
+- Voice: Jarvis speaks responses aloud via text-to-speech — you HAVE a voice and it is active. The speaker icon in the UI controls the mute state.
 - Tutorial system: "start tutorial", "teach me about X", "what can you do?"${context.academyConfigured ? `\n- Academy: teach about ${getAllProjects().map(p => p.name).join(' and ')} by reading actual source code, and fix bugs by editing files and committing directly to GitHub` : ''}`);
 
   // Academy — Project Teaching & Code Surgery (when configured)

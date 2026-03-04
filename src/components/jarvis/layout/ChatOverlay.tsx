@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, forwardRef } from 'react';
-import { X, Send, Loader2, GraduationCap } from 'lucide-react';
+import { X, Send, Loader2, GraduationCap, ChevronRight } from 'lucide-react';
 import { useShellStore } from '@/lib/jarvis/stores/shellStore';
 import { useChatStore, type ChatMessage } from '@/lib/jarvis/stores/chatStore';
 import { useTutorialStore } from '@/lib/jarvis/stores/tutorialStore';
@@ -37,6 +37,8 @@ export function ChatOverlay() {
   const [isVisible, setIsVisible] = useState(false);
   const [animState, setAnimState] = useState<'entering' | 'open' | 'exiting' | 'closed'>('closed');
 
+  const isNarrationEnabled = useTutorialStore((s) => s.isNarrationEnabled);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -45,6 +47,8 @@ export function ChatOverlay() {
   const touchStartRef = useRef<{ y: number; time: number } | null>(null);
   const sendMessageRef = useRef<((text: string) => Promise<void>) | null>(null);
   const audioUnlockedRef = useRef(false);
+  const chatAudioRef = useRef<HTMLAudioElement | null>(null);
+  const lastSpokenMsgIdRef = useRef<string | null>(null);
 
   // Open/close lifecycle
   useEffect(() => {
@@ -90,6 +94,38 @@ export function ChatOverlay() {
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [toggleChat]);
+
+  // TTS: speak completed assistant messages aloud
+  useEffect(() => {
+    if (!isNarrationEnabled || !audioUnlockedRef.current) return;
+    const lastMsg = messages[messages.length - 1];
+    if (!lastMsg || lastMsg.role !== 'assistant' || lastMsg.isStreaming || !lastMsg.content) return;
+    if (lastMsg.id === lastSpokenMsgIdRef.current) return;
+    lastSpokenMsgIdRef.current = lastMsg.id;
+
+    // Stop any in-flight chat audio
+    if (chatAudioRef.current) {
+      chatAudioRef.current.pause();
+      chatAudioRef.current = null;
+    }
+
+    // Truncate very long responses — TTS works best for concise text
+    const text = lastMsg.content.replace(/\*\*/g, '').replace(/\*/g, '').slice(0, 400);
+
+    postJarvisAPI('/api/jarvis/tts', { text })
+      .then((res) => (res.ok ? res.blob() : Promise.reject()))
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        chatAudioRef.current = audio;
+        audio.play().catch(() => {});
+        audio.addEventListener('ended', () => {
+          URL.revokeObjectURL(url);
+          chatAudioRef.current = null;
+        }, { once: true });
+      })
+      .catch(() => {});
+  }, [messages, isNarrationEnabled]);
 
   // Auto-send queued message (from QuickActions or programmatic open)
   useEffect(() => {
@@ -564,8 +600,25 @@ function ChatActionsRow({
     }
   }
 
-  // During active tutorial — no quick actions (engine controls flow)
-  if (engine?.isActive) return null;
+  // During active tutorial — check if Claude is asking for "continue tutorial"
+  if (engine?.isActive) {
+    const lastMsg = messages[messages.length - 1];
+    const wantsContinue = lastMsg?.role === 'assistant' && !lastMsg.isStreaming &&
+      /continue tutorial/i.test(lastMsg.content ?? '');
+    if (wantsContinue) {
+      return (
+        <div className="px-4 py-2 flex gap-2 border-t border-white/5 shrink-0">
+          <button
+            onClick={() => onAction('continue tutorial')}
+            className="flex items-center gap-1.5 px-4 py-1.5 text-xs bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 rounded-full border border-cyan-500/25 transition-colors font-medium"
+          >
+            Continue <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      );
+    }
+    return null;
+  }
 
   // Normal quick actions
   if (messages.length === 0) return null;

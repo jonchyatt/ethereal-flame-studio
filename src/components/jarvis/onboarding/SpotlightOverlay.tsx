@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { useTutorialStore } from '@/lib/jarvis/stores/tutorialStore';
+import { postJarvisAPI } from '@/lib/jarvis/api/fetchWithAuth';
 
 interface Rect {
   top: number;
@@ -101,11 +102,7 @@ export function SpotlightOverlay() {
 
     let cancelled = false;
 
-    fetch('/api/jarvis/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: spotlight.narration }),
-    })
+    postJarvisAPI('/api/jarvis/tts', { text: spotlight.narration })
       .then((res) => {
         if (!res.ok) throw new Error(`TTS ${res.status}`);
         return res.blob();
@@ -267,10 +264,10 @@ export function SpotlightOverlay() {
         }
       `}</style>
 
-      {/* Narration mute toggle — visible whenever a spotlight is active */}
+      {/* Narration mute toggle — below header (h-14 = 56px) so it never overlaps Settings */}
       <button
         onClick={toggleNarration}
-        className="fixed top-4 right-4 w-8 h-8 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-black/80 transition-colors pointer-events-auto"
+        className="fixed top-16 right-3 w-8 h-8 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-black/80 transition-colors pointer-events-auto"
         style={{ zIndex: 10001 }}
         title={isNarrationEnabled ? 'Mute narration' : 'Unmute narration'}
         aria-label={isNarrationEnabled ? 'Mute narration' : 'Unmute narration'}
