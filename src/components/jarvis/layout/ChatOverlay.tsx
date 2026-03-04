@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, forwardRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { X, Send, Loader2, GraduationCap, ChevronRight } from 'lucide-react';
 import { useShellStore } from '@/lib/jarvis/stores/shellStore';
 import { useChatStore, type ChatMessage } from '@/lib/jarvis/stores/chatStore';
@@ -12,6 +13,29 @@ import { useTutorialEngineContext } from './JarvisShell';
 import { Input } from '../primitives/Input';
 import { Button } from '../primitives/Button';
 
+/**
+ * Serializes the user's current location in the app into a short context string.
+ * Injected into every chat API call — Tier 1 vision: Claude always knows where you are.
+ */
+function buildAppContext(pathname: string | null): string {
+  if (!pathname) return '';
+  const routeMap: [string, string][] = [
+    ['/jarvis/app/personal', 'Personal domain (Tasks, Habits, Bills & Finance, Calendar, Meals & Kitchen, Journal, Health, Goals)'],
+    ['/jarvis/app/academy', 'Learn/Academy tab (curriculum, topic list)'],
+    ['/jarvis/app/settings', 'Settings page'],
+    ['/jarvis/app/onboarding', 'Onboarding wizard'],
+    ['/jarvis/app', 'Home tab (Quick Actions, Academy widget, Briefing — NOT tasks or habits)'],
+  ];
+  let location = pathname;
+  for (const [route, label] of routeMap) {
+    if (pathname === route || pathname.startsWith(route + '/')) {
+      location = label;
+      break;
+    }
+  }
+  return `CURRENT APP LOCATION: User is currently viewing the ${location} (path: ${pathname})`;
+}
+
 const QUICK_ACTIONS = [
   { label: "Today's tasks", message: 'What are my tasks for today?' },
   { label: 'Briefing', message: 'Give me my morning briefing' },
@@ -20,6 +44,7 @@ const QUICK_ACTIONS = [
 ];
 
 export function ChatOverlay() {
+  const pathname = usePathname();
   const isChatOpen = useShellStore((s) => s.isChatOpen);
   const closeChat = useShellStore((s) => s.closeChat);
   const toggleChat = useShellStore((s) => s.toggleChat);
@@ -78,6 +103,16 @@ export function ChatOverlay() {
   useEffect(() => {
     if (animState === 'open') {
       setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [animState]);
+
+  // Scroll to bottom when chat opens — messages already exist but didn't change so
+  // the messages-change effect doesn't fire. This catches the open transition.
+  useEffect(() => {
+    if (animState === 'open') {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+      }, 50);
     }
   }, [animState]);
 
@@ -169,6 +204,7 @@ export function ChatOverlay() {
       abortRef.current = new AbortController();
       const response = await postJarvisAPI('/api/jarvis/chat', {
         messages: recentMessages,
+        appContext: buildAppContext(pathname),
       }, { signal: abortRef.current.signal });
 
       if (!response.ok) {
@@ -241,7 +277,7 @@ export function ChatOverlay() {
       setActiveTool(null);
       abortRef.current = null;
     }
-  }, [addMessage, updateMessage, setIsTyping, setActiveTool]);
+  }, [addMessage, updateMessage, setIsTyping, setActiveTool, pathname]);
 
   // Keep ref in sync for queued message effect
   sendMessageRef.current = sendMessage;
@@ -600,24 +636,19 @@ function ChatActionsRow({
     }
   }
 
-  // During active tutorial — check if Claude is asking for "continue tutorial"
+  // During active tutorial — always show Continue chip so user can skip current step.
+  // Calls engine.skipStep() directly — NO API call, no Claude involvement.
   if (engine?.isActive) {
-    const lastMsg = messages[messages.length - 1];
-    const wantsContinue = lastMsg?.role === 'assistant' && !lastMsg.isStreaming &&
-      /continue tutorial/i.test(lastMsg.content ?? '');
-    if (wantsContinue) {
-      return (
-        <div className="px-4 py-2 flex gap-2 border-t border-white/5 shrink-0">
-          <button
-            onClick={() => onAction('continue tutorial')}
-            className="flex items-center gap-1.5 px-4 py-1.5 text-xs bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 rounded-full border border-cyan-500/25 transition-colors font-medium"
-          >
-            Continue <ChevronRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      );
-    }
-    return null;
+    return (
+      <div className="px-4 py-2 flex gap-2 border-t border-white/5 shrink-0">
+        <button
+          onClick={() => engine.skipStep()}
+          className="flex items-center gap-1.5 px-4 py-1.5 text-xs bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 rounded-full border border-cyan-500/25 transition-colors font-medium"
+        >
+          Continue <ChevronRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    );
   }
 
   // Normal quick actions

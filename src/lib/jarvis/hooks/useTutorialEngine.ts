@@ -219,9 +219,11 @@ export function useTutorialEngine(): TutorialEngineAPI {
         if (!passed) return;
 
         // For 'ring' (informational) spotlights, enforce a 3s minimum dwell
+        // OR advance immediately if the user tapped the element
         if (step.spotlight?.type === 'ring') {
           const elapsed = Date.now() - stepStartRef.current;
-          if (elapsed < 3000) return;
+          const tapped = tutorialActionBus.check('spotlight-element-tapped');
+          if (elapsed < 3000 && !tapped) return;
         }
 
         // Handle "already satisfied" — e.g. chat is already open because

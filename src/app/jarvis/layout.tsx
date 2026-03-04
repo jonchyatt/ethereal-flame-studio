@@ -29,7 +29,7 @@ export default function JarvisLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="h-dvh w-full overflow-hidden bg-black safe-area-all">
+    <div className="h-dvh w-full overflow-hidden bg-black">
       {children}
     </div>
   );

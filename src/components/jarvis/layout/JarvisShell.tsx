@@ -93,7 +93,7 @@ export function JarvisShell({ children }: JarvisShellProps) {
       <div className="h-dvh w-full bg-black text-white overflow-hidden">
         <Header />
         <DomainRail />
-        <main className="h-full overflow-y-auto pt-[6.5rem] pb-[calc(4rem_+_env(safe-area-inset-bottom))] md:pt-14 md:pb-4 md:pl-16">
+        <main className="h-full overflow-y-auto pt-[6.5rem] pb-[calc(5rem_+_env(safe-area-inset-bottom))] md:pt-14 md:pb-4 md:pl-16">
           <ErrorBoundary key={pathname}>{children}</ErrorBoundary>
         </main>
         <BottomTabBar />

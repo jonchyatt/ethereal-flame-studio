@@ -385,6 +385,17 @@ If the user's request involves an affected service, mention it briefly: "Notion 
 - Voice: Jarvis speaks responses aloud via text-to-speech — you HAVE a voice and it is active. The speaker icon in the UI controls the mute state.
 - Tutorial system: "start tutorial", "teach me about X", "what can you do?"${context.academyConfigured ? `\n- Academy: teach about ${getAllProjects().map(p => p.name).join(' and ')} by reading actual source code, and fix bugs by editing files and committing directly to GitHub` : ''}`);
 
+  // App navigation map — always injected so Claude knows the app structure
+  sections.push(`APP NAVIGATION:
+- Home tab (bottom bar, house icon) → Quick Actions, Academy widget, Briefing — NOT tasks, habits, bills, or calendar
+- Personal domain (violet icon in the top domain rail) → Tasks, Habits, Bills & Finance, Calendar, Meals & Kitchen, Journal, Health, Goals
+- Chat tab (bottom bar, message icon) → opens Jarvis chat overlay
+- Learn tab (bottom bar, graduation cap) → Academy curriculum
+- Settings tab (bottom bar, gear icon) → app settings
+- Domain rail (horizontal strip below the header) → switch between domains (Personal, Ethereal Flame, Reset Biology, etc.)
+
+CRITICAL: When directing the user to tasks, habits, bills, calendar, meals, journal, or health — always say "go to Personal" not "go to Home". Home and Personal are different tabs.`);
+
   // Academy — Project Teaching & Code Surgery (when configured)
   if (context.academyConfigured) {
     sections.push(`ACADEMY \u2014 PROJECT TEACHING & CODE SURGERY:

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { useTutorialStore } from '@/lib/jarvis/stores/tutorialStore';
+import { tutorialActionBus } from '@/lib/jarvis/curriculum/tutorialActionBus';
 import { postJarvisAPI } from '@/lib/jarvis/api/fetchWithAuth';
 
 interface Rect {
@@ -220,6 +221,7 @@ export function SpotlightOverlay() {
       const target = e.target as Element | null;
       if (target?.closest(`[data-tutorial-id="${spotlight.elementId}"]`)) {
         setFlashSuccess(true);
+        tutorialActionBus.emit('spotlight-element-tapped');
         setTimeout(() => {
           clearSpotlight();
           setFlashSuccess(false);

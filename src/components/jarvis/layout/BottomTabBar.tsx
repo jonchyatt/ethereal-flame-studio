@@ -32,8 +32,7 @@ export function BottomTabBar() {
     } else if (tab.action === 'toggle-chat') {
       toggleChat();
     } else if (tab.action === 'quick-add') {
-      // Placeholder — ActionSheet in a future plan
-      console.log('[BottomTabBar] Quick add pressed');
+      toggleChat();
     }
   };
 

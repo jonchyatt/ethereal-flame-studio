@@ -227,6 +227,19 @@ export function AcademyHub() {
           <ProgressRing completed={totalCompleted} total={totalItems} />
         </div>
 
+        {/* Tutorial in progress — banner so user knows they can return */}
+        {currentLesson && (
+          <div className="px-4 py-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl flex items-center justify-between">
+            <span className="text-cyan-400 text-sm font-medium">Tutorial in progress</span>
+            <button
+              onClick={() => router.push('/jarvis/app')}
+              className="text-cyan-400 text-xs underline"
+            >
+              Return to app →
+            </button>
+          </div>
+        )}
+
         {/* Continue Learning */}
         {continueLearning && (
           <section style={{ animation: 'hubFadeIn 400ms ease both', animationDelay: '100ms' }}>
