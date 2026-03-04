@@ -63,6 +63,7 @@ export function SpotlightOverlay() {
   const clearSpotlight = useTutorialStore((s) => s.clearSpotlight);
   const isNarrationEnabled = useTutorialStore((s) => s.isNarrationEnabled);
   const toggleNarration = useTutorialStore((s) => s.toggleNarration);
+  const [flashSuccess, setFlashSuccess] = useState(false);
   const [rect, setRect] = useState<Rect | null>(null);
   const [laserPath, setLaserPath] = useState<LaserPath | null>(null);
   const [laserPosition, setLaserPosition] = useState<Point | null>(null);
@@ -215,13 +216,17 @@ export function SpotlightOverlay() {
     };
   }, [measure]);
 
-  // Click listener to auto-clear when target is clicked
+  // Click listener: flash green on tap, then clear spotlight after 350ms
   useEffect(() => {
     if (!spotlight) return;
     const onClick = (e: MouseEvent) => {
       const target = e.target as Element | null;
       if (target?.closest(`[data-tutorial-id="${spotlight.elementId}"]`)) {
-        clearSpotlight();
+        setFlashSuccess(true);
+        setTimeout(() => {
+          clearSpotlight();
+          setFlashSuccess(false);
+        }, 350);
       }
     };
     document.addEventListener('click', onClick, true);
@@ -254,6 +259,11 @@ export function SpotlightOverlay() {
         @keyframes laser-line-fade {
           0%, 100% { opacity: 0.65; }
           50% { opacity: 0.95; }
+        }
+        @keyframes spotlight-success-flash {
+          0%   { transform: scale(1); border-color: rgba(255,78,78,0.95); }
+          40%  { transform: scale(1.05); border-color: rgba(52,211,153,0.95); }
+          100% { transform: scale(1); border-color: rgba(52,211,153,0.95); }
         }
       `}</style>
 
@@ -322,13 +332,19 @@ export function SpotlightOverlay() {
               width: rect.width,
               height: rect.height,
               zIndex: 9999,
-              border: isPulse
-                ? '2px solid rgba(255,78,78,0.95)'
-                : '2px solid rgba(255,120,120,0.95)',
+              border: flashSuccess
+                ? '2px solid rgba(52,211,153,0.95)'
+                : isPulse
+                  ? '2px solid rgba(255,78,78,0.95)'
+                  : '2px solid rgba(255,120,120,0.95)',
               boxShadow: isPulse
                 ? '0 0 0 1px rgba(255,255,255,0.5), 0 0 20px rgba(255,60,60,0.88), 0 0 50px rgba(255,60,60,0.35), 0 0 0 9999px rgba(0,0,0,0.28)'
                 : '0 0 0 1px rgba(255,255,255,0.45), 0 0 16px rgba(255,92,92,0.65), 0 0 34px rgba(255,92,92,0.28), 0 0 0 9999px rgba(0,0,0,0.24)',
-              animation: isPulse ? 'spotlight-target-pulse 1.4s ease-in-out infinite' : undefined,
+              animation: flashSuccess
+                ? 'spotlight-success-flash 350ms ease-out forwards'
+                : isPulse
+                  ? 'spotlight-target-pulse 1.4s ease-in-out infinite'
+                  : undefined,
             }}
           />
         </>

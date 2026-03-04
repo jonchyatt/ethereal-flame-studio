@@ -15,6 +15,13 @@ import { backfillSummarization } from '@/lib/jarvis/memory/summarization';
 
 // Tool loops can require multiple Claude API round-trips
 export const maxDuration = 60;
+
+function friendlyErrorMessage(raw: string): string {
+  if (raw.includes('overloaded_error') || raw.includes('529')) {
+    return "Jarvis is a bit overwhelmed right now — try again in a moment.";
+  }
+  return raw;
+}
 export const dynamic = 'force-dynamic';
 
 // Context window monitoring (GUARD-05)
@@ -105,7 +112,7 @@ export async function POST(request: Request): Promise<Response> {
               controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));
             } else {
               const errorText = result.error
-                ? result.error
+                ? friendlyErrorMessage(result.error)
                 : result.responseText || 'Something went wrong.';
               const data = JSON.stringify({ type: 'text', text: errorText });
               controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));
@@ -120,7 +127,7 @@ export async function POST(request: Request): Promise<Response> {
         } catch (error) {
           console.error('[Chat] Error:', error);
           try {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            const errorMessage = friendlyErrorMessage(error instanceof Error ? error.message : 'Unknown error');
             const errorData = JSON.stringify({ type: 'error', error: errorMessage });
             controller.enqueue(new TextEncoder().encode(`data: ${errorData}\n\n`));
             controller.close();

@@ -236,7 +236,7 @@ export async function executeTutorialTool(
       if (!content) {
         return {
           success: false,
-          error: `Content for "${lessonId}" not yet available. Only Daily Action lessons are available so far.`,
+          error: `Lesson "${lessonId}" has no step-by-step content. Use get_curriculum_status to see all available lesson IDs, then call start_lesson with a valid ID.`,
         };
       }
       const dbEntry = findNotionDatabase(lessonMeta.databaseKey);

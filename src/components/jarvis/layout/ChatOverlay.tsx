@@ -32,6 +32,7 @@ export function ChatOverlay() {
   const setIsTyping = useChatStore((s) => s.setIsTyping);
   const setActiveTool = useChatStore((s) => s.setActiveTool);
 
+  const spotlight = useTutorialStore((s) => s.spotlight);
   const [input, setInput] = useState('');
   const [isVisible, setIsVisible] = useState(false);
   const [animState, setAnimState] = useState<'entering' | 'open' | 'exiting' | 'closed'>('closed');
@@ -43,6 +44,7 @@ export function ChatOverlay() {
   const scrimRef = useRef<HTMLDivElement>(null);
   const touchStartRef = useRef<{ y: number; time: number } | null>(null);
   const sendMessageRef = useRef<((text: string) => Promise<void>) | null>(null);
+  const audioUnlockedRef = useRef(false);
 
   // Open/close lifecycle
   useEffect(() => {
@@ -208,12 +210,23 @@ export function ChatOverlay() {
   // Keep ref in sync for queued message effect
   sendMessageRef.current = sendMessage;
 
+  // Unlock iOS AudioContext on first direct user gesture.
+  // Must be called synchronously inside touch/click handlers — NOT inside async callbacks.
+  const unlockIOSAudio = () => {
+    if (audioUnlockedRef.current) return;
+    const unlock = new Audio();
+    unlock.play().catch(() => {});
+    audioUnlockedRef.current = true;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    unlockIOSAudio();
     sendMessage(input);
   };
 
   const handleQuickAction = (message: string) => {
+    unlockIOSAudio();
     sendMessage(message);
   };
 
@@ -284,14 +297,14 @@ export function ChatOverlay() {
       {/* Mobile scrim */}
       <div
         ref={scrimRef}
-        className={`fixed inset-0 bg-black/30 z-[54] md:hidden transition-opacity duration-200 ${isEntering ? 'opacity-100' : 'opacity-0'}`}
+        className={`fixed inset-0 bg-black/30 z-[54] md:hidden transition-opacity duration-200 ${isEntering ? 'opacity-100' : 'opacity-0'}${spotlight ? ' pointer-events-none' : ''}`}
         onClick={closeChat}
       />
 
       {/* Mobile bottom sheet chat */}
       <div
         ref={overlayRef}
-        className="fixed inset-x-0 bottom-0 z-[55] h-[70vh] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-[55] h-[45vh] md:hidden pointer-events-none"
         style={{
           transform: isEntering ? 'translateY(0)' : 'translateY(100%)',
           transition: animState === 'entering'
@@ -301,7 +314,7 @@ export function ChatOverlay() {
               : 'none',
         }}
       >
-        <div className="bg-zinc-900/95 backdrop-blur-xl border-t border-white/10 rounded-t-2xl shadow-2xl h-full flex flex-col">
+        <div className="bg-zinc-900/95 backdrop-blur-xl border-t border-white/10 rounded-t-2xl shadow-2xl h-full flex flex-col pointer-events-auto">
           {/* Drag handle */}
           <div
             className="w-full pt-3 pb-2 cursor-grab shrink-0"

@@ -493,7 +493,25 @@ When you find a bug that could recur elsewhere:
 3. Offer: "Want me to fix all instances in one commit?"
 
 CROSS-PROJECT AWARENESS:
-When you find a bug pattern in one project, consider whether the same pattern exists in the other project. Mention it: "This issue in Visopscreen \u2014 Creator Workflow also has a similar pattern. Should I check there too?"`);
+When you find a bug pattern in one project, consider whether the same pattern exists in the other project. Mention it: "This issue in Visopscreen \u2014 Creator Workflow also has a similar pattern. Should I check there too?
+
+CURRICULUM ROUTING \u2014 Two distinct systems, do not confuse them:
+
+1. JARVIS ACADEMY ("How to Use Jarvis" + code projects):
+   - Lists topics: use list_topics or academy_get_topics
+   - Teaches a topic: use teach_topic with topic_id from the project curriculum
+   - Curriculum lives in projects.ts \u2014 topic IDs like "meet-jarvis", "tasks-basics", "morning-briefing"
+   - Spotlights work here (same-origin teaching)
+   - User phrases: "teach me about X in How to Use Jarvis", "start the Jarvis tutorial", "guided tour", "show me how Jarvis works"
+
+2. NOTION LIFE OS LESSONS (step-by-step database setup walkthroughs):
+   - Lists available lessons: use get_curriculum_status
+   - Starts a lesson: use start_lesson with lesson_id from LESSON_REGISTRY
+   - Lesson IDs look like: "tasks-overview", "habits-intro", "budgets-intro", "journal-basics"
+   - These are Notion database walkthroughs, NOT Jarvis app UI teaching
+   - User phrases: "teach me about budgets in Notion", "help me set up my habit tracker", "walk me through my task database"
+
+When in doubt: "How to Use Jarvis" or "the app" or "guided tour" \u2014 use system 1 (academy_get_topics / teach_topic). "Notion Life OS" or a specific database name \u2014 use system 2 (get_curriculum_status / start_lesson)."`);
   }
 
   // Interaction style — adapted to client type
