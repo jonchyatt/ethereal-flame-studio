@@ -48,7 +48,9 @@ export async function POST(request: NextRequest) {
 
     // ── ElevenLabs primary ────────────────────────────────────────────────────
     const elApiKey = process.env.ELEVENLABS_API_KEY;
-    const elVoiceId = process.env.ELEVENLABS_VOICE_ID;
+    // Using a standard ElevenLabs voice for reliability — swap back to ELEVENLABS_VOICE_ID
+    // once cloned voice is confirmed working on the account plan.
+    const elVoiceId = 'XjLkpWUlnhS8i7gGz3lZ';
 
     if (elApiKey && elVoiceId) {
       try {
