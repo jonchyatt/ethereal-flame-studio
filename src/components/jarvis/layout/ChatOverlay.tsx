@@ -134,14 +134,16 @@ export function ChatOverlay() {
     }
   }, [animState]);
 
-  // Instant scroll to bottom when chat opens
+  // Instant scroll to bottom when chat opens.
+  // Delayed 50ms past animState='open' so iOS doesn't reset scrollTop when
+  // the translateY() enter transition finishes settling.
   useEffect(() => {
     if (animState === 'open') {
-      const id = requestAnimationFrame(() => {
+      const id = setTimeout(() => {
         const container = messagesEndRef.current?.parentElement;
         if (container) container.scrollTop = container.scrollHeight;
-      });
-      return () => cancelAnimationFrame(id);
+      }, 50);
+      return () => clearTimeout(id);
     }
   }, [animState]);
 
