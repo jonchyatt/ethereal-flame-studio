@@ -4,9 +4,9 @@
 
 Milestone: v4.4 Guided Onboarding — Academy-Driven
 Phase: L-02 of 4 (Live Walkthrough Pass 1) — In Progress
-Plan: L-02-04 APPLIED (commits 62160b7, 2e3b9b2) — 9 bugs fixed + Tier 1 vision, UNIFY pending
-Status: Awaiting UNIFY — do a full walkthrough on device to verify all 9 bugs resolved
-Last activity: 2026-03-04 — L-02-04 applied and deployed
+Plan: L-02-05-01 CREATED (tutorial curriculum fix), L-02-05-02 CREATED (chat/TTS bugs)
+Status: PLAN created, ready for APPLY
+Last activity: 2026-03-05 — Calendar confirmed working (7 events, "Jarvis test" picked up). L-02-05 plans written.
 
 Progress:
 - v4.4/L: [███░░░░░░░] ~30% (1 of 4 phases complete)
@@ -17,7 +17,7 @@ Progress:
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ○     [L-02-04 applied, awaiting device walkthrough then UNIFY]
+  ✓        ○        ○     [L-02-05-01 plan created, awaiting apply]
 ```
 
 ## Completed Phases (v4.4)
@@ -87,14 +87,13 @@ Feature branches merged: none
 
 ## Session Continuity
 
-Last session: 2026-03-04 (fourth pause — context limit)
-Stopped at: Bills static fallback deployed, calendar diagnostic deployed, L-02-05 bug list documented
-Next action: Check health endpoint for calendar error, then plan L-02-05 (curriculum + bug fixes)
-Resume file: jarvis/.paul/HANDOFF-2026-03-04-d.md
+Last session: 2026-03-05 (fifth pause — context limit)
+Stopped at: L-02-05-01 and L-02-05-02 plans written, ready to execute
+Next action: /paul:apply jarvis/.paul/phases/L-02-live-walkthrough-pass1/L-02-05-01-PLAN.md
+Resume file: jarvis/.paul/HANDOFF-2026-03-05.md
 Resume context:
-- Bills NOW show via static fallback (28 bills, day-of-month logic) — commit d914f2a
-- Calendar still broken — diagnostic at /api/jarvis/health will show actual error — commit 3677814
-- Jonathan's walkthrough found 8 new/remaining bugs — need L-02-05
-- BIG issue: tutorial needs deterministic curriculum, not AI-improvised
-- Agent capabilities concept doc saved: jarvis/.paul/concepts/jarvis-agent-capabilities.md
-- DO NOT repeat calendar/bills env var setup instructions — already done, Jonathan is frustrated
+- Calendar CONFIRMED WORKING — 7 events found, "Jarvis test" for tomorrow picked up ✓
+- Root cause of tutorial stall found: bills-4-mark-paid verification impossible with static bills
+- L-02-05-01-PLAN.md: fix bills lesson + 45s timeout + floating Continue chip
+- L-02-05-02-PLAN.md: close chat on spotlight + scroll fix + shared TTS audio manager
+- L-02-05-03 NOT yet written: safe-area + voice touch-and-talk (write before or after executing 01+02)
