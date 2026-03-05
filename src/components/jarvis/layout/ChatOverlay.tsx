@@ -8,6 +8,7 @@ import { useChatStore, type ChatMessage } from '@/lib/jarvis/stores/chatStore';
 import { useTutorialStore } from '@/lib/jarvis/stores/tutorialStore';
 import { postJarvisAPI } from '@/lib/jarvis/api/fetchWithAuth';
 import { tutorialActionBus } from '@/lib/jarvis/curriculum/tutorialActionBus';
+import { stopActiveTTS, activeTTSAudio } from '@/components/jarvis/onboarding/SpotlightOverlay';
 import { useTutorialEngineContext } from './JarvisShell';
 import { Input } from '../primitives/Input';
 import { Button } from '../primitives/Button';
@@ -93,10 +94,17 @@ export function ChatOverlay() {
     }
   }, [isChatOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Close chat when spotlight activates — prevents overlapping UIs during tutorial
+  useEffect(() => {
+    if (spotlight) {
+      closeChat();
+    }
+  }, [spotlight, closeChat]);
+
   // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+  }, [messages, isTyping, isChatOpen]);
 
   // Focus input on open
   useEffect(() => {
@@ -105,13 +113,15 @@ export function ChatOverlay() {
     }
   }, [animState]);
 
-  // Scroll to bottom when chat opens — messages already exist but didn't change so
-  // the messages-change effect doesn't fire. This catches the open transition.
+  // Scroll to bottom when chat opens — use rAF to ensure DOM has painted
   useEffect(() => {
     if (animState === 'open') {
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
-      }, 50);
+      const id = requestAnimationFrame(() => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'instant' });
+        }
+      });
+      return () => cancelAnimationFrame(id);
     }
   }, [animState]);
 
@@ -137,11 +147,9 @@ export function ChatOverlay() {
     if (lastMsg.id === lastSpokenMsgIdRef.current) return;
     lastSpokenMsgIdRef.current = lastMsg.id;
 
-    // Stop any in-flight chat audio
-    if (chatAudioRef.current) {
-      chatAudioRef.current.pause();
-      chatAudioRef.current = null;
-    }
+    // Stop any active TTS (spotlight narration or prior chat audio)
+    stopActiveTTS();
+    chatAudioRef.current = null;
 
     // Truncate very long responses — TTS works best for concise text
     const text = lastMsg.content.replace(/\*\*/g, '').replace(/\*/g, '').slice(0, 400);
@@ -151,10 +159,12 @@ export function ChatOverlay() {
       .then((blob) => {
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
+        activeTTSAudio.current = audio; // register in shared manager
         chatAudioRef.current = audio;
         audio.play().catch(() => {});
         audio.addEventListener('ended', () => {
           URL.revokeObjectURL(url);
+          activeTTSAudio.current = null;
           chatAudioRef.current = null;
         }, { once: true });
       })

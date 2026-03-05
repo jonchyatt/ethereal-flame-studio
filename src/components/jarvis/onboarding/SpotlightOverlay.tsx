@@ -23,6 +23,15 @@ interface LaserPath {
   target: Point;
 }
 
+// ── Shared TTS singleton — one audio track at a time across spotlight + chat ──
+export const activeTTSAudio = { current: null as HTMLAudioElement | null };
+export function stopActiveTTS() {
+  if (activeTTSAudio.current) {
+    activeTTSAudio.current.pause();
+    activeTTSAudio.current = null;
+  }
+}
+
 const PADDING = 4;
 const LASER_MARGIN = 24;
 const LASER_OFFSET_X = 170;
@@ -72,7 +81,6 @@ export function SpotlightOverlay() {
   const rafRef = useRef<number>(0);
   const laserPointRef = useRef<Point | null>(null);
   const lastElementIdRef = useRef<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -87,13 +95,12 @@ export function SpotlightOverlay() {
     }
   }, [spotlight]);
 
-  // Play narration when a spotlight with text arrives
+  // Play narration when a spotlight with narration text arrives.
+  // isNarrationEnabled intentionally excluded from deps — toggling mute/unmute
+  // should NOT restart narration that is already in-flight.
   useEffect(() => {
-    // Stop any in-flight audio first
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
+    // Stop any active TTS first (chat or prior spotlight)
+    stopActiveTTS();
     if (audioUrlRef.current) {
       URL.revokeObjectURL(audioUrlRef.current);
       audioUrlRef.current = null;
@@ -113,14 +120,14 @@ export function SpotlightOverlay() {
         const url = URL.createObjectURL(blob);
         audioUrlRef.current = url;
         const audio = new Audio(url);
-        audioRef.current = audio;
+        activeTTSAudio.current = audio;
         audio.play().catch(() => {
           // Autoplay policy may block on first interaction — silent fail
         });
         audio.addEventListener('ended', () => {
           URL.revokeObjectURL(url);
           audioUrlRef.current = null;
-          audioRef.current = null;
+          activeTTSAudio.current = null;
         }, { once: true });
       })
       .catch(() => {
@@ -129,16 +136,14 @@ export function SpotlightOverlay() {
 
     return () => {
       cancelled = true;
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      stopActiveTTS();
       if (audioUrlRef.current) {
         URL.revokeObjectURL(audioUrlRef.current);
         audioUrlRef.current = null;
       }
     };
-  }, [spotlight?.narration, isNarrationEnabled]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spotlight?.narration]);
 
   const measure = useCallback(() => {
     if (!spotlight) {
