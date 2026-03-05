@@ -6,9 +6,11 @@ import { X, Send, Loader2, GraduationCap } from 'lucide-react';
 import { useShellStore } from '@/lib/jarvis/stores/shellStore';
 import { useChatStore, type ChatMessage } from '@/lib/jarvis/stores/chatStore';
 import { useTutorialStore } from '@/lib/jarvis/stores/tutorialStore';
+import { useAcademyStore } from '@/lib/jarvis/stores/academyStore';
 import { postJarvisAPI } from '@/lib/jarvis/api/fetchWithAuth';
 import { tutorialActionBus } from '@/lib/jarvis/curriculum/tutorialActionBus';
 import { stopActiveTTS, activeTTSAudio } from '@/components/jarvis/onboarding/SpotlightOverlay';
+import { unlockIOSAudio, isAudioUnlocked } from '@/lib/jarvis/utils/audioUnlock';
 import { useTutorialEngineContext } from './JarvisShell';
 import { Input } from '../primitives/Input';
 import { Button } from '../primitives/Button';
@@ -33,14 +35,26 @@ function buildAppContext(pathname: string | null): string {
       break;
     }
   }
-  return `CURRENT APP LOCATION: User is currently viewing the ${location} (path: ${pathname})`;
+
+  // Inject tutorial progress so Jarvis knows which topics have been taught
+  // and doesn't restart the tour from the beginning.
+  const academyProgress = useAcademyStore.getState().progress;
+  const taughtTopics = Object.values(academyProgress)
+    .filter((p) => p.projectId === 'jarvis' && (p.status === 'explored' || p.status === 'completed'))
+    .map((p) => p.topicId);
+
+  const progressLine = taughtTopics.length > 0
+    ? `\nJARVIS TUTORIAL PROGRESS: Already taught — ${taughtTopics.join(', ')}. Do NOT repeat these topics unless explicitly asked. Continue from the next topic in the sequence.`
+    : '';
+
+  return `CURRENT APP LOCATION: User is currently viewing the ${location} (path: ${pathname})${progressLine}`;
 }
 
 const QUICK_ACTIONS = [
+  { label: 'Continue', message: 'Continue' },
   { label: "Today's tasks", message: 'What are my tasks for today?' },
   { label: 'Briefing', message: 'Give me my morning briefing' },
   { label: "What's due?", message: 'What bills or tasks are due soon?' },
-  { label: 'Habits', message: 'How are my habits going?' },
 ];
 
 export function ChatOverlay() {
@@ -71,7 +85,6 @@ export function ChatOverlay() {
   const scrimRef = useRef<HTMLDivElement>(null);
   const touchStartRef = useRef<{ y: number; time: number } | null>(null);
   const sendMessageRef = useRef<((text: string) => Promise<void>) | null>(null);
-  const audioUnlockedRef = useRef(false);
   const chatAudioRef = useRef<HTMLAudioElement | null>(null);
   const lastSpokenMsgIdRef = useRef<string | null>(null);
 
@@ -101,10 +114,18 @@ export function ChatOverlay() {
     }
   }, [spotlight, closeChat]);
 
-  // Auto-scroll
+  // Auto-scroll — use scrollTop = scrollHeight for iOS fixed-container reliability.
+  // scrollIntoView with smooth/instant is unreliable inside position:fixed on Safari.
+  const scrollToBottom = useCallback(() => {
+    requestAnimationFrame(() => {
+      const container = messagesEndRef.current?.parentElement;
+      if (container) container.scrollTop = container.scrollHeight;
+    });
+  }, []);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping, isChatOpen]);
+    scrollToBottom();
+  }, [messages, isTyping, scrollToBottom]);
 
   // Focus input on open
   useEffect(() => {
@@ -113,13 +134,12 @@ export function ChatOverlay() {
     }
   }, [animState]);
 
-  // Scroll to bottom when chat opens — use rAF to ensure DOM has painted
+  // Instant scroll to bottom when chat opens
   useEffect(() => {
     if (animState === 'open') {
       const id = requestAnimationFrame(() => {
-        if (messagesEndRef.current) {
-          messagesEndRef.current.scrollIntoView({ behavior: 'instant' });
-        }
+        const container = messagesEndRef.current?.parentElement;
+        if (container) container.scrollTop = container.scrollHeight;
       });
       return () => cancelAnimationFrame(id);
     }
@@ -141,7 +161,7 @@ export function ChatOverlay() {
 
   // TTS: speak completed assistant messages aloud
   useEffect(() => {
-    if (!isNarrationEnabled || !audioUnlockedRef.current) return;
+    if (!isNarrationEnabled || !isAudioUnlocked()) return;
     const lastMsg = messages[messages.length - 1];
     if (!lastMsg || lastMsg.role !== 'assistant' || lastMsg.isStreaming || !lastMsg.content) return;
     if (lastMsg.id === lastSpokenMsgIdRef.current) return;
@@ -290,15 +310,6 @@ export function ChatOverlay() {
 
   // Keep ref in sync for queued message effect
   sendMessageRef.current = sendMessage;
-
-  // Unlock iOS AudioContext on first direct user gesture.
-  // Must be called synchronously inside touch/click handlers — NOT inside async callbacks.
-  const unlockIOSAudio = () => {
-    if (audioUnlockedRef.current) return;
-    const unlock = new Audio();
-    unlock.play().catch(() => {});
-    audioUnlockedRef.current = true;
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -653,7 +664,7 @@ interface ChatInputRowProps {
 const ChatInputRow = forwardRef<HTMLInputElement, ChatInputRowProps>(
   function ChatInputRow({ value, onChange, onSubmit, disabled }, ref) {
     return (
-      <form onSubmit={onSubmit} className="px-4 py-3 border-t border-white/10 shrink-0">
+      <form onSubmit={onSubmit} className="px-4 pt-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))] border-t border-white/10 shrink-0">
         <div className="flex gap-2">
           <div className="flex-1">
             <Input

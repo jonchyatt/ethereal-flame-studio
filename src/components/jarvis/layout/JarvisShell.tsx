@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useSettingsStore } from '@/lib/jarvis/stores/settingsStore';
 import { useShellStore } from '@/lib/jarvis/stores/shellStore';
 import { useTutorialStore } from '@/lib/jarvis/stores/tutorialStore';
+import { unlockIOSAudio } from '@/lib/jarvis/utils/audioUnlock';
 import { useTutorialEngine, type TutorialEngineAPI } from '@/lib/jarvis/hooks/useTutorialEngine';
 import { useJarvisFetch } from '@/lib/jarvis/hooks/useJarvisFetch';
 import { useExecutiveBridge } from '@/lib/jarvis/hooks/useExecutiveBridge';
@@ -47,7 +48,14 @@ export function JarvisShell({ children }: JarvisShellProps) {
   }, []);
   const tutorialEngine = useTutorialEngine();
   const suggestedNext = useTutorialStore((s) => s.suggestedNext);
+  const spotlight = useTutorialStore((s) => s.spotlight);
   const continueBtnVisible = tutorialEngine.isActive || !!suggestedNext;
+
+  // Body scroll lock during spotlight — prevents iOS from suspending audio on scroll
+  useEffect(() => {
+    document.body.style.overflow = spotlight ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [spotlight]);
   useJarvisFetch(); // Central data pipeline — populates homeStore + personalStore
   useExecutiveBridge(); // Scheduler → mode-aware toasts + proactive chat triggers
   useHealthMonitor(); // Once-per-session brain health check → anomaly toasts
@@ -93,7 +101,7 @@ export function JarvisShell({ children }: JarvisShellProps) {
 
   return (
     <TutorialEngineContext.Provider value={tutorialEngine}>
-      <div className="h-dvh w-full bg-black text-white overflow-hidden">
+      <div className="h-dvh w-full bg-black text-white overflow-hidden" onTouchStart={unlockIOSAudio}>
         <Header />
         <DomainRail />
         <main className={`h-full overflow-y-auto pt-[6.5rem] ${

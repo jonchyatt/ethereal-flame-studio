@@ -1,14 +1,17 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Search, Bell, Settings } from 'lucide-react';
+import { Search, Bell, Settings, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/jarvis/primitives';
 import { Badge } from '@/components/jarvis/primitives';
 import { useShellStore } from '@/lib/jarvis/stores/shellStore';
+import { useTutorialStore } from '@/lib/jarvis/stores/tutorialStore';
 
 export function Header() {
   const router = useRouter();
   const toggleCommandPalette = useShellStore((s) => s.toggleCommandPalette);
+  const isNarrationEnabled = useTutorialStore((s) => s.isNarrationEnabled);
+  const toggleNarration = useTutorialStore((s) => s.toggleNarration);
 
   return (
     <header className="fixed top-0 left-0 right-0 h-14 bg-zinc-950/80 backdrop-blur-xl border-b border-white/10 z-50 md:left-16 flex items-center justify-between px-4">
@@ -37,6 +40,16 @@ export function Header() {
           <span>Search...</span>
           <kbd className="text-[10px] text-white/30 bg-white/5 px-1 rounded">⌘K</kbd>
         </button>
+
+        {/* Narration toggle — always visible so user can mute/unmute at any time */}
+        <Button
+          variant="icon"
+          onClick={toggleNarration}
+          aria-label={isNarrationEnabled ? 'Mute voice narration' : 'Unmute voice narration'}
+          title={isNarrationEnabled ? 'Mute narration' : 'Unmute narration'}
+        >
+          {isNarrationEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5 text-white/30" />}
+        </Button>
 
         {/* Notifications */}
         <Button variant="icon" aria-label="Notifications" className="relative" data-tutorial-id="header-notifications">

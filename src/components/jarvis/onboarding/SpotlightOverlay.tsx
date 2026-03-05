@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Volume2, VolumeX } from 'lucide-react';
 import { useTutorialStore } from '@/lib/jarvis/stores/tutorialStore';
 import { tutorialActionBus } from '@/lib/jarvis/curriculum/tutorialActionBus';
 import { postJarvisAPI } from '@/lib/jarvis/api/fetchWithAuth';
@@ -73,12 +72,12 @@ export function SpotlightOverlay() {
   const spotlight = useTutorialStore((s) => s.spotlight);
   const clearSpotlight = useTutorialStore((s) => s.clearSpotlight);
   const isNarrationEnabled = useTutorialStore((s) => s.isNarrationEnabled);
-  const toggleNarration = useTutorialStore((s) => s.toggleNarration);
   const [flashSuccess, setFlashSuccess] = useState(false);
   const [rect, setRect] = useState<Rect | null>(null);
   const [laserPath, setLaserPath] = useState<LaserPath | null>(null);
   const [laserPosition, setLaserPosition] = useState<Point | null>(null);
   const rafRef = useRef<number>(0);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const laserPointRef = useRef<Point | null>(null);
   const lastElementIdRef = useRef<string | null>(null);
   const audioUrlRef = useRef<string | null>(null);
@@ -146,47 +145,63 @@ export function SpotlightOverlay() {
   }, [spotlight?.narration]);
 
   const measure = useCallback(() => {
+    // Cancel any in-flight retry before starting fresh
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+
     if (!spotlight) {
       setRect(null);
       setLaserPath(null);
       return;
     }
 
-    const el = findVisibleElement(spotlight.elementId);
-    if (!el) {
-      setRect(null);
-      setLaserPath(null);
-      return;
-    }
+    const elementId = spotlight.elementId;
+    let attempts = 0;
+    const MAX_ATTEMPTS = 10;
+    const RETRY_MS = 150;
 
-    // Scroll into view if off-viewport, then measure after paint settles
-    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-    // Double-RAF: first RAF fires at next paint, second fires after
-    // the browser has actually composited the scroll position change
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const r = el.getBoundingClientRect();
-        // Re-check visibility after scroll (element might have been removed)
-        if (r.width === 0 && r.height === 0) {
-          setRect(null);
-          return;
+    const tryMeasure = () => {
+      const el = findVisibleElement(elementId);
+      if (!el) {
+        // Element not in DOM yet — retry (handles navigation race condition)
+        if (++attempts < MAX_ATTEMPTS) {
+          retryTimerRef.current = setTimeout(tryMeasure, RETRY_MS);
         }
-        setRect({
-          top: r.top - PADDING,
-          left: r.left - PADDING,
-          width: r.width + PADDING * 2,
-          height: r.height + PADDING * 2,
+        return;
+      }
+
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const r = el.getBoundingClientRect();
+          if (r.width === 0 && r.height === 0) {
+            // Invisible after scroll — retry once more
+            if (++attempts < MAX_ATTEMPTS) {
+              retryTimerRef.current = setTimeout(tryMeasure, RETRY_MS);
+            }
+            return;
+          }
+          setRect({
+            top: r.top - PADDING,
+            left: r.left - PADDING,
+            width: r.width + PADDING * 2,
+            height: r.height + PADDING * 2,
+          });
+          const target: Point = {
+            x: r.left + r.width / 2,
+            y: r.top + r.height / 2,
+          };
+          const start = laserPointRef.current ?? getLaserStartPoint(target);
+          setLaserPath({ start, target });
+          laserPointRef.current = target;
         });
-        const target: Point = {
-          x: r.left + r.width / 2,
-          y: r.top + r.height / 2,
-        };
-        const start = laserPointRef.current ?? getLaserStartPoint(target);
-        setLaserPath({ start, target });
-        laserPointRef.current = target;
       });
-    });
+    };
+
+    tryMeasure();
   }, [spotlight]);
 
   useEffect(() => {
@@ -200,6 +215,13 @@ export function SpotlightOverlay() {
     });
     return () => cancelAnimationFrame(id);
   }, [laserPath]);
+
+  // Cancel retry timer on unmount
+  useEffect(() => {
+    return () => {
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+    };
+  }, []);
 
   // Measure on spotlight change and reposition on resize/scroll
   useEffect(() => {
@@ -270,20 +292,6 @@ export function SpotlightOverlay() {
           100% { transform: scale(1); border-color: rgba(52,211,153,0.95); }
         }
       `}</style>
-
-      {/* Narration mute toggle — below header (h-14 = 56px) so it never overlaps Settings */}
-      <button
-        onClick={toggleNarration}
-        className="fixed top-16 right-3 w-8 h-8 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-black/80 transition-colors pointer-events-auto"
-        style={{ zIndex: 10001 }}
-        title={isNarrationEnabled ? 'Mute narration' : 'Unmute narration'}
-        aria-label={isNarrationEnabled ? 'Mute narration' : 'Unmute narration'}
-      >
-        {isNarrationEnabled
-          ? <Volume2 className="w-4 h-4" />
-          : <VolumeX className="w-4 h-4" />
-        }
-      </button>
 
       {/* Visual spotlight elements — only rendered once rect is measured */}
       {rect && (
