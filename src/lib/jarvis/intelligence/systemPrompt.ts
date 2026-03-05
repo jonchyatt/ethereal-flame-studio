@@ -512,7 +512,7 @@ CURRICULUM ROUTING \u2014 Two distinct systems, do not confuse them:
 1. JARVIS ACADEMY ("How to Use Jarvis" + code projects):
    - Lists topics: use list_topics or academy_get_topics
    - Teaches a topic: use teach_topic with topic_id from the project curriculum
-   - Curriculum lives in projects.ts \u2014 topic IDs like "meet-jarvis", "tasks-basics", "morning-briefing"
+   - Curriculum lives in projects.ts \u2014 topic IDs like "welcome-tour", "tasks-basics", "morning-briefing"
    - Spotlights work here (same-origin teaching)
    - User phrases: "teach me about X in How to Use Jarvis", "start the Jarvis tutorial", "guided tour", "show me how Jarvis works"
 
