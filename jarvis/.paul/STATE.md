@@ -3,10 +3,10 @@
 ## Current Position
 
 Milestone: v4.4 Guided Onboarding — Academy-Driven
-Phase: L-03 of 4 (Live Walkthrough Pass 2) — Not started
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-05 — Phase L-02 complete (5/5 plans), transitioned to L-03
+Phase: L-03 of 4 (Live Walkthrough Pass 2) — In Progress
+Plan: L-03-01 created, awaiting approval
+Status: PLAN created, ready for APPLY
+Last activity: 2026-03-05 — Created L-03-01-PLAN.md (pre-walkthrough audit + live checkpoint)
 
 Progress:
 - v4.4/L: [█████░░░░░] ~50% (2 of 4 phases complete)
@@ -17,7 +17,7 @@ Progress:
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ○        ○        ○     [L-03 — ready to plan]
+  ✓        ○        ○     [L-03-01 plan created, awaiting approval]
 ```
 
 ## Completed Phases (v4.4)
@@ -97,11 +97,12 @@ Feature branches merged: none
 ## Session Continuity
 
 Last session: 2026-03-05
-Stopped at: L-02 complete, transition executed, ready to plan L-03.
-Next action: /paul:plan for Phase L-03 (Live Walkthrough Pass 2)
-Resume file: jarvis/.paul/ROADMAP.md
+Stopped at: L-03-01 plan written, session paused before apply.
+Next action: /paul:apply jarvis/.paul/phases/L-03-live-walkthrough-pass2/L-03-01-PLAN.md
+Resume file: jarvis/.paul/HANDOFF-2026-03-05-g.md
 Resume context:
-- L-03 focus: Calendar → Meals → Morning Briefing → Chat Mastery walkthrough
-- Verify all L-02 fixes hold on device
-- Document new issues, fix in real-time
-- Jenny demo checklist item 6 (voice) may land here or be deferred to L-04
+- Task 1: fix "meet-jarvis" → "welcome-tour" in systemPrompt.ts (1 line, 0 new imports)
+- Checkpoint: Jonathan walks Calendar → Meals → Morning Briefing → Chat live on device
+- Bug list from checkpoint feeds L-03-02+ fix plans
+- All second-half spotlight IDs verified against DOM (no mismatches found)
+- Voice/PushToTalk: explicitly deferred, not in L-03 scope
