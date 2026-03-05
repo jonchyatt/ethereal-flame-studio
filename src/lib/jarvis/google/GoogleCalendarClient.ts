@@ -310,3 +310,99 @@ export async function queryGoogleCalendarEvents(options: {
   console.log(`[GoogleCalendar] Found ${allEvents.length} events across ${calendarIds.length} calendar(s)`);
   return allEvents;
 }
+
+// =============================================================================
+// Diagnostic Function (health endpoint only — does NOT swallow auth errors)
+// =============================================================================
+
+export interface CalendarDiagnosticResult {
+  configured: boolean;
+  configError: string | null;
+  tokenOk: boolean;
+  tokenError: string | null;
+  calendars: Array<{
+    id: string;
+    status: number;
+    eventCount: number;
+    error: string | null;
+  }>;
+}
+
+/**
+ * Full diagnostic — surfaces all errors including 401/403.
+ * Use ONLY in health endpoint. Never in briefing pipeline (briefing uses silent-failure mode).
+ */
+export async function diagnoseGoogleCalendar(): Promise<CalendarDiagnosticResult> {
+  const config = getServiceAccountConfig();
+  if (!config) {
+    return {
+      configured: false,
+      configError: configError || 'Missing GOOGLE_CALENDAR_SERVICE_ACCOUNT_JSON or GOOGLE_CALENDAR_ID',
+      tokenOk: false,
+      tokenError: null,
+      calendars: [],
+    };
+  }
+
+  let token: string;
+  try {
+    token = await getAccessToken();
+  } catch (e) {
+    return {
+      configured: true,
+      configError: null,
+      tokenOk: false,
+      tokenError: e instanceof Error ? e.message : String(e),
+      calendars: [],
+    };
+  }
+
+  const rawIds = process.env.GOOGLE_CALENDAR_ID || '';
+  const calendarIds = rawIds.split(',').map(id => id.trim()).filter(Boolean);
+
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const timeMin = `${y}-${m}-${d}T00:00:00Z`;
+  const timeMax = `${y}-${m}-${d}T23:59:59Z`;
+
+  const calendarResults = await Promise.all(
+    calendarIds.map(async (id) => {
+      try {
+        const params = new URLSearchParams({
+          timeMin,
+          timeMax,
+          maxResults: '10',
+          singleEvents: 'true',
+          orderBy: 'startTime',
+        });
+        const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(id)}/events?${params}`;
+        const response = await fetch(url, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const text = await response.text();
+        let eventCount = 0;
+        if (response.ok) {
+          try { eventCount = (JSON.parse(text).items || []).length; } catch { /* ignore */ }
+        }
+        return {
+          id,
+          status: response.status,
+          eventCount,
+          error: response.ok ? null : text.slice(0, 400),
+        };
+      } catch (e) {
+        return { id, status: 0, eventCount: 0, error: e instanceof Error ? e.message : String(e) };
+      }
+    })
+  );
+
+  return {
+    configured: true,
+    configError: null,
+    tokenOk: true,
+    tokenError: null,
+    calendars: calendarResults,
+  };
+}

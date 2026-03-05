@@ -10,7 +10,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/jarvis/memory/db';
 import { conversationEvaluations, behaviorRules, memoryEntries } from '@/lib/jarvis/memory/schema';
 import { sql, eq, desc, isNull } from 'drizzle-orm';
-import { queryGoogleCalendarEvents } from '@/lib/jarvis/google/GoogleCalendarClient';
+import { diagnoseGoogleCalendar } from '@/lib/jarvis/google/GoogleCalendarClient';
 
 export const maxDuration = 10;
 export const dynamic = 'force-dynamic';
@@ -145,16 +145,10 @@ export async function GET() {
   // ── Google Calendar diagnostic ────────────────────────────────────────
   let calendar = null;
   try {
-    const now = new Date();
-    const y = now.getFullYear(), m = String(now.getMonth() + 1).padStart(2, '0'), d = String(now.getDate()).padStart(2, '0');
-    const timeMin = `${y}-${m}-${d}T00:00:00Z`;
-    const timeMax = `${y}-${m}-${d}T23:59:59Z`;
-    const events = await queryGoogleCalendarEvents({ timeMin, timeMax });
-    calendar = { configured: true, eventsToday: events.length, error: null };
+    calendar = await diagnoseGoogleCalendar();
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    const isConfig = !process.env.GOOGLE_CALENDAR_SERVICE_ACCOUNT_JSON || !process.env.GOOGLE_CALENDAR_ID;
-    calendar = { configured: !isConfig, eventsToday: 0, error: msg };
+    calendar = { configured: false, tokenOk: false, error: msg, calendars: [] };
   }
 
   return NextResponse.json({
