@@ -4,20 +4,20 @@
 
 Milestone: v4.4 Guided Onboarding — Academy-Driven
 Phase: L-02 of 4 (Live Walkthrough Pass 1) — In Progress
-Plan: L-02-02 COMPLETE (code + walkthrough done), L-02-03 pending (fix 7 bugs found in walkthrough)
-Status: Walkthrough done, 7 bugs documented, fix pass next
-Last activity: 2026-03-03 — L-02 live walkthrough complete, bugs logged
+Plan: L-02-04 APPLIED (commits 62160b7, 2e3b9b2) — 9 bugs fixed + Tier 1 vision, UNIFY pending
+Status: Awaiting UNIFY — do a full walkthrough on device to verify all 9 bugs resolved
+Last activity: 2026-03-04 — L-02-04 applied and deployed
 
 Progress:
 - v4.4/L: [███░░░░░░░] ~30% (1 of 4 phases complete)
-- Phase L-02: [█████░░░░░] ~50% (2 plans coded, live walkthrough next)
+- Phase L-02: [██████░░░░] ~60% (bugs documented, fix plan ready)
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ○     [L-02-02 complete, UNIFY deferred until L-02-03 bugs are fixed]
+  ✓        ✓        ○     [L-02-04 applied, awaiting device walkthrough then UNIFY]
 ```
 
 ## Completed Phases (v4.4)
@@ -87,15 +87,14 @@ Feature branches merged: none
 
 ## Session Continuity
 
-Last session: 2026-03-03
-Stopped at: L-02 walkthrough COMPLETE. 7 bugs found, documented in HANDOFF. L-02-03 fix pass is next.
-Next action: Plan L-02-03 — fix the 7 walkthrough bugs (see HANDOFF for full list)
-Resume file: .paul/HANDOFF-2026-03-03-L02-walkthrough.md
+Last session: 2026-03-04 (fourth pause — context limit)
+Stopped at: Bills static fallback deployed, calendar diagnostic deployed, L-02-05 bug list documented
+Next action: Check health endpoint for calendar error, then plan L-02-05 (curriculum + bug fixes)
+Resume file: jarvis/.paul/HANDOFF-2026-03-04-d.md
 Resume context:
-- Bug 1 CRITICAL: Chat h-[70vh] covers spotlight targets in portrait. Fix: h-[45vh]
-- Bug 2 CRITICAL: iOS autoplay blocked — audio never plays. Fix: unlock AudioContext on first send gesture
-- Bug 3 HIGH: Raw 529 overloaded_error JSON shown to user in chat
-- Bug 4 HIGH: No touch confirmation when tapping spotlight target
-- Bug 5 HIGH: Lesson system tools fail silently — Claude falls back to hand-explaining
-- Bug 6 MEDIUM: Three curriculum systems confuse Claude (tutorialLessons / lessonRegistry / projects)
-- Bug 7 MEDIUM: Chat overlay intercepts all pointer events — can't tap spotlighted elements behind it
+- Bills NOW show via static fallback (28 bills, day-of-month logic) — commit d914f2a
+- Calendar still broken — diagnostic at /api/jarvis/health will show actual error — commit 3677814
+- Jonathan's walkthrough found 8 new/remaining bugs — need L-02-05
+- BIG issue: tutorial needs deterministic curriculum, not AI-improvised
+- Agent capabilities concept doc saved: jarvis/.paul/concepts/jarvis-agent-capabilities.md
+- DO NOT repeat calendar/bills env var setup instructions — already done, Jonathan is frustrated
