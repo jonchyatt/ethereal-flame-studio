@@ -80,6 +80,12 @@ MOBILE-FIRST UI (new)
 | SSE spotlight bridge (tool_use interception) | ChatOverlay intercepts spotlight tool_use events and applies side-effects — no new API routes needed — v4.4 L-01 |
 | Same-origin vs cross-origin teaching | Spotlights only for Jarvis project (same-origin); cross-origin projects get verbal descriptions only — v4.4 L-01 |
 | /jarvis redirect to /jarvis/app | Old orb was dead end; redirect eliminates confusion without deleting old code — v4.4 L-01 |
+| querySelectorAll + visible-element filter | Handles dual-render layouts (mobile+desktop simultaneously) — querySelector was finding hidden elements — v4.4 L-02 |
+| iOS audio unlock in gesture handlers | Must call silent Audio() in handleSubmit/handleQuickAction (direct gesture) not in useEffect — v4.4 L-02 |
+| TutorialContinueButton at shell level | Floated to JarvisShell, above BottomTabBar — not inside ChatOverlay (chat can close independently) — v4.4 L-02 |
+| Chat scrim pointer-events-none during spotlight | Scrim at z-[54] was intercepting all taps in app when spotlight active — conditional pointer-events is the fix — v4.4 L-02 |
+| Shared TTS audio singleton (activeTTSAudio) | Module-level ref exported from SpotlightOverlay — chat and spotlight both cancel each other's audio — v4.4 L-02 |
+| Conditional main pb (5rem vs 10rem) | JarvisShell expands <main> padding-bottom when TutorialContinueButton visible to prevent content overlap — v4.4 L-02 |
 
 ## Validated Requirements
 
@@ -143,8 +149,8 @@ MOBILE-FIRST UI (new)
 
 The original v4.3 vision was Guided Onboarding. During planning, the scope was refocused to Academy Engine (codebase teaching). v4.4 picks up the onboarding work using Academy as the delivery framework. Status updated as L-01 Foundation ships:
 
-- ◐ 8-topic Jarvis curriculum (Welcome → Tasks → Habits → Bills → Calendar → Meals → Briefing → Chat) — L-01 created data, L-02/L-03 will test
-- ◐ Interactive verification via spotlight teaching (Claude highlights UI + guides user) — L-01 bridge built, L-02 will live-test
+- ◐ 8-topic Jarvis curriculum (Welcome → Tasks → Habits → Bills → Calendar → Meals → Briefing → Chat) — L-01 created, L-02 tested Tasks+Bills pass, L-03 tests Calendar→Chat
+- ◐ Interactive verification via spotlight teaching (Claude highlights UI + guides user) — L-01 bridge built, L-02 live-tested + 7 bugs fixed (dual-render, iOS audio, pointer-events, TTS, stall, ID mismatches, content overlap)
 - ◐ Wife test as acceptance criterion — L-04 is the wife test
 - ○ Progressive UI unlocking (reveal features as curriculum advances) — may not be needed if teaching flow is smooth
 - ○ Emotional framing on every lesson (mental load reduction)
@@ -161,4 +167,4 @@ The original v4.3 vision was Guided Onboarding. During planning, the scope was r
 - **Shell Convergence** — `/jarvis` now redirects to `/jarvis/app` (L-01); full old-shell removal deferred
 
 ---
-*Last updated: 2026-03-02 after Phase L-01 (v4.4 Foundation complete)*
+*Last updated: 2026-03-05 after Phase L-02 (v4.4 Live Walkthrough Pass 1 complete)*

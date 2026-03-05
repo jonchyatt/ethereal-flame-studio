@@ -3,26 +3,32 @@
 ## Current Position
 
 Milestone: v4.4 Guided Onboarding — Academy-Driven
-Phase: L-02 of 4 (Live Walkthrough Pass 1) — In Progress
-Plan: L-02-05-03 created, awaiting apply
-Status: PLAN created, ready for APPLY
-Last activity: 2026-03-05 — Created L-02-05-03-PLAN.md (safe-area fix)
+Phase: L-03 of 4 (Live Walkthrough Pass 2) — Not started
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-03-05 — Phase L-02 complete (5/5 plans), transitioned to L-03
 
 Progress:
-- v4.4/L: [███░░░░░░░] ~30% (1 of 4 phases complete)
-- Phase L-02: [███████░░░] ~70% (one fix remaining to deploy)
+- v4.4/L: [█████░░░░░] ~50% (2 of 4 phases complete)
+- Phase L-03: [░░░░░░░░░░] 0% (not started)
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [L-02-05-01 complete]
-  ✓        ✓        ✓     [L-02-05-02 complete]
-  ✓        ○        ○     [L-02-05-03 plan created, awaiting apply]
+  ○        ○        ○     [L-03 — ready to plan]
 ```
 
 ## Completed Phases (v4.4)
+
+### Phase L-02: Live Walkthrough Pass 1 — COMPLETE (2026-03-05)
+
+- L-02-01: SpotlightOverlay dual-render fix (querySelectorAll + visible-element filter), spotlight target ID fixes (21/21 verified), AcademyHub tab auto-selection
+- L-02-03: 7 walkthrough bugs fixed (chat height, iOS audio, friendly error, green flash, lesson routing, curriculum routing, pointer-events scrim fix)
+- L-02-05-01: Bills lesson stall fixed + 45s timeout + TutorialContinueButton floated to shell
+- L-02-05-02: Chat closes on spotlight, rAF scroll, shared TTS audio singleton
+- L-02-05-03: Conditional <main> pb (10rem when Continue button visible, 5rem otherwise)
 
 ### Phase L-01: Foundation — COMPLETE (2026-03-02)
 
@@ -57,7 +63,7 @@ PLAN ──▶ APPLY ──▶ UNIFY
 - 6 empty domains (only Personal has content)
 - Journal + Health sub-pages: no API data, show empty
 - Write-back mutations: local-only (Notion doesn't update)
-- Voice pipeline absent from new shell
+- Voice pipeline absent from new shell (PushToTalk exists but not wired into ChatOverlay — deferred to L-03 or later)
 - Old shell (/jarvis) now redirects to /jarvis/app — full removal deferred
 - Intelligence Evolution concepts documented but not executed
 - Vision input framework deferred to v4.5+
@@ -68,33 +74,34 @@ PLAN ──▶ APPLY ──▶ UNIFY
 - Academy-as-onboarding: same curriculum framework for codebase teaching AND user onboarding
 - SSE spotlight bridge: tool_use interception in ChatOverlay, no new API routes
 - Same-origin vs cross-origin: spotlights only for Jarvis project
-- 500ms setTimeout for startTour → openWithMessage (wait for router.push + shell mount)
+- shellMounted polling replaces 500ms blind timeout (L-02-03)
 
-### Decisions (L-02 Planning)
-- Fix SpotlightOverlay globally (querySelectorAll + visible-filter) rather than per-component unique IDs
-- Fix ID references in curriculum/prompt to match DOM, not the other way around
-- Wire academyStore.activeProject into AcademyHub for onboarding → Academy flow
+### Decisions (L-02)
+- querySelectorAll + visible-element filter: handles dual-render layouts globally, not per-component
+- Chat scrim pointer-events-none during spotlight: root cause of all tap-blocking during tutorials
+- TutorialContinueButton at shell level: above BottomTabBar, chat can close independently
+- Shared TTS audio singleton (activeTTSAudio): exported from SpotlightOverlay, both systems cancel each other
+- Conditional <main> pb: 10rem when Continue button visible, 5rem otherwise (desktop md:pb-4 unchanged)
 
-### Concerns
-- Dual-render querySelector: RESOLVED in L-02-01 (querySelectorAll + visible-element filter)
-- PriorityStack has dual IDs (empty Card + populated ul) — only one renders at a time, handled by new querySelectorAll approach
-- `bottom-tab-academy` mismatch: RESOLVED in L-02-01 (fixed to `bottom-tab-learn`)
-- `tasks-first-checkbox-0` mismatch: RESOLVED in L-02-01 (fixed to `tasks-first-checkbox`)
-- 500ms setTimeout timing: RESOLVED in L-02-02 (shellMounted polling replaces blind timeout)
+### Concerns (Carry into L-03)
+- iOS audio unlock: needs live device verification on iPhone (pattern correct, edge case if audio fires before user gesture)
+- Dual render performance: mobile+desktop rendered simultaneously — functional but redundant
+- SpotlightOverlay click listener uses capture:true — if spotlighted button has own handler, both fire (acceptable)
+- Voice touch-and-hold: PushToTalk component exists but NOT wired into ChatOverlay — deferred, own plan needed
 
 ### Git State
-Last commit: 038e210
+Last commit: 429e476
 Branch: master
 Feature branches merged: none
 
 ## Session Continuity
 
 Last session: 2026-03-05
-Stopped at: L-02-05-03 PLAN.md written, session paused before apply.
-Next action: /paul:apply jarvis/.paul/phases/L-02-live-walkthrough-pass1/L-02-05-03-PLAN.md
-Resume file: jarvis/.paul/HANDOFF-2026-03-05-f.md
+Stopped at: L-02 complete, transition executed, ready to plan L-03.
+Next action: /paul:plan for Phase L-03 (Live Walkthrough Pass 2)
+Resume file: jarvis/.paul/ROADMAP.md
 Resume context:
-- Root cause: TutorialContinueButton (fixed, ~40px, bottom 92px+safe-area) covers 52px of content — main pb only 80px+safe-area
-- Fix: 2 new lines in JarvisShell — suggestedNext selector + continueBtnVisible flag + conditional pb (10rem vs 5rem)
-- Voice deferred: PushToTalk exists but not integrated into ChatOverlay — separate plan
-- Jenny demo: items 1-4 ✅, item 5 (this plan), item 6 (voice, deferred)
+- L-03 focus: Calendar → Meals → Morning Briefing → Chat Mastery walkthrough
+- Verify all L-02 fixes hold on device
+- Document new issues, fix in real-time
+- Jenny demo checklist item 6 (voice) may land here or be deferred to L-04

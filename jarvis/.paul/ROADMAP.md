@@ -9,12 +9,12 @@
 
 **v4.4 Guided Onboarding — Academy-Driven**
 Status: In Progress
-Phases: 1 of 4 complete
+Phases: 2 of 4 complete
 
 | Phase | Name | Plans | Status | Completed |
 |-------|------|-------|--------|-----------|
 | L-01 | Foundation | 2/2 complete | ✅ Complete | 2026-03-02 |
-| L-02 | Live Walkthrough Pass 1 | TBD | Not started | - |
+| L-02 | Live Walkthrough Pass 1 | 5/5 complete | ✅ Complete | 2026-03-05 |
 | L-03 | Live Walkthrough Pass 2 | TBD | Not started | - |
 | L-04 | Polish + Wife Test | TBD | Not started | - |
 
@@ -123,4 +123,4 @@ None.
 ---
 
 *Created: 2026-02-28*
-*Updated: 2026-03-02 — v4.4 milestone formalized*
+*Updated: 2026-03-05 — L-02 complete (5/5 plans, 7 tutorial bugs fixed)*
