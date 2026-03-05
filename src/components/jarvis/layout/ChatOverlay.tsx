@@ -2,13 +2,12 @@
 
 import { useState, useRef, useEffect, useCallback, forwardRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { X, Send, Loader2, GraduationCap, ChevronRight } from 'lucide-react';
+import { X, Send, Loader2, GraduationCap } from 'lucide-react';
 import { useShellStore } from '@/lib/jarvis/stores/shellStore';
 import { useChatStore, type ChatMessage } from '@/lib/jarvis/stores/chatStore';
 import { useTutorialStore } from '@/lib/jarvis/stores/tutorialStore';
 import { postJarvisAPI } from '@/lib/jarvis/api/fetchWithAuth';
 import { tutorialActionBus } from '@/lib/jarvis/curriculum/tutorialActionBus';
-import { getLesson } from '@/lib/jarvis/curriculum/tutorialLessons';
 import { useTutorialEngineContext } from './JarvisShell';
 import { Input } from '../primitives/Input';
 import { Button } from '../primitives/Button';
@@ -606,7 +605,7 @@ function TypingDots() {
   );
 }
 
-/** Shows next-lesson chip during tutorial, or standard quick actions otherwise. */
+/** Shows standard quick actions. */
 function ChatActionsRow({
   onAction,
   disabled,
@@ -616,42 +615,6 @@ function ChatActionsRow({
   disabled: boolean;
   messages: ChatMessage[];
 }) {
-  const engine = useTutorialEngineContext();
-  const suggestedNext = useTutorialStore((s) => s.suggestedNext);
-
-  // Between lessons — show "Continue" chip
-  if (!engine?.isActive && suggestedNext) {
-    const nextLesson = getLesson(suggestedNext);
-    if (nextLesson) {
-      return (
-        <div className="px-4 py-2 flex gap-2 border-t border-white/5 shrink-0">
-          <button
-            onClick={() => engine?.startLesson(suggestedNext)}
-            className="px-3 py-1.5 text-xs bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-full border border-cyan-500/20 transition-colors whitespace-nowrap"
-          >
-            Continue: {nextLesson.name} →
-          </button>
-        </div>
-      );
-    }
-  }
-
-  // During active tutorial — always show Continue chip so user can skip current step.
-  // Calls engine.skipStep() directly — NO API call, no Claude involvement.
-  if (engine?.isActive) {
-    return (
-      <div className="px-4 py-2 flex gap-2 border-t border-white/5 shrink-0">
-        <button
-          onClick={() => engine.skipStep()}
-          className="flex items-center gap-1.5 px-4 py-1.5 text-xs bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 rounded-full border border-cyan-500/25 transition-colors font-medium"
-        >
-          Continue <ChevronRight className="w-3.5 h-3.5" />
-        </button>
-      </div>
-    );
-  }
-
-  // Normal quick actions
   if (messages.length === 0) return null;
 
   return (

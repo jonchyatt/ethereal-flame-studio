@@ -77,6 +77,7 @@ export function useTutorialEngine(): TutorialEngineAPI {
   // Refs for the polling interval and timers
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stepTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const contextRef = useRef<StepContext | null>(null);
   const stepStartRef = useRef<number>(0);
   const lessonStartRef = useRef<number>(0);
@@ -97,10 +98,18 @@ export function useTutorialEngine(): TutorialEngineAPI {
     }
   }, []);
 
+  const clearStepTimeout = useCallback(() => {
+    if (stepTimeoutRef.current) {
+      clearTimeout(stepTimeoutRef.current);
+      stepTimeoutRef.current = null;
+    }
+  }, []);
+
   const cleanup = useCallback(() => {
     clearPolling();
     clearTimer();
-  }, [clearPolling, clearTimer]);
+    clearStepTimeout();
+  }, [clearPolling, clearTimer, clearStepTimeout]);
 
   // ── Step advancement (success → next or complete) ─────────────────────
 
@@ -212,6 +221,15 @@ export function useTutorialEngine(): TutorialEngineAPI {
           closeChatIfOpen();
         }, 2500);
       }
+
+      // ── 45s step timeout — auto-advance if step can't be verified ───
+      stepTimeoutRef.current = setTimeout(() => {
+        injectMessage("Let's move on — you can always explore this on your own.", {
+          lessonId: currentLesson.id,
+          type: 'teaching',
+        });
+        advanceToNextStep(currentLesson, idx);
+      }, 45_000);
 
       // ── Start polling for verification ──────────────────────────────
       pollRef.current = setInterval(() => {

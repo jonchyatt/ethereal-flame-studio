@@ -312,24 +312,15 @@ const billsBasics: TutorialLesson = {
         'Jarvis automatically calculates your total upcoming bills. No spreadsheet needed — the numbers update every time you mark a bill paid or a new one comes due.',
     },
     {
-      id: 'bills-4-mark-paid',
+      id: 'bills-4-understand-totals',
       instruction:
-        "Find a bill and tap the 'Mark Paid' button. It's the small button on the right side of each unpaid bill.",
-      instructionAdvanced: 'Mark any bill as paid.',
-      spotlight: { elementId: 'bills-first-mark-paid', type: 'pulse' },
-      verification: {
-        type: 'store',
-        check: 'personalStore.bills.some(b => b.status === "paid")',
-      },
-      mistakeHints: [
-        {
-          detect: 'tapped bill name instead',
-          correction:
-            "Look for the 'Mark Paid' button on the right side of the bill row, not the bill name.",
-        },
-      ],
+        "See the total at the top? Jarvis calculates your upcoming bill total automatically — no spreadsheet needed. Notice how bills are organized by due date.",
+      instructionAdvanced: 'Review the bill totals and due dates.',
+      spotlight: { elementId: 'bills-list', type: 'ring' },
+      verification: { type: 'route', check: '/jarvis/app/personal/bills' },
+      mistakeHints: [],
       teachingPoint:
-        'When you mark a bill paid, Jarvis updates the totals instantly and moves it to the Paid section. It also updates in Notion.',
+        "Bills are grouped by due date. Overdue bills appear at the top in red. Jarvis automatically flags what's due soon so you never miss a payment.",
     },
     {
       id: 'bills-5-create-via-chat',

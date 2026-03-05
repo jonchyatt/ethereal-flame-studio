@@ -4,6 +4,7 @@ import { type ReactNode, useEffect, createContext, useContext } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSettingsStore } from '@/lib/jarvis/stores/settingsStore';
 import { useShellStore } from '@/lib/jarvis/stores/shellStore';
+import { useTutorialStore } from '@/lib/jarvis/stores/tutorialStore';
 import { useTutorialEngine, type TutorialEngineAPI } from '@/lib/jarvis/hooks/useTutorialEngine';
 import { useJarvisFetch } from '@/lib/jarvis/hooks/useJarvisFetch';
 import { useExecutiveBridge } from '@/lib/jarvis/hooks/useExecutiveBridge';
@@ -100,8 +101,31 @@ export function JarvisShell({ children }: JarvisShellProps) {
         <ChatOverlay />
         <ToastContainer />
         <SpotlightOverlay />
+        <TutorialContinueButton />
         {isCommandPaletteOpen && <CommandPalette />}
       </div>
     </TutorialEngineContext.Provider>
+  );
+}
+
+function TutorialContinueButton() {
+  const engine = useTutorialEngineContext();
+  const suggestedNext = useTutorialStore((s) => s.suggestedNext);
+
+  const isActive = engine?.isActive ?? false;
+  const hasSuggestion = !isActive && !!suggestedNext;
+
+  if (!isActive && !hasSuggestion) return null;
+
+  return (
+    <button
+      onClick={() => {
+        if (isActive) engine?.skipStep();
+        else if (suggestedNext) engine?.startLesson(suggestedNext);
+      }}
+      className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+0.75rem)] left-1/2 -translate-x-1/2 z-[10002] px-5 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-black text-sm font-semibold rounded-full shadow-lg shadow-cyan-500/30 transition-colors flex items-center gap-1.5 pointer-events-auto"
+    >
+      Continue <span>→</span>
+    </button>
   );
 }

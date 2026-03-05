@@ -67,12 +67,6 @@ const storeVerifiers: Record<string, Predicate> = {
     return usePersonalStore.getState().todayStats.habitsDone > 0;
   },
 
-  // Bills: a bill was marked paid AFTER step started
-  'personalStore.bills.some(b => b.status === "paid")': (ctx) => {
-    const bills = usePersonalStore.getState().bills;
-    return bills.filter((b) => b.status === 'paid').length > ctx.paidBillCount;
-  },
-
   // Chat: at least 2 messages in chat (for morning briefing)
   'chatStore.messages.length >= 2': () => {
     return useChatStore.getState().messages.length >= 2;
