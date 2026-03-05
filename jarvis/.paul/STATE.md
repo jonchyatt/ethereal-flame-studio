@@ -4,20 +4,22 @@
 
 Milestone: v4.4 Guided Onboarding — Academy-Driven
 Phase: L-02 of 4 (Live Walkthrough Pass 1) — In Progress
-Plan: L-02-05-01 CREATED (tutorial curriculum fix), L-02-05-02 CREATED (chat/TTS bugs)
+Plan: L-02-05-03 created, awaiting apply
 Status: PLAN created, ready for APPLY
-Last activity: 2026-03-05 — Calendar confirmed working (7 events, "Jarvis test" picked up). L-02-05 plans written.
+Last activity: 2026-03-05 — Created L-02-05-03-PLAN.md (safe-area fix)
 
 Progress:
 - v4.4/L: [███░░░░░░░] ~30% (1 of 4 phases complete)
-- Phase L-02: [██████░░░░] ~60% (bugs documented, fix plan ready)
+- Phase L-02: [███████░░░] ~70% (one fix remaining to deploy)
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ○        ○     [L-02-05-01 plan created, awaiting apply]
+  ✓        ✓        ✓     [L-02-05-01 complete]
+  ✓        ✓        ✓     [L-02-05-02 complete]
+  ✓        ○        ○     [L-02-05-03 plan created, awaiting apply]
 ```
 
 ## Completed Phases (v4.4)
@@ -87,13 +89,12 @@ Feature branches merged: none
 
 ## Session Continuity
 
-Last session: 2026-03-05 (fifth pause — context limit)
-Stopped at: L-02-05-01 and L-02-05-02 plans written, ready to execute
-Next action: /paul:apply jarvis/.paul/phases/L-02-live-walkthrough-pass1/L-02-05-01-PLAN.md
-Resume file: jarvis/.paul/HANDOFF-2026-03-05.md
+Last session: 2026-03-05
+Stopped at: L-02-05-03 PLAN.md written, session paused before apply.
+Next action: /paul:apply jarvis/.paul/phases/L-02-live-walkthrough-pass1/L-02-05-03-PLAN.md
+Resume file: jarvis/.paul/HANDOFF-2026-03-05-f.md
 Resume context:
-- Calendar CONFIRMED WORKING — 7 events found, "Jarvis test" for tomorrow picked up ✓
-- Root cause of tutorial stall found: bills-4-mark-paid verification impossible with static bills
-- L-02-05-01-PLAN.md: fix bills lesson + 45s timeout + floating Continue chip
-- L-02-05-02-PLAN.md: close chat on spotlight + scroll fix + shared TTS audio manager
-- L-02-05-03 NOT yet written: safe-area + voice touch-and-talk (write before or after executing 01+02)
+- Root cause: TutorialContinueButton (fixed, ~40px, bottom 92px+safe-area) covers 52px of content — main pb only 80px+safe-area
+- Fix: 2 new lines in JarvisShell — suggestedNext selector + continueBtnVisible flag + conditional pb (10rem vs 5rem)
+- Voice deferred: PushToTalk exists but not integrated into ChatOverlay — separate plan
+- Jenny demo: items 1-4 ✅, item 5 (this plan), item 6 (voice, deferred)
