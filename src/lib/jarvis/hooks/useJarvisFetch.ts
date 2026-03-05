@@ -187,9 +187,11 @@ function transformBills(data: BriefingData): PersonalBill[] {
   return data.bills.thisWeek.map((bill) => {
     let status: PersonalBill['status'] = 'upcoming';
     if (bill.dueDate) {
-      if (bill.dueDate < today) status = 'overdue';
-      else if (bill.dueDate <= today) status = 'due_soon';
-      else {
+      if (bill.dueDate < today) {
+        status = 'overdue';
+      } else if (bill.dueDate === today) {
+        status = 'due_soon';
+      } else {
         // Due within 3 days = due_soon
         const due = new Date(bill.dueDate + 'T00:00:00');
         const now = new Date(today + 'T00:00:00');

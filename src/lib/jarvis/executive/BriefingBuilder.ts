@@ -51,6 +51,7 @@ import {
   getTimezoneOffsetString,
   type GoogleCalendarEvent,
 } from '../google/GoogleCalendarClient';
+import { getStaticBills } from '../data/staticBills';
 
 // =============================================================================
 // Raw Data Extraction Helpers
@@ -158,12 +159,13 @@ export async function buildMorningBriefing(timezone?: string): Promise<BriefingD
     const todayTasks = parseTaskResults(todayTasksResult, 'pending');
     const overdueTasks = parseTaskResults(overdueTasksResult, 'pending');
 
-    // Parse bill results
-    const bills = parseBillResults(billsResult, {
+    // Parse bill results — fall back to static bills if Notion returns empty
+    const notionBills = parseBillResults(billsResult, {
       timeframe: 'this_week',
       unpaidOnly: true,
       timezone,
     });
+    const bills = notionBills.length > 0 ? notionBills : getStaticBills(timezone);
     const billTotal = bills.reduce((sum, b) => sum + b.amount, 0);
 
     // Parse habit results
@@ -773,12 +775,13 @@ export async function buildEveningWrapData(timezone?: string): Promise<EveningWr
     // Build week summary
     const weekSummary = analyzeWeekLoad(weekTasks);
 
-    // Parse other results
-    const bills = parseBillResults(billsResult, {
+    // Parse other results — fall back to static bills if Notion returns empty
+    const notionBillsForCheckin = parseBillResults(billsResult, {
       timeframe: 'this_week',
       unpaidOnly: true,
       timezone,
     });
+    const bills = notionBillsForCheckin.length > 0 ? notionBillsForCheckin : getStaticBills(timezone);
     const billTotal = bills.reduce((sum, b) => sum + b.amount, 0);
     const habits = parseHabitResults(habitsResult);
     const streakSummary = buildStreakSummary(habits);
