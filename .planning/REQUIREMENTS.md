@@ -31,13 +31,13 @@ Requirements for the Floating Widget Design System. Each maps to roadmap phases 
 
 ### Widget System (WIDG)
 
-- [ ] **WIDG-01**: User can open any parameter group as a free-floating widget on the Design screen
-- [ ] **WIDG-02**: User can drag widgets freely around the screen
-- [ ] **WIDG-03**: User can resize widgets
-- [ ] **WIDG-04**: User can minimize widgets to title bar only
+- [x] **WIDG-01**: User can open any parameter group as a free-floating widget on the Design screen
+- [x] **WIDG-02**: User can drag widgets freely around the screen
+- [x] **WIDG-03**: User can resize widgets
+- [x] **WIDG-04**: User can minimize widgets to title bar only
 - [ ] **WIDG-05**: User can close and reopen widgets from a toolbar
 - [ ] **WIDG-06**: Widget positions and sizes persist across page refreshes
-- [ ] **WIDG-07**: Clicking a widget brings it to front (z-order management)
+- [x] **WIDG-07**: Clicking a widget brings it to front (z-order management)
 - [ ] **WIDG-08**: Widget toolbar shows all available widgets with open/close toggle
 - [ ] **WIDG-09**: Mobile devices fall back to scrollable sheet instead of floating widgets
 
@@ -105,13 +105,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| WIDG-01 | Phase 19 | Pending |
-| WIDG-02 | Phase 19 | Pending |
-| WIDG-03 | Phase 19 | Pending |
-| WIDG-04 | Phase 19 | Pending |
+| WIDG-01 | Phase 19 | Complete |
+| WIDG-02 | Phase 19 | Complete |
+| WIDG-03 | Phase 19 | Complete |
+| WIDG-04 | Phase 19 | Complete |
 | WIDG-05 | Phase 21 | Pending |
 | WIDG-06 | Phase 21 | Pending |
-| WIDG-07 | Phase 19 | Pending |
+| WIDG-07 | Phase 19 | Complete |
 | WIDG-08 | Phase 21 | Pending |
 | WIDG-09 | Phase 25 | Pending |
 | WCNT-01 | Phase 20 | Pending |
