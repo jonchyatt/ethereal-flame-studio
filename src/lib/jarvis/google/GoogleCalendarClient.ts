@@ -320,10 +320,11 @@ export interface CalendarDiagnosticResult {
   configError: string | null;
   tokenOk: boolean;
   tokenError: string | null;
+  queryWindow: string;
   calendars: Array<{
     id: string;
     status: number;
-    eventCount_last30days: number;
+    eventCount: number;
     error: string | null;
   }>;
 }
@@ -340,6 +341,7 @@ export async function diagnoseGoogleCalendar(): Promise<CalendarDiagnosticResult
       configError: configError || 'Missing GOOGLE_CALENDAR_SERVICE_ACCOUNT_JSON or GOOGLE_CALENDAR_ID',
       tokenOk: false,
       tokenError: null,
+      queryWindow: 'n/a',
       calendars: [],
     };
   }
@@ -353,6 +355,7 @@ export async function diagnoseGoogleCalendar(): Promise<CalendarDiagnosticResult
       configError: null,
       tokenOk: false,
       tokenError: e instanceof Error ? e.message : String(e),
+      queryWindow: 'n/a',
       calendars: [],
     };
   }
@@ -382,18 +385,18 @@ export async function diagnoseGoogleCalendar(): Promise<CalendarDiagnosticResult
           headers: { Authorization: `Bearer ${token}` },
         });
         const text = await response.text();
-        let eventCount_last30days = 0;
+        let eventCount = 0;
         if (response.ok) {
-          try { eventCount_last30days = (JSON.parse(text).items || []).length; } catch { /* ignore */ }
+          try { eventCount = (JSON.parse(text).items || []).length; } catch { /* ignore */ }
         }
         return {
           id,
           status: response.status,
-          eventCount_last30days,
+          eventCount,
           error: response.ok ? null : text.slice(0, 400),
         };
       } catch (e) {
-        return { id, status: 0, eventCount_last30days: 0, error: e instanceof Error ? e.message : String(e) };
+        return { id, status: 0, eventCount: 0, error: e instanceof Error ? e.message : String(e) };
       }
     })
   );
@@ -403,6 +406,7 @@ export async function diagnoseGoogleCalendar(): Promise<CalendarDiagnosticResult
     configError: null,
     tokenOk: true,
     tokenError: null,
+    queryWindow: `${timeMin} → ${timeMax}`,
     calendars: calendarResults,
   };
 }
