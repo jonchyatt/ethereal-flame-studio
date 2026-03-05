@@ -24,8 +24,14 @@ interface LaserPath {
 
 // ── Shared TTS singleton — one audio track at a time across spotlight + chat ──
 export const activeTTSAudio = { current: null as HTMLAudioElement | null };
+
+// Tracks audio elements that we paused intentionally (stopActiveTTS).
+// Used by the pause auto-resume listener to distinguish our stops from iOS interrupts.
+const _intentionallyPaused = new WeakSet<HTMLAudioElement>();
+
 export function stopActiveTTS() {
   if (activeTTSAudio.current) {
+    _intentionallyPaused.add(activeTTSAudio.current);
     activeTTSAudio.current.pause();
     activeTTSAudio.current = null;
   }
@@ -120,6 +126,13 @@ export function SpotlightOverlay() {
         audioUrlRef.current = url;
         const audio = new Audio(url);
         activeTTSAudio.current = audio;
+        // iOS suspends audio on touch even when started asynchronously.
+        // Auto-resume unless we explicitly stopped it via stopActiveTTS().
+        audio.addEventListener('pause', () => {
+          if (!audio.ended && !_intentionallyPaused.has(audio)) {
+            audio.play().catch(() => {});
+          }
+        });
         audio.play().catch(() => {
           // Autoplay policy may block on first interaction — silent fail
         });
