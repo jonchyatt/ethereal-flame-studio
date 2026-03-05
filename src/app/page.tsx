@@ -18,7 +18,9 @@ import { AudioControls, AudioControlsRef } from '@/components/ui/AudioControls';
 import { LandingOverlay } from '@/components/ui/LandingOverlay';
 import { ExperienceOverlay } from '@/components/ui/ExperienceOverlay';
 import { CreateOverlay } from '@/components/ui/CreateOverlay';
+import { WidgetLayer } from '@/components/ui/WidgetLayer';
 import { useVisualStore } from '@/lib/stores/visualStore';
+import { useWidgetStore } from '@/lib/stores/widgetStore';
 import { useRenderMode } from '@/hooks/useRenderMode';
 
 type ViewMode = 'landing' | 'experience' | 'designer' | 'create';
@@ -317,6 +319,36 @@ export default function Home() {
           onBack={() => setViewMode('landing')}
         />
       </div>
+
+      {/* Widget Layer - floating panels on designer screen */}
+      {viewMode === 'designer' && !isVRMode && !renderMode.isActive && (
+        <WidgetLayer />
+      )}
+
+      {/* TEMPORARY: Widget demo button -- remove in Phase 20 when real widgets are wired */}
+      {viewMode === 'designer' && !isVRMode && !renderMode.isActive && (
+        <button
+          onClick={() => {
+            const store = useWidgetStore.getState();
+            const ids = ['global', 'audio', 'particles'] as const;
+            ids.forEach(id => {
+              if (!store.widgets[id].isOpen) {
+                store.openWidget(id);
+              }
+            });
+          }}
+          className="
+            fixed bottom-20 right-4 z-[90]
+            px-3 py-2
+            bg-purple-600/60 hover:bg-purple-500/70
+            border border-purple-400/40
+            rounded-lg text-white text-xs font-medium
+            transition-all shadow-lg
+          "
+        >
+          Open Demo Widgets
+        </button>
+      )}
 
       {/* Create Overlay */}
       <CreateOverlay
