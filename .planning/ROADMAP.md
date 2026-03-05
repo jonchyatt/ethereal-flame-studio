@@ -1,16 +1,17 @@
 # Roadmap: Ethereal Flame Studio
 
 **Created:** 2026-01-26
-**Updated:** 2026-02-20
+**Updated:** 2026-03-05
 **Depth:** Comprehensive
-**Coverage:** 57 v1.0 requirements (Phases 1-7) + 24 v2.0 requirements (Phases 12-16)
+**Coverage:** 57 v1.0 requirements (Phases 1-7) + 24 v2.0 requirements (Phases 12-18) + 22 v3.0 requirements (Phases 19-25)
 
 ---
 
 ## Milestones
 
 - ✅ **v1.0 Local Production Pipeline** - Phases 1-7 (shipped 2026-02-03, Phase 7 research only)
-- 🚧 **v2.0 Cloud Production** - Phases 12-16 (in progress)
+- ✅ **v2.0 Cloud Production** - Phases 12-18 (shipped 2026-02-22)
+- 🚧 **v3.0 Floating Widget Design System** - Phases 19-25 (in progress)
 
 ---
 
@@ -293,6 +294,9 @@ Plans:
 
 ---
 
+<details>
+<summary>v2.0 Cloud Production (Phases 12-18) - SHIPPED 2026-02-22</summary>
+
 ## Milestone v2.0: Cloud Production
 
 **Milestone Goal:** Move the entire pipeline to production cloud infrastructure so the app works from any device with no local machine dependencies.
@@ -303,8 +307,8 @@ Plans:
 
 ## Phases
 
-- [x] **Phase 12: Cloud Storage Adapter** - Unified storage interface with R2 for production and local filesystem for development (completed 2026-02-21)
-- [x] **Phase 13: Job State + Worker Infrastructure** - Turso-backed job queue with Render.com CPU worker service (completed 2026-02-21)
+- [x] **Phase 12: Cloud Storage Adapter** - Unified storage interface with R2 for production and local filesystem for development (completed 2026-02-21)
+- [x] **Phase 13: Job State + Worker Infrastructure** - Turso-backed job queue with Render.com CPU worker service (completed 2026-02-21)
 - [x] **Phase 14: API + Worker Processing Pipeline** - Async API routes wired to worker for ingest, edit, and save operations (completed 2026-02-21)
 - [x] **Phase 15: Modal Render Dispatch** - GPU render jobs dispatched to Modal via R2, with webhook completion (completed 2026-02-21)
 - [x] **Phase 16: Production Deploy + CI/CD** - Environment config, deploy checklist, and automated deployment pipeline (completed 2026-02-21)
@@ -325,9 +329,9 @@ Plans:
 **Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 12-01-PLAN.md -- StorageAdapter interface + LocalStorageAdapter + R2StorageAdapter implementations
-- [ ] 12-02-PLAN.md -- Refactor AudioAssetService and API routes to use StorageAdapter
-- [ ] 12-03-PLAN.md -- Presigned upload/download API routes and R2 CORS configuration
+- [x] 12-01-PLAN.md -- StorageAdapter interface + LocalStorageAdapter + R2StorageAdapter implementations
+- [x] 12-02-PLAN.md -- Refactor AudioAssetService and API routes to use StorageAdapter
+- [x] 12-03-PLAN.md -- Presigned upload/download API routes and R2 CORS configuration
 
 **Wave Structure:**
 - Wave 1: 12-01 (storage adapter foundation)
@@ -348,9 +352,9 @@ Plans:
 **Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 13-01-PLAN.md -- Drizzle schema + JobStore interface + LocalJobStore + TursoJobStore adapters
-- [ ] 13-02-PLAN.md -- Job poll and cancel API endpoints
-- [ ] 13-03-PLAN.md -- Render.com worker entry point + heartbeat/reaper + Dockerfile
+- [x] 13-01-PLAN.md -- Drizzle schema + JobStore interface + LocalJobStore + TursoJobStore adapters
+- [x] 13-02-PLAN.md -- Job poll and cancel API endpoints
+- [x] 13-03-PLAN.md -- Render.com worker entry point + heartbeat/reaper + Dockerfile
 
 **Wave Structure:**
 - Wave 1: 13-01 (JobStore foundation)
@@ -373,9 +377,9 @@ Plans:
 **Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 14-01-PLAN.md -- Refactor API routes to async job dispatch via JobStore, enhance poll with download URL
-- [ ] 14-02-PLAN.md -- Wire worker processing pipelines (ingest, preview, save) with storage adapter I/O
-- [ ] 14-03-PLAN.md -- Webhook endpoint with INTERNAL_WEBHOOK_SECRET validation, streaming endpoint hardening
+- [x] 14-01-PLAN.md -- Refactor API routes to async job dispatch via JobStore, enhance poll with download URL
+- [x] 14-02-PLAN.md -- Wire worker processing pipelines (ingest, preview, save) with storage adapter I/O
+- [x] 14-03-PLAN.md -- Webhook endpoint with INTERNAL_WEBHOOK_SECRET validation, streaming endpoint hardening
 
 **Wave Structure:**
 - Wave 1: 14-01, 14-03 (API routes + webhook, parallel)
@@ -394,8 +398,8 @@ Plans:
 **Plans**: 2 plans in 1 wave
 
 Plans:
-- [ ] 15-01-PLAN.md -- Worker render pipeline: add render job type, refactor API route to JobStore dispatch, create worker render pipeline that uploads audio to R2 and dispatches to Modal
-- [ ] 15-02-PLAN.md -- Modal entry point R2 I/O: download audio from signed URL, upload rendered video to R2, call webhook with video key, enhance poll endpoint for render download URL
+- [x] 15-01-PLAN.md -- Worker render pipeline: add render job type, refactor API route to JobStore dispatch, create worker render pipeline that uploads audio to R2 and dispatches to Modal
+- [x] 15-02-PLAN.md -- Modal entry point R2 I/O: download audio from signed URL, upload rendered video to R2, call webhook with video key, enhance poll endpoint for render download URL
 
 **Wave Structure:**
 - Wave 1: 15-01, 15-02 (parallel -- no file overlap)
@@ -414,9 +418,9 @@ Plans:
 **Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 16-01-PLAN.md -- Environment config (DEPLOY_ENV) + .env.example rewrite
-- [ ] 16-02-PLAN.md -- Production deployment checklist (docs/DEPLOY_PROD_CHECKLIST.md)
-- [ ] 16-03-PLAN.md -- GitHub Actions CI/CD workflow (Vercel + Render auto-deploy)
+- [x] 16-01-PLAN.md -- Environment config (DEPLOY_ENV) + .env.example rewrite
+- [x] 16-02-PLAN.md -- Production deployment checklist (docs/DEPLOY_PROD_CHECKLIST.md)
+- [x] 16-03-PLAN.md -- GitHub Actions CI/CD workflow (Vercel + Render auto-deploy)
 
 **Wave Structure:**
 - Wave 1: 16-01, 16-02 (env config + checklist, parallel)
@@ -438,11 +442,11 @@ Plans:
 **Plans**: 2 plans in 1 wave
 
 Plans:
-- [ ] 17-01-PLAN.md -- Rewire 3 legacy poll/cancel routes to getJobStore() (ingest, edit/save, edit/preview)
-- [ ] 17-02-PLAN.md -- Fix worker/index.ts to use getJobStore() factory instead of hardcoded TursoJobStore
+- [x] 17-01-PLAN.md -- Rewire 3 legacy poll/cancel routes to getJobStore() (ingest, edit/save, edit/preview)
+- [x] 17-02-PLAN.md -- Fix worker/index.ts to use getJobStore() factory instead of hardcoded TursoJobStore
 
 **Wave Structure:**
-- Wave 1: 17-01, 17-02 (parallel — no file overlap)
+- Wave 1: 17-01, 17-02 (parallel -- no file overlap)
 
 ---
 
@@ -458,17 +462,186 @@ Plans:
 **Plans**: 2 plans in 1 wave
 
 Plans:
-- [ ] 18-01-PLAN.md -- Add assetId→downloadUrl branch in poll endpoint; fix GET /api/render to use getJobStore()
-- [ ] 18-02-PLAN.md -- Fix reaper to pass per-type timeout from JOB_TIMEOUTS map instead of scalar default
+- [x] 18-01-PLAN.md -- Add assetId->downloadUrl branch in poll endpoint; fix GET /api/render to use getJobStore()
+- [x] 18-02-PLAN.md -- Fix reaper to pass per-type timeout from JOB_TIMEOUTS map instead of scalar default
 
 **Wave Structure:**
-- Wave 1: 18-01, 18-02 (parallel — no file overlap)
+- Wave 1: 18-01, 18-02 (parallel -- no file overlap)
+
+---
+
+</details>
+
+---
+
+## Milestone v3.0: Floating Widget Design System
+
+**Milestone Goal:** Replace the deeply nested AdvancedEditor (2,293 lines) with Photoshop-style free-floating widget panels, giving users a spatial, non-linear parameter editing experience on the Design screen.
+
+**Architecture:** react-rnd (drag/resize) + Zustand widget store + localStorage persistence + lazy-loaded widget content components
+
+**Phases:** 19-25 (7 phases, 22 requirements)
+
+## Phases
+
+- [ ] **Phase 19: Widget Shell + react-rnd Foundation** - WidgetContainer component with drag, resize, minimize, close, and z-order; WidgetLayer mounted on Design screen
+- [ ] **Phase 20: Widget Content Extraction** - 9 standalone widget components extracted from AdvancedEditor, each reading useVisualStore with individual selectors
+- [ ] **Phase 21: Widget Toolbar + Persistence** - Toolbar in ControlPanel with open/close toggles for all widgets; localStorage persistence for positions, sizes, and open state
+- [ ] **Phase 22: Workspace Layouts** - Save, load, and delete named workspace arrangements stored in localStorage
+- [ ] **Phase 23: Template Actions** - "Use in Render" and "Use in Experience" buttons on template cards
+- [ ] **Phase 24: Render Target Split** - Separate processing target (cloud/local-agent) from save destination (download/cloud/agent-path) in render UI
+- [ ] **Phase 25: Mobile Fallback + Polish** - Scrollable sheet fallback on mobile, lazy loading for closed widgets, final integration verification
+
+## Phase Details
+
+### Phase 19: Widget Shell + react-rnd Foundation
+**Goal**: User can open parameter groups as draggable, resizable floating panels on the Design screen
+**Depends on**: Nothing (v3.0 foundational phase; builds on existing Design screen)
+**Requirements**: WIDG-01, WIDG-02, WIDG-03, WIDG-04, WIDG-07
+**Success Criteria** (what must be TRUE):
+  1. User sees a floating widget panel on the Design screen that can be grabbed by its title bar and dragged to any position
+  2. User drags the bottom-right corner of a widget and it resizes smoothly without clipping its content
+  3. User clicks the minimize button on a widget and it collapses to just the title bar; clicking again restores it
+  4. User clicks on a widget that is partially behind another widget and it comes to the front
+  5. Widget panels stay within the viewport bounds (cannot be dragged off-screen)
+**Plans**: TBD
+
+Plans:
+- [ ] 19-01-PLAN.md -- Install react-rnd, create WidgetContainer component (drag, resize, minimize, close, z-order)
+- [ ] 19-02-PLAN.md -- Create Zustand widgetStore (open/close, position, size, z-index state)
+- [ ] 19-03-PLAN.md -- Mount WidgetLayer on Design screen in page.tsx, wire to widgetStore
+
+**Wave Structure:**
+- Wave 1: 19-01 (WidgetContainer component)
+- Wave 2: 19-02, 19-03 (store + page mount, parallel)
+
+---
+
+### Phase 20: Widget Content Extraction
+**Goal**: Each parameter group lives in its own standalone widget component that reads directly from the visual store
+**Depends on**: Phase 19 (widget shell must exist to host content)
+**Requirements**: WCNT-01, WCNT-02
+**Success Criteria** (what must be TRUE):
+  1. User opens the "Audio Dynamics" widget and sees all 4 presets and 16 sliders, working identically to the old AdvancedEditor section
+  2. User adjusts a slider in any widget and the 3D preview updates in real-time (no regression from AdvancedEditor behavior)
+  3. All 9 widgets (Global, Audio, Particles, Placement, Skybox, Video Skybox, Masking, Patches, Water) render their content correctly
+  4. Changing a parameter in one widget does not cause other open widgets to re-render (individual selectors, not full-store subscription)
+**Plans**: TBD
+
+Plans:
+- [ ] 20-01-PLAN.md -- Extract Global, Audio, Particles widget components from AdvancedEditor
+- [ ] 20-02-PLAN.md -- Extract Placement, Skybox, Video Skybox widget components from AdvancedEditor
+- [ ] 20-03-PLAN.md -- Extract Masking, Patches, Water widget components from AdvancedEditor
+- [ ] 20-04-PLAN.md -- Wire all 9 widgets into WidgetLayer registry, verify store selector isolation
+
+**Wave Structure:**
+- Wave 1: 20-01, 20-02, 20-03 (widget extraction, parallel -- no file overlap per batch)
+- Wave 2: 20-04 (integration + verification)
+
+---
+
+### Phase 21: Widget Toolbar + Persistence
+**Goal**: User can discover, open, and close all widgets from a central toolbar, and their layout survives page refreshes
+**Depends on**: Phase 20 (all widget content must exist for toolbar to toggle)
+**Requirements**: WIDG-05, WIDG-06, WIDG-08
+**Success Criteria** (what must be TRUE):
+  1. User sees a toolbar showing all 9 available widgets with visual indicators for which are currently open
+  2. User clicks a closed widget name in the toolbar and it appears on screen; clicking an open widget name closes it
+  3. User arranges widgets, refreshes the page, and all widgets reappear in the same positions and sizes with the same open/closed state
+**Plans**: TBD
+
+Plans:
+- [ ] 21-01-PLAN.md -- Widget toolbar component in ControlPanel with open/close toggles for all 9 widgets
+- [ ] 21-02-PLAN.md -- localStorage persistence for widgetStore (positions, sizes, open state, z-order)
+
+**Wave Structure:**
+- Wave 1: 21-01, 21-02 (toolbar + persistence, parallel -- no file overlap)
+
+---
+
+### Phase 22: Workspace Layouts
+**Goal**: User can save and restore named widget arrangements so they can switch between different editing workflows
+**Depends on**: Phase 21 (persistence layer must exist; toolbar provides save/load UI entry point)
+**Requirements**: WKSP-01, WKSP-02, WKSP-03, WKSP-04
+**Success Criteria** (what must be TRUE):
+  1. User arranges widgets for mixing, clicks "Save Workspace", types "Mixing Layout", and it persists
+  2. User loads "Mixing Layout" and all widgets snap to the saved positions, sizes, and open/closed states
+  3. User deletes a workspace and it no longer appears in the workspace list
+  4. Workspace layouts survive browser restarts (localStorage) and are independent from visual template saves
+**Plans**: TBD
+
+Plans:
+- [ ] 22-01-PLAN.md -- Workspace save/load/delete logic in widgetStore with localStorage
+- [ ] 22-02-PLAN.md -- Workspace management UI (save dialog, load picker, delete confirmation)
+
+**Wave Structure:**
+- Wave 1: 22-01 (store logic)
+- Wave 2: 22-02 (UI, depends on 22-01)
+
+---
+
+### Phase 23: Template Actions
+**Goal**: User can go from browsing templates to using them in one click, without manual view switching
+**Depends on**: Nothing (independent feature; uses existing templateStore and view routing)
+**Requirements**: TMPL-01, TMPL-02
+**Success Criteria** (what must be TRUE):
+  1. User clicks "Use in Render" on a template card and the app loads that template's settings and switches to the Create/Render view
+  2. User clicks "Use in Experience" on a template card and the app loads that template's settings and switches to the Experience/Preview view
+**Plans**: TBD
+
+Plans:
+- [ ] 23-01-PLAN.md -- Add "Use in Render" and "Use in Experience" action buttons to TemplateCard component
+
+**Wave Structure:**
+- Wave 1: 23-01 (single plan)
+
+---
+
+### Phase 24: Render Target Split
+**Goal**: User can independently choose where to process a render and where to save the result
+**Depends on**: Nothing (independent feature; modifies existing RenderDialog/CreateOverlay)
+**Requirements**: RNDR-01, RNDR-02, RNDR-03, RNDR-04
+**Success Criteria** (what must be TRUE):
+  1. User sees separate dropdowns for "Process on" (cloud / local-agent) and "Save to" (local download / cloud storage / agent path) in the render dialog
+  2. When user selects "agent path" as save destination, a file path input appears for specifying the target directory
+  3. When user selects "cloud" as processing target, the "agent path" save option is disabled (greyed out with explanation)
+  4. Selecting different processing targets does not reset the save destination choice (independent controls)
+**Plans**: TBD
+
+Plans:
+- [ ] 24-01-PLAN.md -- Split render target into processing target + save destination in RenderDialog/CreateOverlay
+- [ ] 24-02-PLAN.md -- Context-aware save destination options (disable agent path on cloud, file path input for agent)
+
+**Wave Structure:**
+- Wave 1: 24-01 (render target split)
+- Wave 2: 24-02 (context-aware behavior, depends on 24-01)
+
+---
+
+### Phase 25: Mobile Fallback + Polish
+**Goal**: The widget system works gracefully on small screens and closed widgets cost nothing at runtime
+**Depends on**: Phase 20 (widget content must exist), Phase 21 (toolbar must exist for mobile entry)
+**Requirements**: WIDG-09, WCNT-03
+**Success Criteria** (what must be TRUE):
+  1. User opens the Design screen on a phone and sees a scrollable sheet of parameter sections instead of floating panels
+  2. User on mobile can expand/collapse individual parameter sections within the sheet
+  3. On desktop, widgets that are closed contribute zero JavaScript to the bundle (verified by checking that lazy component chunks are not loaded until widget opens)
+**Plans**: TBD
+
+Plans:
+- [ ] 25-01-PLAN.md -- Mobile detection + scrollable sheet fallback for widget content on small screens
+- [ ] 25-02-PLAN.md -- React.lazy wrapper for widget content components, verify bundle splitting
+- [ ] 25-03-PLAN.md -- Integration verification: full widget system E2E on desktop and mobile
+
+**Wave Structure:**
+- Wave 1: 25-01, 25-02 (mobile fallback + lazy loading, parallel)
+- Wave 2: 25-03 (integration verification)
 
 ---
 
 ## Progress
 
-**Execution Order:** 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18
+**Execution Order:** 19 -> 20 -> 21 -> 22 (sequential core) | 23, 24 (parallel, independent) | 25 (after 20+21)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -479,68 +652,75 @@ Plans:
 | 5. n8n Integration | v1.0 | 4/8 | Half Complete | - |
 | 6. YouTube + Multi-Platform | v1.0 | 0/6 | Planned | - |
 | 7. Blender VFX | v1.0 | 0/12 | Not Started | - |
-| 12. Cloud Storage Adapter | 3/3 | Complete    | 2026-02-21 | - |
-| 13. Job State + Worker Infra | 3/3 | Complete    | 2026-02-21 | - |
-| 14. API + Worker Processing | 3/3 | Complete    | 2026-02-21 | - |
-| 15. Modal Render Dispatch | 2/2 | Complete    | 2026-02-21 | - |
-| 16. Production Deploy + CI/CD | 3/3 | Complete    | 2026-02-21 | - |
-| 17. Integration Wiring Fixes | 2/2 | Complete    | 2026-02-22 | - |
-| 18. API Completeness + Timeout Accuracy | 2/2 | Complete    | 2026-02-22 | - |
+| 12. Cloud Storage Adapter | v2.0 | 3/3 | Complete | 2026-02-21 |
+| 13. Job State + Worker Infra | v2.0 | 3/3 | Complete | 2026-02-21 |
+| 14. API + Worker Processing | v2.0 | 3/3 | Complete | 2026-02-21 |
+| 15. Modal Render Dispatch | v2.0 | 2/2 | Complete | 2026-02-21 |
+| 16. Production Deploy + CI/CD | v2.0 | 3/3 | Complete | 2026-02-21 |
+| 17. Integration Wiring Fixes | v2.0 | 2/2 | Complete | 2026-02-22 |
+| 18. API Completeness + Timeout Accuracy | v2.0 | 2/2 | Complete | 2026-02-22 |
+| 19. Widget Shell + react-rnd | v3.0 | 0/3 | Not started | - |
+| 20. Widget Content Extraction | v3.0 | 0/4 | Not started | - |
+| 21. Widget Toolbar + Persistence | v3.0 | 0/2 | Not started | - |
+| 22. Workspace Layouts | v3.0 | 0/2 | Not started | - |
+| 23. Template Actions | v3.0 | 0/1 | Not started | - |
+| 24. Render Target Split | v3.0 | 0/2 | Not started | - |
+| 25. Mobile Fallback + Polish | v3.0 | 0/3 | Not started | - |
 
 ---
 
-## Phase Dependencies (v2.0)
+## Phase Dependencies (v3.0)
 
 ```
-Phase 12 (Cloud Storage Adapter)
+Phase 19 (Widget Shell + react-rnd)
     |
     v
-Phase 13 (Job State + Worker Infra)
+Phase 20 (Widget Content Extraction)
     |
     v
-Phase 14 (API + Worker Processing)
+Phase 21 (Widget Toolbar + Persistence)
     |
-    v
-Phase 15 (Modal Render Dispatch)
+    +---> Phase 22 (Workspace Layouts)
     |
-    v
-Phase 16 (Production Deploy + CI/CD)
-    |
-    v
-Phase 17 (Integration Wiring Fixes)
-    |
-    v
-Phase 18 (API Completeness + Timeout Accuracy)
+    +---> Phase 25 (Mobile Fallback + Polish)
+
+Phase 23 (Template Actions) --- independent, can run anytime
+Phase 24 (Render Target Split) --- independent, can run anytime
 ```
 
 ---
 
-## Key Architecture Decisions (v2.0)
+## Key Architecture Decisions (v3.0)
 
-### Storage Adapter Pattern
-- `StorageAdapter` interface with `LocalStorageAdapter` and `R2StorageAdapter` implementations
-- Environment variable switches between them (no code changes)
-- R2 uses S3-compatible SDK (@aws-sdk/client-s3)
-- Signed URLs for all downloads (no public bucket)
+### react-rnd for Drag + Resize
+- `react-rnd` (15KB gzipped) provides both drag and resize in a single component
+- Touch support built-in for tablet users
+- Bounds constraints prevent widgets from leaving viewport
+- No custom pointer event handling needed
 
-### Turso Job Queue (No Redis)
-- Turso replaces local better-sqlite3 for all job/asset state
-- Worker polls Turso every 3-5 seconds for pending jobs
-- libsql client works identically to better-sqlite3 queries
-- Drizzle ORM already in project, reuse for schema
+### Z-Index Strategy
+- Widget panels: z-[75] to z-[85] (dynamic per focus order)
+- Existing panels (ControlPanel, etc.): z-50
+- Modals (RenderDialog, etc.): z-100
+- Widgets never obscure modals; always float above static panels
 
-### Render.com CPU Worker
-- Background worker ($7/mo) with Node.js + ffmpeg + yt-dlp
-- No web service on Render (Vercel handles all HTTP)
-- Worker pulls jobs from Turso, not pushed via HTTP
-- Health monitored via Turso heartbeat row
+### Widget Store (Zustand)
+- Dedicated `widgetStore` separate from `visualStore` and `templateStore`
+- Tracks per-widget: open/closed, position {x,y}, size {w,h}, z-index, minimized
+- localStorage persistence via Zustand middleware
+- Individual selectors prevent cross-widget re-renders
 
-### Modal GPU Dispatch via R2
-- Worker uploads audio to R2, passes signed URL to Modal
-- Modal writes rendered video to R2, calls webhook with key
-- Webhook validates INTERNAL_WEBHOOK_SECRET before processing
-- Decoupled: worker and Modal never talk directly
+### Widget Content Architecture
+- 9 widget components extracted from AdvancedEditor's 18 parameter groups (consolidated pairs)
+- Each widget imports only its slice of `useVisualStore` via individual selectors
+- `React.lazy()` wrapping ensures closed widgets cost zero bundle
+- AdvancedEditor.tsx can be deleted once all 9 widgets are verified
+
+### Workspace Layouts vs Templates
+- Workspace layouts (widget positions/sizes) stored in localStorage under a separate key
+- Visual templates (parameter values) stored in existing templateStore
+- The two are independent: loading a template does not change widget layout, and loading a workspace does not change visual parameters
 
 ---
 
-*Last updated: 2026-02-20 (v2.0 Cloud Production roadmap added)*
+*Last updated: 2026-03-05 (v3.0 Floating Widget Design System roadmap added)*

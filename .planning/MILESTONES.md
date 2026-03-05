@@ -29,9 +29,39 @@
 
 ## v2.0 — Cloud Production
 
-**Started:** 2026-02-20
-**Status:** In progress
+**Period:** 2026-02-20 to 2026-02-22
+**Phases:** 12-18 (7 phases, 24 requirements)
+**Status:** Complete
+
+**What shipped:**
+- Storage adapter pattern (local filesystem + Cloudflare R2)
+- Turso-backed job and asset state (replaced local better-sqlite3)
+- Render.com CPU worker for audio prep (ffmpeg, yt-dlp)
+- GPU render dispatch to Modal via R2 signed URLs
+- Async API routes with jobId polling
+- Environment-driven local/production configuration
+- Secure webhook callbacks for Modal render completion
+- GitHub Actions CI/CD (auto-deploy Vercel + Render on push)
+- Integration wiring fixes (legacy routes → getJobStore())
+- Per-type reaper timeouts (ingest 10m, preview 5m, save 15m)
+
+**Key stats:**
+- 18 plans executed across 7 phases
+- 24 v2 requirements defined and shipped
+- Architecture: Vercel + Render.com + Turso + Cloudflare R2 + Modal
+
+**Last phase number:** 18
 
 ---
 
-*Last updated: 2026-02-20 after v2.0 milestone start*
+## v3.0 — Floating Widget Design System
+
+**Started:** 2026-03-05
+**Phases:** 19+ (TBD)
+**Status:** In progress
+
+**Goal:** Replace deeply nested AdvancedEditor with Photoshop-style free-floating widget panels, add template actions, and split render targets.
+
+---
+
+*Last updated: 2026-03-05 after v3.0 milestone start*
