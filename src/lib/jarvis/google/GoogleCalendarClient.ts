@@ -323,7 +323,7 @@ export interface CalendarDiagnosticResult {
   calendars: Array<{
     id: string;
     status: number;
-    eventCount: number;
+    eventCount_last30days: number;
     error: string | null;
   }>;
 }
@@ -360,12 +360,12 @@ export async function diagnoseGoogleCalendar(): Promise<CalendarDiagnosticResult
   const rawIds = process.env.GOOGLE_CALENDAR_ID || '';
   const calendarIds = rawIds.split(',').map(id => id.trim()).filter(Boolean);
 
+  // Query past 30 days → next 7 days so we find events even on quiet days
   const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  const timeMin = `${y}-${m}-${d}T00:00:00Z`;
-  const timeMax = `${y}-${m}-${d}T23:59:59Z`;
+  const past30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const next7 = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const timeMin = past30.toISOString().split('T')[0] + 'T00:00:00Z';
+  const timeMax = next7.toISOString().split('T')[0] + 'T23:59:59Z';
 
   const calendarResults = await Promise.all(
     calendarIds.map(async (id) => {
@@ -373,7 +373,7 @@ export async function diagnoseGoogleCalendar(): Promise<CalendarDiagnosticResult
         const params = new URLSearchParams({
           timeMin,
           timeMax,
-          maxResults: '10',
+          maxResults: '20',
           singleEvents: 'true',
           orderBy: 'startTime',
         });
@@ -382,18 +382,18 @@ export async function diagnoseGoogleCalendar(): Promise<CalendarDiagnosticResult
           headers: { Authorization: `Bearer ${token}` },
         });
         const text = await response.text();
-        let eventCount = 0;
+        let eventCount_last30days = 0;
         if (response.ok) {
-          try { eventCount = (JSON.parse(text).items || []).length; } catch { /* ignore */ }
+          try { eventCount_last30days = (JSON.parse(text).items || []).length; } catch { /* ignore */ }
         }
         return {
           id,
           status: response.status,
-          eventCount,
+          eventCount_last30days,
           error: response.ok ? null : text.slice(0, 400),
         };
       } catch (e) {
-        return { id, status: 0, eventCount: 0, error: e instanceof Error ? e.message : String(e) };
+        return { id, status: 0, eventCount_last30days: 0, error: e instanceof Error ? e.message : String(e) };
       }
     })
   );
