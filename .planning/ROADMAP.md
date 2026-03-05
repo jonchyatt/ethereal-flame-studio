@@ -484,7 +484,7 @@ Plans:
 
 ## Phases
 
-- [ ] **Phase 19: Widget Shell + react-rnd Foundation** - WidgetContainer component with drag, resize, minimize, close, and z-order; WidgetLayer mounted on Design screen
+- [x] **Phase 19: Widget Shell + react-rnd Foundation** - WidgetContainer component with drag, resize, minimize, close, and z-order; WidgetLayer mounted on Design screen (completed 2026-03-05)
 - [ ] **Phase 20: Widget Content Extraction** - 9 standalone widget components extracted from AdvancedEditor, each reading useVisualStore with individual selectors
 - [ ] **Phase 21: Widget Toolbar + Persistence** - Toolbar in ControlPanel with open/close toggles for all widgets; localStorage persistence for positions, sizes, and open state
 - [ ] **Phase 22: Workspace Layouts** - Save, load, and delete named workspace arrangements stored in localStorage
@@ -659,7 +659,7 @@ Plans:
 | 16. Production Deploy + CI/CD | v2.0 | 3/3 | Complete | 2026-02-21 |
 | 17. Integration Wiring Fixes | v2.0 | 2/2 | Complete | 2026-02-22 |
 | 18. API Completeness + Timeout Accuracy | v2.0 | 2/2 | Complete | 2026-02-22 |
-| 19. Widget Shell + react-rnd | 2/3 | In Progress|  | - |
+| 19. Widget Shell + react-rnd | 3/3 | Complete   | 2026-03-05 | - |
 | 20. Widget Content Extraction | v3.0 | 0/4 | Not started | - |
 | 21. Widget Toolbar + Persistence | v3.0 | 0/2 | Not started | - |
 | 22. Workspace Layouts | v3.0 | 0/2 | Not started | - |

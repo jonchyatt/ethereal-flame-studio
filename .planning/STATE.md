@@ -18,11 +18,11 @@ See: .planning/PROJECT.md (updated 2026-03-05)
 ## Current Position
 
 Phase: 19 (Widget Shell + react-rnd Foundation)
-Plan: 2 of 3 complete
-Status: Executing Phase 19
-Last activity: 2026-03-05 -- 19-02 widgetStore complete
+Plan: 3 of 3 complete
+Status: Phase 19 complete
+Last activity: 2026-03-05 -- 19-03 WidgetLayer mount complete
 
-Progress: [#############_______] 2/3 plans (67%)
+Progress: [####################] 3/3 plans (100%)
 
 ---
 
@@ -38,9 +38,9 @@ Progress: [#############_______] 2/3 plans (67%)
 - Phases completed: 7 (all v2.0 phases)
 
 **v3.0:**
-- Plans completed: 2/17
-- Phases remaining: 7 (phases 19-25)
-- Phase 19: 2/3 plans done (19-01, 19-02 complete)
+- Plans completed: 3/17
+- Phases remaining: 6 (phases 20-25)
+- Phase 19: 3/3 plans done (COMPLETE)
 
 ---
 
@@ -63,6 +63,9 @@ Progress: [#############_______] 2/3 plans (67%)
 - renormalizeZIndices extracted as standalone helper for reuse between openWidget and bringToFront
 - bringToFront skips update when widget already at front (performance optimization)
 - Cascading initial positions (50+i*30 per axis) prevent widget overlap on first open
+- WidgetPanel uses getState() for actions to avoid full-store subscription (per-widget isolation)
+- WidgetLayer container is pointer-events-none with pointer-events-auto on each widget
+- Demo button uses getState() in onClick to avoid adding widgetStore as reactive dependency
 
 ### Technical Context
 
@@ -76,7 +79,8 @@ Progress: [#############_______] 2/3 plans (67%)
 - Widget store at `src/lib/stores/widgetStore.ts` (169 lines -- 19-02 output)
 - WidgetContainer at `src/components/ui/WidgetContainer.tsx` (136 lines -- 19-01 output)
 - Widget types at `src/types/widget.ts` (55 lines -- 19-01 output)
-- Page mount at `src/app/page.tsx` (383 lines -- mount WidgetLayer)
+- WidgetLayer at `src/components/ui/WidgetLayer.tsx` (79 lines -- 19-03 output)
+- Page mount at `src/app/page.tsx` (415 lines -- WidgetLayer + demo button mounted)
 
 ### Blockers
 
@@ -87,10 +91,10 @@ Progress: [#############_______] 2/3 plans (67%)
 ## Session Continuity
 
 Last session: 2026-03-05
-Stopped at: Completed 19-02-PLAN.md (widgetStore)
-Resume with: `/gsd:execute-phase 19` (19-03 remaining)
-Resume file: .planning/phases/19-widget-shell-react-rnd-foundation/19-03-PLAN.md
+Stopped at: Completed 19-03-PLAN.md (Phase 19 complete)
+Resume with: `/gsd:plan-phase 20` or `/gsd:execute-phase 20`
+Resume file: .planning/ROADMAP.md
 
 ---
 
-*Last updated: 2026-03-05 -- 19-02 widgetStore complete*
+*Last updated: 2026-03-05 -- Phase 19 complete (3/3 plans)*
