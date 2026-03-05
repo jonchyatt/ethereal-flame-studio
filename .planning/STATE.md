@@ -1,3 +1,16 @@
+---
+gsd_state_version: 1.0
+milestone: v3.0
+milestone_name: Floating Widget Design System
+status: unknown
+last_updated: "2026-03-05T15:34:39.294Z"
+progress:
+  total_phases: 16
+  completed_phases: 10
+  total_plans: 47
+  completed_plans: 34
+---
+
 # Project State
 
 ## Project Reference
