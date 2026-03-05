@@ -11,10 +11,14 @@
  * - Integration with AudioAnalyzer singleton
  */
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import { audioAnalyzer } from '@/lib/audio/AudioAnalyzer';
 import { useAudioStore } from '@/lib/stores/audioStore';
 import { AudioPrepEditor } from './AudioPrepEditor';
+
+export interface AudioControlsRef {
+  triggerFileUpload: () => void;
+}
 
 // Demo tracks bundled in public folder
 const DEMO_TRACKS = [
@@ -24,9 +28,13 @@ const DEMO_TRACKS = [
   { name: 'Short & Clean', url: '/audio/ShortClean.mp3' },
 ];
 
-export function AudioControls() {
+export const AudioControls = forwardRef<AudioControlsRef>(function AudioControls(_props, ref) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    triggerFileUpload: () => fileInputRef.current?.click(),
+  }));
   const animationFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
 
@@ -229,7 +237,7 @@ export function AudioControls() {
   }, []);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-t border-white/10 p-4">
+    <div className="bg-black/80 backdrop-blur-sm border-t border-white/10 p-4">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center gap-4 flex-wrap">
           {/* File Upload */}
@@ -404,4 +412,4 @@ export function AudioControls() {
       <AudioPrepEditor isOpen={showAudioPrep} onClose={() => setShowAudioPrep(false)} />
     </div>
   );
-}
+});

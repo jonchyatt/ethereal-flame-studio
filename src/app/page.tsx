@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useRef } from 'react';
+import { Suspense, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
@@ -14,11 +14,19 @@ import { DragLookControls } from '@/components/canvas/DragLookControls';
 import { VRPreviewMode, VRModeOverlay, useVRMode, VRContextProvider } from '@/components/canvas/VRPreviewMode';
 import { ScreenshotCapture, ScreenshotCaptureRef } from '@/components/ui/ScreenshotCapture';
 import { ControlPanel } from '@/components/ui/ControlPanel';
+import { AudioControls, AudioControlsRef } from '@/components/ui/AudioControls';
+import { LandingOverlay } from '@/components/ui/LandingOverlay';
+import { ExperienceOverlay } from '@/components/ui/ExperienceOverlay';
+import { CreateOverlay } from '@/components/ui/CreateOverlay';
 import { useVisualStore } from '@/lib/stores/visualStore';
 import { useRenderMode } from '@/hooks/useRenderMode';
 
+type ViewMode = 'landing' | 'experience' | 'designer' | 'create';
+
 export default function Home() {
+  const [viewMode, setViewMode] = useState<ViewMode>('landing');
   const screenshotRef = useRef<ScreenshotCaptureRef>(null);
+  const audioControlsRef = useRef<AudioControlsRef>(null);
   const skyboxPreset = useVisualStore((state) => state.skyboxPreset);
   const skyboxRotationSpeed = useVisualStore((state) => state.skyboxRotationSpeed);
   const skyboxAudioReactiveEnabled = useVisualStore((state) => state.skyboxAudioReactiveEnabled);
@@ -227,7 +235,7 @@ export default function Home() {
         {/* OrbitControls: in orbit mode, targets origin with damping for sculpture feel */}
         {!isVRMode && isOrbitMode && (
           <OrbitControls
-            enabled
+            enabled={viewMode !== 'landing'}
             enableDamping
             dampingFactor={0.08}
             minDistance={3}
@@ -238,11 +246,11 @@ export default function Home() {
         {/* OrbitControls: default free-look when no camera rig is active */}
         {!isVRMode && !isOrbitMode && (
           <OrbitControls
-            enabled={!orbitActive && !lookAtActive && !lockOrbitToOrb}
+            enabled={viewMode !== 'landing' && !orbitActive && !lookAtActive && !lockOrbitToOrb}
           />
         )}
         {!isVRMode && !isOrbitMode && lockOrbitToOrb && (
-          <DragLookControls enabled />
+          <DragLookControls enabled={viewMode !== 'landing'} />
         )}
         <Suspense fallback={null}>
           <OrbAnchor />
@@ -259,8 +267,8 @@ export default function Home() {
         </Suspense>
       </Canvas>
 
-      {/* Floating VR Button - hidden in VR mode and render mode */}
-      {!isVRMode && !renderMode.isActive && (
+      {/* Floating VR Button - hidden in VR mode, render mode, and landing */}
+      {!isVRMode && !renderMode.isActive && viewMode !== 'landing' && (
         <button
           onClick={enterVRMode}
           className="
@@ -285,11 +293,38 @@ export default function Home() {
         </button>
       )}
 
-      {/* Control panel fixed at bottom - includes mode selector, preset selector, and audio controls */}
-      {/* Always mounted to preserve audio state, hidden in VR mode and render mode */}
-      <div className={(isVRMode || renderMode.isActive) ? "invisible pointer-events-none absolute -z-50" : ""}>
-        <ControlPanel screenshotRef={screenshotRef} />
+      {/* AudioControls — always mounted to preserve <audio> element + rAF loop */}
+      <div style={{ display: viewMode === 'designer' ? 'block' : 'none' }}
+           className="fixed bottom-0 left-0 right-0 z-50">
+        <AudioControls ref={audioControlsRef} />
       </div>
+
+      {/* Landing Overlay */}
+      <LandingOverlay viewMode={viewMode} onSelectMode={setViewMode} />
+
+      {/* Experience Overlay */}
+      <ExperienceOverlay
+        viewMode={viewMode}
+        onBack={() => setViewMode('landing')}
+        audioControlsRef={audioControlsRef}
+      />
+
+      {/* Designer: ControlPanel */}
+      <div className={(isVRMode || renderMode.isActive || viewMode !== 'designer') ? "invisible pointer-events-none absolute -z-50" : ""}>
+        <ControlPanel
+          screenshotRef={screenshotRef}
+          onGoToCreate={() => setViewMode('create')}
+          onBack={() => setViewMode('landing')}
+        />
+      </div>
+
+      {/* Create Overlay */}
+      <CreateOverlay
+        viewMode={viewMode}
+        onBack={() => setViewMode('landing')}
+        onGoToDesigner={() => setViewMode('designer')}
+        audioControlsRef={audioControlsRef}
+      />
 
       {/* Mask preview split label */}
       {!isVRMode && skyboxMode === 'video' && skyboxMaskPreview && skyboxMaskPreviewSplit && (

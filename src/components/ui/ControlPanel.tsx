@@ -14,7 +14,6 @@
 import { useState } from 'react';
 import { ModeSelector } from './ModeSelector';
 import { PresetSelector } from './PresetSelector';
-import { AudioControls } from './AudioControls';
 import { TemplateGallery } from './TemplateGallery';
 import { SaveTemplateDialog } from './SaveTemplateDialog';
 import { AdvancedEditor } from './AdvancedEditor';
@@ -26,12 +25,13 @@ import { useAudioStore } from '@/lib/stores/audioStore';
 interface ControlPanelProps {
   screenshotRef?: React.RefObject<ScreenshotCaptureRef | null>;
   onEnterVRMode?: () => void;
+  onGoToCreate?: () => void;
+  onBack?: () => void;
 }
 
-export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps) {
+export function ControlPanel({ screenshotRef, onEnterVRMode, onGoToCreate, onBack }: ControlPanelProps) {
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
-  const [showDebug, setShowDebug] = useState(true);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -52,6 +52,27 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
 
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
+      {/* Back button */}
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="
+            pointer-events-auto fixed top-3 left-3 z-[60]
+            px-3 py-2
+            bg-black/60 backdrop-blur-sm
+            border border-white/15 rounded-full
+            text-white/80 hover:text-white hover:bg-black/80
+            transition-all text-sm
+            flex items-center gap-2
+          "
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back
+        </button>
+      )}
+
       {/* Left panel: Templates + Advanced */}
       <div className="absolute top-2 bottom-2 left-0">
         <div
@@ -247,44 +268,55 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
               )}
             </div>
 
-            {/* Render Video Button */}
+            {/* Create Video / Render Video Button */}
             <div className="border-t border-white/10 pt-4">
-              <button
-                onClick={() => setShowRenderDialog(true)}
-                className={`
-                  w-full px-4 py-3
-                  ${audioFile || preparedAssetId
-                    ? 'bg-gradient-to-r from-green-600/50 to-emerald-600/50 hover:from-green-500/60 hover:to-emerald-500/60 border-green-400/30'
-                    : 'bg-white/10 border-white/10 cursor-not-allowed opacity-50'
-                  }
-                  border
-                  rounded-lg
-                  text-white font-medium
-                  transition-all
-                  flex items-center justify-center gap-2
-                  min-h-[48px]
-                `}
-                disabled={!audioFile && !preparedAssetId}
-                title={audioFile || preparedAssetId ? 'Open render dialog' : 'Upload audio first'}
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              {onGoToCreate ? (
+                <button
+                  onClick={onGoToCreate}
+                  className="
+                    w-full px-4 py-3
+                    bg-gradient-to-r from-green-600/50 to-emerald-600/50
+                    hover:from-green-500/60 hover:to-emerald-500/60
+                    border border-green-400/30
+                    rounded-lg text-white font-medium
+                    transition-all
+                    flex items-center justify-center gap-2
+                    min-h-[48px]
+                  "
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  />
-                </svg>
-                Render Video
-              </button>
-              <p className="text-white/40 text-xs mt-2 text-center">
-                {audioFile || preparedAssetId ? 'Server-side render with 360 VR support' : 'Upload audio to enable rendering'}
-              </p>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  Create Video
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setShowRenderDialog(true)}
+                    className={`
+                      w-full px-4 py-3
+                      ${audioFile || preparedAssetId
+                        ? 'bg-gradient-to-r from-green-600/50 to-emerald-600/50 hover:from-green-500/60 hover:to-emerald-500/60 border-green-400/30'
+                        : 'bg-white/10 border-white/10 cursor-not-allowed opacity-50'
+                      }
+                      border rounded-lg text-white font-medium
+                      transition-all
+                      flex items-center justify-center gap-2
+                      min-h-[48px]
+                    `}
+                    disabled={!audioFile && !preparedAssetId}
+                    title={audioFile || preparedAssetId ? 'Open render dialog' : 'Upload audio first'}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Render Video
+                  </button>
+                  <p className="text-white/40 text-xs mt-2 text-center">
+                    {audioFile || preparedAssetId ? 'Server-side render with 360 VR support' : 'Upload audio to enable rendering'}
+                  </p>
+                </>
+              )}
             </div>
 
             {/* VR Preview Mode Button */}
@@ -331,27 +363,7 @@ export function ControlPanel({ screenshotRef, onEnterVRMode }: ControlPanelProps
               </div>
             )}
 
-            {/* Debug Toggle */}
-            <div className="border-t border-white/10 pt-4 flex justify-end">
-              <button
-                onClick={() => setShowDebug(!showDebug)}
-                className="
-                  px-3 py-1 text-xs
-                  bg-white/5 hover:bg-white/10
-                  border border-white/10
-                  rounded
-                  text-white/60 hover:text-white/80
-                  transition-all
-                "
-              >
-                {showDebug ? 'Hide' : 'Show'} Debug Overlay
-              </button>
-            </div>
-
-            {/* Audio Controls (always mounted) */}
-            <div className={showDebug ? "" : "sr-only"}>
-              <AudioControls />
-            </div>
+            {/* Audio Controls removed — mounted in page.tsx to preserve lifecycle across modes */}
           </div>
         </div>
         {!rightOpen && (
