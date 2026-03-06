@@ -636,3 +636,17 @@ export function getTelegramBot(): Bot {
   botInstance = bot;
   return bot;
 }
+
+/**
+ * Start Telegram bot in long-polling mode (for local deployment).
+ *
+ * Use this instead of webhook when running locally with PM2.
+ * grammY's bot.start() handles polling automatically.
+ */
+export async function startLongPolling(): Promise<void> {
+  const bot = getTelegramBot();
+  console.log('[Telegram] Starting long-polling mode...');
+  await bot.start({
+    onStart: () => console.log('[Telegram] Bot is running (long-polling)'),
+  });
+}

@@ -19,6 +19,7 @@
  */
 
 import { think } from './sdkBrain';
+import { routeToProvider, getBrainProvider } from './providerRouter';
 import { notionTools, memoryTools, calendarTools } from './tools';
 import { tutorialTools } from '../tutorial/tutorialTools';
 import { academyTools, academyToolNames } from '../academy/academyTools';
@@ -80,6 +81,8 @@ export interface ProcessChatOptions {
   sessionId: number;
   systemPrompt: string;
   messages: ChatMessage[];
+  /** Claude Code SDK session ID for resumption */
+  sdkSessionId?: string;
   /** Called when a tool is invoked (for SSE streaming) */
   onToolUse?: (toolName: string, input: Record<string, unknown>) => void;
   /** Called when a tool returns a result (for SSE streaming) */
@@ -91,6 +94,8 @@ export interface ProcessChatResult {
   responseText: string;
   error?: string;
   toolsUsed: string[];
+  /** Claude Code SDK session ID for resumption */
+  sdkSessionId?: string;
 }
 
 /**
@@ -234,13 +239,14 @@ export async function processChatMessage(options: ProcessChatOptions): Promise<P
       ? [...localOnlyTools, ...calendarTools]
       : allTools;
 
-    // Delegate to sdkBrain for tool execution
-    const result = await think({
+    // Route to configured provider (claude-code-sdk, anthropic-api, or ollama)
+    const result = await routeToProvider({
       systemPrompt,
-      messages: messages.map(m => ({ role: m.role, content: m.content })),
+      messages,
       tools: toolsForBrain,
       executeTool: createToolExecutor(sessionId),
-      useDeepModel: isComplex, // Complex queries get Sonnet when A0 is down
+      useDeepModel: isComplex, // Complex queries get Sonnet when A0 is down (API path)
+      sdkSessionId: options.sdkSessionId,
       onToolUse,
       onToolResult,
       onPostToolResult: createPostToolHook(sessionId),
@@ -286,6 +292,7 @@ export async function processChatMessage(options: ProcessChatOptions): Promise<P
       responseText: result.responseText,
       error: result.error,
       toolsUsed: result.toolsUsed,
+      sdkSessionId: result.sdkSessionId,
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

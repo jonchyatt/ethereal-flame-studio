@@ -19,6 +19,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { callWithTools } from './llmProvider';
 import { getRecentEvaluations, getAverageScores } from '../memory/queries/evaluations';
 import {
   getActiveRules,
@@ -32,7 +33,6 @@ import { desc, sql, gt, eq } from 'drizzle-orm';
 import type { ConversationEvaluation, BehaviorRule } from '../memory/schema';
 
 const MODEL_REFLECTOR = 'claude-opus-4-6';
-const anthropic = new Anthropic();
 
 const REFLECTION_SYSTEM_PROMPT = `You are a self-improvement analyst for an AI assistant called Jarvis. Your job is to analyze conversation evaluation data and propose behavioral rules that will improve Jarvis's performance.
 
@@ -263,26 +263,22 @@ Based on patterns across these evaluations:
 
 Remember: only propose rules backed by evidence from MULTIPLE evaluations.`;
 
-    // Call Opus for reflection
-    const response = await anthropic.messages.create({
+    // Call LLM for reflection (routed via provider abstraction)
+    const llmResult = await callWithTools({
+      component: 'reflector',
+      systemPrompt: REFLECTION_SYSTEM_PROMPT,
+      userMessage,
       model: MODEL_REFLECTOR,
-      max_tokens: 2048,
-      system: REFLECTION_SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: userMessage }],
-      tools: [REFLECTION_TOOL],
-      tool_choice: { type: 'tool', name: 'submit_reflection' },
+      maxTokens: 2048,
+      tool: REFLECTION_TOOL,
+      toolChoice: { type: 'tool', name: 'submit_reflection' },
     });
 
-    // Extract tool result
-    const toolBlock = response.content.find(
-      (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use'
-    );
-
-    if (!toolBlock) {
-      return { success: false, rulesAdded: 0, rulesSuperseded: 0, summary: '', error: 'No tool_use block in response' };
+    if (!llmResult.toolInput) {
+      return { success: false, rulesAdded: 0, rulesSuperseded: 0, summary: '', error: 'No structured response from LLM' };
     }
 
-    const result = toolBlock.input as {
+    const result = llmResult.toolInput as {
       newRules: Array<{ rule: string; category: RuleCategory; rationale: string; example: string }>;
       supersede: Array<{ ruleId: number; reason: string; replacement: string; category: RuleCategory; rationale: string; example: string }>;
       summary: string;

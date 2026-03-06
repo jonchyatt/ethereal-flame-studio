@@ -38,11 +38,13 @@ interface ChatRequest {
   messages: ChatMessage[];
   /** Tier 1 vision: client's current app location, serialized as text */
   appContext?: string;
+  /** Claude Code SDK session ID for resumption */
+  sdkSessionId?: string;
 }
 
 export async function POST(request: Request): Promise<Response> {
   try {
-    const { messages, appContext } = (await request.json()) as ChatRequest;
+    const { messages, appContext, sdkSessionId } = (await request.json()) as ChatRequest;
 
     // Validate request
     if (!messages || !Array.isArray(messages)) {
@@ -99,6 +101,7 @@ export async function POST(request: Request): Promise<Response> {
             sessionId,
             systemPrompt: finalSystemPrompt,
             messages,
+            sdkSessionId,
             onToolUse: (name, input) => {
               const data = JSON.stringify({ type: 'tool_use', tool_name: name, tool_input: input });
               controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));
@@ -114,6 +117,12 @@ export async function POST(request: Request): Promise<Response> {
           // on enqueue. Without this, the catch block below also throws, producing
           // an unhandled rejection inside the ReadableStream start function.
           try {
+            // Stream SDK session ID for resumption (if using claude-code-sdk provider)
+            if (result.sdkSessionId) {
+              const sessionData = JSON.stringify({ type: 'sdk_session', sessionId: result.sdkSessionId });
+              controller.enqueue(new TextEncoder().encode(`data: ${sessionData}\n\n`));
+            }
+
             if (result.success) {
               const data = JSON.stringify({ type: 'text', text: result.responseText });
               controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));

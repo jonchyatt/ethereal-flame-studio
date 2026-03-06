@@ -18,13 +18,13 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { callWithTools } from './llmProvider';
 import { db } from '../memory/db';
 import { conversationEvaluations, behaviorRules } from '../memory/schema';
 import { sql, desc, gte, eq } from 'drizzle-orm';
 import { addRule } from '../memory/queries/behaviorRules';
 
 const MODEL_META = 'claude-opus-4-6';
-const anthropic = new Anthropic();
 
 const META_SYSTEM_PROMPT = `You are a systems analyst evaluating whether an AI assistant's self-improvement pipeline is functioning effectively.
 
@@ -234,24 +234,21 @@ SYSTEM PARAMETERS:
 
 Is the self-improvement pipeline healthy? Are scores improving? Are rules effective?`;
 
-    const response = await anthropic.messages.create({
+    const llmResult = await callWithTools({
+      component: 'meta',
+      systemPrompt: META_SYSTEM_PROMPT,
+      userMessage,
       model: MODEL_META,
-      max_tokens: 2048,
-      system: META_SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: userMessage }],
-      tools: [META_TOOL],
-      tool_choice: { type: 'tool', name: 'submit_meta_evaluation' },
+      maxTokens: 2048,
+      tool: META_TOOL,
+      toolChoice: { type: 'tool', name: 'submit_meta_evaluation' },
     });
 
-    const toolBlock = response.content.find(
-      (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use'
-    );
-
-    if (!toolBlock) {
-      return { ran: true, error: 'No tool_use block in response' };
+    if (!llmResult.toolInput) {
+      return { ran: true, error: 'No structured response from LLM' };
     }
 
-    const result = toolBlock.input as {
+    const result = llmResult.toolInput as {
       healthScore: number;
       diagnosis: string;
       recommendations: string[];

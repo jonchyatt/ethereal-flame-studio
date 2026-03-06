@@ -17,6 +17,7 @@
     "render:local": "tsx scripts/render-cli.ts"
   },
   "dependencies": {
+    "@anthropic-ai/claude-code": "^1.0.128",
     "@anthropic-ai/sdk": "^0.78.0",
     "@aws-sdk/client-polly": "^3.981.0",
     "@aws-sdk/client-s3": "^3.995.0",
@@ -24,6 +25,7 @@
     "@deepgram/sdk": "^4.11.3",
     "@distube/ytdl-core": "^4.16.12",
     "@libsql/client": "^0.17.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "@notionhq/client": "^5.9.0",
     "@react-three/drei": "^10.0.0",
     "@react-three/fiber": "^9.0.0",
@@ -39,6 +41,7 @@
     "lucide-react": "^0.563.0",
     "music-metadata": "^11.12.1",
     "next": "^15.1.4",
+    "node-cron": "^4.2.1",
     "openai": "^6.25.0",
     "postprocessing": "^6.38.2",
     "react": "^19.0.0",
@@ -56,6 +59,7 @@
     "@types/form-data": "^2.2.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^20",
+    "@types/node-cron": "^3.0.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.181.0",

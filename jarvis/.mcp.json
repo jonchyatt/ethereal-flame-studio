@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "jarvis-tools": {
+      "command": "npx",
+      "args": ["tsx", "src/lib/jarvis/mcp/index.ts"],
+      "cwd": "."
+    },
+    "notion": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@notionhq/notion-mcp-server"],
+      "env": {
+        "NOTION_TOKEN": "${NOTION_OAUTH_TOKEN}"
+      }
+    },
+    "playwright": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@playwright/mcp@latest"]
+    }
+  }
+}

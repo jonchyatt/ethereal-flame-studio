@@ -16,12 +16,12 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { callWithTools } from './llmProvider';
 import { storeEvaluation, type EvaluationScores } from '../memory/queries/evaluations';
 import { getActiveRules } from '../memory/queries/behaviorRules';
 import type { ChatMessage } from './chatProcessor';
 
 const MODEL_CRITIC = 'claude-haiku-4-5-20251001';
-const anthropic = new Anthropic();
 
 const CRITIC_SYSTEM_PROMPT = `You are a conversation quality critic. Evaluate the assistant's performance in this conversation.
 
@@ -154,29 +154,22 @@ export async function evaluateConversation(
       ? `\n\nTEACHING CONTEXT: This was a teaching conversation using Academy tools (${academyToolsUsed.join(', ')}). In addition to the standard 5 dimensions, consider teaching quality: Was the explanation anchored in real code before abstractions? Was the pace appropriate? Did the teacher verify understanding before advancing? Were aha moments created from complexity?`
       : '';
 
-    const response = await anthropic.messages.create({
+    const llmResult = await callWithTools({
+      component: 'evaluator',
+      systemPrompt: CRITIC_SYSTEM_PROMPT,
+      userMessage: `Evaluate this conversation:\n\n${transcript}${toolContext}${teachingContext}`,
       model: MODEL_CRITIC,
-      max_tokens: 1024,
-      system: CRITIC_SYSTEM_PROMPT,
-      messages: [{
-        role: 'user',
-        content: `Evaluate this conversation:\n\n${transcript}${toolContext}${teachingContext}`,
-      }],
-      tools: [EVALUATION_TOOL],
-      tool_choice: { type: 'tool', name: 'submit_evaluation' },
+      maxTokens: 1024,
+      tool: EVALUATION_TOOL,
+      toolChoice: { type: 'tool', name: 'submit_evaluation' },
     });
 
-    // Extract tool use result
-    const toolBlock = response.content.find(
-      (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use'
-    );
-
-    if (!toolBlock) {
-      console.warn('[Evaluator] No tool_use block in response');
+    if (!llmResult.toolInput) {
+      console.warn('[Evaluator] No structured response from LLM');
       return;
     }
 
-    const result = toolBlock.input as {
+    const result = llmResult.toolInput as {
       skipped?: boolean;
       skip_reason?: string;
       scores?: EvaluationScores;

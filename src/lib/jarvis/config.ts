@@ -37,6 +37,10 @@ export interface JarvisConfig {
   enableVectorMemory: boolean;
   /** OpenAI API key for embedding generation (empty = disabled) */
   openaiApiKey: string;
+  /** Brain provider: claude-code-sdk (free on Max), anthropic-api, or ollama */
+  brainProvider: 'claude-code-sdk' | 'anthropic-api' | 'ollama';
+  /** Deployment mode: vercel (serverless) or local (PM2 + tunnel) */
+  deployMode: 'vercel' | 'local';
 }
 
 /**
@@ -50,6 +54,8 @@ export interface JarvisConfig {
  * - NOTION_MCP_URL: Notion MCP server URL (default: https://mcp.notion.com/mcp)
  * - NOTION_OAUTH_TOKEN: Notion OAuth token for MCP (empty = disabled)
  * - JARVIS_ENABLE_SELF_IMPROVEMENT: "true" to enable conversation evaluation + behavior rules
+ * - JARVIS_BRAIN_PROVIDER: "claude-code-sdk" (default, free on Max) | "anthropic-api" | "ollama"
+ * - JARVIS_DEPLOY_MODE: "vercel" (default) | "local" (PM2 + tunnel)
  */
 export function getJarvisConfig(): JarvisConfig {
   return {
@@ -69,6 +75,8 @@ export function getJarvisConfig(): JarvisConfig {
     enableSelfImprovement: process.env.JARVIS_ENABLE_SELF_IMPROVEMENT !== 'false', // ON by default
     enableVectorMemory: process.env.JARVIS_ENABLE_VECTOR_MEMORY !== 'false' && !!process.env.OPENAI_API_KEY,
     openaiApiKey: process.env.OPENAI_API_KEY || '',
+    brainProvider: (process.env.JARVIS_BRAIN_PROVIDER as 'claude-code-sdk' | 'anthropic-api' | 'ollama') || 'claude-code-sdk',
+    deployMode: (process.env.JARVIS_DEPLOY_MODE as 'vercel' | 'local') || 'vercel',
   };
 }
 
