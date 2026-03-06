@@ -220,6 +220,62 @@ WORKFLOW:
       required: ['project', 'files', 'commit_message', 'proposed_changes'],
     },
   },
+  // ---------------------------------------------------------------------------
+  // Phase 28: Visopscreen Live App Integration
+  // ---------------------------------------------------------------------------
+  {
+    name: 'trigger_visopscreen',
+    description: `Interact with the live Visopscreen app in Jonathan's browser.
+
+Use this tool to make teaching interactive — highlight the specific UI element you're explaining, or start a guided spotlight lesson that walks Jonathan through a workflow step-by-step.
+
+IMPORTANT: This only works when Jonathan has the Visopscreen app open in his browser AND the tab is listening (it must be the active tab or at minimum loaded). If the message isn't received, tell Jonathan to open the app first.
+
+Actions:
+- "startLesson": Start a guided spotlight tutorial. Jonathan sees step-by-step overlays with arrows pointing at the relevant UI elements. The lesson pauses and waits for him to take each action.
+- "highlightElement": Highlight a specific UI element with a blue glow for 3 seconds. Great for "see this button here?" moments in conversation.
+- "ping": Check if the app is open and the bridge is listening. Use this if you're unsure whether the app is loaded.
+
+When to use:
+- "Let me show you where that lives in the app" → highlightElement
+- "Want to try the full interactive walkthrough?" → startLesson
+- "Is the app open?" → ping
+- After explaining a concept: "Try clicking that now" → highlightElement to point at it
+
+Lesson IDs available:
+- bwb-trade-setup: Full BWB trade setup workflow (5 steps)
+- strategy-wizard: 4-question interview wizard for strategy selection
+- pnl-analysis: Reading P&L curves and profit zones
+- leap-cycles: LEAP cycle management and DTE comparison
+- regime-intelligence: Reading regime signals and gating trades
+
+Spotlight target IDs (for highlightElement):
+- find-tab-btn, build-tab-btn, analysis-tab-btn
+- bwb-screener, ratio-screener
+- regime-display-area, regime-archetype, regime-gate-msg
+- data-source-demo, data-source-yahoo, data-source-tos, data-source-schwab
+- wizard-open-btn`,
+    input_schema: {
+      type: 'object',
+      properties: {
+        action: {
+          type: 'string',
+          enum: ['startLesson', 'highlightElement', 'ping'],
+          description: 'What to do in Visopscreen',
+        },
+        lessonId: {
+          type: 'string',
+          enum: ['bwb-trade-setup', 'strategy-wizard', 'pnl-analysis', 'leap-cycles', 'regime-intelligence'],
+          description: 'Required when action is startLesson. Which guided tutorial to start.',
+        },
+        targetId: {
+          type: 'string',
+          description: 'Required when action is highlightElement. The data-tutorial-id of the element to highlight (e.g., "find-tab-btn", "regime-display-area", "data-source-schwab"). See tool description for full list.',
+        },
+      },
+      required: ['action'],
+    },
+  },
 ];
 
 export const academyToolNames = new Set(
