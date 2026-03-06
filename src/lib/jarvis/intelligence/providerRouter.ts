@@ -54,6 +54,7 @@ export interface RouterResult {
 
 export function getBrainProvider(): BrainProvider {
   const env = process.env.JARVIS_BRAIN_PROVIDER?.toLowerCase();
+  if (env === 'claude-code-sdk' || env === 'sdk') return 'claude-code-sdk';
   if (env === 'anthropic-api' || env === 'api') return 'anthropic-api';
   if (env === 'ollama') return 'ollama';
   return 'anthropic-api'; // default: safe for Vercel serverless (PM2 sets sdk explicitly)

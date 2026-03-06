@@ -18,6 +18,8 @@ module.exports = {
       name: 'jarvis-web',
       script: 'npm',
       args: 'start -- -p 3001',
+      interpreter: 'cmd',
+      interpreter_args: '/c',
       cwd: './',
       env: {
         NODE_ENV: 'production',
@@ -33,6 +35,8 @@ module.exports = {
       name: 'jarvis-mcp',
       script: 'npx',
       args: 'tsx src/lib/jarvis/mcp/index.ts',
+      interpreter: 'cmd',
+      interpreter_args: '/c',
       cwd: './',
       env: {
         NODE_ENV: 'production',
@@ -46,6 +50,8 @@ module.exports = {
       name: 'jarvis-cron',
       script: 'npx',
       args: 'tsx src/lib/jarvis/scheduler/cronRunner.ts',
+      interpreter: 'cmd',
+      interpreter_args: '/c',
       cwd: './',
       env: {
         NODE_ENV: 'production',
