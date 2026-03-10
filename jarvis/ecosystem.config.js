@@ -16,10 +16,8 @@ module.exports = {
   apps: [
     {
       name: 'jarvis-web',
-      script: 'npm',
-      args: 'start -- -p 3001',
-      interpreter: 'cmd',
-      interpreter_args: '/c',
+      script: 'jarvis/scripts/start-web.js',
+      interpreter: 'node',
       cwd: './',
       env: {
         NODE_ENV: 'production',
