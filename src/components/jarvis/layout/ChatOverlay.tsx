@@ -284,7 +284,9 @@ export function ChatOverlay() {
                 isStreaming: false,
               });
             } else if (event.type === 'done') {
-              // Stream complete
+              // Refresh academy progress so buildAppContext() sees updated taught topics
+              // on the user's next message — fixes same-session welcome-tour repeat
+              useAcademyStore.getState().loadProgress();
             } else if (event.type === 'error') {
               updateMessage(assistantId, {
                 content: event.error || 'Something went wrong.',

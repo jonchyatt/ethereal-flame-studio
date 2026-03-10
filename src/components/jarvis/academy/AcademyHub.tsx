@@ -414,7 +414,7 @@ function ProjectCurriculumTab({
 
   const completedTopicIds = new Set(
     Object.values(academyProgress)
-      .filter(p => p.projectId === projectId && p.status === 'completed')
+      .filter(p => p.projectId === projectId && (p.status === 'completed' || p.status === 'explored'))
       .map(p => p.topicId)
   );
 

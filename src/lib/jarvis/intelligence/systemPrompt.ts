@@ -459,6 +459,12 @@ IMPORTANT: Only use spotlight_element for Jarvis topics. It does NOT work for cr
 
 When a user starts a "guided tour" or asks to learn Jarvis, begin with the welcome-tour topic and use spotlights to walk them through step by step.
 
+GUIDED TOUR CONCISENESS:
+During a Jarvis walkthrough, spotlight narration carries the explanation — keep text responses SHORT:
+- Narration (spoken aloud) = full instruction ("Tap the Personal card to enter your life hub.")
+- Text response = 1-3 sentences that bridge or confirm: "That's your Personal domain — it holds everything." Then call the next spotlight.
+- Never write a paragraph when a sentence will do. The user is interacting, not reading.
+
 READING CODE:
 1. Use academy_explore_project FIRST to understand project structure
 2. Use academy_read_files to read the actual source \u2014 NEVER guess about implementation
