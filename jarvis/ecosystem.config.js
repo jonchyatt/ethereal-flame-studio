@@ -1,10 +1,11 @@
 /**
  * PM2 Process Configuration — Jarvis Local Deployment
  *
- * Runs 3 processes:
- * 1. jarvis-web  — Next.js app on port 3001
- * 2. jarvis-mcp  — MCP tool server (stdio, used by Claude Code SDK)
- * 3. jarvis-cron — Daily reflection + backfill via node-cron
+ * Runs 4 processes:
+ * 1. jarvis-web    — Next.js app on port 3001
+ * 2. jarvis-mcp    — MCP tool server (stdio, used by Claude Code SDK)
+ * 3. jarvis-cron   — Daily reflection + backfill via node-cron
+ * 4. jarvis-tunnel — Cloudflare tunnel → jarvis.whatamiappreciatingnow.com
  *
  * Usage:
  *   pm2 start jarvis/ecosystem.config.js
@@ -55,6 +56,15 @@ module.exports = {
         NODE_ENV: 'production',
         JARVIS_SI_PROVIDER: 'claude-code-sdk',
       },
+      autorestart: true,
+      watch: false,
+    },
+    {
+      name: 'jarvis-tunnel',
+      script: 'jarvis/scripts/start-tunnel.bat',
+      interpreter: 'cmd',
+      interpreter_args: '/c',
+      cwd: './',
       autorestart: true,
       watch: false,
     },
