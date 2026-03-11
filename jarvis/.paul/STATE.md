@@ -4,20 +4,20 @@
 
 Milestone: v4.4 Guided Onboarding — Academy-Driven
 Phase: L-03 of 4 (Live Walkthrough Pass 2) — In Progress
-Plan: L-03-01 created, awaiting approval
+Plan: L-03-04 created, awaiting approval
 Status: PLAN created, ready for APPLY
-Last activity: 2026-03-05 — Created L-03-01-PLAN.md (pre-walkthrough audit + live checkpoint)
+Last activity: 2026-03-10 — Created L-03-04 PLAN.md (4 deferred bugs from L-03-02/03)
 
 Progress:
-- v4.4/L: [█████░░░░░] ~50% (2 of 4 phases complete)
-- Phase L-03: [░░░░░░░░░░] 0% (not started)
+- v4.4/L: [██████░░░░] ~65% (2 of 4 phases complete, L-03 in progress ~50%)
+- Phase L-03: [█████░░░░░] ~50% (L-03-01 + L-03-02/03 unified)
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ○        ○     [L-03-01 plan created, awaiting approval]
+  ✓        ○        ○     [L-03-04 plan created, awaiting approval]
 ```
 
 ## Completed Phases (v4.4)
@@ -96,13 +96,13 @@ Feature branches merged: none
 
 ## Session Continuity
 
-Last session: 2026-03-05
-Stopped at: L-03-01 plan written, session paused before apply.
-Next action: /paul:apply jarvis/.paul/phases/L-03-live-walkthrough-pass2/L-03-01-PLAN.md
-Resume file: jarvis/.paul/HANDOFF-2026-03-05-g.md
+Last session: 2026-03-11
+Stopped at: L-03-04 applied (3 code fixes committed, pushed). iPhone checkpoint pending. Infrastructure migrated to desktop.
+Next action: iPhone live test per L-03-04 checkpoint, then type "approved" to close L-03
+Resume file: jarvis/.paul/phases/L-03-live-walkthrough-pass2/L-03-04-PLAN.md
 Resume context:
-- Task 1: fix "meet-jarvis" → "welcome-tour" in systemPrompt.ts (1 line, 0 new imports)
-- Checkpoint: Jonathan walks Calendar → Meals → Morning Briefing → Chat live on device
-- Bug list from checkpoint feeds L-03-02+ fix plans
-- All second-half spotlight IDs verified against DOM (no mismatches found)
-- Voice/PushToTalk: explicitly deferred, not in L-03 scope
+- L-03-04 code fixes live (commit d466364): store sync, verbosity, academy lock
+- INFRASTRUCTURE: Jarvis moved from laptop to desktop (always-on). Desktop PM2 runs all 4 processes (web/mcp/cron/tunnel). pm2-windows-startup configured. Laptop PM2 cleared.
+- Desktop repo: C:\Users\jonch\Projects\ethereal-flame-studio (same GitHub, same .env.local)
+- Cloudflare tunnel now runs from desktop via PM2 jarvis-tunnel process
+- Future sessions: open Claude Code on DESKTOP, not laptop
