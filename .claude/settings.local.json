@@ -28,15 +28,10 @@
     ],
     "deny": [],
     "ask": [],
-    "additionalDirectories": [
-      "/home/jonch/.local/bin",
-      "/home/jonch/.cache/ms-playwright",
-      "/home/jonch"
-    ]
+    "additionalDirectories": []
   },
   "enabledMcpjsonServers": [
     "notion",
     "playwright"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }
