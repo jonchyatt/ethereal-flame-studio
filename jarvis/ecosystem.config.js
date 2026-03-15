@@ -13,6 +13,25 @@
  *   pm2 stop all
  */
 
+const fs = require('fs');
+const path = require('path');
+
+// Auto-detect cloudflared location across machines
+function findCloudflared() {
+  const candidates = [
+    path.join(process.env.LOCALAPPDATA || '', 'cloudflared.exe'),
+    path.join(process.env.USERPROFILE || '', 'AppData', 'Local', 'cloudflared.exe'),
+    path.join(process.env.PROGRAMFILES || '', 'cloudflared', 'cloudflared.exe'),
+    'C:/Program Files (x86)/cloudflared/cloudflared.exe',
+    'C:/cloudflared/cloudflared.exe',
+  ];
+  for (const p of candidates) {
+    if (p && fs.existsSync(p)) return p;
+  }
+  // Fallback: assume it's on PATH
+  return 'cloudflared';
+}
+
 module.exports = {
   apps: [
     {
@@ -64,7 +83,7 @@ module.exports = {
     },
     {
       name: 'jarvis-tunnel',
-      script: 'C:/Users/jonch/AppData/Local/cloudflared.exe',
+      script: findCloudflared(),
       args: 'tunnel run jarvis',
       cwd: './',
       autorestart: true,
