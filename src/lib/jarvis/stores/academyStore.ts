@@ -8,6 +8,7 @@
 
 import { create } from 'zustand';
 import { getAllProjects } from '../academy/projects';
+import { getJarvisAPI, postJarvisAPI } from '../api/fetchWithAuth';
 import type { AcademyProgressRow } from '../memory/schema';
 
 // Re-export getNextSuggested for components
@@ -63,7 +64,7 @@ export const useAcademyStore = create<AcademyStore>((set, get) => ({
 
   loadProgress: async () => {
     try {
-      const res = await fetch('/api/jarvis/academy/progress');
+      const res = await getJarvisAPI('/api/jarvis/academy/progress');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const rows = (data.progress || []) as AcademyProgressRow[];
@@ -90,15 +91,11 @@ export const useAcademyStore = create<AcademyStore>((set, get) => ({
         },
       }));
 
-      fetch('/api/jarvis/academy/progress', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      postJarvisAPI('/api/jarvis/academy/progress', {
           projectId,
           topicId,
           incrementInteraction: true,
-        }),
-      }).catch(err => console.error('[AcademyStore] Failed to save progress:', err));
+        }).catch(err => console.error('[AcademyStore] Failed to save progress:', err));
       return;
     }
 
@@ -118,16 +115,12 @@ export const useAcademyStore = create<AcademyStore>((set, get) => ({
     }));
 
     // Persist to server in background
-    fetch('/api/jarvis/academy/progress', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    postJarvisAPI('/api/jarvis/academy/progress', {
         projectId,
         topicId,
         status: 'explored',
         incrementInteraction: true,
-      }),
-    }).catch(err => console.error('[AcademyStore] Failed to save progress:', err));
+      }).catch(err => console.error('[AcademyStore] Failed to save progress:', err));
   },
 
   setActiveProject: (id: string) => set({ activeProject: id }),

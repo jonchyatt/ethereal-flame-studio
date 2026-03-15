@@ -70,6 +70,7 @@ export function ChatOverlay() {
   const updateMessage = useChatStore((s) => s.updateMessage);
   const setIsTyping = useChatStore((s) => s.setIsTyping);
   const setActiveTool = useChatStore((s) => s.setActiveTool);
+  const setSdkSessionId = useChatStore((s) => s.setSdkSessionId);
 
   const spotlight = useTutorialStore((s) => s.spotlight);
   const [input, setInput] = useState('');
@@ -236,6 +237,7 @@ export function ChatOverlay() {
       const response = await postJarvisAPI('/api/jarvis/chat', {
         messages: recentMessages,
         appContext: buildAppContext(pathname),
+        sdkSessionId: useChatStore.getState().sdkSessionId,
       }, { signal: abortRef.current.signal });
 
       if (!response.ok) {
@@ -264,7 +266,9 @@ export function ChatOverlay() {
           try {
             const event = JSON.parse(json);
 
-            if (event.type === 'tool_use') {
+            if (event.type === 'sdk_session') {
+              setSdkSessionId(event.sessionId);
+            } else if (event.type === 'tool_use') {
               // Spotlight bridge: apply spotlight side-effects from SSE stream
               if (event.tool_name === 'spotlight_element' && event.tool_input) {
                 useTutorialStore.getState().setSpotlight({

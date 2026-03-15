@@ -31,11 +31,13 @@ export function ChatPanel() {
     isTyping,
     isPanelOpen,
     activeTool,
+    sdkSessionId,
     addMessage,
     updateMessage,
     setIsTyping,
     togglePanel,
     setActiveTool,
+    setSdkSessionId,
   } = useChatStore();
 
   const notionPanelOpen = useNotionPanelStore((s) => s.isOpen);
@@ -83,6 +85,7 @@ export function ChatPanel() {
       abortRef.current = new AbortController();
       const response = await postJarvisAPI('/api/jarvis/chat', {
         messages: recentMessages,
+        sdkSessionId: useChatStore.getState().sdkSessionId,
       }, { signal: abortRef.current.signal });
 
       if (!response.ok) {
@@ -111,7 +114,9 @@ export function ChatPanel() {
           try {
             const event = JSON.parse(json);
 
-            if (event.type === 'tool_use') {
+            if (event.type === 'sdk_session') {
+              setSdkSessionId(event.sessionId);
+            } else if (event.type === 'tool_use') {
               setActiveTool(event.tool_name);
             } else if (event.type === 'tool_result') {
               setActiveTool(null);
@@ -145,7 +150,7 @@ export function ChatPanel() {
       setActiveTool(null);
       abortRef.current = null;
     }
-  }, [addMessage, updateMessage, setIsTyping, setActiveTool]);
+  }, [addMessage, updateMessage, setIsTyping, setActiveTool, setSdkSessionId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

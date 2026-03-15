@@ -31,6 +31,21 @@ export interface CCodeBrainResult {
   sessionId?: string;
 }
 
+// Build a clean env for the Claude Code SDK subprocess:
+// - Strip CLAUDECODE to allow nested process spawning
+// - Strip ANTHROPIC_API_KEY so the SDK uses Max subscription auth
+//   (the API key in .env.local is for other services; if passed to the SDK,
+//   it overrides the subscription and hits a zero-credit direct API account)
+const ENV_KEYS_TO_STRIP = new Set(['CLAUDECODE', 'ANTHROPIC_API_KEY']);
+
+function getCleanEnv(): Record<string, string> {
+  const env: Record<string, string> = {};
+  for (const [k, v] of Object.entries(process.env)) {
+    if (!ENV_KEYS_TO_STRIP.has(k) && v !== undefined) env[k] = v;
+  }
+  return env;
+}
+
 const JARVIS_ALLOWED_TOOLS = [
   'Bash', 'Read', 'Write', 'Edit', 'Glob', 'Grep',
   'WebSearch', 'WebFetch',
@@ -53,6 +68,8 @@ export async function thinkWithSdk(request: CCodeBrainRequest): Promise<CCodeBra
   let newSessionId: string | undefined;
 
   try {
+    const cleanEnv = getCleanEnv();
+
     const conversation = query({
       prompt: userMessage,
       options: {
@@ -60,6 +77,9 @@ export async function thinkWithSdk(request: CCodeBrainRequest): Promise<CCodeBra
         customSystemPrompt: systemPrompt,
         allowedTools: JARVIS_ALLOWED_TOOLS,
         permissionMode: 'bypassPermissions',
+        env: cleanEnv,
+        pathToClaudeCodeExecutable: 'C:\\Users\\jonch\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Anthropic.ClaudeCode_Microsoft.Winget.Source_8wekyb3d8bbwe\\claude.exe',
+        stderr: (data: string) => console.error('[CCodeBrain stderr]', data),
         ...(sessionId ? { resume: sessionId } : {}),
       },
     });

@@ -34,6 +34,8 @@ interface ChatStore {
   activeTool: string | null;
   /** Queued message to auto-send when panel opens (set by QuickActions) */
   queuedMessage: string | null;
+  /** Claude Code SDK session ID for conversation resumption */
+  sdkSessionId: string | null;
 
   addMessage: (msg: Omit<ChatMessage, 'id' | 'timestamp'>) => string;
   updateMessage: (id: string, updates: Partial<ChatMessage>) => void;
@@ -46,6 +48,7 @@ interface ChatStore {
   /** Open panel and queue a message for auto-send */
   openWithMessage: (message: string) => void;
   consumeQueuedMessage: () => string | null;
+  setSdkSessionId: (id: string) => void;
 }
 
 let messageCounter = 0;
@@ -56,6 +59,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   isPanelOpen: false,
   activeTool: null,
   queuedMessage: null,
+  sdkSessionId: null,
 
   addMessage: (msg) => {
     const id = `msg-${++messageCounter}-${Date.now()}`;
@@ -77,7 +81,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   openPanel: () => set({ isPanelOpen: true }),
   closePanel: () => set({ isPanelOpen: false }),
   setActiveTool: (tool) => set({ activeTool: tool }),
-  clearMessages: () => set({ messages: [], activeTool: null }),
+  clearMessages: () => set({ messages: [], activeTool: null, sdkSessionId: null }),
+  setSdkSessionId: (id) => set({ sdkSessionId: id }),
   openWithMessage: (message) => {
     set({ isPanelOpen: true, queuedMessage: message });
     // Also open the new shell's chat panel — shellStore.isChatOpen is what ChatOverlay reads
