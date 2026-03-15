@@ -78,7 +78,6 @@ export async function thinkWithSdk(request: CCodeBrainRequest): Promise<CCodeBra
         allowedTools: JARVIS_ALLOWED_TOOLS,
         permissionMode: 'bypassPermissions',
         env: cleanEnv,
-        pathToClaudeCodeExecutable: 'C:\\Users\\jonch\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Anthropic.ClaudeCode_Microsoft.Winget.Source_8wekyb3d8bbwe\\claude.exe',
         stderr: (data: string) => console.error('[CCodeBrain stderr]', data),
         ...(sessionId ? { resume: sessionId } : {}),
       },
