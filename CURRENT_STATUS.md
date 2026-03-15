@@ -115,6 +115,28 @@ Chat, CRUD, tunnel, all personal pages — everything works.
 
 ---
 
+## Strategic Direction (2026-03-15)
+
+### Immediate: Finish v4.4 (L-03 → L-04 → Wife Test)
+Don't add scope. The wife test is the product readiness gate.
+
+### After v4.4: Dual-Jarvis Reliability
+3 plans. Cloudflare Worker routes to desktop-primary / Vercel-fallback.
+Concept doc: `jarvis/.paul/concepts/dual-jarvis-reliability.md`
+
+### v4.5: Jarvis Hands (Grant Secretary + Agent Zero)
+Full web agent architecture. Jarvis orchestrates, Agent Zero executes via A2A.
+Primary use case: find grants → research → plan → approve → submit.
+Also handles: corporate filings, bills, travel, credit disputes.
+Concept doc: `jarvis/.paul/concepts/jarvis-hands-v45.md`
+
+### Agent Zero on Desktop
+One-line install: `irm https://ps.agent-zero.ai | iex`
+Update to v0.9.8.2 immediately (we're on ~v0.9.7).
+Skills to build: grant-hunter, grant-researcher, grant-applicant.
+
+---
+
 ## How to Resume Work
 
 ```bash

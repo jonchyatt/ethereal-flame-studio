@@ -97,6 +97,48 @@
 
 ---
 
+## Next Milestone: v4.5 Jarvis Hands
+
+**Goal:** Jarvis becomes Jonathan's secretary on the internet. Primary use case: grant applications for nonprofit. Architecture: Jarvis orchestrates, Agent Zero executes.
+
+**Concept doc:** `.paul/concepts/jarvis-hands-v45.md` — fully researched, ready to plan
+
+**Gate:** v4.4 wife test must pass before starting. Finish what's in flight.
+
+| Phase | Name | Goal |
+|-------|------|------|
+| W-01 | Scheduled Tasks Foundation | Cron jobs in Jarvis (reflection + new task types) |
+| W-02 | Agent Zero Web Foundation | Update A0 to v0.9.8.2, nonprofit project, grant-hunter skill |
+| W-03 | Grant Research Loop | Deep research + critic scoring |
+| W-04 | Approval Gate + Execution | Form filling with Jarvis approval UI |
+| W-05 | Karpathy Loop + Memory | Self-improving application quality over time |
+
+---
+
+## Infrastructure: Dual-Jarvis Reliability
+
+**Problem:** Jonathan accesses Jarvis from Virginia, brain runs in Utah. If desktop sleeps, crashes, or Cloudflare tunnel drops — Jarvis is down.
+
+**Solution (planned, not yet built):**
+
+| Mode | Where | Cost | When |
+|------|-------|------|------|
+| Primary | Desktop (Utah) | $0 brain (SDK) | Always |
+| Fallback | Vercel | ~$0.015/message (API) | When desktop unreachable |
+
+The `providerRouter.ts` already supports both modes (`claude-code-sdk` and `anthropic-api`). The Vercel deployment already exists.
+
+**What needs building:**
+1. Cloudflare Worker health check — pings desktop tunnel, auto-routes DNS to Vercel on failure
+2. Keep Vercel deployment alive (it's still there, just not primary DNS target)
+3. Status indicator in Jarvis UI showing which brain is active
+
+**Concept doc:** `.paul/concepts/dual-jarvis-reliability.md` (to be created)
+
+This is an infrastructure concern — can be done as a small phase before or during v4.5.
+
+---
+
 ## Ideas Without Docs (Parking Lot)
 
 - Domain expansion (6 empty domains in registry)
