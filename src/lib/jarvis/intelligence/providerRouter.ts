@@ -100,9 +100,25 @@ async function routeToCCodeSdk(request: RouterRequest): Promise<RouterResult> {
     };
   }
 
+  // Build prompt with conversation history so the SDK has full context.
+  // Always include history regardless of sdkSessionId — the SDK session
+  // may expire or lose context between calls, and redundant history is
+  // harmless whereas missing history causes total memory loss ("What's great?").
+  let prompt = lastUserMsg.content;
+  const priorMessages = request.messages.slice(0, -1);
+  if (priorMessages.length > 0) {
+    const historyLines = priorMessages.map(
+      (m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`
+    );
+    prompt =
+      `[CONVERSATION HISTORY — this is what we discussed earlier in this session]\n` +
+      historyLines.join('\n') +
+      `\n[END HISTORY]\n\nUser: ${lastUserMsg.content}`;
+  }
+
   const result = await thinkWithSdk({
     systemPrompt: request.systemPrompt,
-    userMessage: lastUserMsg.content,
+    userMessage: prompt,
     sessionId: request.sdkSessionId,
     onToolUse: request.onToolUse,
     onToolResult: request.onToolResult,
