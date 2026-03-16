@@ -101,17 +101,44 @@
 
 **Goal:** Jarvis becomes Jonathan's secretary on the internet. Primary use case: grant applications for nonprofit. Architecture: Jarvis orchestrates, Agent Zero executes.
 
-**Concept doc:** `.paul/concepts/jarvis-hands-v45.md` — fully researched, ready to plan
+**Concept docs:**
+- `.paul/concepts/jarvis-hands-v45.md` — architecture + A2A design
+- `.paul/concepts/grant-secretary-attack-plan.md` — full attack plan, org profile requirements, UX flow
+- `.paul/concepts/grant-a0-headed-browser-spec.md` — **A0 technical spec: headed browser, form-fill algorithm, gap detection, approval gate** ← NEW
+- `docs/karpathy-autoresearch-pattern.md` — quality loop philosophy (updated 2026-03-15)
+- `.paul/concepts/grant-database.md` — 72+ grants across 12 tiers, all 5 ventures (SBIR updated: DEAD)
+- `.paul/concepts/grant-database-deep.md` — hidden gems research (COMPLETE — 1,377 lines)
+- `.paul/concepts/grant-federal-pathways.md` — federal pathways deep dive (COMPLETE — 1,483 lines, 13 sections)
+- `.paul/concepts/grant-entity-profiles.md` — entity profile templates — **PARTIALLY FILLED: Satori Enterprises (med spa, Venture C) confirmed; all 5 ventures 50% female-owned confirmed; Infinity Stone Services (venture TBD) has 2025 revenue confirmed. Jonathan must fill remaining [FILL] fields before automation.**
+- `.paul/concepts/grant-application-templates.md` — master application templates, all question types
+- `.paul/concepts/grant-action-plan-march-2026.md` — **START HERE — prioritized action list, March 31 deadlines**
+- `.paul/concepts/grant-drafts-march-2026.md` — ready-to-submit drafts for Pilot Growth Fund + Amber Grant
 
-**Gate:** v4.4 wife test must pass before starting. Finish what's in flight.
+**Business Credit System (added 2026-03-15):**
+- `.paul/concepts/business-credit-database.md` — **COMPLETE: 3×3×3 bureau-segregated card stacking strategy, freeze mechanic, all issuers with Utah-specific data, Phase 0 fintech layer, D&B establishment track, BLOC options, Round 1 execution sequence**
 
-| Phase | Name | Goal |
-|-------|------|------|
-| W-01 | Scheduled Tasks Foundation | Cron jobs in Jarvis (reflection + new task types) |
-| W-02 | Agent Zero Web Foundation | Update A0 to v0.9.8.2, nonprofit project, grant-hunter skill |
-| W-03 | Grant Research Loop | Deep research + critic scoring |
-| W-04 | Approval Gate + Execution | Form filling with Jarvis approval UI |
-| W-05 | Karpathy Loop + Memory | Self-improving application quality over time |
+**Known Entity Names (confirmed 2026-03-15):**
+- Venture C (Med Spa): **Satori Enterprises**
+- Venture D or E: **Infinity Stone Services** (venture type TBD — Jonathan to confirm)
+- All 5 ventures: **50% female-owned** (unlocks Amber, Fund Her Future, Galaxy, IFundWomen, Visa She's Next)
+
+**Pre-conditions:**
+1. Agent Zero updated to v0.9.8.2 — Jonathan runs `irm https://ps.agent-zero.ai | iex` in interactive PowerShell after Docker Desktop shows "Engine running"
+2. Fill entity KB files for all 5 ventures — the [FILL] fields in `grant-entity-profiles.md` (~1 hr, Jonathan)
+3. Dual-Jarvis reliability live (do as first phases below)
+
+| Phase | Name | Goal | Desktop Required? |
+|-------|------|------|------------------|
+| DualJ-01 | Cloudflare Worker + DNS | Health check + auto-failover routing | No |
+| DualJ-02 | Vercel Validation | Confirm API mode end-to-end | No |
+| DualJ-03 | Status Indicator | Brain mode dot in UI + morning alert | No |
+| W-01 | Scheduled Tasks | Cron triggers in Jarvis, A0 webhook receiver | No |
+| W-02 | A0 Foundation | nonprofit-grants project, grant-hunter skill | YES |
+| W-03 | Grant Research Loop | grant-researcher skill + intelligence brief | YES |
+| W-04 | Approval Gate | grant-applicant + Jarvis approval UI | YES |
+| W-05 | Karpathy Loop | Critic scoring + resources.md accumulation | YES |
+
+**Timeline:** ~11 coding sessions. First useful output (intelligence brief on real grant) after ~6 sessions.
 
 ---
 

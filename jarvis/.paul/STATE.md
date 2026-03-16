@@ -96,13 +96,13 @@ Feature branches merged: none
 
 ## Session Continuity
 
-Last session: 2026-03-11
-Stopped at: L-03-04 applied (3 code fixes committed, pushed). iPhone checkpoint pending. Infrastructure migrated to desktop.
-Next action: iPhone live test per L-03-04 checkpoint, then type "approved" to close L-03
-Resume file: jarvis/.paul/phases/L-03-live-walkthrough-pass2/L-03-04-PLAN.md
+Last session: 2026-03-15 (grant research session — NOT v4.4 coding)
+Stopped at: Context limit 85%. Grant documentation complete. L-03-04 iPhone checkpoint still pending.
+Next action: Ask Jonathan — (a) grant work or (b) v4.4 iPhone test?
+Resume file: jarvis/.paul/HANDOFF-2026-03-15.md
 Resume context:
-- L-03-04 code fixes live (commit d466364): store sync, verbosity, academy lock
-- INFRASTRUCTURE: Jarvis moved from laptop to desktop (always-on). Desktop PM2 runs all 4 processes (web/mcp/cron/tunnel). pm2-windows-startup configured. Laptop PM2 cleared.
-- Desktop repo: C:\Users\jonch\Projects\ethereal-flame-studio (same GitHub, same .env.local)
-- Cloudflare tunnel now runs from desktop via PM2 jarvis-tunnel process
-- Future sessions: open Claude Code on DESKTOP, not laptop
+- L-03-04 code still live (commit d466364), iPhone checkpoint still pending from 2026-03-11
+- GRANT SYSTEM: All docs now written (grant-database.md, grant-database-deep.md 1377 lines, grant-federal-pathways.md 1483 lines, grant-action-plan-march-2026.md, grant-drafts-march-2026.md)
+- URGENT GRANTS: Verizon Digital Ready + Pilot Growth Fund + Amber Grant all due March 31. Drafts ready.
+- CRITICAL BLOCKER: Jonathan must say which entity has 2025 revenue + which is 50%+ woman-owned
+- INFRASTRUCTURE: Desktop PM2 (Utah), 4 processes running. Open Claude Code on DESKTOP.
