@@ -21,7 +21,7 @@ Jarvis v5.0 transforms a conversational life assistant into a fully autonomous e
 - Phases 12-17: v5.0 Agent Unification (GSD, active)
 - Decimal phases (e.g., 13.1): Urgent insertions if needed
 
-- [ ] **Phase 12: Foundation & Migration** - Standalone repo, SDK upgrade, scheduler and research schemas
+- [x] **Phase 12: Foundation & Migration** - Standalone repo, SDK upgrade, scheduler and research schemas (completed 2026-03-17)
 - [ ] **Phase 13: Vault Integration** - Bitwarden MCP with session management and credential injection
 - [ ] **Phase 14: Sub-Agents & Browser Engine** - Role-specialized sub-agents with Playwright browser automation
 - [ ] **Phase 15: Approval Gateway & Bill Pay** - Telegram approval flow and first end-to-end bill payment
@@ -39,7 +39,7 @@ Jarvis v5.0 transforms a conversational life assistant into a fully autonomous e
   2. Claude Agent SDK (@anthropic-ai/claude-agent-sdk) is installed and ccodeBrain.ts calls succeed with the new API surface
   3. User can add, edit, and remove scheduled tasks via Telegram or web UI without restarting the process
   4. Research library SQLite tables exist and accept structured research entries with semantic search returning results
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [x] 12-01-PLAN.md -- Repo migration to standalone + Claude Agent SDK swap
 - [ ] 12-02-PLAN.md -- DB-driven flexible scheduler with croner
@@ -106,7 +106,7 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 12. Foundation & Migration | 2/3 | In Progress|  |
+| 12. Foundation & Migration | 3/3 | Complete   | 2026-03-17 |
 | 13. Vault Integration | 0/TBD | Not started | - |
 | 14. Sub-Agents & Browser Engine | 0/TBD | Not started | - |
 | 15. Approval Gateway & Bill Pay | 0/TBD | Not started | - |

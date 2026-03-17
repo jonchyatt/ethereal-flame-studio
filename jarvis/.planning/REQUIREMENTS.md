@@ -9,7 +9,7 @@
 
 - [x] **FOUND-01**: Jarvis repo migrated to C:\Users\jonch\Projects\jarvis with clean git history and working PM2 processes
 - [x] **FOUND-02**: Claude Agent SDK (@anthropic-ai/claude-agent-sdk) replaces claude-code SDK with native sub-agent support
-- [ ] **FOUND-03**: Flexible scheduler with DB-driven task CRUD (add/edit/remove tasks via Telegram or web UI)
+- [x] **FOUND-03**: Flexible scheduler with DB-driven task CRUD (add/edit/remove tasks via Telegram or web UI)
 - [x] **FOUND-04**: Research-as-library schema in SQLite for structured research storage with semantic recall
 
 ### Security & Vault
@@ -81,7 +81,7 @@
 |-------------|-------|--------|
 | FOUND-01 | Phase 12 | Pending |
 | FOUND-02 | Phase 12 | Pending |
-| FOUND-03 | Phase 12 | Pending |
+| FOUND-03 | Phase 12 | Complete |
 | FOUND-04 | Phase 12 | Complete |
 | VAULT-01 | Phase 13 | Pending |
 | VAULT-02 | Phase 13 | Pending |
