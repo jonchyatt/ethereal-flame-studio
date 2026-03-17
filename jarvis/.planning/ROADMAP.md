@@ -39,7 +39,7 @@ Jarvis v5.0 transforms a conversational life assistant into a fully autonomous e
   2. Claude Agent SDK (@anthropic-ai/claude-agent-sdk) is installed and ccodeBrain.ts calls succeed with the new API surface
   3. User can add, edit, and remove scheduled tasks via Telegram or web UI without restarting the process
   4. Research library SQLite tables exist and accept structured research entries with semantic search returning results
-**Plans:** 3 plans
+**Plans:** 2/3 plans executed
 Plans:
 - [x] 12-01-PLAN.md -- Repo migration to standalone + Claude Agent SDK swap
 - [ ] 12-02-PLAN.md -- DB-driven flexible scheduler with croner
@@ -106,7 +106,7 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 12. Foundation & Migration | 1/3 | In progress | - |
+| 12. Foundation & Migration | 2/3 | In Progress|  |
 | 13. Vault Integration | 0/TBD | Not started | - |
 | 14. Sub-Agents & Browser Engine | 0/TBD | Not started | - |
 | 15. Approval Gateway & Bill Pay | 0/TBD | Not started | - |
