@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 16-02-PLAN.md (Entity profiles + grant workflow, human-verified)
-last_updated: "2026-03-17T17:42:50.898Z"
-last_activity: 2026-03-17 — Completed 16-02 (Entity profiles + grant workflow, human-verified)
+status: executing
+stopped_at: Completed 16.1-01-PLAN.md (Research intelligence -- outcome tracking, expiry, inference, confidence)
+last_updated: "2026-03-17T18:37:00.000Z"
+last_activity: 2026-03-17 — Completed 16.1-01 (Research intelligence)
 progress:
   total_phases: 7
-  completed_phases: 5
-  total_plans: 10
-  completed_plans: 10
+  completed_phases: 6
+  total_plans: 11
+  completed_plans: 11
   percent: 100
 ---
 
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** One agent with complete context across all life domains, taking autonomous actions while Jon works hospital shifts
-**Current focus:** Phase 16 complete (Research & Applications) -- human-verified and fully operational.
+**Current focus:** Phase 16.1 complete (Research Intelligence) -- outcome tracking, cross-domain inference, confidence evolution operational.
 
 ## Current Position
 
-Phase: 16 of 17 (Research & Applications)
-Plan: 2 of 2 in current phase
-Status: 16-02 human-verified and complete, phase 16 done
-Last activity: 2026-03-17 — Completed 16-02 (Entity profiles + grant workflow, human-verified)
+Phase: 16.1 (Research Intelligence)
+Plan: 1 of 1 in current phase
+Status: 16.1-01 complete, phase 16.1 done
+Last activity: 2026-03-17 — Completed 16.1-01 (Research intelligence)
 
-Progress: [██████████] 100% (10/10 plans with summaries)
+Progress: [██████████] 100% (11/11 plans with summaries)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10 (v5.0)
+- Total plans completed: 11 (v5.0)
 - Average duration: ~5min
-- Total execution time: ~0.9 hours
+- Total execution time: ~1.0 hours
 
 **By Phase:**
 
@@ -48,9 +48,10 @@ Progress: [██████████] 100% (10/10 plans with summaries)
 | 14 | 2/2 | ~7min | ~3.5min |
 | 15 | 2/2 | ~6min | ~3min |
 | 16 | 2/2 | ~9min | ~4.5min |
+| 16.1 | 1/1 | ~5min | ~5min |
 
 **Recent Trend:**
-- Last 5 plans: 14-02 (~5min), 15-01 (~3min), 15-02 (~3min), 16-01 (~4min), 16-02 (~5min)
+- Last 5 plans: 15-01 (~3min), 15-02 (~3min), 16-01 (~4min), 16-02 (~5min), 16.1-01 (~5min)
 - Trend: Accelerating
 
 *Updated after each plan completion*
@@ -63,6 +64,7 @@ Progress: [██████████] 100% (10/10 plans with summaries)
 | Phase 15 P02 | 3min | 2 tasks | 3 files |
 | Phase 16 P01 | 4min | 2 tasks | 5 files |
 | Phase 16 P02 | 5min | 2 tasks | 4 files |
+| Phase 16.1 P01 | 5min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -105,6 +107,11 @@ Recent decisions affecting current work:
 - [Phase 16-02]: Form-filler gets 25 maxTurns (vs 15 for bill pay) for multi-page grant forms
 - [Phase 16-02]: Approval timeout 15 minutes for grant review (vs 10 for bill pay)
 - [Phase 16-02]: Auto-seed entity-optimization and website-optimization entries during profile loading
+- [Phase 16.1-01]: Lazy table init via ensureResearchOutcomesTable() with CREATE TABLE IF NOT EXISTS
+- [Phase 16.1-01]: CROSS_DOMAIN_RULES as exported declarative array for extensibility
+- [Phase 16.1-01]: Anti-circular inference: skip auto-inferred source entries + dedup by domain+topic+fieldName
+- [Phase 16.1-01]: Age decay restricted to URL-sourced entries (entity profiles protected)
+- [Phase 16.1-01]: Intelligence hooks in grant workflow are non-fatal (try/catch + console.warn)
 
 ### Pending Todos
 
@@ -119,6 +126,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-17T17:34:39Z
-Stopped at: Completed 16-02-PLAN.md (Entity profiles + grant workflow, human-verified)
+Last session: 2026-03-17T18:37:00Z
+Stopped at: Completed 16.1-01-PLAN.md (Research intelligence -- outcome tracking, expiry, inference, confidence)
 Resume file: None
