@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: milestone
 status: in-progress
-stopped_at: Completed 16-01-PLAN.md (Research MCP tools created and wired)
+stopped_at: Completed 16-02-PLAN.md (Entity profiles + grant workflow, awaiting checkpoint)
 last_updated: "2026-03-17T17:28:00.000Z"
-last_activity: 2026-03-17 — Completed 16-01 (Research MCP tools and wiring)
+last_activity: 2026-03-17 — Completed 16-02 (Entity profiles + grant application workflow)
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 10
-  completed_plans: 9
-  percent: 90
+  completed_plans: 10
+  percent: 100
 ---
 
 # Project State
@@ -21,21 +21,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** One agent with complete context across all life domains, taking autonomous actions while Jon works hospital shifts
-**Current focus:** Phase 16 (Research & Applications) -- Plan 01 complete, Plan 02 next.
+**Current focus:** Phase 16 complete (Research & Applications) -- awaiting human verification checkpoint for live testing.
 
 ## Current Position
 
 Phase: 16 of 17 (Research & Applications)
-Plan: 1 of 2 in current phase
-Status: 16-01 complete, 16-02 next
-Last activity: 2026-03-17 — Completed 16-01 (Research MCP tools and wiring)
+Plan: 2 of 2 in current phase
+Status: 16-02 complete (awaiting human verification checkpoint), phase 16 done
+Last activity: 2026-03-17 — Completed 16-02 (Entity profiles + grant application workflow)
 
-Progress: [█████████░] 90% (9/10 plans with summaries)
+Progress: [██████████] 100% (10/10 plans with summaries)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9 (v5.0)
+- Total plans completed: 10 (v5.0)
 - Average duration: ~5min
 - Total execution time: ~0.9 hours
 
@@ -47,10 +47,10 @@ Progress: [█████████░] 90% (9/10 plans with summaries)
 | 13 | 1/1 | ~5min | ~5min |
 | 14 | 2/2 | ~7min | ~3.5min |
 | 15 | 2/2 | ~6min | ~3min |
-| 16 | 1/2 | ~4min | ~4min |
+| 16 | 2/2 | ~9min | ~4.5min |
 
 **Recent Trend:**
-- Last 5 plans: 14-01 (~2min), 14-02 (~5min), 15-01 (~3min), 15-02 (~3min), 16-01 (~4min)
+- Last 5 plans: 14-02 (~5min), 15-01 (~3min), 15-02 (~3min), 16-01 (~4min), 16-02 (~5min)
 - Trend: Accelerating
 
 *Updated after each plan completion*
@@ -62,6 +62,7 @@ Progress: [█████████░] 90% (9/10 plans with summaries)
 | Phase 15 P01 | 3min | 2 tasks | 5 files |
 | Phase 15 P02 | 3min | 2 tasks | 3 files |
 | Phase 16 P01 | 4min | 2 tasks | 5 files |
+| Phase 16 P02 | 5min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -100,6 +101,10 @@ Recent decisions affecting current work:
 - [Phase 16-01]: Wired research tools into chatProcessor.ts (not just toolBridge.ts) for full routing coverage
 - [Phase 16-01]: Research tools added to localOnlyTools (always local, even with MCP Notion enabled)
 - [Phase 16-01]: Domain parameter is free-form string (not enum) for extensibility
+- [Phase 16-02]: Entity profiles use process.cwd() path resolution (works on Vercel and local)
+- [Phase 16-02]: Form-filler gets 25 maxTurns (vs 15 for bill pay) for multi-page grant forms
+- [Phase 16-02]: Approval timeout 15 minutes for grant review (vs 10 for bill pay)
+- [Phase 16-02]: Auto-seed entity-optimization and website-optimization entries during profile loading
 
 ### Pending Todos
 
@@ -114,6 +119,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-17T17:28:00.000Z
-Stopped at: Completed 16-01-PLAN.md (Research MCP tools created and wired)
+Last session: 2026-03-17T17:34:39Z
+Stopped at: Completed 16-02-PLAN.md (Entity profiles + grant workflow, awaiting human-verify checkpoint)
 Resume file: None

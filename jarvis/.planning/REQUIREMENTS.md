@@ -42,9 +42,9 @@
 
 - [x] **RESEARCH-01**: Research sub-agent can search web, read pages, and store structured findings in research library
 - [x] **RESEARCH-02**: Research library supports structured fields (eligibility, deadlines, requirements, amounts) with semantic search
-- [ ] **RESEARCH-03**: Form-filler sub-agent can retrieve research findings and business profile to auto-populate application fields
-- [ ] **RESEARCH-04**: Grant application workflow — research grants, verify eligibility, fill applications from stored data
-- [ ] **RESEARCH-05**: Corporate credit application groundwork — research credit options, prepare business profiles, fill applications
+- [x] **RESEARCH-03**: Form-filler sub-agent can retrieve research findings and business profile to auto-populate application fields
+- [x] **RESEARCH-04**: Grant application workflow — research grants, verify eligibility, fill applications from stored data
+- [x] **RESEARCH-05**: Corporate credit application groundwork — research credit options, prepare business profiles, fill applications
 
 ### Agent Zero Sunset
 
@@ -99,9 +99,9 @@
 | BILL-03 | Phase 15 | Complete |
 | RESEARCH-01 | Phase 16 | Complete |
 | RESEARCH-02 | Phase 16 | Complete |
-| RESEARCH-03 | Phase 16 | Pending |
-| RESEARCH-04 | Phase 16 | Pending |
-| RESEARCH-05 | Phase 16 | Pending |
+| RESEARCH-03 | Phase 16 | Complete |
+| RESEARCH-04 | Phase 16 | Complete |
+| RESEARCH-05 | Phase 16 | Complete |
 | SUNSET-01 | Phase 17 | Pending |
 | SUNSET-02 | Phase 17 | Pending |
 | SUNSET-03 | Phase 17 | Pending |
