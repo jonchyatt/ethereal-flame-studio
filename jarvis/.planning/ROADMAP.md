@@ -136,7 +136,7 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17
 | 13. Vault Integration | 1/1 | Complete    | 2026-03-17 |
 | 14. Sub-Agents & Browser Engine | 2/2 | Complete    | 2026-03-17 |
 | 15. Approval Gateway & Bill Pay | 2/2 | Complete    | 2026-03-17 |
-| 16. Research & Applications | 2/2 | Complete   | 2026-03-17 |
+| 16. Research & Applications | 2/2 | Complete    | 2026-03-17 |
 | 17. Agent Zero Sunset | 0/TBD | Not started | - |
 
 ## Requirement Coverage
