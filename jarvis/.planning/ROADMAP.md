@@ -50,10 +50,12 @@ Plans:
 **Depends on**: Phase 12
 **Requirements**: VAULT-01, VAULT-02
 **Success Criteria** (what must be TRUE):
-  1. Bitwarden MCP server is configured in .mcp.json and responds to credential retrieval requests
+  1. Bitwarden MCP server is configured as sub-agent-private MCP and responds to credential retrieval requests
   2. Vault session auto-unlocks on Jarvis startup and re-authenticates transparently when session expires mid-task
   3. A canary test confirms that no credential value appears in LLM conversation history or logs after a credential retrieval + injection cycle
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 13-01-PLAN.md -- Vault health manager, form-filler sub-agent with private BW MCP, canary test
 
 ### Phase 14: Sub-Agents & Browser Engine
 **Goal**: Jarvis can spawn role-specialized sub-agents and automate browser interactions including navigation, form filling, and screenshot verification
@@ -107,7 +109,7 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 12. Foundation & Migration | 3/3 | Complete    | 2026-03-17 |
-| 13. Vault Integration | 0/TBD | Not started | - |
+| 13. Vault Integration | 0/1 | Planning complete | - |
 | 14. Sub-Agents & Browser Engine | 0/TBD | Not started | - |
 | 15. Approval Gateway & Bill Pay | 0/TBD | Not started | - |
 | 16. Research & Applications | 0/TBD | Not started | - |
