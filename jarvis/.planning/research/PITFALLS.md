@@ -1,578 +1,327 @@
-# Domain Pitfalls: Jarvis v2 Memory & Production
+# Pitfalls Research
 
-**Project:** Jarvis v2.0 - Memory & Production Milestone
-**Domain:** AI voice assistant with persistent memory, production deployment
-**Researched:** 2026-02-02
-**Confidence:** HIGH (multiple authoritative sources cross-referenced)
-
----
-
-## Overview
-
-This document covers pitfalls specific to the v2 milestone: **adding persistent memory and production deployment to an existing working system**. For v1 pitfalls (latency, browser compatibility, conversation flow), see the git history of this file.
+**Domain:** Autonomous life agent -- browser automation, vault credentials, sub-agents, repo migration
+**Researched:** 2026-03-16
+**Confidence:** HIGH (OWASP Agentic Top 10, Bitwarden CLI issues, Playwright docs, Claude SDK production reports)
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes that cause rewrites, security incidents, or major system failures.
-
----
-
-### Pitfall 1: Memory Poisoning via Indirect Prompt Injection
+### Pitfall 1: LLM Sees Raw Credentials During Browser Automation
 
 **What goes wrong:**
-Persistent memory creates a new attack surface absent in v1. Adversaries can inject malicious instructions through seemingly benign content (documents, web pages, API responses) that get stored in memory and execute later. Unlike session-scoped prompt injection, memory poisoning is temporally decoupled: poison planted today executes weeks later when semantically triggered.
+The most dangerous failure mode in the entire v5.0 milestone. When Playwright fills login forms, the credential values pass through the LLM context if the automation is not properly isolated. The LLM logs the credentials in its reasoning, they appear in conversation history, memory system stores them, and they leak into vector DB embeddings. Once a credential is in the LLM context, it is permanently compromised -- you cannot un-see it.
 
 **Why it happens:**
-- Memory systems store content without sufficient provenance tracking
-- No distinction between user-provided facts vs. inferred facts vs. external content
-- Summarization processes can be manipulated to store attacker-controlled instructions
-- The agent trusts its own memory as authoritative
+- Developer builds browser automation as a normal Claude Code tool where the LLM decides what to type
+- Playwright MCP (microsoft/playwright-mcp) has an open issue (#922) requesting placeholder resolution specifically because the default pattern exposes credentials to the model
+- Agent Zero's `{{secret(KEY)}}` pattern works because secrets are replaced at execution time and masked in output -- but Jarvis's Claude Code SDK does not have this pattern built in
+- Testing with dummy credentials works fine; the problem only surfaces with real credentials
 
-**Consequences:**
-- Silent data exfiltration in future sessions
-- Agent develops "persistent false beliefs" that it defends as correct
-- Cascading effects: one compromised memory entry poisons downstream decisions
-- Difficult to detect because the agent's behavior appears internally consistent
+**How to avoid:**
+1. Build the vault-to-browser bridge as an **opaque tool** -- the LLM calls `fill_credentials(site_id)` and NEVER receives the credential values
+2. The tool internally: unlocks Bitwarden CLI, fetches credentials, calls `page.fill()`, returns only success/failure metadata
+3. Credential values must never appear in: tool arguments, tool responses, system prompts, conversation history, or log files
+4. Implement the Agent Zero masking pattern: scan all tool output for known secret values and replace with placeholders before returning to the LLM
+5. Test with a "canary credential" that triggers alerts if it appears anywhere in logs or memory
 
 **Warning signs:**
-- Memory entries with no clear provenance ("where did this come from?")
-- Agent behavior suddenly changes without obvious trigger
-- Memory entries that reference external actions (e.g., "always send copies to...")
-- Summarization producing content not in original conversation
+- Any tool that accepts a `password` or `credential` parameter from the LLM
+- Playwright automation that uses `page.fill(selector, variable_from_llm_context)`
+- Tool responses that include "logged in as..." with username details
+- Memory entries containing anything resembling credentials
 
-**Prevention:**
-1. **Tag all memory entries with source provenance** (user explicit, user implicit, system inferred, external)
-2. **Validate memory at retrieval time**, not just insertion
-3. **Implement belief drift detection**: alert when agent's "beliefs" shift significantly
-4. **Never store instructions in memory** - only facts/preferences
-5. **Regular memory audits**: human review of high-importance entries
-6. **Sanitize all external content** before it enters memory pipeline
-
-**Which phase should address it:** Memory System (Phase 1 or 2)
+**Phase to address:** Vault Integration (must be the FIRST feature built, before any browser automation)
 
 **Sources:**
-- [Agent Memory Poisoning - The Attack That Waits](https://medium.com/@michael.hannecke/agent-memory-poisoning-the-attack-that-waits-9400f806fbd7)
-- [Palo Alto Unit42: Persistent Behaviors in Agents' Memory](https://unit42.paloaltonetworks.com/indirect-prompt-injection-poisons-ai-longterm-memory/)
-- [OWASP ASI06: Agentic Memory Poisoning (2026)](https://neuraltrust.ai/blog/memory-context-poisoning)
+- [Playwright MCP Issue #922: Placeholder Resolution](https://github.com/microsoft/playwright-mcp/issues/922)
+- [Secure Credential Management in Playwright (Medium, Jan 2026)](https://medium.com/@sajith-dilshan/secure-credential-management-in-playwright-0cf75c4e2ff4)
+- [Securing Automation Workflow with Vault using Playwright (Medium)](https://medium.com/@mhabiib/securing-your-automation-workflow-with-vault-using-playwright-25742bbf43aa)
 
 ---
 
-### Pitfall 2: Context Window Overflow Causing Instruction Drift
+### Pitfall 2: Bitwarden CLI Session Token Silently Expires Mid-Task
 
 **What goes wrong:**
-As conversation history + memory context + system prompts grow, the context window fills. When it overflows, the original system prompt (your carefully crafted guardrails and behavior rules) gets pushed out of the window. The model is now "flying blind," guided only by recent messages.
+Bitwarden CLI's `BW_SESSION` token expires after the web vault's configured timeout (default: 1 hour, sometimes 15 minutes). The CLI does not warn you -- commands simply fail with cryptic errors or return empty results. For a bill pay workflow that takes 5 minutes, this seems fine. But for a scheduled task that runs every 8 hours, or a long research session, the token expires between vault lookups and the automation silently fails or hangs waiting for master password input.
 
 **Why it happens:**
-- Memory grows unbounded over time
-- No monitoring of context utilization
-- Aggressive memory loading without prioritization
-- Long conversations compound the problem
+- The CLI is not a persistent daemon; it has no concept of auto-refresh
+- API key login (`bw login --apikey`) still requires a separate `bw unlock` step with master password to decrypt the vault -- API key alone cannot decrypt
+- Each `bw unlock` produces a DIFFERENT session token, so you cannot cache tokens
+- The vault lock timeout is controlled by web vault settings, not CLI settings, and applies globally
+- On Windows, environment variables set in one shell do not propagate to PM2 processes
 
-**Consequences:**
-- **Instruction drift**: Agent "forgets" its core behaviors and safety rules
-- **Performance collapse**: Confused, lower-quality responses before outright failure
-- **API errors**: Best case is a clean `context_length_exceeded` error
-- **Silent degradation**: Worst case is the model silently dropping important context
+**How to avoid:**
+1. Build a **vault service wrapper** that handles unlock-on-demand: before every credential fetch, check `bw status`, re-unlock if locked, cache the session token for the current operation only
+2. Use `bw login --apikey` for authentication (no interactive password prompt), then `bw unlock` with master password stored in a protected environment variable or Windows Credential Manager
+3. Never assume the session is valid -- always verify before use
+4. Set vault timeout to maximum (e.g., 4 hours) in Bitwarden web vault settings during development, but plan for it being shorter in production
+5. Log session status transitions for debugging (locked/unlocked/expired) without logging the token itself
 
 **Warning signs:**
-- Agent personality/tone shifts during long conversations
-- Agent violates established rules it was following earlier
-- Responses become slower and lower quality
-- Agent asks questions it should already know from context
+- `bw list items` returns empty array when vault has items
+- `bw get` commands fail silently or return `null`
+- Scheduled tasks work on first run but fail on subsequent runs
+- Different behavior between interactive terminal and PM2 process
 
-**Prevention:**
-1. **Monitor context utilization**: Track percentage of context window used
-2. **Implement sliding window for conversation history**: Keep recent + important, drop middle
-3. **Prioritize system prompts**: Pin critical instructions at start AND end of context
-4. **Implement memory relevance scoring**: Only load memories relevant to current conversation
-5. **Set hard limits**: Max conversation turns, max memory entries per session
-6. **Compress/summarize older context** rather than dropping entirely
-
-**Which phase should address it:** Memory System + Intelligence Layer
+**Phase to address:** Vault Integration
 
 **Sources:**
-- [Context Window Overflow: Breaking the Barrier (AWS)](https://aws.amazon.com/blogs/security/context-window-overflow-breaking-the-barrier/)
-- [Preventing Context Window Overflows (AIQ.hu)](https://aiq.hu/en/preventing-context-window-overflows-memory-protection-strategies-for-llms/)
-- [Understanding LLM Performance Degradation (Demiliani)](https://demiliani.com/2025/11/02/understanding-llm-performance-degradation-a-deep-dive-into-context-window-limits/)
+- [Bitwarden Community: Vault remains "locked" despite successful unlock](https://community.bitwarden.com/t/persistent-issue-with-bitwarden-cli-vault-remains-locked-despite-successful-unlock/83874)
+- [GitHub: Automate BW_SESSION Export (Issue #102)](https://github.com/bitwarden/cli/issues/102)
+- [GitHub: CLI client requires password to unlock, API key useless (Issue #5408)](https://github.com/bitwarden/clients/issues/5408)
+- [Bitwarden CLI: Session Expiration](https://community.bitwarden.com/t/cli-session-expiration/43611)
 
 ---
 
-### Pitfall 3: No Guardrails by Default (The Moltbot Lesson)
+### Pitfall 3: Financial Sites Detect and Block Playwright Automation
 
 **What goes wrong:**
-Jarvis v1 runs locally with implicit trust. Moving to production without explicit guardrails means the agent can execute any action without confirmation. Combined with memory + tools, this creates significant risk of unintended destructive actions.
+Bank and bill pay websites actively detect automated browsers. Playwright sets `navigator.webdriver = true` by default, uses identifiable browser fingerprints, and connects via Chrome DevTools Protocol (CDP) -- all of which modern anti-bot systems detect. The automation works perfectly against test sites and simple web forms, then fails completely against Chase, Schwab, utility company portals, and any site using Cloudflare, Akamai, or DataDome bot protection.
 
 **Why it happens:**
-- Local development assumes trusted user
-- Guardrails are "friction" that gets skipped for MVP
-- Difficult to anticipate all dangerous action patterns
-- LLMs are probabilistic - edge cases happen
+- Financial sites have the strongest anti-bot measures in any industry
+- CDP detection is a newer technique (2024-2025) that specifically targets automation frameworks
+- Bot detection analyzes behavioral patterns: instant form fills, no mouse movement, no scroll patterns, no typing cadence
+- Residential IP vs datacenter IP matters -- home ISP is better than cloud
+- Browser fingerprint (canvas, WebGL, fonts, plugins) is consistent across automated sessions
 
-**Consequences:**
-- **Destructive actions without confirmation** (delete all tasks, clear calendar)
-- **Credential exposure** via prompt injection leaking API keys
-- **Cost runaway** from expensive operations (voice API, LLM calls)
-- **Data exfiltration** if agent can be tricked into sending data externally
-
-**Warning signs (from GOTCHA analysis):**
-- No confirmation flow for destructive operations
-- Tools have unbounded permissions
-- No rate limiting on expensive operations
-- No audit log of tool invocations
-
-**Prevention:**
-1. **Action classification**: Label each tool as read/write/delete/expensive
-2. **Confirmation tiers**:
-   - Read: no confirmation
-   - Write: optional confirmation based on scope
-   - Delete: always confirm
-   - Expensive: rate limit + budget caps
-3. **Guardrails configuration file**: Externalize rules for easy auditing
-4. **Audit logging**: Every tool invocation logged with context
-5. **Kill switch**: Ability to immediately halt all agent actions
-6. **Least privilege**: Each tool gets minimum required permissions
-
-**Which phase should address it:** Guardrails System (dedicated phase)
-
-**Sources:**
-- [GOTCHA-ATLAS-ANALYSIS.md](/.planning/research/GOTCHA-ATLAS-ANALYSIS.md) (local research)
-- [Building Production-Ready Guardrails for Agentic AI (Medium)](https://ssahuupgrad-93226.medium.com/building-production-ready-guardrails-for-agentic-ai-a-defense-in-depth-framework-4ab7151be1fe)
-- [AI Guardrails: Enforcing Safety (Obsidian Security)](https://www.obsidiansecurity.com/blog/ai-guardrails)
-
----
-
-### Pitfall 4: Environment Variable Exposure in Production
-
-**What goes wrong:**
-Secrets (API keys for ElevenLabs, Deepgram, Claude, Notion) get exposed through various vectors: error messages, client-side code, git commits, or log files. Once exposed, attackers can run up bills, access user data, or impersonate the service.
-
-**Why it happens:**
-- `NEXT_PUBLIC_` prefix accidentally used for server-only secrets
-- Error messages containing full environment in stack traces
-- Secrets committed to git history (even if removed later)
-- Logs capturing request headers with auth tokens
-- Different configs for dev/preview/prod not maintained correctly
-
-**Consequences:**
-- **Financial damage**: API costs run up by attackers
-- **Data breach**: Access to user Notion data, conversation history
-- **Service disruption**: Rate limits exhausted, keys revoked
-- **Reputational harm**: User trust lost
+**How to avoid:**
+1. **Do NOT try to "stealth" Playwright** -- this is an arms race you will lose. Financial sites update detection faster than stealth plugins update evasion
+2. **Prefer official APIs** wherever available (Schwab API exists and Jarvis already uses it)
+3. For sites without APIs, use **persistent browser profiles** (not incognito) with real browsing history
+4. Add **human-like delays**: random 50-200ms between keystrokes, mouse movements before clicks, scroll before interacting with below-fold elements
+5. Run Playwright in **headed mode** (not headless) on your Windows machine -- headless detection is trivial for bot systems
+6. Accept that some sites **will not work** -- have a fallback plan (notification to Jon via Telegram: "Cannot automate X, manual intervention needed")
+7. Start with the EASIEST bill pay sites first (simple utility companies) before attempting banks
 
 **Warning signs:**
-- Any `NEXT_PUBLIC_` variable containing "KEY", "SECRET", "TOKEN"
-- API keys appearing in browser Network tab
-- `.env` files in git history
-- Error responses containing environment details
+- CAPTCHA appears during automated login but not manual login
+- "Unusual activity detected" emails after automation runs
+- Automation works once, then fails on subsequent attempts
+- Different behavior between headed and headless mode
 
-**Prevention:**
-1. **Never use `NEXT_PUBLIC_` for secrets** - audit all env vars
-2. **Use Vercel Sensitive Environment Variables** for all secrets
-3. **Implement secrets scanning in CI/CD** (GitHub secret scanning, git-secrets)
-4. **Sanitize error responses** - never expose stack traces in production
-5. **Rotate keys** if any exposure suspected
-6. **Separate concerns**: Different keys for dev/preview/prod
-7. **Log scrubbing**: Filter sensitive values from logs
-
-**Which phase should address it:** Production Deployment (first item)
+**Phase to address:** Browser Automation Engine (design for graceful failure from day one)
 
 **Sources:**
-- [Vercel: Sensitive Environment Variables](https://vercel.com/docs/environment-variables/sensitive-environment-variables)
-- [Do Not Use Secrets in Environment Variables (nodejs-security.com)](https://www.nodejs-security.com/blog/do-not-use-secrets-in-environment-variables-and-here-is-how-to-do-it-better)
+- [Avoid Bot Detection With Playwright Stealth (Scrapeless)](https://www.scrapeless.com/en/blog/avoid-bot-detection-with-playwright-stealth)
+- [How Anti-Detect Frameworks Evolved (Castle.io)](https://blog.castle.io/from-puppeteer-stealth-to-nodriver-how-anti-detect-frameworks-evolved-to-evade-bot-detection/)
+- [From Playwright Codegen to Scalable Automation (Browserless)](https://www.browserless.io/blog/playwright-codegen-scalable-browserless-browserql)
 
 ---
 
-## Moderate Pitfalls
-
-Mistakes that cause delays, technical debt, or degraded user experience.
-
----
-
-### Pitfall 5: SQLite Concurrency Under Serverless
+### Pitfall 4: Autonomous Agent Submits Wrong Payment or Duplicate Payment
 
 **What goes wrong:**
-SQLite is an excellent local database but struggles with concurrent writes. In a serverless environment (Vercel), multiple function instances can try to write simultaneously, causing "database is locked" errors or even corruption.
+The agent pays the wrong amount, pays the wrong account, pays twice due to retry logic, or submits a form before the human approves. With financial transactions, there is no "undo" -- a duplicate mortgage payment or a payment to the wrong utility account causes real financial harm that takes days to resolve.
 
 **Why it happens:**
-- SQLite uses database-level locks (only one writer at a time)
-- Serverless functions run in parallel, uncoordinated instances
-- File-based storage doesn't work with serverless ephemerality
-- Network file systems (if used) have unreliable locking
+- LLMs are probabilistic -- they occasionally misread amounts from scraped page content
+- Retry logic after a timeout may re-submit a payment that actually succeeded
+- Page structure changes between visits (different amount displayed, different form layout)
+- The approval gateway has a race condition: agent proceeds while waiting for Telegram confirmation
+- "Confirmation page" detection fails -- the agent thinks it is still on the form page when it is actually on the success page
 
-**Consequences:**
-- "Database is locked" errors during normal operation
-- Lost writes when timeouts occur
-- Potential database corruption
-- Unpredictable behavior under load
+**How to avoid:**
+1. **Mandatory Telegram approval gate** before ANY financial submission -- no exceptions, no override
+2. The approval message must include: site name, payee, amount, payment method, and a screenshot of the pre-submit page
+3. Implement **idempotency**: track payment IDs, check "already paid" state before attempting
+4. **Never retry a payment submission** -- if it times out, report to the human and wait
+5. Build a **dry-run mode** that navigates through the entire flow but stops before the final submit button
+6. Parse and validate amounts using OCR/screenshot comparison, not just DOM text (sites may have hidden fields with different values)
+7. Store a payment ledger: every attempted and completed payment with timestamp, amount, confirmation number
 
 **Warning signs:**
-- Intermittent 500 errors on write operations
-- "SQLITE_BUSY" in logs
-- Data inconsistencies between reads
-- Errors correlating with traffic spikes
+- Payment amount in DOM differs from what was displayed to user
+- Multiple "submit" events in rapid succession
+- No confirmation number captured after payment
+- Agent reports "payment successful" but no confirmation email received
 
-**Prevention:**
-1. **For serverless: Use a managed database** (Turso, PlanetScale, Supabase, Neon)
-2. **If SQLite required**: Use single-instance deployment only
-3. **Enable WAL mode**: Better concurrency for read-heavy workloads
-4. **Set busy_timeout**: At least 5-10 seconds
-5. **Avoid upgrading read transactions to write** (causes immediate locks)
-6. **Consider hybrid**: SQLite for local/dev, managed DB for production
-
-**Which phase should address it:** Memory System + Production Deployment
+**Phase to address:** Bill Pay Workflows (requires both vault integration AND browser engine to be stable first)
 
 **Sources:**
-- [SQLite: File Locking and Concurrency](https://sqlite.org/lockingv3.html)
-- [SQLite Concurrent Writes and "Database is Locked"](https://tenthousandmeters.com/blog/sqlite-concurrent-writes-and-database-is-locked-errors/)
-- [How to Corrupt an SQLite Database](https://www.sqlite.org/howtocorrupt.html)
+- [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
+- [AI Went from Assistant to Autonomous Actor and Security Never Caught Up (HelpNetSecurity)](https://www.helpnetsecurity.com/2026/03/03/enterprise-ai-agent-security-2026/)
+- [Know Your Agent: Autonomous Payments (The Financial Brand)](https://thefinancialbrand.com/news/payments-trends/know-your-agent-is-a-must-when-autonomous-payments-can-be-fraudsters-entry-point-195876)
 
 ---
 
-### Pitfall 6: Notion API Rate Limits and Silent Truncation
+### Pitfall 5: Sub-Agent Token Explosion Burns Through Max Plan Limits
 
 **What goes wrong:**
-Jarvis v1 integrates heavily with Notion. At production scale, you'll hit the 3 requests/second rate limit. Additionally, Notion silently truncates relation properties at 25 references - no error, just missing data.
+Each Claude Code subprocess re-injects the entire system prompt (CLAUDE.md, MCP tool descriptions, skill files) on every turn. With Jarvis's 40+ MCP tools, a single subprocess turn consumes ~50K tokens before doing any actual work. Spawning 3 sub-agents for parallel research = 150K tokens of system prompt overhead per round. The Max plan has generous but not infinite limits, and this burns through them fast.
 
 **Why it happens:**
-- No rate limiting in client code
-- Burst operations during briefings (fetch tasks + calendar + projects)
-- Relation properties with >25 links return incomplete data silently
-- MCP has additional tool-specific limits (35 searches/minute)
+- Claude Code CLI re-reads global configuration on every turn of every subprocess
+- MCP tool descriptions alone can consume 10-20K tokens
+- No isolation between parent and child system prompts
+- The problem is invisible until you check token usage dashboards -- responses seem normal
 
-**Consequences:**
-- `429 Too Many Requests` errors during briefings
-- Missing data from truncated relations (user confusion)
-- Failed operations with unclear errors
-- Poor UX during high-activity periods
+**How to avoid:**
+1. Use `--system-prompt` flag to provide ONLY the specific context each sub-agent needs -- do not let it inherit the full global config
+2. Use **stream-json mode** for persistent sub-agent sessions -- keeps context in one continuous session without re-injection
+3. Limit MCP tools available to sub-agents: a research sub-agent does not need Notion's 10 tools
+4. Monitor token usage per subprocess: set alerts at thresholds
+5. Prefer Agent Teams (experimental Opus 4.6 feature) over raw subprocess spawning when available
+6. Before isolation: turn 1 = ~50K tokens, turn 5 = ~250K tokens. After isolation: turn 1 = ~5K, turn 5 = ~25K. This is a 10x difference
 
 **Warning signs:**
-- Briefings taking longer than expected
-- Tasks or relations mysteriously missing
-- Intermittent 429 responses in logs
-- User reports of incomplete data
+- Max plan usage spikes dramatically after sub-agent feature ships
+- Sub-agent responses are slow (processing large context)
+- Simple sub-agent tasks take disproportionate token counts
+- "Context window exceeded" errors in sub-agent processes
 
-**Prevention:**
-1. **Implement request queue** with max 3 req/sec throughput
-2. **Respect Retry-After header** when 429 occurs
-3. **Paginate relation property fetches** (don't assume completeness)
-4. **Cache aggressively**: Notion data doesn't change that often
-5. **Batch operations where possible** (reduce request count)
-6. **Consider webhooks** instead of polling for changes
-
-**Which phase should address it:** Production Deployment + Notion integration hardening
+**Phase to address:** Sub-Agent Spawning
 
 **Sources:**
-- [Notion API: Request Limits](https://developers.notion.com/reference/request-limits)
-- [Solving the Notion 25-Reference Limit](https://www.mymcpshelf.com/blog/solving-notion-25-reference-limit-mcp/)
-- [Understanding Notion API Rate Limits in 2025](https://www.oreateai.com/blog/understanding-notion-api-rate-limits-in-2025-what-you-need-to-know/)
+- [Why Claude Code Subagents Waste 50K Tokens Per Turn (DEV Community)](https://dev.to/jungjaehoon/why-claude-code-subagents-waste-50k-tokens-per-turn-and-how-to-fix-it-41ma)
+- [Claude Code Sub-Agents: Parallel vs Sequential Patterns (ClaudeFast)](https://claudefa.st/blog/guide/agents/sub-agent-best-practices)
+- [Claude Agent SDK Overview (Anthropic)](https://platform.claude.com/docs/en/agent-sdk/overview)
 
 ---
 
-### Pitfall 7: Voice API Latency Spikes Under Load
+## Technical Debt Patterns
 
-**What goes wrong:**
-Voice interaction feels natural under 300ms round-trip. Under production load, ElevenLabs and Deepgram latency can spike, creating awkward pauses that break conversational flow.
+Shortcuts that seem reasonable but create long-term problems.
 
-**Why it happens:**
-- API cold starts when traffic is bursty
-- Network jitter compounds across multiple services
-- Concurrent session limits can cause queueing
-- WebSocket connection management issues
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Hardcoding bill pay site selectors | Fast to build | Breaks when site redesigns (every 3-6 months) | Never -- use data-driven selector config files |
+| Storing BW master password in `.env` | Easy vault unlock | Single point of compromise for ALL credentials | Only during initial development, must move to Windows Credential Manager |
+| Skipping Telegram approval for "safe" actions | Faster automation | Category creep -- "safe" list grows until a real mistake happens | Never for financial actions. OK for read-only actions |
+| Single monolithic browser context | Simpler code | One site's cookies/state leak into another site's session | Never -- use separate browser contexts per site |
+| Using Agent Zero skills directly without porting | Saves rewrite time | A0 skills depend on A0's tool format, won't work in Claude Code | Only as reference -- must rewrite for Claude Code tool format |
+| Skipping payment ledger | Less code to maintain | No audit trail, cannot detect duplicates or reconcile | Never |
 
-**Consequences:**
-- Awkward conversational pauses (>500ms feels unnatural)
-- User talks over the agent (assumes it's done)
-- Perception of "broken" or "slow" assistant
-- Users abandon voice for text
+## Integration Gotchas
 
-**Warning signs:**
-- Time-to-first-audio > 300ms regularly
-- High variance in latency (sometimes fast, sometimes slow)
-- Users repeating themselves
-- WebSocket reconnection events in logs
+Common mistakes when connecting to external services.
 
-**Prevention:**
-1. **Measure P95 latency**, not just average
-2. **Keep WebSocket connections warm** (persistent connections)
-3. **Implement streaming for TTS** (start playing before full response ready)
-4. **Have graceful degradation** (e.g., "Processing..." acknowledgment)
-5. **Consider edge deployment** for voice endpoints
-6. **Monitor concurrent session limits** vs actual usage
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| Bitwarden CLI | Assuming `bw login --apikey` unlocks the vault | API key authenticates only. You must still run `bw unlock` with master password to decrypt. Two separate steps |
+| Bitwarden CLI | Caching BW_SESSION across processes | Each PM2 process needs its own session. Set via wrapper, not global env var |
+| Playwright | Using `page.goto()` without `waitUntil: 'networkidle'` on financial sites | Financial sites have heavy JS; use `networkidle` or explicit `waitForSelector` on the form element you need |
+| Playwright | Running headless mode against banks | Banks detect headless. Run headed on Windows desktop. Use `xvfb` only as last resort on Linux |
+| PM2 (repo migration) | Moving project directory while PM2 process is running | PM2 caches the original `cwd` in its dump file. Must `pm2 delete` + re-register from new path, not just `pm2 restart` |
+| PM2 + symlinks | Using symlink to redirect old path to new path | PM2 resolves symlinks and stores the real path. Symlinks do not work as a migration strategy for PM2 |
+| Cloudflare Tunnel | Changing the origin after tunnel is configured | Must update tunnel config AND restart `cloudflared`. Old config cached locally |
+| git filter-repo | Using `git filter-branch` to extract subdirectory | `filter-branch` is deprecated, slow, and has portability issues. Use `git filter-repo` instead |
 
-**Which phase should address it:** Production Deployment + Voice optimization
+## Performance Traps
 
-**Sources:**
-- [Voice AI Infrastructure: Building Real-Time Speech Agents (Introl)](https://introl.com/blog/voice-ai-infrastructure-real-time-speech-agents-asr-tts-guide-2025)
-- [ElevenLabs: Latency Optimization](https://elevenlabs.io/docs/developers/best-practices/latency-optimization)
-- [Deepgram vs ElevenLabs Comparison](https://deepgram.com/learn/deepgram-vs-elevenlabs)
+Patterns that work at small scale but fail as usage grows.
 
----
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Opening new browser for each bill pay task | 5-10 second startup per task | Maintain persistent browser context pool; reuse contexts per site | Immediately noticeable -- 3 bills = 30 seconds of browser startups |
+| Fetching all Bitwarden items to find one credential | Slow credential lookup | Use `bw get item <id>` with known item IDs, not `bw list items` + filter | When vault has 100+ items (already likely for Jon) |
+| Loading full research library into every sub-agent context | Context overflow | Retrieve only relevant entries via semantic search, limit to top 5 | When research library exceeds 20-30 entries |
+| Synchronous vault unlock on every credential request | Blocks the main agent loop | Cache unlocked session, verify status before use, unlock only when needed | Every single credential fetch adds 2-3 second delay |
 
-### Pitfall 8: Memory System Integration Breaking Existing Flows
+## Security Mistakes
 
-**What goes wrong:**
-Adding memory to an existing working system introduces integration complexity. Memory loading adds latency to every conversation start. Memory context competes with conversation history for context space.
+Domain-specific security issues beyond general web security.
 
-**Why it happens:**
-- Memory added as afterthought, not designed in
-- No clear boundary between conversation context and memory context
-- Memory queries add latency on the critical path
-- Tightly coupled architecture makes changes ripple
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Logging Playwright network traffic that includes POST bodies | Credentials in form submissions appear in logs | Disable request logging or filter POST body data for login URLs |
+| Storing screenshots of filled-in login forms | Screenshots contain typed credentials | Take screenshots BEFORE filling credentials, or after successful login on the dashboard page |
+| Sub-agent inherits parent's vault access | Compromised sub-agent prompt can request credentials for any site | Sub-agents should NEVER have vault access. Only the parent orchestrator calls vault tools |
+| Memory system stores "I paid the electric bill, amount $X, account Y" | Financial details in vector DB, searchable | Store only: "Electric bill paid, confirmation #Z". Never store account numbers or payment amounts in memory |
+| Research library stores grant application data with SSN/EIN fields | PII in searchable knowledge base | Separate PII fields from research content. PII goes in Bitwarden vault, research goes in library |
+| Telegram approval messages include account numbers | Telegram message history contains financial data | Show masked account numbers: "****1234". Include enough to identify, not enough to compromise |
 
-**Consequences:**
-- Briefings now take 2x longer to start
-- Agent behavior changes unpredictably with memory additions
-- Hard to debug whether issue is memory, context, or LLM
-- Regression in features that previously worked
+## UX Pitfalls
 
-**Warning signs:**
-- Features that worked in v1 now fail intermittently
-- Conversation quality degrades after memory system added
-- Startup time noticeably slower
-- Context-related errors increase
+Common user experience mistakes in this domain.
 
-**Prevention:**
-1. **Define clear boundaries**: Memory is *additive* to system prompt, not replacing
-2. **Make memory loading async where possible** (prefetch during audio processing)
-3. **Measure baseline latency** before adding memory, track regression
-4. **Feature flags**: Ability to disable memory system for debugging
-5. **Incremental rollout**: Memory for specific features first, not all at once
-6. **Test memory system in isolation** before integration
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Silent failure on blocked automation | Jon thinks bill was paid, it was not | Always send explicit Telegram notification: "FAILED: Electric bill -- site blocked automation. Manual payment needed" |
+| Approval request without context | Jon gets "Approve payment?" while in surgery, no idea what it is | Include: site name, amount, due date, and screenshot. Make it self-contained |
+| No way to cancel in-progress automation | Bill pay starts navigating wrong site, no abort | Telegram "CANCEL" button that kills the browser context immediately |
+| Scheduling tasks with no visibility | Tasks run in background, Jon does not know what is happening | Daily digest: "Today Jarvis will: pay electric bill at 9am, research grants at 2pm" |
+| Research results dumped as raw text | Unusable for form-filling later | Structure research as typed fields: {grant_name, deadline, requirements[], eligibility_criteria[]} |
 
-**Which phase should address it:** Memory System (core design)
+## "Looks Done But Isn't" Checklist
 
-**Sources:**
-- [Technical Debt: How Adding Features Creates Complexity (Qt)](https://www.qt.io/quality-assurance/blog/how-to-tackle-technical-debt)
-- [When to Prioritize Refactoring Over New Features (Revelo)](https://www.revelo.com/blog/rethinking-technical-debt-prioritizing-refactoring-vs-new-features)
+Things that appear complete but are missing critical pieces.
 
----
+- [ ] **Vault integration:** Often missing session re-lock handling -- verify vault auto-locks after each credential fetch
+- [ ] **Browser bill pay:** Often missing "already paid" detection -- verify the workflow checks if current billing cycle is already paid before attempting
+- [ ] **Telegram approval:** Often missing timeout handling -- verify what happens if Jon never responds (answer: cancel after 30 min, notify)
+- [ ] **Sub-agent spawning:** Often missing error propagation -- verify parent agent knows when sub-agent fails (not just times out)
+- [ ] **Repo migration:** Often missing PM2 dump update -- verify `pm2 save` after re-registering from new path
+- [ ] **Repo migration:** Often missing Cloudflare tunnel origin update -- verify tunnel still routes to correct local port
+- [ ] **Scheduled tasks:** Often missing timezone handling -- verify cron expressions use America/New_York, not UTC
+- [ ] **Research library:** Often missing structured schema -- verify research entries have typed fields, not just free-text blobs
+- [ ] **A0 sunset:** Often missing skill audit -- verify all 20+ A0 skills are either ported, deliberately dropped, or documented as not needed
+- [ ] **A0 sunset:** Often missing scheduled task port -- verify all 5 A0 scheduled tasks are recreated in Jarvis or explicitly deprecated
 
-### Pitfall 9: Prompt Injection Through Notion Content
+## Recovery Strategies
 
-**What goes wrong:**
-Malicious content in Notion pages (task descriptions, project notes) gets fetched and included in context, executing prompt injection attacks via the user's own data.
+When pitfalls occur despite prevention, how to recover.
 
-**Why it happens:**
-- Notion content treated as trusted because it's "user data"
-- Shared workspaces mean others can edit content
-- No sanitization of fetched Notion content
-- Content goes directly into LLM context
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| Credential leaked to LLM context | HIGH | Rotate credential immediately in Bitwarden. Clear conversation history. Purge memory entries containing the credential. Audit logs for exfiltration |
+| Duplicate payment submitted | MEDIUM | Contact billing company for refund. Add idempotency check. Update payment ledger. Disable automated payment for that site until fixed |
+| Bot detection blocks automation | LOW | Switch to manual payment for that site. Add to "manual-only" list. Research if site has an API alternative |
+| Sub-agent token explosion | LOW | Kill runaway processes. Add `--system-prompt` isolation. Monitor token dashboard. Set per-subprocess budget |
+| PM2 process lost during migration | LOW | Re-register process from new path. Update ecosystem.config.js. Run `pm2 save`. Verify with `pm2 ls` |
+| BW session expired during bill pay | LOW | Re-unlock vault. Restart the bill pay workflow from the beginning (do NOT resume mid-flow) |
+| Research data contains PII | MEDIUM | Delete affected entries from vector DB. Move PII to Bitwarden. Re-ingest clean research. Audit what was exposed |
 
-**Consequences:**
-- Unauthorized actions taken by the agent
-- Data from other contexts leaked
-- Agent behavior manipulation
-- Trust violations
+## Pitfall-to-Phase Mapping
 
-**Warning signs:**
-- Agent doing unexpected things after fetching specific pages
-- Behavior changes correlated with specific Notion content
-- Agent "leaking" information from other contexts
+How roadmap phases should address these pitfalls.
 
-**Prevention:**
-1. **Treat Notion content as untrusted input**
-2. **Sanitize before including in context** (remove suspicious patterns)
-3. **Separate data from instructions** in prompt structure
-4. **Log which Notion content was accessed** for audit
-5. **Consider content isolation**: Limit what can be fetched per request
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| Credential exposure to LLM (Pitfall 1) | Vault Integration | Canary credential test: inject fake cred, verify it never appears in logs/memory |
+| BW session expiration (Pitfall 2) | Vault Integration | Run vault wrapper for 2+ hours, verify auto-re-unlock works |
+| Bot detection blocking (Pitfall 3) | Browser Engine | Test against 3 real bill pay sites in headed mode before declaring "done" |
+| Duplicate/wrong payment (Pitfall 4) | Bill Pay Workflows | Dry-run mode successfully navigates full flow without submitting |
+| Token explosion (Pitfall 5) | Sub-Agent Spawning | Monitor token usage: subprocess turn < 10K tokens with isolation |
+| PM2 path caching (Integration) | Repo Migration | `pm2 ls` shows correct new path. `pm2 restart` works from new location |
+| A0 skill gap (Integration) | A0 Sunset | Checklist of all 20+ skills with disposition: ported / dropped / not needed |
+| PII in research library (Security) | Research Library | Schema review: no PII fields in research entries. PII audit tool |
+| Approval gateway race condition (Pitfall 4) | Bill Pay Workflows | Test: start payment, do NOT approve for 30 min, verify timeout behavior |
 
-**Which phase should address it:** Guardrails System
+## Sources
 
-**Sources:**
-- [LLM Security Risks in 2026 (Sombra)](https://sombrainc.com/blog/llm-security-risks-2026)
-- [OWASP: Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)
+### Vault and Credentials
+- [Bitwarden CLI Documentation](https://bitwarden.com/help/cli/)
+- [Bitwarden CLI Session Expiration Discussion](https://community.bitwarden.com/t/cli-session-expiration/43611)
+- [Bitwarden CLI: Vault Locked Despite Unlock](https://community.bitwarden.com/t/persistent-issue-with-bitwarden-cli-vault-remains-locked-despite-successful-unlock/83874)
+- [Bitwarden Clients Issue #5408: API key cannot unlock](https://github.com/bitwarden/clients/issues/5408)
+- [Playwright MCP Issue #922: Placeholder Resolution for Credentials](https://github.com/microsoft/playwright-mcp/issues/922)
 
----
+### Browser Automation
+- [Playwright and Playwright MCP Field Guide (Medium, Feb 2026)](https://medium.com/@adnanmasood/playwright-and-playwright-mcp-a-field-guide-for-agentic-browser-automation-f11b9daa3627)
+- [Anti-Detect Framework Evolution (Castle.io)](https://blog.castle.io/from-puppeteer-stealth-to-nodriver-how-anti-detect-frameworks-evolved-to-evade-bot-detection/)
+- [Bypassing CAPTCHA with Playwright (BrowserStack, 2026)](https://www.browserstack.com/guide/playwright-captcha)
 
-## Minor Pitfalls
+### AI Agent Security
+- [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
+- [AI Went from Assistant to Autonomous Actor (HelpNetSecurity, March 2026)](https://www.helpnetsecurity.com/2026/03/03/enterprise-ai-agent-security-2026/)
+- [The Looming Authorization Crisis: Why Traditional IAM Fails Agentic AI (ISACA)](https://www.isaca.org/resources/news-and-trends/industry-news/2025/the-looming-authorization-crisis-why-traditional-iam-fails-agentic-ai)
+- [Replit AI Disaster Post-Mortem (BayTechConsulting)](https://www.baytechconsulting.com/blog/the-replit-ai-disaster-a-wake-up-call-for-every-executive-on-ai-in-production)
 
-Mistakes that cause annoyance but are fixable without major rework.
+### Sub-Agent Orchestration
+- [Why Claude Code Subagents Waste 50K Tokens Per Turn (DEV Community)](https://dev.to/jungjaehoon/why-claude-code-subagents-waste-50k-tokens-per-turn-and-how-to-fix-it-41ma)
+- [Claude Code Sub-Agents: Best Practices (ClaudeFast)](https://claudefa.st/blog/guide/agents/sub-agent-best-practices)
+- [Claude Agent SDK Overview (Anthropic)](https://platform.claude.com/docs/en/agent-sdk/overview)
 
----
-
-### Pitfall 10: Memory Deduplication Failures
-
-**What goes wrong:**
-The same fact gets stored multiple times with slightly different wording, cluttering memory and wasting context space.
-
-**Why it happens:**
-- Hash-based deduplication fails on paraphrased content
-- No semantic deduplication
-- Summarization produces multiple versions of same fact
-- User states same thing different ways
-
-**Consequences:**
-- Memory bloat over time
-- Redundant information in context
-- Wasted tokens on duplicates
-- Confusing when reviewing memory
-
-**Prevention:**
-1. **Semantic deduplication** using embeddings (cosine similarity threshold)
-2. **Merge similar entries** rather than keeping all versions
-3. **Periodic memory compaction** job
-4. **Track entry lineage** (this fact derived from that conversation)
-
-**Which phase should address it:** Memory System (data layer)
+### Repo Migration
+- [git-filter-repo (recommended over filter-branch)](https://github.com/newren/git-filter-repo)
+- [PM2 Symlink Issues (GitHub #5939)](https://github.com/Unitech/pm2/issues/5939)
+- [PM2 Symlink Path Resolution (GitHub #1663)](https://github.com/Unitech/pm2/issues/1663)
+- [Splitting Sub-folders Into New Git Repository (Close Engineering)](https://making.close.com/posts/splitting-sub-folders-out-into-new-git-repository/)
 
 ---
-
-### Pitfall 11: Missing Memory Expiration/Decay
-
-**What goes wrong:**
-Stale facts persist forever. "User is on vacation next week" remains true months later.
-
-**Why it happens:**
-- No temporal awareness in memory entries
-- No decay mechanism for time-sensitive facts
-- No review/refresh process
-
-**Consequences:**
-- Agent acts on outdated information
-- Memory grows unbounded
-- Contradictions between old and new facts
-
-**Prevention:**
-1. **Add `expires_at` field** for time-sensitive entries
-2. **Implement importance decay** over time (access_count tracking)
-3. **Periodic memory review** surfacing stale high-importance entries
-4. **User can mark facts as "outdated"**
-
-**Which phase should address it:** Memory System (data model)
-
----
-
-### Pitfall 12: Vercel Cold Start Affecting Voice Experience
-
-**What goes wrong:**
-First request after idle period hits serverless cold start, adding 1-3 seconds latency. For voice, this is jarring.
-
-**Why it happens:**
-- Serverless functions spin down when idle
-- Voice interactions expect instant response
-- No warm-up mechanism
-
-**Consequences:**
-- First interaction of session feels broken
-- User uncertainty ("is it working?")
-- May retry, causing confusion
-
-**Prevention:**
-1. **Warm-up pings** from client on page load
-2. **Keep-alive requests** during active session
-3. **Edge functions** for latency-critical paths
-4. **Graceful loading states** ("Jarvis is waking up...")
-
-**Which phase should address it:** Production Deployment
-
----
-
-### Pitfall 13: Missing Monitoring and Observability
-
-**What goes wrong:**
-Production issues go undetected because there's no visibility into system health, costs, or errors.
-
-**Why it happens:**
-- Monitoring is "post-MVP" work that never happens
-- Local development doesn't need monitoring
-- Unclear what metrics matter for voice AI
-
-**Consequences:**
-- Cost overruns discovered only when invoiced
-- User-reported bugs are first sign of issues
-- No data for debugging production problems
-- Can't measure performance improvements
-
-**Prevention:**
-1. **Set up error tracking** (Sentry) from day one
-2. **Track key metrics**: Latency P50/P95, error rate, API costs
-3. **Set up cost alerts** on Vercel, ElevenLabs, Deepgram, Claude
-4. **Implement health checks** for all external services
-5. **Create dashboards** for daily review
-
-**Which phase should address it:** Production Deployment (first item after secrets)
-
----
-
-## Phase-Specific Warnings
-
-| Phase Topic | Likely Pitfall | Risk Level | Mitigation |
-|-------------|---------------|------------|------------|
-| Memory System | Memory poisoning (Pitfall 1) | CRITICAL | Provenance tracking, sanitization |
-| Memory System | Context overflow (Pitfall 2) | CRITICAL | Utilization monitoring, sliding window |
-| Memory System | Integration breaks existing (Pitfall 8) | MODERATE | Feature flags, incremental rollout |
-| Memory System | SQLite concurrency (Pitfall 5) | MODERATE | Use managed DB for prod |
-| Memory System | Deduplication (Pitfall 10) | MINOR | Semantic dedup |
-| Memory System | Expiration (Pitfall 11) | MINOR | expires_at field |
-| Guardrails | No guardrails by default (Pitfall 3) | CRITICAL | Action classification, confirmation tiers |
-| Guardrails | Notion content injection (Pitfall 9) | MODERATE | Sanitization, isolation |
-| Production Deployment | Secret exposure (Pitfall 4) | CRITICAL | Audit env vars, use sensitive vars |
-| Production Deployment | Notion rate limits (Pitfall 6) | MODERATE | Request queue, caching |
-| Production Deployment | Voice latency (Pitfall 7) | MODERATE | Warm connections, streaming |
-| Production Deployment | Cold starts (Pitfall 12) | MINOR | Warm-up pings, edge functions |
-| Production Deployment | No monitoring (Pitfall 13) | MODERATE | Set up from day one |
-
----
-
-## Pitfalls Requiring Phase-Specific Research
-
-These pitfalls need deeper investigation during implementation:
-
-1. **Memory schema design**: Exact fields needed, embedding dimensions, search strategy (hybrid vs pure semantic)
-2. **Guardrails taxonomy**: Complete classification of all Jarvis tools by risk level
-3. **Production monitoring**: Which metrics matter for voice AI in production (specific thresholds)
-4. **Memory UI**: How users view/edit/delete their memories (if at all)
-5. **Database selection**: Turso vs Neon vs Supabase for serverless memory storage
-
----
-
-## Key Takeaways for v2 Roadmap
-
-1. **Memory is a security surface** - Treat it as untrusted data flowing into the system
-2. **Context is finite** - Memory competes with conversation history; design for this
-3. **Guardrails are not optional** - Production deployment without them is negligent
-4. **Secrets exposure is likely** - Audit everything before first production deploy
-5. **SQLite won't scale** - Plan for managed database from the start
-6. **Measure before optimizing** - Set up monitoring before adding features
-7. **Incremental rollout** - Don't break v1 while adding v2 features
-
----
-
-## Sources Summary
-
-### Memory & Context
-- [Memory for AI Agents: A New Paradigm (The New Stack)](https://thenewstack.io/memory-for-ai-agents-a-new-paradigm-of-context-engineering/)
-- [Why Personal AI Memory is Difficult (Kin)](https://mykin.ai/resources/why-personal-ai-memory-difficult)
-- [OpenAI Cookbook: Session Memory](https://cookbook.openai.com/examples/agents_sdk/session_memory)
-- [arXiv: AI Agents Need Memory Control Over More Context](https://arxiv.org/html/2601.11653)
-
-### Security & Guardrails
-- [LLM Security Risks in 2026 (Sombra)](https://sombrainc.com/blog/llm-security-risks-2026)
-- [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)
-- [15 Threats to Security of AI Agents in 2026](https://research.aimultiple.com/security-of-ai-agents/)
-- [Top 10 Predictions for AI Security in 2026 (PointGuard)](https://www.pointguardai.com/blog/top-10-predictions-for-ai-security-in-2026)
-- [Prompt Injection Attacks: A Comprehensive Review (MDPI)](https://www.mdpi.com/2078-2489/17/1/54)
-
-### Production Deployment
-- [Next.js Production Checklist](https://nextjs.org/docs/app/guides/production-checklist)
-- [Top Mistakes When Deploying Next.js Apps](https://dev.to/kuberns_cloud/top-mistakes-when-deploying-nextjs-apps-170f)
-- [Vercel Environment Variables](https://vercel.com/docs/environment-variables)
-- [Vercel: Sensitive Environment Variables](https://vercel.com/docs/environment-variables/sensitive-environment-variables)
-
-### Voice AI
-- [Voice AI Infrastructure Guide (Introl)](https://introl.com/blog/voice-ai-infrastructure-real-time-speech-agents-asr-tts-guide-2025)
-- [ElevenLabs: Latency Optimization](https://elevenlabs.io/docs/developers/best-practices/latency-optimization)
-- [Handling ElevenLabs API Rate Limits](https://prosperasoft.com/blog/voice-synthesis/elevenlabs/elevenlabs-api-rate-limits/)
-
-### Database & Concurrency
-- [SQLite: File Locking and Concurrency](https://sqlite.org/lockingv3.html)
-- [SQLite Concurrent Writes](https://tenthousandmeters.com/blog/sqlite-concurrent-writes-and-database-is-locked-errors/)
-- [Notion API: Request Limits](https://developers.notion.com/reference/request-limits)
-
----
-
-*Research compiled: 2026-02-02*
-*Previous version (v1 pitfalls): 2026-01-31*
-*Confidence: HIGH - Multiple authoritative sources verified*
+*Pitfalls research for: Jarvis v5.0 -- browser automation, vault integration, sub-agents, repo migration*
+*Researched: 2026-03-16*

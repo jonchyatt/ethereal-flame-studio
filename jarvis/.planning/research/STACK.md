@@ -1,657 +1,398 @@
-# Technology Stack
+# Stack Research: v5.0 New Capabilities
 
-**Project:** Jarvis - Voice-Enabled AI Personal Assistant
-**Researched:** 2026-02-02 (v2.0 Update)
+**Domain:** Browser automation, vault integration, sub-agent spawning, research-as-library for autonomous life agent
+**Researched:** 2026-03-16
+**Confidence:** HIGH (official docs verified for all core recommendations)
 
----
-
-## v2.0 Stack Additions Summary
-
-This update adds stack requirements for v2.0 features:
-- **Persistent Memory** - Cross-session conversation continuity with SQLite
-- **Messaging Gateway** - Optional Telegram integration for mobile access
-- **Production Deployment** - Custom domain configuration for Vercel
-
-**Critical Finding:** The existing `better-sqlite3` (already installed) **will NOT work in Vercel's serverless environment**. For production, we need `@libsql/client` which provides a unified API for local SQLite files (development) and Turso cloud database (production).
+**Scope:** Only NEW stack additions for v5.0. Existing validated stack (Claude Agent SDK, Next.js 15, Telegram/grammy, Deepgram, AWS Polly, SQLite, node-cron, PM2) is not re-evaluated.
 
 ---
 
-## Validated v1 Stack (DO NOT CHANGE)
+## Critical Migration: Claude Code SDK to Claude Agent SDK
 
-| Technology | Version | Status |
-|------------|---------|--------|
-| Next.js | ^15.1.4 | Validated |
-| TypeScript | ^5.7.2 | Validated |
-| React | ^19.0.0 | Validated |
-| @anthropic-ai/sdk | ^0.72.1 | Validated |
-| @deepgram/sdk | ^4.11.3 | Validated |
-| @modelcontextprotocol/sdk | ^1.25.3 | Validated |
-| @react-three/fiber | ^9.0.0 | Validated |
-| @react-three/drei | ^10.0.0 | Validated |
-| better-sqlite3 | ^12.6.2 | **Development only** |
-| Zustand | ^5.0.2 | Validated |
-| Zod | ^4.3.6 | Validated |
-| date-fns | ^4.1.0 | Validated |
+The `@anthropic-ai/claude-code` package has been **renamed** to `@anthropic-ai/claude-agent-sdk`. This is not optional -- the old package will stop receiving updates.
+
+| Aspect | Old | New |
+|--------|-----|-----|
+| Package | `@anthropic-ai/claude-code` | `@anthropic-ai/claude-agent-sdk` |
+| Version | `^0.0.42` | `^0.2.76` |
+| Import | `from "@anthropic-ai/claude-code"` | `from "@anthropic-ai/claude-agent-sdk"` |
+
+**Breaking changes to handle:**
+1. System prompt no longer loads by default -- must pass `systemPrompt` explicitly or use `{ type: "preset", preset: "claude_code" }`
+2. Settings sources (CLAUDE.md, settings.json) no longer loaded by default -- must pass `settingSources: ["user", "project", "local"]`
+3. Python: `ClaudeCodeOptions` renamed to `ClaudeAgentOptions` (TypeScript API unchanged)
+
+**Action:** `npm uninstall @anthropic-ai/claude-code && npm install @anthropic-ai/claude-agent-sdk`
 
 ---
 
-## v2.0 New Dependencies
+## Recommended Stack Additions
 
-### 1. Persistent Memory System
+### 1. Browser Automation Engine
 
-#### Primary: @libsql/client + Drizzle ORM
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `playwright` | `^1.58.2` | Browser control (navigate, click, fill, submit) | Microsoft-backed, TypeScript-first, auto-wait eliminates flaky selectors, single API for Chromium/Firefox/WebKit. Already proven in Agent Zero's browser agent. |
+| `@playwright/mcp` | `latest` | MCP server exposing 25+ browser tools to Claude | Official Microsoft package. Uses accessibility tree snapshots (2-5KB) instead of screenshots, 10-100x faster than vision-based approaches. But see note below. |
 
-| Library | Version | Purpose | Why | Confidence |
-|---------|---------|---------|-----|------------|
-| `@libsql/client` | ^0.17.0 | Database driver | Unified API for local SQLite files AND Turso cloud. Works in serverless. | HIGH |
-| `drizzle-orm` | ^0.45.1 | Type-safe ORM | Zero dependencies, tree-shakeable, excellent TypeScript inference | HIGH |
-| `drizzle-kit` | (dev) | Migrations CLI | Schema management without runtime overhead | HIGH |
+**Architecture Decision: Playwright directly vs. Stagehand vs. browser-use**
 
-**Rationale:**
+Use **Playwright directly** with custom tool wrappers, not Stagehand or browser-use. Here's why:
 
-The existing `better-sqlite3` driver is synchronous and requires filesystem access, which **will not work on Vercel serverless functions**. Vercel's functions are stateless and ephemeral - each invocation may run on a different container with no shared storage.
+| Option | Verdict | Rationale |
+|--------|---------|-----------|
+| **Playwright direct** | **USE THIS** | Full control, no abstraction tax, TypeScript-native, 1.58.2 is battle-tested. You control the page lifecycle, credential injection, and error handling. |
+| Stagehand v3.1 | Skip | Adds act()/extract()/observe() natural language layer. Elegant for general web scraping, but for bill pay you need deterministic control over login flows, not AI-guessing which button to click. Stagehand's value is layout-resistance -- your bill pay targets are known sites with stable UIs. |
+| browser-use (TS port) | Skip | Python-first, TS port is v0.5.11 alignment only. Immature for production Node.js. Also brings its own LLM orchestration that conflicts with Claude Agent SDK. |
+| @playwright/mcp | Consider for research only | Great for ad-hoc browsing tasks (research, exploration). But for bill pay workflows, you want typed tool functions with explicit error handling, not generic MCP browser tools. Token cost: MCP uses ~114K tokens per task vs ~27K for direct CLI/code. |
 
-`@libsql/client` solves this by providing:
-- `file:local.db` - Local SQLite for development (same as better-sqlite3)
-- `libsql://` - Remote Turso database for production
-- Identical API for both environments
-
-**Environment Configuration Pattern:**
-```typescript
-// lib/jarvis/memory/db.ts
-import { createClient } from '@libsql/client';
-import { drizzle } from 'drizzle-orm/libsql';
-
-const client = createClient({
-  url: process.env.DATABASE_URL!, // file:./jarvis.db OR libsql://your-db.turso.io
-  authToken: process.env.DATABASE_AUTH_TOKEN, // Only needed for Turso
-});
-
-export const db = drizzle(client);
-```
+**Key Insight from 2026 ecosystem:** The Playwright team added a CLI mode specifically for coding agents, and benchmarks show direct code is 4x more token-efficient than MCP for structured tasks. Use @playwright/mcp for research-as-library exploration tasks, Playwright direct for bill pay/form-fill.
 
 **Installation:**
 ```bash
-npm install @libsql/client drizzle-orm
-npm install -D drizzle-kit
+npm install playwright
+npx playwright install chromium  # Only need Chromium for bill pay
 ```
 
-#### Optional: Embeddings for Semantic Search
+### 2. Credential Vault (Bitwarden)
 
-| Library | Version | Purpose | Why | Confidence |
-|---------|---------|---------|-----|------------|
-| `voyageai` | ^0.1.0 | Embedding generation | Anthropic's recommended provider, better quality than OpenAI for Claude context | MEDIUM |
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `@bitwarden/cli` | `2026.2.0` | Vault credential retrieval | Free, CLI-accessible, outputs JSON. The LLM never sees passwords -- Node.js child_process calls `bw get item <id>`, parses JSON, injects into Playwright page.fill(). |
 
-**Rationale:**
+**Why NOT the Bitwarden SDK (`@bitwarden/sdk-internal`):** The internal SDK is Rust/WASM, designed for Bitwarden's own web clients, and not documented for third-party use. The CLI is the supported programmatic interface.
 
-Anthropic does not offer embeddings. They officially recommend Voyage AI. For hybrid search (keyword + semantic), we need embeddings stored alongside memory entries.
+**Architecture Pattern: Secure Bridge**
 
-**However, this is OPTIONAL for v2.0.** BM25-style keyword search in SQLite can handle most use cases. Add embeddings only if:
-- User explicitly requests "find things similar to X"
-- Memory corpus exceeds 10,000 entries
-- Keyword search proves insufficient
+```typescript
+// secure-bridge.ts -- THE key missing piece identified in prior research
+import { execSync } from 'child_process';
 
-**If needed:**
-```bash
-npm install voyageai
+interface Credential {
+  username: string;
+  password: string;
+  uri: string;
+  totp?: string;
+}
+
+export async function getCredential(itemName: string): Promise<Credential> {
+  // 1. Ensure vault is unlocked (session key from env)
+  const sessionKey = process.env.BW_SESSION;
+  if (!sessionKey) throw new Error('Bitwarden vault locked');
+
+  // 2. Retrieve item -- LLM never sees this output
+  const raw = execSync(
+    `bw get item "${itemName}" --session "${sessionKey}"`,
+    { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }
+  );
+  const item = JSON.parse(raw);
+
+  return {
+    username: item.login.username,
+    password: item.login.password,
+    uri: item.login.uris?.[0]?.uri ?? '',
+    totp: item.login.totp ?? undefined,
+  };
+}
+
+export async function injectCredentials(
+  page: import('playwright').Page,
+  credential: Credential
+): Promise<void> {
+  // 3. Fill form fields -- values pass through Playwright, never through LLM
+  await page.fill('[type="email"], [name="username"], #username', credential.username);
+  await page.fill('[type="password"], [name="password"], #password', credential.password);
+}
 ```
 
-**Vector Storage:**
-For semantic search, vectors can be stored as JSON arrays in SQLite text columns. This is simpler than sqlite-vec and sufficient for <100k entries. The GOTCHA framework's hybrid search pattern uses:
-- BM25 (0.7 weight) - Exact token matching via SQL LIKE/FTS5
-- Semantic (0.3 weight) - Cosine similarity on vectors
-
----
-
-### 2. Messaging Gateway (Optional)
-
-#### Primary: grammY
-
-| Library | Version | Purpose | Why | Confidence |
-|---------|---------|---------|-----|------------|
-| `grammy` | ^1.39.2 | Telegram Bot Framework | First-class TypeScript, modern API, runs in Edge/serverless | HIGH |
-
-**Rationale:**
-
-Compared to alternatives:
-- **Telegraf** - Older, larger bundle, worse TypeScript support
-- **node-telegram-bot-api** - Requires separate @types package, callback-based
-- **grammY** - Native TypeScript, smaller bundle, works in Cloudflare Workers
-
-grammY supports Next.js API routes directly via webhook mode (no long-polling required).
-
-**Why Telegram over Slack/Discord:**
-- Works on mobile without app switching
-- Simple 1:1 conversation model matches Jarvis's design
-- Webhook-based (serverless-compatible)
-- Free, no workspace required
+**Critical security constraint:** The `getCredential` and `injectCredentials` functions must be called from Node.js process code, NOT from within a Claude Agent SDK tool handler. The tool handler tells Claude "credentials injected successfully" without ever exposing the values.
 
 **Installation:**
 ```bash
-npm install grammy
+npm install -g @bitwarden/cli
+# Or use npx: npx @bitwarden/cli login
 ```
 
-**Implementation Pattern:**
-```typescript
-// app/api/telegram/route.ts
-import { Bot, webhookCallback } from 'grammy';
+**Session management:** Bitwarden CLI requires unlock before use. For PM2-managed Jarvis, unlock on process start and store `BW_SESSION` in memory (not disk). Re-unlock on restart.
 
-const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN!);
-bot.on('message:text', async (ctx) => {
-  // Route to existing Jarvis chat handler
-  const response = await jarvisChat(ctx.message.text);
-  await ctx.reply(response);
-});
+### 3. Sub-Agent Spawning
 
-export const POST = webhookCallback(bot, 'std/http');
-```
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `@anthropic-ai/claude-agent-sdk` | `^0.2.76` | Sub-agent spawning with role specialization | Native subagent support via `agents` parameter. Each subagent gets fresh context, restricted tools, and optional model override. Runs on Max plan (free). |
 
----
+**No additional packages needed.** Sub-agent spawning is built into the Claude Agent SDK. Key capabilities:
 
-### 3. Production Deployment
+- **Programmatic definition:** Define agents inline with `AgentDefinition` (description, prompt, tools, model)
+- **Context isolation:** Each subagent gets fresh context window. Parent receives only final result.
+- **Tool restriction:** Subagents can be limited to specific tools (e.g., read-only research agent)
+- **Model override:** Per-subagent model selection (`"sonnet"`, `"opus"`, `"haiku"`, `"inherit"`)
+- **Parallel execution:** Multiple subagents run concurrently
+- **Session resumption:** Subagents can be resumed via session ID + agent ID
+- **Custom in-process tools:** `createSdkMcpServer` + `tool()` helper for typed tool definitions with Zod schemas
 
-#### Platform: Vercel (already used)
-
-No new dependencies required. Configuration changes only.
-
-**Custom Domain Setup:**
-1. Add `jarvis.whatareyouappreciatingnow.com` in Vercel Project Settings > Domains
-2. Configure DNS (A record or CNAME as Vercel instructs)
-3. SSL is automatic
-
-#### Database: Turso (for production)
-
-| Service | Tier | Purpose | Why | Confidence |
-|---------|------|---------|-----|------------|
-| Turso | Free/Starter | SQLite in the cloud | SQLite-compatible, Vercel-native integration, edge-ready | HIGH |
-
-**Turso Free Tier:**
-- 9 GB storage
-- 500 databases
-- 1 billion row reads/month
-- Unlimited writes
-
-This is more than sufficient for Jarvis's memory system.
-
-**Setup:**
-```bash
-# Install Turso CLI (one-time)
-brew install tursodatabase/tap/turso  # macOS
-# Or: curl -sSfL https://get.tur.so/install.sh | bash
-
-# Create database
-turso db create jarvis
-turso db show jarvis --url  # Get DATABASE_URL
-turso db tokens create jarvis  # Get DATABASE_AUTH_TOKEN
-```
-
----
-
-## What NOT to Add for v2
-
-| Rejected | Reason |
-|----------|--------|
-| `sqlite-vec` | Adds complexity for vector search. JSON arrays + manual cosine similarity work fine for <100k entries. |
-| `Prisma` | Heavy ORM, worse TypeScript inference than Drizzle, connection pooling issues on serverless |
-| `openai` (for embeddings) | Anthropic recommends Voyage AI. Also adds another API key to manage. |
-| `Redis/BullMQ` for memory | Already in project for rendering. Don't use for memory - SQLite is simpler for single-user. |
-| `socket.io` | SSE already works. WebSockets add complexity without benefit for voice assistant. |
-| `Slack SDK` | Requires workspace. Telegram is simpler for personal assistant. |
-
----
-
-## Database Schema (Drizzle)
+**Jarvis-specific agent definitions:**
 
 ```typescript
-// lib/jarvis/memory/schema.ts
-import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
+const jarvisAgents = {
+  "bill-payer": {
+    description: "Handles bill payment workflows via browser automation. Use when paying bills, checking balances, or managing utility accounts.",
+    prompt: `You are a bill payment specialist. You have access to browser automation tools.
+CRITICAL: Never attempt to read or log credentials. Use the inject_credentials tool which handles this securely.
+Always verify amounts before submitting payments. Request Telegram approval for any payment.`,
+    tools: ["Read", "Bash", "mcp__browser__*", "mcp__vault__inject_credentials"],
+    model: "sonnet"
+  },
+  "researcher": {
+    description: "Deep research specialist. Use for grant research, credit application research, or any multi-source investigation.",
+    prompt: `You are a research specialist. Gather information from multiple sources, synthesize findings, and store structured results for later retrieval.`,
+    tools: ["Read", "Grep", "Glob", "Bash", "mcp__browser__*", "mcp__research__*"],
+    model: "sonnet"
+  },
+  "form-filler": {
+    description: "Expert at filling web forms using stored research and credentials. Use for grant applications, credit applications, or any structured web form.",
+    prompt: `You are a form-filling specialist. Use stored research data to populate form fields accurately. Always request approval before final submission.`,
+    tools: ["Read", "Bash", "mcp__browser__*", "mcp__vault__*", "mcp__research__recall"],
+    model: "sonnet"
+  }
+};
+```
 
-export const memoryEntries = sqliteTable('memory_entries', {
+**Windows gotcha:** Subagents with very long prompts may fail due to Windows command line length limits (8191 chars). Keep prompts under ~6000 chars or use filesystem-based agents (`.claude/agents/` markdown files).
+
+### 4. Research-as-Library
+
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| Existing SQLite + Drizzle | (already in stack) | Structured research storage | No new dependency. Add a `research_entries` table to existing DB. SQLite + FTS5 handles keyword search; existing BM25 + semantic hybrid retrieval applies. |
+| `createSdkMcpServer` | (part of claude-agent-sdk) | Expose research tools to Claude | Define `save_research`, `recall_research`, `list_research` as custom MCP tools. Claude can store and retrieve structured findings during conversations. |
+
+**No new packages needed.** Research-as-library is an application pattern built on existing SQLite + Claude Agent SDK custom tools.
+
+**Schema addition:**
+```typescript
+export const researchEntries = sqliteTable('research_entries', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  type: text('type').notNull(), // 'fact' | 'preference' | 'event' | 'insight' | 'task'
-  content: text('content').notNull(),
-  contentHash: text('content_hash').unique(), // For deduplication
-  source: text('source').notNull(), // 'user' | 'inferred' | 'session' | 'system'
+  domain: text('domain').notNull(),        // 'grant', 'credit', 'bill', 'business'
+  topic: text('topic').notNull(),           // 'Verizon Digital Ready Grant'
+  fieldName: text('field_name'),            // 'business_ein', 'annual_revenue'
+  fieldValue: text('field_value'),          // '12-3456789', '$50,000'
+  source: text('source'),                   // URL or document reference
   confidence: real('confidence').default(1.0),
-  importance: integer('importance').default(5), // 1-10
+  notes: text('notes'),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
-  lastAccessed: text('last_accessed'),
-  accessCount: integer('access_count').default(0),
-  embedding: text('embedding'), // JSON array, optional
-  tags: text('tags'), // JSON array
-  expiresAt: text('expires_at'),
-  isActive: integer('is_active').default(1),
-});
-
-export const dailyLogs = sqliteTable('daily_logs', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  date: text('date').notNull().unique(), // 'YYYY-MM-DD'
-  summary: text('summary'),
-  rawLog: text('raw_log'),
-  keyEvents: text('key_events'), // JSON array
-  entryCount: integer('entry_count').default(0),
-});
-
-export const sessions = sqliteTable('sessions', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  startedAt: text('started_at').notNull(),
-  endedAt: text('ended_at'),
-  messageCount: integer('message_count').default(0),
-  summary: text('summary'),
-  platform: text('platform').default('web'), // 'web' | 'telegram'
+  tags: text('tags'),                       // JSON array
 });
 ```
 
----
+**Usage pattern:** Researcher subagent gathers grant requirements, stores each field in `research_entries`. Later, form-filler subagent queries `recall_research({ domain: 'grant', topic: 'Verizon Digital Ready' })` and gets structured field/value pairs to populate the application form.
 
-## Migration from Current MemoryStore
+### 5. Flexible Scheduled Task System
 
-The existing `MemoryStore.ts` uses browser `localStorage`. This works but:
-- Is browser-only (no server-side access)
-- Doesn't persist across devices
-- Limited storage (~5MB)
-- No semantic search capability
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `croner` | `^9.0.0` | Cron scheduling with timezone support | Replaces node-cron. 1.5M weekly downloads, used by PM2 itself, supports timezone targeting natively, works in both Node and browser. Lightweight (zero deps). |
 
-**Migration Path:**
-1. Keep `localStorage` for immediate UI state (keyFacts display)
-2. Sync to SQLite on session end
-3. Load from SQLite on session start
-4. Gradually deprecate localStorage as SQLite becomes primary
+**Why replace node-cron with croner:**
 
----
+| Feature | node-cron | croner |
+|---------|-----------|--------|
+| Weekly downloads | 736K | 1.5M |
+| Timezone support | Manual | Built-in |
+| Pattern validation | Basic | Rich validation + next-run preview |
+| Used by | General projects | PM2, Uptime Kuma, ZWave JS |
+| Dependencies | 1 | 0 |
+| Cron expression | Standard | Extended (seconds, @yearly, etc.) |
 
-## Installation Summary for v2
+**Task configuration pattern:**
+```typescript
+interface ScheduledTask {
+  id: string;
+  name: string;
+  cron: string;           // '0 8 * * *' (daily 8am)
+  timezone: string;       // 'America/New_York'
+  enabled: boolean;
+  handler: string;        // 'bill-check', 'morning-briefing', 'memory-decay'
+  config: Record<string, unknown>;
+  lastRun?: string;
+  nextRun?: string;
+}
+```
 
-**Required for v2:**
+Store task definitions in SQLite (not hardcoded). CRUD via Telegram commands or web UI. This absorbs Agent Zero's 5 scheduled tasks and adds dynamic task management.
+
+**Installation:**
 ```bash
-npm install @libsql/client drizzle-orm
-npm install -D drizzle-kit
+npm install croner
+npm uninstall node-cron @types/node-cron  # Replace, don't layer
 ```
 
-**Optional (Telegram gateway):**
+---
+
+## Supporting Libraries
+
+| Library | Version | Purpose | When to Use |
+|---------|---------|---------|-------------|
+| `zod` | `^3.24` | Schema validation for custom MCP tools | Already in stack. Used with `createSdkMcpServer` `tool()` helper for type-safe tool definitions. |
+| `p-queue` | `^8.0.1` | Concurrency control for browser tasks | Rate-limit parallel browser operations. Prevents opening 10 bill pay tabs simultaneously. |
+| `playwright-extra` | `^4.3.6` | Stealth plugin for Playwright | Only if bill pay sites detect and block automation (unlikely for authenticated sessions, but good fallback). |
+| `puppeteer-extra-plugin-stealth` | `^2.11.2` | Anti-detection measures | Pairs with playwright-extra. Use only if needed. |
+
+---
+
+## Installation Summary
+
+### Required for v5.0
 ```bash
-npm install grammy
+# Migration (MUST DO FIRST)
+npm uninstall @anthropic-ai/claude-code
+npm install @anthropic-ai/claude-agent-sdk
+
+# Browser automation
+npm install playwright
+npx playwright install chromium
+
+# Scheduler upgrade
+npm uninstall node-cron @types/node-cron
+npm install croner
+
+# Concurrency control
+npm install p-queue
 ```
 
-**Optional (semantic search):**
+### Required (system-level, one-time)
 ```bash
-npm install voyageai
+# Bitwarden CLI (global install)
+npm install -g @bitwarden/cli
 ```
 
-**Total new dependencies:** 2-4 packages (minimal)
-
----
-
-## Environment Variables for v2
-
-Add to `.env.local` (development):
-```env
-# Database (local SQLite)
-DATABASE_URL=file:./jarvis.db
-```
-
-Add to Vercel (production):
-```env
-# Database (Turso)
-DATABASE_URL=libsql://jarvis-[account].turso.io
-DATABASE_AUTH_TOKEN=eyJ...
-
-# Optional: Telegram
-TELEGRAM_BOT_TOKEN=123456:ABC...
-TELEGRAM_WEBHOOK_SECRET=random_secret_string
-
-# Optional: Embeddings
-VOYAGE_API_KEY=pa-...
-```
-
----
-
-## Confidence Assessment for v2 Additions
-
-| Area | Confidence | Reasoning |
-|------|------------|-----------|
-| @libsql/client | HIGH | Official Turso client, verified serverless compatibility, v0.17.0 published 2 days ago |
-| Drizzle ORM | HIGH | Active development (v0.45.1), widespread adoption, zero-dep |
-| Turso | HIGH | Official Vercel integration, SQLite-compatible, free tier sufficient |
-| grammY | HIGH | v1.39.2 verified, excellent TypeScript support, modern API |
-| Voyage AI | MEDIUM | Anthropic-recommended but not personally validated |
-| sqlite-vec rejection | HIGH | JSON arrays simpler for expected scale (<100k entries) |
-
----
-
-## Recommended Stack (Original v1)
-
-### Core Framework
-
-| Technology | Version | Purpose | Why | Confidence |
-|------------|---------|---------|-----|------------|
-| Next.js | 16.1+ | Full-stack React framework | Turbopack stable, React 19 support, excellent streaming/SSR. Industry standard for 2026. | HIGH |
-| React | 19.2+ | UI library | Server Components stable, concurrent rendering, improved hooks. Required for R3F v9+. | HIGH |
-| TypeScript | 5.7+ | Type safety | Industry standard, excellent tooling, AI SDK type definitions. | HIGH |
-
-**Rationale:** Next.js 16 is the current stable release with Turbopack as default bundler (5x faster builds). React 19.2 is required for @react-three/fiber v9 which powers the animated orb.
-
-### AI/LLM Backend
-
-| Technology | Version | Purpose | Why | Confidence |
-|------------|---------|---------|-----|------------|
-| Anthropic SDK | 0.71+ | Claude API access | Structured outputs, MCP helpers built-in, excellent TypeScript support. | HIGH |
-| Vercel AI SDK | 6.x | Streaming UI, useChat | Unified API across providers, ToolLoopAgent for agentic workflows. | HIGH |
-
-**Rationale:** Claude excels at reasoning and instruction-following for personal assistant tasks. Vercel AI SDK 6 provides framework-agnostic streaming and tool execution loops. Use together: AI SDK for streaming/UI, Anthropic SDK for MCP integration.
-
-**Alternative Considered:** OpenAI Realtime API offers native voice-to-voice with WebRTC, but requires restructuring around their agent model. Keep as optional enhancement for Phase 2+.
-
-### Speech-to-Text (STT)
-
-| Technology | Version | Purpose | Why | Confidence |
-|------------|---------|---------|-----|------------|
-| Web Speech API | Browser native | Voice input (primary) | Zero cost, zero latency network calls, works offline. Good for MVP. | MEDIUM |
-| Deepgram Nova-3 | API | Production STT (upgrade path) | Sub-300ms latency, 90%+ accuracy on specialized vocab, $0.0043/min. | HIGH |
-
-**Primary Recommendation:** Start with Web Speech API for MVP. It's free and built into Chrome/Edge/Safari.
-
-**Limitations:** Web Speech API only works in Chromium browsers (Chrome, Edge). Audio is sent to Google/Microsoft servers. No offline mode despite documentation claims.
-
-**Upgrade Path:** When you need:
-- Cross-browser support
-- Custom vocabulary (Notion-specific terms)
-- Higher accuracy
-- Self-hosted option
-
-Switch to Deepgram Nova-3 (real-time streaming, WebSocket API).
-
-**Why Not:**
-- AssemblyAI: Better for batch transcription, less optimized for real-time voice agents
-- Whisper (self-hosted): 500ms+ latency, requires engineering effort for streaming
-
-### Text-to-Speech (TTS)
-
-| Technology | Version | Purpose | Why | Confidence |
-|------------|---------|---------|-----|------------|
-| ElevenLabs | Flash v2.5 | Voice output (recommended) | 75ms latency, excellent voice quality, streaming support. | HIGH |
-| Web Speech API | Browser native | Fallback TTS | Free, works offline, but robotic voice quality. | MEDIUM |
-
-**Primary Recommendation:** ElevenLabs Flash v2.5 for production-quality voice. $5/mo starter tier for 30 minutes.
-
-**Alternatives Considered:**
-
-| Service | Latency | Quality | Price | Notes |
-|---------|---------|---------|-------|-------|
-| ElevenLabs Flash v2.5 | 75ms | Excellent | $5-22/mo | Recommended |
-| OpenAI TTS API | 200ms+ | Very Good | $15/1M chars | No voice cloning |
-| Fish Audio | 100ms | Excellent | $9.99/mo | Cheaper, #1 TTS-Arena |
-| Browser SpeechSynthesis | Instant | Poor | Free | Fallback only |
-
-**Why ElevenLabs:** Best balance of latency, quality, and streaming support for voice agents. Flash v2.5 specifically designed for real-time applications.
-
-### Notion Integration
-
-| Technology | Version | Purpose | Why | Confidence |
-|------------|---------|---------|-----|------------|
-| Notion MCP Server | Official | Notion workspace access | Official hosted MCP server at mcp.notion.com, OAuth, full API access. | HIGH |
-| @modelcontextprotocol/sdk | 1.x | MCP client | Official TypeScript SDK, stable for production. v2 expected Q1 2026. | HIGH |
-
-**Rationale:** Notion's official MCP server is the 2026 standard for AI-Notion integration. It provides:
-- OAuth authentication (no API key management)
-- Full read/write access to pages, databases, blocks
-- Optimized for AI agents
-- Enterprise audit logging
-
-**Setup:** Connect via `https://mcp.notion.com/mcp` as custom MCP connection. Use `NOTION_TOKEN` environment variable for local development.
-
-### Visual Avatar (Animated Orb)
-
-| Technology | Version | Purpose | Why | Confidence |
-|------------|---------|---------|-----|------------|
-| @react-three/fiber | 9.5+ | React Three.js renderer | React 19 compatible, stable, excellent ecosystem. | HIGH |
-| @react-three/drei | 9.x | R3F helpers | Useful abstractions for orb effects (shaders, post-processing). | HIGH |
-| Three.js | 0.170+ | 3D graphics | Required peer dependency for R3F. | HIGH |
-
-**Rationale:** You already have R3F experience from Ethereal Flame Studio. The orb component can reuse existing audio visualization patterns.
-
-**Key Pattern:** Use `useAudioLevel` hook pattern to connect microphone/TTS audio to orb visual properties (scale, emission, displacement).
-
-### State Management
-
-| Technology | Version | Purpose | Why | Confidence |
-|------------|---------|---------|-----|------------|
-| Zustand | 5.0+ | Client state | Lightweight, no boilerplate, 40% market share in 2026. | HIGH |
-| TanStack Query | 5.90+ | Server state | Caching, background sync, optimistic updates. | HIGH |
-
-**Rationale:** Zustand handles UI state (voice mode, conversation history, settings). TanStack Query handles server state (Notion data, AI responses). This is the dominant 2026 pattern.
-
-**Why Not Redux:** Zustand + TanStack Query covers all use cases with less boilerplate. Redux Toolkit is reserved for large multi-team projects.
-
-### Styling
-
-| Technology | Version | Purpose | Why | Confidence |
-|------------|---------|---------|-----|------------|
-| Tailwind CSS | 4.0+ | Utility-first CSS | 5x faster builds, CSS-first config, modern CSS features. | HIGH |
-| shadcn/ui | Latest | UI components | Accessible, customizable, Tailwind-native. | HIGH |
-
-**Rationale:** Tailwind 4 uses Lightning CSS and requires only one import line. shadcn/ui provides copy-paste components that you own.
-
-### Authentication
-
-| Technology | Version | Purpose | Why | Confidence |
-|------------|---------|---------|-----|------------|
-| Clerk | Latest | User auth | 30-minute setup, pre-built UI, excellent DX. | HIGH |
-
-**Rationale:** For a personal assistant, you need:
-- User identity (to scope Notion access)
-- Session management
-- Potentially multi-device sync
-
-Clerk provides this out-of-box with minimal setup. If you're the only user, you could skip auth initially and add later.
-
-**Alternative:** NextAuth.js v5 if you need self-hosted auth or have strict data residency requirements.
-
----
-
-## Complete Package List
-
-### Production Dependencies
-
+### Optional (add only if needed)
 ```bash
-# Core (already installed)
-npm install next@latest react@latest react-dom@latest
-npm install @anthropic-ai/sdk ai @vercel/ai-sdk
-npm install @modelcontextprotocol/sdk zod
-npm install @react-three/fiber @react-three/drei three
-npm install zustand @tanstack/react-query
-npm install @clerk/nextjs
-npm install @elevenlabs/elevenlabs-js
+# Stealth browsing (if sites block automation)
+npm install playwright-extra puppeteer-extra-plugin-stealth
 
-# v2 Additions
-npm install @libsql/client drizzle-orm
-npm install grammy  # Optional: Telegram
-npm install voyageai  # Optional: Embeddings
+# Playwright MCP (for research browsing tasks)
+npm install @playwright/mcp
 ```
 
-### Development Dependencies
+### NOT needed (zero new deps)
+- Sub-agent spawning: built into claude-agent-sdk
+- Research-as-library: built on existing SQLite + Drizzle
+- Custom MCP tools: built into claude-agent-sdk (`createSdkMcpServer`)
 
+**Total new production dependencies: 3** (playwright, croner, p-queue)
+**Total removed: 2** (node-cron, @types/node-cron)
+**Net dependency change: +1 production, +0 dev**
+
+---
+
+## Alternatives Considered
+
+| Recommended | Alternative | When to Use Alternative |
+|-------------|-------------|-------------------------|
+| Playwright direct | Stagehand v3.1 | If bill pay targets frequently change their UI layout and you need layout-resistant automation. Stagehand's act("click the pay button") adapts to DOM changes. But adds $0.01-0.05/action in LLM costs. |
+| Playwright direct | browser-use (TS) | If you want fully autonomous browsing with zero scripted flows. But TS port is immature (aligned to Python v0.5.11) and brings its own LLM orchestration. |
+| @bitwarden/cli | 1Password CLI (`op`) | If you switch to 1Password. Similar pattern: `op item get <name> --format json`. |
+| @bitwarden/cli | HashiCorp Vault | If you need enterprise secrets management. Massive overkill for personal agent. |
+| croner | Bree | If you need worker thread isolation for CPU-intensive scheduled tasks. Bree spawns actual worker threads. But Jarvis tasks are I/O-bound (API calls, browser), not CPU-bound. |
+| croner | Agenda (MongoDB) | If you need distributed job scheduling across multiple servers. Jarvis is single-instance. |
+| SQLite research tables | Pinecone/Weaviate | If research corpus exceeds 100K entries and needs sub-100ms vector search at scale. Jarvis will have <10K research entries. |
+
+---
+
+## What NOT to Add
+
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| `puppeteer` | Playwright supersedes it -- same team, better API, multi-browser. Puppeteer is legacy. | `playwright` |
+| `selenium-webdriver` | Java-era automation. Slow, fragile, no auto-wait. | `playwright` |
+| `@anthropic-ai/claude-code` | Renamed and deprecated. Will stop receiving updates. | `@anthropic-ai/claude-agent-sdk` |
+| `langchain` | Heavy abstraction layer. Claude Agent SDK + MCP tools is the native Anthropic pattern. LangChain adds 50+ transitive deps for zero value here. | Direct Claude Agent SDK |
+| `autogen` / `crewai` | Multi-agent frameworks that bring their own LLM orchestration. Conflicts with Claude Agent SDK's native subagent system. | Claude Agent SDK `agents` parameter |
+| `node-cron` (keep) | croner is strictly superior: more downloads, zero deps, native timezone, used by PM2 itself. | `croner` |
+| `better-sqlite3` (for new tables) | Already migrated to `@libsql/client` + Drizzle in v2. Don't regress. | Existing Drizzle setup |
+| `cheerio` / `jsdom` | Don't parse HTML separately. Playwright already has full DOM access via `page.evaluate()` and `page.locator()`. | Playwright selectors |
+| Skyvern (cloud) | SaaS dependency for browser automation. Adds cost ($$$), latency, and vendor lock-in. You have Playwright + Claude locally. | Playwright + Claude Agent SDK |
+
+---
+
+## Environment Variables for v5.0
+
+Add to existing `.env`:
 ```bash
-npm install -D typescript @types/react @types/node
-npm install -D tailwindcss @tailwindcss/postcss
-npm install -D eslint prettier
-npm install -D drizzle-kit  # v2 Addition
-```
+# Bitwarden vault
+BW_SESSION=              # Set programmatically on unlock, never hardcode
+BW_MASTER_HASH=          # Optional: for automated unlock on PM2 restart
 
-### Environment Variables
+# Playwright
+PLAYWRIGHT_BROWSERS_PATH=0  # Use default browser location
+HEADLESS=true               # Run headless in production
 
-```bash
-# AI
-ANTHROPIC_API_KEY=sk-ant-...
-OPENAI_API_KEY=sk-... # Optional, for fallback
-
-# Notion MCP
-NOTION_TOKEN=secret_...
-
-# TTS
-ELEVENLABS_API_KEY=...
-
-# Auth
-CLERK_SECRET_KEY=sk_...
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
-
-# v2: Database
-DATABASE_URL=file:./jarvis.db  # Development
-# DATABASE_URL=libsql://jarvis-[account].turso.io  # Production
-# DATABASE_AUTH_TOKEN=eyJ...  # Production only
-
-# v2: Optional Telegram
-# TELEGRAM_BOT_TOKEN=123456:ABC...
-# TELEGRAM_WEBHOOK_SECRET=random_secret_string
-
-# v2: Optional Embeddings
-# VOYAGE_API_KEY=pa-...
+# Claude Agent SDK (replaces claude-code vars if any)
+# No new env vars needed -- uses same ANTHROPIC_API_KEY
 ```
 
 ---
 
-## Alternatives NOT Recommended
+## Version Compatibility
 
-| Technology | Why Not |
-|------------|---------|
-| OpenAI Realtime API | Good for voice-native apps, but adds complexity. Evaluate for Phase 2. |
-| Whisper (self-hosted) | High latency (500ms+), requires GPU, engineering overhead. |
-| Redux | Overkill for this project size. Zustand + TanStack Query suffices. |
-| Auth0 | More complex than Clerk, enterprise-focused pricing. |
-| Styled Components | Tailwind 4 is faster, simpler, and industry standard. |
-| Jotai | Good alternative to Zustand, but Zustand has larger ecosystem. |
-| Prisma | Heavy ORM, worse TypeScript inference than Drizzle for SQLite. |
-| sqlite-vec | Over-engineering for <100k memory entries. |
-| better-sqlite3 (production) | Does not work on Vercel serverless. Use @libsql/client. |
+| Package | Min Version | Pairs With | Notes |
+|---------|-------------|------------|-------|
+| `@anthropic-ai/claude-agent-sdk` | `0.2.76` | Claude Code CLI v2.1.63+ | Tool name "Task" renamed to "Agent" in v2.1.63 |
+| `playwright` | `1.58.0` | Node.js 18+ | Uses Chrome for Testing builds (not Chromium) since v1.57 |
+| `croner` | `9.0.0` | Node.js 18+ | ESM-first, supports CJS via wrapper |
+| `p-queue` | `8.0.0` | Node.js 18+ | ESM-only since v7. Use dynamic import if CJS project. |
+| `@bitwarden/cli` | `2026.2.0` | Node.js 18+ | Global install, not project dep |
 
 ---
 
-## Version Compatibility Matrix
+## Emerging Patterns Worth Watching
 
-| Package | Min Version | Pairs With |
-|---------|-------------|------------|
-| Next.js | 16.0 | React 19.x |
-| React | 19.0 | R3F 9.x |
-| @react-three/fiber | 9.0 | React 19.x, Three.js 0.160+ |
-| Tailwind CSS | 4.0 | Safari 16.4+, Chrome 111+, Firefox 128+ |
-| @modelcontextprotocol/sdk | 1.x | zod 3.25+ |
-| @libsql/client | 0.17.0 | drizzle-orm 0.45+ |
-| drizzle-orm | 0.45.1 | @libsql/client 0.15+ |
+### 1. Playwright CLI Mode (February 2026)
+Microsoft released a CLI mode alongside MCP that's specifically optimized for coding agents. Uses ~27K tokens per task vs ~114K for MCP. For Jarvis's structured bill pay flows, this means 4x lower token cost. Consider using CLI mode for known workflows and MCP mode for exploratory browsing.
 
----
+### 2. createSdkMcpServer for In-Process Tools
+The Claude Agent SDK's `createSdkMcpServer` + `tool()` pattern lets you define typed tools inline without running a separate MCP server process. This is perfect for vault, research, and approval gateway tools. Zod schema validation, type-safe handlers, zero infrastructure.
 
-## Architecture Decision Records
+### 3. Google's Always-On Memory Agent Pattern
+Google published a pattern where the agent reads inputs, extracts structured records, writes to SQLite, and later reads records back. This is exactly the research-as-library pattern. Validates the SQLite + structured fields approach over vector-only retrieval.
 
-### ADR-001: Claude over OpenAI for Primary LLM
+### 4. Subagent Context Isolation
+Claude Agent SDK subagents get fresh context windows. This means the bill-payer subagent can navigate 20 pages without bloating the main conversation. Parent receives only the final "Bill paid: $127.50 to Duke Energy" message. This is a massive context window efficiency win.
 
-**Decision:** Use Claude (Anthropic) as primary LLM backend.
-
-**Context:** Both Claude and GPT-4 are capable. OpenAI has Realtime API for voice.
-
-**Rationale:**
-1. Claude's instruction-following is superior for assistant tasks
-2. Anthropic SDK has MCP helpers built-in
-3. Vercel AI SDK supports both, easy to switch
-4. OpenAI Realtime API can be added later as enhancement
-
-**Consequences:** Need to handle TTS separately (ElevenLabs). Can't use native voice-to-voice.
-
-### ADR-002: Web Speech API for MVP STT
-
-**Decision:** Use browser Web Speech API for initial voice recognition.
-
-**Context:** Deepgram/AssemblyAI offer better accuracy and cross-browser support.
-
-**Rationale:**
-1. Zero cost for MVP development
-2. No network latency for speech capture
-3. Good enough for personal use
-4. Easy upgrade path to Deepgram later
-
-**Consequences:** Only works in Chrome/Edge. Audio sent to Google servers.
-
-### ADR-003: MCP for Notion Integration
-
-**Decision:** Use Notion's official MCP server for workspace integration.
-
-**Context:** Could use Notion API directly or third-party integrations.
-
-**Rationale:**
-1. Official support from Notion
-2. OAuth simplifies auth flow
-3. Optimized for AI agent patterns
-4. Enterprise audit logging
-5. Future-proof (MCP is industry standard)
-
-**Consequences:** Requires MCP client setup. Depends on Notion's hosted infrastructure.
-
-### ADR-004: @libsql/client over better-sqlite3 for Production (v2)
-
-**Decision:** Use @libsql/client for database access in production.
-
-**Context:** better-sqlite3 is already installed and works locally.
-
-**Rationale:**
-1. better-sqlite3 requires filesystem access - not available on Vercel serverless
-2. @libsql/client provides identical API for local files AND Turso cloud
-3. Single codebase works in both development and production
-4. Turso free tier (9GB, 1B reads/mo) exceeds Jarvis requirements
-
-**Consequences:** Need Turso account for production. Local development uses SQLite file.
-
-### ADR-005: grammY over Telegraf for Telegram (v2)
-
-**Decision:** Use grammY for Telegram bot integration.
-
-**Context:** Multiple Telegram bot libraries exist (Telegraf, node-telegram-bot-api, grammY).
-
-**Rationale:**
-1. First-class TypeScript support (types built-in)
-2. Modern API design with excellent DX
-3. Works in serverless/edge environments (webhook mode)
-4. Smaller bundle size than Telegraf
-5. Active development (v1.39.2, Jan 2026)
-
-**Consequences:** None significant. Migration from other libraries is straightforward.
+### 5. Opus 4.6 Over-Spawning Tendency
+Anthropic docs flag that Opus 4.6 tends to over-spawn subagents when they're available. For Jarvis, mitigate by: (a) using Sonnet for subagents (cheaper, faster), (b) writing precise descriptions so Claude only delegates appropriate tasks, (c) considering `maxTurns` limits on subagent queries.
 
 ---
 
 ## Sources
 
-### v2 Research Sources
-- [@libsql/client npm](https://www.npmjs.com/package/@libsql/client) - v0.17.0 (published 2 days ago)
-- [Turso + Next.js Guide](https://docs.turso.tech/sdk/ts/guides/nextjs)
-- [Drizzle ORM SQLite](https://orm.drizzle.team/docs/get-started-sqlite)
-- [drizzle-orm npm](https://www.npmjs.com/drizzle-orm) - v0.45.1
-- [grammY Framework](https://grammy.dev/)
-- [grammy npm](https://www.npmjs.com/package/grammy) - v1.39.2
-- [Anthropic Embeddings Docs](https://docs.claude.com/en/docs/build-with-claude/embeddings) - Recommends Voyage AI
-- [Voyage AI TypeScript SDK](https://github.com/voyage-ai/typescript-sdk)
-- [Is SQLite supported in Vercel?](https://vercel.com/kb/guide/is-sqlite-supported-in-vercel) - No, use Turso
-- [Turso Cloud for Vercel](https://vercel.com/marketplace/tursocloud)
-- [Adding Custom Domain](https://vercel.com/docs/domains/working-with-domains/add-a-domain)
-- [GOTCHA-ATLAS-ANALYSIS.md](./GOTCHA-ATLAS-ANALYSIS.md) - Memory system patterns
+### HIGH Confidence (official docs, verified)
+- [Claude Agent SDK Migration Guide](https://platform.claude.com/docs/en/agent-sdk/migration-guide) -- breaking changes, migration steps
+- [Claude Agent SDK Subagents](https://platform.claude.com/docs/en/agent-sdk/subagents) -- AgentDefinition API, tool restrictions, resumption
+- [Claude Agent SDK Custom Tools](https://platform.claude.com/docs/en/agent-sdk/custom-tools) -- createSdkMcpServer, tool() helper
+- [Claude Agent SDK TypeScript Reference](https://platform.claude.com/docs/en/agent-sdk/typescript) -- full API reference
+- [@anthropic-ai/claude-agent-sdk npm](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk) -- v0.2.76
+- [Playwright Official Docs](https://playwright.dev/) -- v1.58.2, Library API
+- [Playwright MCP npm](https://www.npmjs.com/package/@playwright/mcp) -- accessibility tree approach
+- [Bitwarden CLI Docs](https://bitwarden.com/help/cli/) -- credential retrieval, session management
+- [@bitwarden/cli npm](https://www.npmjs.com/package/@bitwarden/cli) -- v2026.2.0
 
-### Official Documentation (v1)
-- [Next.js 16.1 Release](https://nextjs.org/blog/next-16-1)
-- [React 19.2 Release](https://react.dev/blog/2025/10/01/react-19-2)
-- [Anthropic TypeScript SDK](https://github.com/anthropics/anthropic-sdk-typescript)
-- [Vercel AI SDK 6](https://vercel.com/blog/ai-sdk-6)
-- [Notion MCP](https://developers.notion.com/docs/mcp)
-- [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
-- [ElevenLabs JavaScript SDK](https://github.com/elevenlabs/elevenlabs-js)
-- [React Three Fiber v9](https://r3f.docs.pmnd.rs/)
-- [Zustand v5](https://github.com/pmndrs/zustand)
-- [TanStack Query v5](https://tanstack.com/query/latest)
-- [Tailwind CSS v4](https://tailwindcss.com/blog/tailwindcss-v4)
+### MEDIUM Confidence (multiple sources agree)
+- [Playwright MCP vs CLI benchmarks](https://bug0.com/blog/playwright-mcp-changes-ai-testing-2026) -- 114K vs 27K tokens
+- [Stagehand v3.1](https://www.browserbase.com/blog/stagehand-v3) -- 44% faster, CDP-direct, caching
+- [Best Node.js Schedulers comparison](https://betterstack.com/community/guides/scaling-nodejs/best-nodejs-schedulers/) -- croner vs node-cron vs bree
+- [npm-compare: scheduler downloads](https://npm-compare.com/node-schedule,croner,node-cron,bull,agenda,bree) -- croner 1.5M/week
+- [sqlite-memory (SQLiteAI)](https://github.com/sqliteai/sqlite-memory) -- hybrid FTS5 + vector pattern
+- [EverMem-style persistent agent](https://www.marktechpost.com/2026/03/04/how-to-build-an-evermem-style-persistent-ai-agent-os-with-hierarchical-memory-faiss-vector-retrieval-sqlite-storage-and-automated-memory-consolidation/) -- SQLite + structured metadata pattern
 
-### Comparison Resources
-- [Speech-to-Text APIs 2026 Comparison](https://www.assemblyai.com/blog/best-api-models-for-real-time-speech-recognition-and-transcription)
-- [ElevenLabs Alternatives](https://elevenlabs.io/blog/elevenlabs-alternatives)
-- [Next.js Auth Comparison](https://clerk.com/articles/complete-authentication-guide-for-nextjs-app-router)
-- [State Management 2026](https://www.nucamp.co/blog/state-management-in-2026-redux-context-api-and-modern-patterns)
+### LOW Confidence (single source, needs validation)
+- Playwright-extra stealth plugin compatibility with Playwright 1.58 (untested)
+- p-queue ESM-only behavior in mixed CJS/ESM Next.js projects (may need dynamic import)
+- Windows 8191-char limit for subagent prompts (mentioned in Anthropic docs, untested in practice)
 
-### Web Speech API
-- [MDN Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)
-- [Browser Support](https://caniuse.com/speech-recognition)
+---
+*Stack research for: Jarvis v5.0 -- browser automation + vault + sub-agents + research-as-library*
+*Researched: 2026-03-16*

@@ -1,270 +1,168 @@
-# Research Summary: Jarvis v2.0 Memory & Production
+# Project Research Summary
 
-**Project:** Jarvis - Voice-Enabled AI Personal Assistant
-**Milestone:** v2.0 Memory & Production
-**Synthesized:** 2026-02-02
-**Research Files:** STACK.md, FEATURES.md, ARCHITECTURE.md, PITFALLS.md, GOTCHA-ATLAS-ANALYSIS.md
-**Overall Confidence:** HIGH
-
----
+**Project:** Jarvis v5.0 — Agent Unification
+**Domain:** Autonomous life agent — browser automation, vault-backed credentials, sub-agent orchestration, research-as-library
+**Researched:** 2026-03-16
+**Confidence:** HIGH
 
 ## Executive Summary
 
-Jarvis v2.0 adds persistent cross-session memory and production deployment to an existing working voice assistant. Research confirms this is a well-documented pattern with clear implementation paths, but introduces significant security considerations that v1 (local-only) did not face.
+Jarvis v5.0 is the migration from a conversational life assistant to a fully autonomous execution agent — one that can log into websites, pay bills, fill grant applications, and manage Jon's administrative life during 12-14 hour hospital shifts. The research is unambiguous on the approach: use Playwright MCP for browser control, Bitwarden MCP for credential injection, Claude Agent SDK for sub-agent orchestration, and SQLite + Drizzle for research storage — all on top of the existing Jarvis v4.x infrastructure. The core innovation is a security model where credentials flow through MCP tool calls only and the LLM never sees raw secret values. This opaque bridge pattern is the single most important architectural constraint for the entire milestone.
 
-The recommended approach follows the **Mem0 pattern**: a hybrid memory system using `@libsql/client` + Drizzle ORM for structured storage, with Turso as the production database. The existing `better-sqlite3` driver **will not work on Vercel serverless** - this is the most critical technical finding. Memory should be treated as an untrusted input surface (memory poisoning is a documented attack vector), and guardrails are non-negotiable for production deployment.
+The recommended build uses official MCP servers for both browser automation (`@playwright/mcp`, already configured in `.mcp.json`) and vault integration (`@bitwarden/mcp-server`, to be added), with sub-agents defined programmatically via the Claude Agent SDK `agents` parameter. This approach requires minimal new infrastructure: only 3 new production packages (playwright, croner, p-queue) plus a required SDK migration from `@anthropic-ai/claude-code` to `@anthropic-ai/claude-agent-sdk`. Research-as-library and the flexible scheduler add zero external dependencies, building on existing SQLite + Drizzle schemas. The entire architecture extends the current v4.x codebase incrementally — no rewrites, mostly additive changes to a small set of files.
 
-Key risks center on (1) memory poisoning via indirect prompt injection, (2) context window overflow as memory grows, and (3) environment variable exposure in production. All three have documented prevention strategies. The technology stack is stable with high confidence - all recommended packages have recent releases and production usage.
+The highest risks are credential exposure (catastrophic and irreversible), financial automation without proper human approval gates (real money lost), and bot detection blocking financial sites (some sites will never be automatable). The mitigation strategy is the same for all three: the Planner-Actor-Validator pattern with mandatory Telegram approval before every financial action, an opaque vault bridge that never surfaces credentials to the LLM context, and graceful failure with human escalation rather than stealth bypass attempts. Research also flagged a critical SDK migration that must happen before any other v5.0 work begins — the old package is renamed and will stop receiving updates.
 
 ---
 
 ## Key Findings
 
-### From STACK.md
+### Recommended Stack
 
-**Core Decision:** Use `@libsql/client` + Drizzle ORM for database access.
+The existing Jarvis v4.x stack (Claude Agent SDK, Next.js 15, grammY, Deepgram, AWS Polly, SQLite/Drizzle, PM2) is validated and not re-evaluated. The v5.0 additions are minimal.
 
-| Technology | Version | Rationale |
-|------------|---------|-----------|
-| `@libsql/client` | ^0.17.0 | Unified API for local SQLite AND Turso cloud. **Required for Vercel.** |
-| `drizzle-orm` | ^0.45.1 | Zero-dep, excellent TypeScript, tree-shakeable |
-| Turso (production) | Free tier | 9GB storage, 1B reads/month - sufficient for single-user |
-| `grammy` | ^1.39.2 | Telegram bot framework (optional, for mobile access) |
+**The most important pre-work is migrating from `@anthropic-ai/claude-code` to `@anthropic-ai/claude-agent-sdk` (v0.2.76).** The old package has been renamed and will stop receiving updates. This migration has three breaking changes: system prompt no longer loads by default (must pass explicitly), settings sources no longer load by default, and the `agents` parameter for sub-agent spawning only exists in the new package.
 
-**Critical Finding:** `better-sqlite3` (currently installed) is synchronous and requires filesystem access. Vercel serverless functions are stateless and ephemeral - each invocation may run on a different container with no shared storage. Must migrate to `@libsql/client`.
+**Core new technologies:**
+- `playwright` (^1.58.2): Browser control via Playwright MCP — Microsoft-backed, TypeScript-native, auto-wait eliminates flaky selectors, already partially configured in `.mcp.json`
+- `@bitwarden/mcp-server`: Vault credential retrieval via official Bitwarden MCP server — local-only, zero-knowledge, handles session management, no custom wrapper needed
+- `croner` (^9.0.0): Replaces `node-cron` — 1.5M weekly downloads vs 736K, built-in timezone support, zero dependencies, used by PM2 itself
+- `p-queue` (^8.0.1): Concurrency control for parallel browser sessions — prevents opening 10 bill pay tabs simultaneously
 
-**What NOT to Add:** sqlite-vec (overkill for <100k entries), Prisma (worse TypeScript inference), Redis for memory (SQLite simpler for single-user).
+**Not needed (zero new deps):** Sub-agent spawning is built into claude-agent-sdk. Research-as-library extends existing SQLite schema. Custom MCP tools use SDK-native `createSdkMcpServer`.
 
-### From FEATURES.md
+**Explicitly avoid:** Stagehand (abstraction tax, not needed for known workflows), browser-use TS port (immature, conflicting LLM orchestration), LangChain (50+ transitive deps, zero value here), Skyvern cloud (cost, latency, vendor lock-in when Playwright + Claude runs locally), building a custom vault service (Bitwarden MCP is the supported path).
 
-**Table Stakes (Must Ship):**
+See `STACK.md` for complete installation commands and version compatibility matrix.
 
-| Feature | Complexity | Notes |
-|---------|------------|-------|
-| Session Logging | Low | Foundation - must log before memory works |
-| Basic Fact Retention | Medium | "Remember I prefer morning meetings" |
-| Memory Transparency | Low | User must see what Jarvis remembers |
-| Explicit Commands | Low | "Remember this" / "Forget that" |
-| Cross-Session Continuity | Medium | "What were we discussing yesterday?" |
-| Privacy Controls | Low | Delete all, incognito mode |
+### Expected Features
 
-**Differentiators (Ship to Stand Out):**
+The feature research distinguishes sharply between what is required for safety and what is aspirational. Missing table stakes features means the system is unsafe, not just incomplete.
 
-| Feature | Value | Notes |
-|---------|-------|-------|
-| Preference Learning | Adapts to communication style | Brevity vs detail, timing preferences |
-| Intelligent Forgetting | Prevents memory bloat | Decay unaccessed memories |
-| Proactive Memory Surfacing | "Last time we discussed X..." | Context-aware recall |
+**Must have (table stakes):**
+- Bitwarden vault integration (unlock, retrieve, TOTP, lock) — nothing else works without credentials
+- Placeholder resolution where LLM never sees raw secrets — the entire security model
+- Playwright navigation + form filling — core execution capability
+- Screenshot capture + AI vision verification — prevents blind submissions
+- Telegram approval gate before any financial action — mandatory, no exceptions
+- Error detection and graceful failure — agent must never submit garbage data
+- Task-based sub-agent spawning with role specialization (browser-worker, form-filler, researcher)
+- Sequential task chains — bill pay is inherently sequential (research → auth → fill → verify → approve → submit)
+- One working end-to-end bill pay workflow — proof-of-concept validates the full architecture
 
-**Anti-Features (Explicitly Avoid):**
+**Should have (differentiators):**
+- Business profile as structured data (store once, reuse across all applications)
+- Structured research storage with typed fields (entity, field, value, source, confidence)
+- Research recall during form-filling (agent auto-populates grant applications from stored findings)
+- Confirmation screenshot to Telegram before any submission
+- Parallel sub-agent execution (research 3 grants simultaneously — native to SDK)
+- Visual page understanding via screenshot + AI vision (layout-resistant over CSS selectors)
 
-- Total Recall ("remember everything") - causes performance decline
-- Cross-session emotional profiling - invasive, often wrong
-- Permanent memory without decay - outdated facts pollute context
-- Inference without facts - dangerous assumptions
+**Defer to v6.0+:**
+- Workflow recording and replay (requires battle-tested manual workflows first)
+- Scheduled autonomous workflows (needs manual-trigger reliability proven first)
+- Adaptive retry with layout detection (start with simple retry + Telegram escalation)
+- Agent skill porting from Agent Zero (Visopscreen/crypto can wait)
+- Corporate credit applications (research library groundwork only in v5.0)
 
-### From ARCHITECTURE.md
+**Anti-features (never build):**
+- Fully autonomous financial transactions without human approval — industry consensus is absolute on this
+- Credentials in LLM context or conversation history — Krebs on Security 2026 specifically cites this attack vector
+- CAPTCHA solving — pause and escalate to Jon instead (human-assisted CAPTCHA is faster than any solver)
+- General-purpose "do anything on any website" browser agent — define specific workflow templates per site
+- Real-time browser streaming to web UI — screenshots at key moments via Telegram is sufficient
 
-**Recommended Structure:**
+See `FEATURES.md` for full feature dependency tree and community pattern analysis.
 
-```
-src/lib/jarvis/memory/
-+-- MemoryService.ts          # Main facade for all memory operations
-+-- storage/
-|   +-- MemoryDatabase.ts     # SQLite operations via @libsql/client
-|   +-- schema.ts             # Drizzle schema
-+-- retrieval/
-|   +-- MemoryLoader.ts       # Session start context loading
-|   +-- HybridRetrieval.ts    # BM25 + optional semantic search
-+-- extraction/
-|   +-- FactExtractor.ts      # Extract facts from conversations
-|   +-- SessionSummarizer.ts  # Summarize sessions on close
+### Architecture Approach
 
-data/
-+-- jarvis.db                 # Local SQLite (development)
-+-- JARVIS_MEMORY.md          # Human-readable long-term facts
-```
+The architecture is primarily additive changes to existing v4.x components. The core pattern is MCP-first: prefer official MCP servers over custom wrappers. Sub-agents are defined programmatically via the Claude Agent SDK `agents` parameter with restricted tool sets matching their role (researcher never gets vault access; form-filler never gets research write access; browser-worker has read-only tools). The approval gateway is deliberately asynchronous — the initial task completes after requesting Telegram approval, and a callback triggers a new SDK session to resume, avoiding burning rate limits during human response wait time.
 
-**Key Integration Points:**
+**Major components:**
+1. **ccodeBrain.ts (significant modification)** — adds `agents` parameter with 3 sub-agent definitions, adds `'Agent'` and `mcp__playwright__*` and `mcp__bitwarden__*` to allowed tools
+2. **approval/approvalGateway.ts (new)** — Telegram approval flow, inline keyboards, screenshot attachment, 4-hour timeout, async resume via new SDK session on callback
+3. **research/researchStore.ts (new)** — SQLite `research_topics` + `research_findings` tables, MCP tools (save, search, list, get, archive), reuses existing `vectorSearch.ts`
+4. **scheduler/taskStore.ts (new)** — SQLite `scheduled_tasks` table replacing hardcoded cron, hot-reload on DB changes, existing hardcoded tasks migrated as `system: true` records
+5. **toolBridge.ts (moderate modification)** — adds research, scheduler, approval tool categories following existing 5-way routing pattern exactly
+6. **.mcp.json (minor modification)** — adds `@bitwarden/mcp-server` entry with `BW_SESSION` env var
+7. **telegram/bot.ts (minor modification)** — adds approval callback handlers (`approval:approve:{id}`, `approval:reject:{id}`, `approval:modify:{id}`) and photo message support
+8. **cronRunner.ts (moderate modification)** — replaces hardcoded `cron.schedule()` calls with dynamic task loading from DB, hot-reload capability
 
-1. **VoicePipeline** - Load memory context at session start
-2. **systemPrompt.ts** - Inject memory context into Claude prompts
-3. **tools.ts** - Add `remember_fact`, `recall_memory`, `update_long_term` tools
-4. **API routes** - `/api/jarvis/memory/` for server-side operations
+**Components requiring no changes:** `ecosystem.config.js` (MCP servers are SDK-spawned, not PM2 processes), `sdkBrain.ts`, `evaluator.ts`, `reflectionLoop.ts`.
 
-**Build Order (Critical Dependencies):**
+See `ARCHITECTURE.md` for full data flow diagrams for bill pay and grant application workflows.
 
-1. Storage Foundation (schema, CRUD) - depends on nothing
-2. Memory Loading (session start) - depends on storage
-3. Memory Writing (during conversation) - depends on loading
-4. Memory Search (hybrid retrieval) - depends on data existing
-5. Session Management (summarization) - depends on all above
-6. Migration (from localStorage) - depends on new system complete
+### Critical Pitfalls
 
-### From PITFALLS.md
+1. **LLM sees raw credentials during browser automation** — The most dangerous failure mode. Build vault integration as an opaque tool: LLM calls `fill_credentials(site_id)`, never receives credential values. Tool internally unlocks Bitwarden, fetches credentials, calls `page.fill()`, returns only success/failure. Implement canary credential test. This must be verified before any browser automation ships. Recovery cost is HIGH (rotate all credentials, purge memory, audit logs for exfiltration).
 
-**Critical Pitfalls (Cause Rewrites/Security Incidents):**
+2. **Bitwarden CLI session token silently expires mid-task** — Default timeout is 1 hour, sometimes 15 minutes. CLI does not warn on expiry — commands simply fail or return empty results. API key and master password unlock are two separate steps. Build vault wrapper that calls `bw status` before every credential fetch and re-unlocks if needed. Never assume session is valid.
 
-| Pitfall | Risk | Prevention |
-|---------|------|------------|
-| Memory Poisoning | Malicious content stored, executes later | Tag provenance, validate at retrieval, never store instructions |
-| Context Window Overflow | System prompt pushed out, guardrails lost | Monitor utilization, sliding window, memory relevance scoring |
-| No Guardrails | Destructive actions without confirmation | Action classification, confirmation tiers, audit logging |
-| Secret Exposure | API keys leaked to client | Never use `NEXT_PUBLIC_` for secrets, Vercel sensitive env vars |
+3. **Financial sites detect and block Playwright automation** — Banks and utility portals actively detect CDP-connected browsers. Do not attempt stealth bypasses — this is an arms race you will lose. Use headed mode on Windows (not headless), persistent browser profiles, human-like delays (50-200ms between keystrokes). Accept that some sites will not be automatable; build graceful fallback notification pattern from day one.
 
-**Moderate Pitfalls:**
+4. **Agent submits wrong or duplicate payment** — LLMs occasionally misread amounts; retry logic can re-submit. Implement: mandatory Telegram approval with screenshot before any submission, idempotency check against payment ledger, never-retry policy on payment submissions, dry-run mode that stops before the final submit button. Recovery cost is MEDIUM (contact billing company, takes days to resolve).
 
-| Pitfall | Risk | Prevention |
-|---------|------|------------|
-| SQLite Concurrency | "Database is locked" on serverless | Use Turso for production |
-| Notion Rate Limits | 429 errors during briefings | Request queue (3 req/sec), aggressive caching |
-| Voice Latency Spikes | Awkward pauses break flow | Keep WebSocket warm, streaming TTS |
-| Memory Breaks Existing | v1 features regress | Feature flags, incremental rollout |
-
-### From GOTCHA-ATLAS-ANALYSIS.md
-
-**Highest Value Pattern:** Three-layer memory system
-
-1. **JARVIS_MEMORY.md** - Curated long-term facts (always loaded, human-readable)
-2. **Daily Logs** - Append-only session events (timestamped, reviewable)
-3. **SQLite Database** - Structured storage with search (deduplication, importance scoring)
-
-**Key Protocol:**
-- Session Start: Load MEMORY.md + today's log + yesterday's log + high-importance facts
-- During Session: Append events, store facts with importance scoring
-- Session End: Generate summary, extract key facts for future reference
-
----
-
-## Stack Recommendations
-
-### Required for v2
-
-```bash
-npm install @libsql/client drizzle-orm
-npm install -D drizzle-kit
-```
-
-### Optional
-
-```bash
-npm install grammy        # Telegram gateway
-npm install voyageai      # Semantic search (defer until needed)
-```
-
-### Environment Variables
-
-**Development (`.env.local`):**
-```env
-DATABASE_URL=file:./jarvis.db
-```
-
-**Production (Vercel):**
-```env
-DATABASE_URL=libsql://jarvis-[account].turso.io
-DATABASE_AUTH_TOKEN=eyJ...
-# Optional: TELEGRAM_BOT_TOKEN, VOYAGE_API_KEY
-```
+5. **Sub-agent token explosion burns Max plan limits** — Each sub-agent subprocess re-injects full system prompt (~50K tokens) by default. With 40+ MCP tools in scope, a single subprocess turn consumes ~50K tokens before doing work. Mitigation: pass `--system-prompt` with only relevant context, limit MCP tools per sub-agent to role requirements, monitor per-subprocess token usage with alerts.
 
 ---
 
 ## Implications for Roadmap
 
-Based on combined research, I recommend **5 phases** for v2.0:
+The dependency chain from ARCHITECTURE.md and the pitfall-to-phase mapping from PITFALLS.md converge on a clear 5-phase structure.
 
-### Phase 1: Database Foundation
+### Phase 1: Foundation and Migration
 
-**Rationale:** Everything depends on storage. Must establish before any memory features.
+**Rationale:** Zero external dependencies — pure refactoring and schema work. The SDK migration unblocks sub-agents. New DB schemas must exist before any new features write to them. A0 code removal reduces dead weight. This phase de-risks the entire milestone before any external service integration begins.
+**Delivers:** SDK migrated to `@anthropic-ai/claude-agent-sdk`, repo migrated to standalone structure, `research_topics`/`research_findings`/`scheduled_tasks`/`pending_approvals` schemas added and migrated, `cronRunner.ts` rewritten for dynamic task loading, Agent Zero routing removed from `chatProcessor.ts`
+**Addresses:** SDK breaking changes, repo migration, research schema, scheduler schema, A0 sunset groundwork
+**Avoids:** PM2 path caching pitfall (re-register from new path, run `pm2 save`); building on SDK that won't receive updates
 
-**Delivers:**
-- Drizzle schema for memory_entries, daily_logs, sessions
-- @libsql/client setup (local SQLite for dev)
-- Basic CRUD operations with hash deduplication
-- JARVIS_MEMORY.md template
+### Phase 2: Vault Integration
 
-**Features from FEATURES.md:** Session Logging (foundation)
+**Rationale:** Security foundation must exist and be verified in isolation before browser automation is built on top of it. If the credential exposure bug exists and browser automation is already shipping, the blast radius is much larger.
+**Delivers:** Bitwarden MCP in `.mcp.json`, BW_SESSION startup unlock flow with session wrapper, vault service wrapper with status check + re-unlock, canary credential test passing, `BW_SESSION` properly propagated to PM2 environment
+**Addresses:** Table stakes: vault unlock/lock, credential retrieval by service name, TOTP/2FA retrieval, placeholder resolution, session management
+**Avoids:** Pitfall 1 (credential exposure), Pitfall 2 (session expiration); sub-agents having vault access by design (tool restriction designed in this phase)
 
-**Pitfalls to Avoid:** SQLite concurrency (design for Turso from start)
+### Phase 3: Browser Automation Engine
 
-**Research Needed:** None - patterns well-documented
+**Rationale:** Browser capabilities require vault (credentials needed for login flows). Build browser tools once the secure credential bridge is verified. Graceful failure design goes in from day one — not as an afterthought after a real failure embarrasses you.
+**Delivers:** Playwright MCP access in `ccodeBrain.ts`, three sub-agent definitions (browser-worker, form-filler, researcher) with restricted tool sets, screenshot + AI vision verification utilities, error detection + Telegram escalation on failure, human-like delay utilities, headed mode configured on Windows
+**Addresses:** Table stakes: Playwright navigation, form filling, screenshot capture, error detection, sub-agent spawning and role specialization
+**Avoids:** Pitfall 3 (bot detection) — headed mode and delay utilities built from day one; Pitfall 5 (token explosion) — sub-agent prompts scoped, tool lists restricted; Anti-pattern 1 (no custom browserEngine.ts wrapper)
 
-### Phase 2: Memory Loading & Integration
+### Phase 4: Approval Gateway and End-to-End Workflows
 
-**Rationale:** Before writing memory, must integrate loading into existing voice pipeline without breaking v1 features.
+**Rationale:** The safety layer must exist before any real-world automation runs with real money. Once the gateway is in place, wire everything together into working workflows. This is the value delivery phase.
+**Delivers:** `approvalGateway.ts` with async Telegram callback pattern, Telegram bot approval callbacks with screenshot support, one working bill pay workflow (e.g., Duke Energy), dry-run mode, research workflow (researcher sub-agent + research store), business profile as structured data, confirmation screenshot to Telegram, payment ledger with idempotency check
+**Addresses:** Table stakes: approval gate, one working bill pay workflow; Differentiators: business profile, research storage, research recall, confirmation screenshots
+**Avoids:** Pitfall 4 (duplicate/wrong payment) — payment ledger, idempotency, dry-run mode; Anti-pattern 4 (polling for approval) — async callback pattern with new SDK session on resume
 
-**Delivers:**
-- MemoryLoader.ts for session start
-- systemPrompt.ts modification to include memory context
-- VoicePipeline.ts integration
-- Feature flag to disable memory system
+### Phase 5: Agent Zero Sunset
 
-**Features from FEATURES.md:** Basic Fact Retention, Memory Transparency, Cross-Session Continuity
+**Rationale:** Only after Phase 4 verifies all critical capabilities end-to-end should Agent Zero be decommissioned. Running both in parallel during verification reduces risk. A0 skills cannot be ported using A0's format — each requires a rewrite for Claude Code agent markdown format.
+**Delivers:** Complete A0 skills audit with explicit disposition for each of the 20+ skills (ported / dropped / not needed), all 5 A0 scheduled tasks migrated as DB records with `system: true`, Visopscreen and crypto skills ported or explicitly deferred, A0 container and Cloudflare tunnel decommissioned
+**Addresses:** A0 skill gap checklist, scheduled task port, cost elimination (per-token billing eliminated)
+**Avoids:** Premature decommission before capability parity is confirmed
 
-**Pitfalls to Avoid:** Memory Breaks Existing (use feature flags), Context Window Overflow (limit loaded memory)
+### Phase Ordering Rationale
 
-**Research Needed:** None - extension of existing architecture
+- Phase 1 first because it has no external dependencies and the SDK migration blocks sub-agents (Phase 3 requirement)
+- Phase 2 before Phase 3 because browser login flows require credentials; credential security must be verified before browser workflows are built on it
+- Phase 3 before Phase 4 because you need real browser actions to test what the approval gateway is protecting
+- Phase 4 integrates all three prior phases; attempting earlier means debugging three simultaneous unknowns
+- Phase 5 is cleanup after Phase 4 confirms parity; doing it earlier means risking capability loss before the replacement is proven
 
-### Phase 3: Memory Writing & Tools
+### Research Flags
 
-**Rationale:** With loading working, add write capabilities so Claude can actively store facts.
+Phases likely needing deeper research during planning:
+- **Phase 2 (Vault Integration):** BW_SESSION lifecycle on Windows + PM2 process isolation needs concrete testing. Exact implementation of master password storage for automated unlock (Windows Credential Manager vs env var) needs decision during planning.
+- **Phase 3 (Browser Automation Engine):** Target bill pay sites need individual reconnaissance. Bot detection behavior varies per site and requires empirical testing against actual sites before committing to a workflow design.
+- **Phase 4 (End-to-End Workflows):** Grant application form structures are site-specific. Research-as-library schema may need field additions after reviewing real grant application forms.
 
-**Delivers:**
-- Memory tools: `remember_fact`, `recall_memory`, `update_long_term`
-- Tool implementations in toolExecutor.ts
-- Explicit memory commands ("Remember this", "Forget that")
-- Daily log append logic
-
-**Features from FEATURES.md:** Explicit Memory Commands, Privacy Controls, Error Acknowledgment
-
-**Pitfalls to Avoid:** Memory Poisoning (provenance tagging), Deduplication (hash-based)
-
-**Research Needed:** Tool response format optimization (may need iteration)
-
-### Phase 4: Guardrails & Self-Healing
-
-**Rationale:** Before production, must add safety layer. Research shows this is non-negotiable.
-
-**Delivers:**
-- Action classification (read/write/delete/expensive)
-- Confirmation tiers for destructive operations
-- Audit logging for all tool invocations
-- Kill switch capability
-- Self-healing retry logic with exponential backoff
-
-**Features from FEATURES.md:** Privacy Controls (expanded), Preference Learning (guardrail-aware)
-
-**Pitfalls to Avoid:** No Guardrails (primary target), Notion Content Injection
-
-**Research Needed:** `/gsd:research-phase` - guardrail taxonomy for all Jarvis tools
-
-### Phase 5: Production Deployment
-
-**Rationale:** Final phase - put it all together with production infrastructure.
-
-**Delivers:**
-- Turso database setup (migrate from local SQLite)
-- Custom domain: jarvis.whatareyouappreciatingnow.com
-- Environment variable audit (no NEXT_PUBLIC_ secrets)
-- Monitoring & observability (Sentry, cost alerts)
-- Warm-up pings for cold start mitigation
-
-**Features from FEATURES.md:** All v2 features available in production
-
-**Pitfalls to Avoid:** Secret Exposure, Cold Starts, Missing Monitoring, Voice Latency
-
-**Research Needed:** `/gsd:research-phase` - Turso setup specifics, Vercel edge deployment
-
----
-
-## Research Flags
-
-| Phase | Needs Research | Standard Patterns |
-|-------|----------------|-------------------|
-| Phase 1: Database Foundation | No | Drizzle + libsql well-documented |
-| Phase 2: Memory Loading | No | Extension of existing architecture |
-| Phase 3: Memory Writing | Minimal | Tool format may need iteration |
-| Phase 4: Guardrails | **YES** | Needs tool classification taxonomy |
-| Phase 5: Production | **YES** | Turso setup, edge deployment specifics |
+Phases with standard patterns (skip research-phase):
+- **Phase 1 (Foundation and Migration):** SDK migration steps are documented. Schema additions follow existing Drizzle conventions. Repo migration is a standard `git filter-repo` operation.
+- **Phase 5 (A0 Sunset):** Skill audit is inventory work. The pattern for translating A0 SKILL.md to Claude Code agent markdown is documented.
 
 ---
 
@@ -272,57 +170,50 @@ Based on combined research, I recommend **5 phases** for v2.0:
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | @libsql/client v0.17.0 (2 days old), Drizzle v0.45.1 active |
-| Features | HIGH | Table stakes validated against Claude/ChatGPT patterns |
-| Architecture | MEDIUM-HIGH | Mem0 pattern documented, but Jarvis-specific integration needs validation |
-| Pitfalls | HIGH | Multiple authoritative sources cross-referenced |
+| Stack | HIGH | Official docs verified for all core recommendations. SDK migration breaking changes are documented by Anthropic. Playwright and Bitwarden MCP are official packages from their maintainers. |
+| Features | MEDIUM-HIGH | Table stakes have strong community consensus. Differentiator features are well-understood patterns (CrewAI, Skyvern, Google EverMem). Defer list is opinionated but defensible. |
+| Architecture | HIGH | Verified against existing Jarvis v4.x source code. MCP-first pattern follows official SDK documentation. Component boundaries align with established codebase conventions. |
+| Pitfalls | HIGH | Critical pitfalls sourced from OWASP Agentic Top 10, official Bitwarden community issues, Playwright maintainer docs, production reports. Financial safety pitfalls have industry-wide consensus. |
 
-### Gaps to Address During Planning
+**Overall confidence:** HIGH
 
-1. **Embedding strategy:** Start with BM25 only, add semantic search if retrieval proves insufficient
-2. **Memory expiration:** Implement `expires_at` but defer decay algorithm to v2.1
-3. **Memory UI:** Defer user-facing memory viewer to v2.1 (CLI/API sufficient for v2.0)
-4. **Multi-device sync:** Out of scope for v2.0 (single-user assumption)
+### Gaps to Address
 
----
-
-## Sources Summary
-
-### High Confidence (Official Documentation)
-- [@libsql/client npm](https://www.npmjs.com/package/@libsql/client)
-- [Turso + Next.js Guide](https://docs.turso.tech/sdk/ts/guides/nextjs)
-- [Drizzle ORM SQLite](https://orm.drizzle.team/docs/get-started-sqlite)
-- [Vercel: Sensitive Environment Variables](https://vercel.com/docs/environment-variables/sensitive-environment-variables)
-- [SQLite FTS5](https://www.sqlite.org/fts5.html)
-
-### High Confidence (Security Research)
-- [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)
-- [Palo Alto Unit42: Memory Poisoning](https://unit42.paloaltonetworks.com/indirect-prompt-injection-poisons-ai-longterm-memory/)
-- [Building Production-Ready Guardrails (Medium)](https://ssahuupgrad-93226.medium.com/building-production-ready-guardrails-for-agentic-ai/)
-
-### Medium Confidence (Industry Patterns)
-- [Mem0: Building Production-Ready AI Agents](https://arxiv.org/abs/2504.19413)
-- [Redis: AI Agents with Memory](https://redis.io/blog/build-smarter-ai-agents-manage-short-term-and-long-term-memory-with-redis/)
-- [Claude Memory Features](https://www.anthropic.com/news/memory)
-
-### Local Research
-- GOTCHA-ATLAS-ANALYSIS.md (framework patterns)
-- Existing Jarvis v1 codebase analysis
+- **playwright-extra stealth plugin compatibility with Playwright 1.58:** Single source, untested. Only relevant if bot detection forces stealth mode. Address empirically during Phase 3 if needed.
+- **p-queue ESM-only behavior in Jarvis's CJS/ESM mixed project:** May require dynamic import. Address during Phase 3 dependency installation.
+- **Windows 8191-char command line limit for sub-agent prompts:** Mentioned in Anthropic docs but not empirically confirmed. Mitigation is straightforward (keep prompts under ~6000 chars or use filesystem-based agent markdown files). Verify during Phase 3.
+- **Exact BW_SESSION propagation to PM2 processes on Windows:** Current understanding is each PM2 process needs its own session via wrapper, but the concrete implementation for Windows + PM2 needs validation during Phase 2 planning.
+- **Per-site bot detection behavior:** Cannot be assessed without testing against actual sites. Must be discovered empirically in Phase 3 before committing to a workflow design per provider.
 
 ---
 
-## Ready for Requirements
+## Sources
 
-Research synthesis complete. Key decisions:
+### Primary (HIGH confidence)
+- [Claude Agent SDK Migration Guide](https://platform.claude.com/docs/en/agent-sdk/migration-guide) — breaking changes, `agents` parameter, system prompt defaults
+- [Claude Agent SDK Subagents](https://platform.claude.com/docs/en/agent-sdk/subagents) — AgentDefinition API, tool restrictions, context isolation
+- [Claude Agent SDK Custom Tools](https://platform.claude.com/docs/en/agent-sdk/custom-tools) — `createSdkMcpServer`, `tool()` helper, Zod schemas
+- [Playwright Official Docs](https://playwright.dev/) — v1.58.2, accessibility tree, browser lifecycle
+- [Bitwarden MCP Server - GitHub](https://github.com/bitwarden/mcp-server) — official package, security model, local-only constraint
+- [Playwright MCP Server - GitHub](https://github.com/microsoft/playwright-mcp) — accessibility tree snapshots, 25+ browser tools
+- [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) — agent security pitfalls framework
+- Existing Jarvis source code — ccodeBrain.ts, chatProcessor.ts, toolBridge.ts, cronRunner.ts, data/schema.ts, .mcp.json
 
-1. **Database:** @libsql/client + Drizzle + Turso (not better-sqlite3)
-2. **Memory Model:** Three-layer (MEMORY.md + daily logs + SQLite)
-3. **Security:** Guardrails phase is mandatory before production
-4. **Rollout:** Feature flags for incremental deployment
+### Secondary (MEDIUM confidence)
+- [Playwright MCP vs CLI benchmarks](https://bug0.com/blog/playwright-mcp-changes-ai-testing-2026) — 114K vs 27K tokens per task
+- [Skyvern 2.0 - Planner-Actor-Validator architecture](https://www.skyvern.com/blog/skyvern-2-0-state-of-the-art-web-navigation-with-85-8-on-webvoyager-eval/) — production browser agent patterns
+- [Best Node.js Schedulers comparison](https://betterstack.com/community/guides/scaling-nodejs/best-nodejs-schedulers/) — croner vs node-cron feature comparison
+- [Why Claude Code Subagents Waste 50K Tokens Per Turn](https://dev.to/jungjaehoon/why-claude-code-subagents-waste-50k-tokens-per-turn-and-how-to-fix-it-41ma) — token explosion mitigation
+- [Bitwarden CLI Session Expiration](https://community.bitwarden.com/t/cli-session-expiration/43611) — session timeout behavior, re-authentication
+- [Playwright MCP Issue #922](https://github.com/microsoft/playwright-mcp/issues/922) — placeholder resolution for credentials (resolved in v0.0.37)
+- [Krebs on Security: AI Assistants Moving Security Goalposts](https://krebsonsecurity.com/2026/03/how-ai-assistants-are-moving-the-security-goalposts/) — credential exposure via LLM context
+- [CrewAI Knowledge Sources](https://docs.crewai.com/en/concepts/knowledge) — structured research storage patterns
 
-Roadmapper can proceed with 5-phase structure outlined in Implications section.
+### Tertiary (LOW confidence, needs validation)
+- playwright-extra stealth plugin compatibility with Playwright 1.58 — single source, untested
+- p-queue ESM-only behavior in mixed CJS/ESM Next.js projects — may require dynamic import
+- Windows 8191-char command line limit for sub-agent prompts — mentioned in Anthropic docs, not empirically confirmed
 
 ---
-
-*Previous version (v1 research): 2026-01-31*
-*v2.0 synthesis: 2026-02-02*
+*Research completed: 2026-03-16*
+*Ready for roadmap: yes*

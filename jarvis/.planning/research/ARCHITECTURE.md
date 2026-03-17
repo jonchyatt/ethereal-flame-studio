@@ -1,722 +1,616 @@
-# Architecture Patterns: Memory System Integration
+# Architecture Patterns
 
-**Domain:** Persistent Memory for Voice AI Assistant
-**Researched:** 2026-02-02
-**Confidence:** MEDIUM-HIGH (patterns verified via research and existing codebase analysis)
+**Domain:** Autonomous life agent with browser automation, vault credential injection, sub-agent spawning, and research knowledge library
+**Researched:** 2026-03-16
+**Overall Confidence:** HIGH (verified against official SDK docs, Bitwarden MCP repo, Playwright MCP repo, existing Jarvis source)
 
-## Executive Summary
+## Recommended Architecture
 
-Jarvis v1 has a functional voice pipeline with limited in-session memory via `MemoryStore` (localStorage) and `ConversationManager` (sliding window). The v2 milestone adds **persistent cross-session memory** that survives page refreshes and enables true conversational continuity.
-
-The recommended architecture follows the **Mem0 pattern**: a hybrid memory system with file-based long-term facts (MEMORY.md), structured SQLite storage with embeddings for searchable memory, and daily session logs for event tracking. This integrates cleanly with the existing architecture by:
-
-1. Adding a new `memory/` module under `src/lib/jarvis/`
-2. Extending `systemPrompt.ts` to include loaded memory context
-3. Adding memory write operations as Claude tool calls
-4. Using server-side SQLite (better-sqlite3 via Prisma) for structured storage
-
-## Existing Architecture (v1)
+### Current State (Jarvis v4.x)
 
 ```
-src/lib/jarvis/
-+-- audio/                  # Microphone capture, VAD
-+-- voice/
-|   +-- VoicePipeline.ts    # Orchestrates full voice flow
-|   +-- DeepgramClient.ts   # STT via WebSocket
-|   +-- SpeechClient.ts     # ElevenLabs TTS
-|
-+-- intelligence/
-|   +-- ClaudeClient.ts     # Browser-side streaming client
-|   +-- ConversationManager.ts  # Sliding window (10 messages)
-|   +-- MemoryStore.ts      # localStorage persistence (summary + 20 facts)
-|   +-- systemPrompt.ts     # Personality + context builder
-|   +-- tools.ts            # 10 Notion tool definitions
-|
-+-- notion/
-|   +-- NotionClient.ts     # MCP connection
-|   +-- toolExecutor.ts     # Tool implementation
-|   +-- schemas.ts          # Query builders
-|
-+-- executive/
-|   +-- BriefingFlow.ts     # Morning briefing state machine
-|   +-- CheckInManager.ts   # Periodic check-ins
-|   +-- WeeklyReviewFlow.ts # Weekly review workflow
-|
-+-- stores/
-|   +-- jarvisStore.ts      # Zustand UI state
+User (Web UI / Telegram / Voice)
+     |
+     v
+chatProcessor.ts (orchestrator)
+     |
+     +--- providerRouter.ts --- routeToCCodeSdk() ---> ccodeBrain.ts (query() via @anthropic-ai/claude-code)
+     |                      \-- routeToApi()     ---> sdkBrain.ts (Anthropic API direct)
+     |
+     +--- toolBridge.ts (MCP server, 5-way routing)
+     |       +--- Notion tools (executeNotionTool)
+     |       +--- Memory tools (executeMemoryTool)
+     |       +--- Calendar tools (executeCalendarTool)
+     |       +--- Tutorial tools (executeTutorialTool)
+     |       +--- Academy tools (executeAcademyTool)
+     |
+     +--- evaluator.ts + reflectionLoop.ts (self-improvement)
+     |
+     +--- cronRunner.ts (PM2 process: daily reflection + memory decay)
+     |
+     +--- telegram/bot.ts (grammY long-polling, separate PM2 process)
 ```
 
-### Current Memory Limitations
+**PM2 Processes:** jarvis-web (Next.js :3001), jarvis-mcp (stdio tool server), jarvis-cron (node-cron), jarvis-tunnel (cloudflared)
 
-| Component | What It Does | Limitation |
-|-----------|--------------|------------|
-| `MemoryStore.ts` | localStorage with summary + 20 key facts | Browser-only, no search, manual fact extraction |
-| `ConversationManager.ts` | Sliding window of 10 recent messages | Loses context in long sessions |
-| `systemPrompt.ts` | Injects keyFacts into Claude context | No structured retrieval, no temporal awareness |
-
-**Key Gap:** No server-side persistence, no semantic search, no automatic memory extraction.
-
-## Proposed Architecture (v2)
+### Target State (Jarvis v5.0)
 
 ```
-src/lib/jarvis/
-+-- memory/                           # NEW: Memory system
-|   +-- MemoryService.ts              # Main facade for all memory operations
-|   +-- storage/
-|   |   +-- MemoryDatabase.ts         # SQLite operations (Prisma + better-sqlite3)
-|   |   +-- schema.prisma             # Database schema
-|   +-- retrieval/
-|   |   +-- MemoryLoader.ts           # Session start context loading
-|   |   +-- SemanticSearch.ts         # Vector similarity search
-|   |   +-- HybridRetrieval.ts        # BM25 + embeddings fusion
-|   +-- extraction/
-|   |   +-- FactExtractor.ts          # Extract facts from conversations
-|   |   +-- SessionSummarizer.ts      # Summarize sessions on close
-|   +-- types.ts                      # Memory entry interfaces
-|
-+-- intelligence/
-|   +-- MemoryStore.ts                # DEPRECATED: migrate to MemoryService
-|   +-- ConversationManager.ts        # MODIFY: integrate MemoryService
-|   +-- systemPrompt.ts               # MODIFY: include memory context
-|   +-- tools.ts                      # ADD: memory tools (recall, remember)
-|
-data/
-+-- jarvis_memory.db                  # SQLite database file
-+-- JARVIS_MEMORY.md                  # Human-readable long-term facts
+User (Web UI / Telegram / Voice)
+     |
+     v
+chatProcessor.ts (orchestrator) --- MODIFIED
+     |
+     +--- providerRouter.ts --- routeToCCodeSdk() --- MODIFIED
+     |       |
+     |       v
+     |   ccodeBrain.ts --- MODIFIED (adds agents param, Playwright MCP, Bitwarden MCP)
+     |       |
+     |       +--- SubAgent: "browser-worker" (Playwright MCP, read-only tools)
+     |       +--- SubAgent: "researcher" (WebSearch, WebFetch, Read, Grep)
+     |       +--- SubAgent: "form-filler" (Playwright MCP + Bitwarden MCP)
+     |
+     +--- toolBridge.ts --- MODIFIED (adds vault, browser, research, scheduler tools)
+     |       +--- Existing: Notion, Memory, Calendar, Tutorial, Academy
+     |       +--- NEW: research tools (save-finding, search-findings, list-topics)
+     |       +--- NEW: scheduler tools (add-task, remove-task, list-tasks, edit-task)
+     |       +--- NEW: approval tools (request-approval, check-approval)
+     |
+     +--- NEW: research/researchStore.ts (SQLite + vector search)
+     +--- NEW: scheduler/taskStore.ts (CRUD scheduled tasks in SQLite)
+     +--- NEW: approval/approvalGateway.ts (Telegram inline keyboard approval flow)
+     |
+     +--- cronRunner.ts --- MODIFIED (reads task config from DB, dynamic scheduling)
+     |
+     +--- telegram/bot.ts --- MODIFIED (approval gateway callbacks)
 ```
 
-## Component Design
+## New Components Required
 
-### 1. MemoryService (Main Facade)
+### 1. Bitwarden Vault Integration (via MCP)
 
-Central orchestrator for all memory operations. Provides clean interface for VoicePipeline and flows.
+**Responsibility:** Credential retrieval without LLM exposure.
+
+**Architecture Decision:** Use `@bitwarden/mcp-server` as an MCP server rather than wrapping the Bitwarden CLI directly. The Bitwarden MCP server already handles session management, locking, syncing, and CRUD operations with proper security boundaries. This is the officially supported integration path as of mid-2025.
+
+**Confidence:** HIGH (verified via [Bitwarden MCP GitHub](https://github.com/bitwarden/mcp-server) and [npm package](https://www.npmjs.com/package/@bitwarden/mcp-server))
+
+```
+Integration:
+  .mcp.json adds:
+    "bitwarden": {
+      "command": "npx",
+      "args": ["-y", "@bitwarden/mcp-server"],
+      "env": { "BW_SESSION": "${BW_SESSION}" }
+    }
+
+  ccodeBrain.ts adds to allowedTools:
+    'mcp__bitwarden__*'
+
+  Flow:
+    1. BW_SESSION obtained at startup via `bw unlock --raw` (stored in env, never in code)
+    2. Agent queries vault: mcp__bitwarden__retrieve_item({ name: "Electric Company" })
+    3. Bitwarden MCP returns credentials to Claude Code SDK context
+    4. Claude uses browser_fill via Playwright MCP to inject credentials
+    5. Credentials exist only in the SDK subprocess memory, never persisted
+```
+
+**Security Model:**
+- BW_SESSION env var set once per PM2 restart (manual `bw unlock` at boot)
+- Bitwarden MCP server runs locally only, never exposed to network
+- Claude sees credentials transiently during form-filling but cannot persist them (no Write tool for credential paths)
+- Approval gateway required before any form submission
+
+**Critical constraint:** The Bitwarden MCP server documentation explicitly states it must never be exposed over a network. Since Jarvis runs entirely locally on Jon's Windows machine via PM2, this constraint is naturally satisfied.
+
+**No custom vaultService.ts needed.** The MCP server IS the vault service. The only Jarvis-side code is the .mcp.json configuration entry and the allowed tools list in ccodeBrain.ts.
+
+### 2. Browser Automation (via Playwright MCP)
+
+**Responsibility:** Managed browser for form-filling and web automation.
+
+**Architecture Decision:** Use `@playwright/mcp` (already in .mcp.json) as the primary browser automation layer. The Playwright MCP server exposes browser actions as MCP tools that Claude Code SDK can call directly. No custom browser wrapper needed -- the MCP server IS the wrapper.
+
+**Confidence:** HIGH (Playwright MCP already configured in project's .mcp.json, verified via [GitHub](https://github.com/microsoft/playwright-mcp))
+
+```
+Current .mcp.json already has:
+  "playwright": {
+    "command": "cmd",
+    "args": ["/c", "npx", "-y", "@playwright/mcp@latest"]
+  }
+
+What changes:
+  1. ccodeBrain.ts adds 'mcp__playwright__*' to JARVIS_ALLOWED_TOOLS
+  2. Sub-agents get Playwright MCP access for browser tasks
+  3. Form-filler sub-agent combines Playwright + Bitwarden MCP
+```
+
+**Key Playwright MCP capabilities (via accessibility tree, not screenshots):**
+- `browser_navigate` -- go to URL
+- `browser_click` -- click element by accessibility ref
+- `browser_fill` -- fill form field
+- `browser_snapshot` -- get accessibility snapshot (2-5KB vs 100KB+ for screenshot)
+- `browser_take_screenshot` -- for audit trail and approval UI
+- `browser_select_option` -- dropdown selection
+- `browser_handle_dialog` -- accept/dismiss alerts
+
+**No custom browserEngine.ts needed.** The Playwright MCP server manages browser lifecycle. The SDK spawns it on demand from .mcp.json configuration.
+
+### 3. Sub-Agent Definitions (in `ccodeBrain.ts`)
+
+**Responsibility:** Specialized agent instances for browser work, research, and form-filling.
+
+**Architecture Decision:** Use the Claude Agent SDK `agents` parameter on `query()` to define programmatic sub-agents. Each sub-agent gets isolated context, restricted tools, and specialized system prompts.
+
+**Confidence:** HIGH (verified via [official SDK subagents docs](https://platform.claude.com/docs/en/agent-sdk/subagents))
+
+**Important SDK note:** The existing codebase imports from `@anthropic-ai/claude-code`. The Agent SDK docs reference `@anthropic-ai/claude-agent-sdk`. Based on the official TypeScript reference, the newer package is `@anthropic-ai/claude-agent-sdk` which provides the `agents` option. The existing `@anthropic-ai/claude-code` package may also support `agents` if it's been updated -- verify at build time.
 
 ```typescript
-// src/lib/jarvis/memory/MemoryService.ts
-export interface MemoryService {
-  // Session lifecycle
-  loadSessionContext(): Promise<MemoryContext>;
-  closeSession(summary: string): Promise<void>;
+// In ccodeBrain.ts, modify thinkWithSdk():
 
-  // During conversation
-  recordEvent(event: MemoryEvent): Promise<void>;
-  recordFact(fact: MemoryFact): Promise<void>;
-
-  // Retrieval
-  search(query: string): Promise<MemoryEntry[]>;
-  getRecentEvents(days: number): Promise<MemoryEvent[]>;
-
-  // Management
-  updateLongTermMemory(fact: string, section: string): Promise<void>;
-}
-
-export interface MemoryContext {
-  longTermFacts: string;      // From JARVIS_MEMORY.md
-  recentEvents: MemoryEvent[];// Last 2 days of daily logs
-  relevantFacts: MemoryFact[];// High-importance stored facts
-  sessionSummary: string;     // Yesterday's session summary
-}
+const conversation = query({
+  prompt: userMessage,
+  options: {
+    cwd,
+    customSystemPrompt: systemPrompt,
+    allowedTools: [
+      ...JARVIS_ALLOWED_TOOLS,
+      'mcp__playwright__*',
+      'mcp__bitwarden__*',
+      'Agent',  // Required for sub-agent invocation
+    ],
+    permissionMode: 'bypassPermissions',
+    env: cleanEnv,
+    agents: {
+      'browser-worker': {
+        description: 'Navigates websites, takes screenshots, reads page content. Use for browsing, research, and page inspection.',
+        prompt: 'You are a browser automation specialist. Navigate pages, extract information, take screenshots for audit trails. Never fill forms or submit data -- hand off to form-filler for that.',
+        tools: ['mcp__playwright__*', 'Read', 'Grep'],
+        model: 'sonnet',
+      },
+      'form-filler': {
+        description: 'Fills and submits web forms using credentials from vault. Use for bill pay, applications, account logins.',
+        prompt: `You are a secure form-filling agent. You retrieve credentials from Bitwarden vault and fill web forms. RULES:
+1. Take a screenshot BEFORE and AFTER every form submission
+2. NEVER log, save, or repeat credentials in your response
+3. Stop and report if you encounter CAPTCHAs or unexpected security prompts
+4. Only submit forms when the parent agent has received explicit user approval`,
+        tools: ['mcp__playwright__*', 'mcp__bitwarden__*'],
+        model: 'sonnet',
+      },
+      'researcher': {
+        description: 'Deep research specialist. Use for grant discovery, credit research, market analysis, information gathering.',
+        prompt: 'You are a research specialist for Jonathan\'s life agent. Gather comprehensive information, cite sources, and structure findings for later retrieval. Focus on actionable intelligence.',
+        tools: ['WebSearch', 'WebFetch', 'Read', 'Grep', 'Glob', 'mcp__jarvis-tools__save_research_finding'],
+        model: 'sonnet',
+      },
+    },
+  },
+});
 ```
 
-### 2. MemoryDatabase (Storage Layer)
+**Key SDK sub-agent behaviors:**
+- Sub-agents cannot spawn their own sub-agents (no nested delegation)
+- Each runs in fresh context -- only the prompt string passes from parent
+- Multiple sub-agents can run concurrently (parallel research)
+- Parent receives only the sub-agent's final message (context isolation)
+- Sub-agents inherit project CLAUDE.md but not parent conversation history
+- Windows caveat: sub-agents with very long prompts may fail due to 8191-char command line limit
 
-SQLite with Prisma for structured storage. Uses better-sqlite3 for synchronous operations on server.
+### 4. Research Store (`research/researchStore.ts`)
 
-```prisma
-// src/lib/jarvis/memory/storage/schema.prisma
-model MemoryEntry {
-  id            String   @id @default(uuid())
-  type          String   // fact, preference, event, insight, relationship
-  content       String
-  contentHash   String   @unique // For deduplication
-  source        String   // user, inferred, session, system
-  importance    Int      @default(5) // 1-10
-  confidence    Float    @default(1.0)
+**Responsibility:** Structured storage and retrieval of research findings for later use in form-filling.
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  lastAccessed  DateTime?
-  accessCount   Int      @default(0)
+**Architecture Decision:** Extend the existing SQLite + Drizzle ORM schema (already used for tasks, bills, goals, habits, memory). Add `research_topics` and `research_findings` tables. Leverage existing vector memory (BM25 + semantic via vectorSearch.ts) for search.
 
-  embedding     Bytes?   // Vector for semantic search (optional)
-  tags          String?  // JSON array
-  context       String?  // Where this was learned
-  expiresAt     DateTime?
-  isActive      Boolean  @default(true)
-}
+**Confidence:** MEDIUM (pattern is sound, follows existing codebase conventions, but specific schema needs validation during implementation)
 
-model DailyLog {
-  id          String   @id @default(uuid())
-  date        DateTime @unique
-  summary     String?
-  rawLog      String   // Append-only event log
-  keyEvents   String?  // JSON array of highlights
-  entryCount  Int      @default(0)
-}
+```
+New schema additions (in research/schema.ts):
 
-model SessionSummary {
-  id          String   @id @default(uuid())
-  startTime   DateTime
-  endTime     DateTime
-  summary     String
-  factCount   Int
-  eventCount  Int
-  topics      String?  // JSON array
-}
+research_topics
+  - id, name, category (grants|credit|bills|general), status (active|archived)
+  - createdAt, updatedAt
+
+research_findings
+  - id, topicId (FK), title, content (markdown), source_url
+  - confidence (high|medium|low), tags (JSON array)
+  - expires_at (some findings are time-sensitive, e.g., grant deadlines)
+  - createdAt, updatedAt
 ```
 
-### 3. MemoryLoader (Session Start)
+**MCP tools to expose (via toolBridge.ts):**
+- `save_research_finding` -- store a structured finding with topic, confidence, tags
+- `search_research` -- semantic search across findings (reuse vectorSearch.ts)
+- `list_research_topics` -- list topics with finding counts
+- `get_research_topic` -- all findings for a topic (used during form-filling)
+- `archive_research_topic` -- mark as no longer active
 
-Loads relevant memory context at session initialization.
+**CrewAI-inspired pattern:** CrewAI uses a 4-part memory architecture (short-term, long-term, entity, procedural). For Jarvis research, the equivalent mapping is:
+- **Short-term:** Current session findings (in conversation context)
+- **Long-term:** research_findings table (persisted across sessions)
+- **Entity:** research_topics (organizational entities like "Amber Grant", "Capital One Spark")
+- **Procedural:** The sub-agent prompts themselves encode the research procedure
 
-```typescript
-// src/lib/jarvis/memory/retrieval/MemoryLoader.ts
-export class MemoryLoader {
-  constructor(
-    private db: MemoryDatabase,
-    private memoryMdPath: string
-  ) {}
+### 5. Approval Gateway (`approval/approvalGateway.ts`)
 
-  async loadForSession(): Promise<MemoryContext> {
-    const [longTermFacts, recentEvents, importantFacts, lastSummary] =
-      await Promise.all([
-        this.loadLongTermFacts(),
-        this.loadRecentEvents(2), // Last 2 days
-        this.loadHighImportanceFacts(10), // Top 10 by importance
-        this.getLastSessionSummary(),
-      ]);
+**Responsibility:** Telegram-based approval flow for sensitive actions (payments, form submissions).
 
-    return {
-      longTermFacts,
-      recentEvents,
-      relevantFacts: importantFacts,
-      sessionSummary: lastSummary,
-    };
-  }
+**Architecture Decision:** Extend existing Telegram bot with approval-specific inline keyboards. Store pending approvals in SQLite with timeout.
 
-  private async loadLongTermFacts(): Promise<string> {
-    // Read JARVIS_MEMORY.md file
-    // This contains curated, human-readable facts
-  }
+```
+Flow:
+  1. form-filler sub-agent completes form, takes screenshot
+  2. Parent agent calls request_approval MCP tool
+  3. approvalGateway sends Telegram message with screenshot + action summary
+  4. Jon taps Approve / Reject / Modify
+  5. Callback updates approval record in DB
+  6. Parent agent polls/receives approval status
+  7. If approved: form-filler submits
+  8. If rejected: abort with reason logged
 
-  private async loadRecentEvents(days: number): Promise<MemoryEvent[]> {
-    // Query daily_logs table for recent days
-  }
+Schema:
 
-  private async loadHighImportanceFacts(limit: number): Promise<MemoryFact[]> {
-    // Query memory_entries WHERE importance >= 7 ORDER BY lastAccessed DESC
-  }
-}
+pending_approvals
+  - id, action_type (payment|submission|login), description
+  - screenshot_path, amount (nullable), status (pending|approved|rejected)
+  - expires_at, responded_at, response_note
+  - createdAt
 ```
 
-### 4. HybridRetrieval (Search)
+**New Telegram callbacks in bot.ts:**
+- `approval:approve:{id}` -- approve pending action
+- `approval:reject:{id}` -- reject with reason prompt
+- `approval:modify:{id}` -- request changes
 
-Combines BM25 keyword search with semantic vector search for optimal recall.
+**Timeout:** Unapproved actions expire after 4 hours (configurable). Critical for bill-pay deadlines vs. abandoned approvals.
 
-```typescript
-// src/lib/jarvis/memory/retrieval/HybridRetrieval.ts
-export class HybridRetrieval {
-  private bm25Weight = 0.7;
-  private semanticWeight = 0.3;
+**Async design note:** The approval flow is inherently asynchronous. The initial SDK `query()` call that requests approval should complete after sending the Telegram message. When the user approves, a new `thinkWithSdk()` call resumes the workflow. This avoids keeping an SDK session alive (and burning rate limits) while waiting for human response.
 
-  async search(query: string, limit: number = 10): Promise<MemoryEntry[]> {
-    const [keywordResults, semanticResults] = await Promise.all([
-      this.bm25Search(query, limit * 2),
-      this.semanticSearch(query, limit * 2),
-    ]);
+### 6. Flexible Scheduler (`scheduler/taskStore.ts`)
 
-    // Reciprocal Rank Fusion
-    return this.fuseResults(keywordResults, semanticResults, limit);
-  }
+**Responsibility:** CRUD management of scheduled tasks, replacing hardcoded cron schedules.
 
-  private async bm25Search(query: string, limit: number): Promise<RankedResult[]> {
-    // SQLite FTS5 full-text search
-    // Uses built-in BM25 ranking
-  }
+**Architecture Decision:** Store task definitions in SQLite, load dynamically in cronRunner.ts at startup and on changes. Each task has a cron expression, a brain prompt, and enabled/disabled status.
 
-  private async semanticSearch(query: string, limit: number): Promise<RankedResult[]> {
-    // Generate query embedding
-    // Cosine similarity against stored embeddings
-    // Can use sqlite-vec extension or in-memory comparison
-  }
+```
+Schema:
 
-  private fuseResults(
-    kw: RankedResult[],
-    sem: RankedResult[],
-    limit: number
-  ): MemoryEntry[] {
-    // RRF: score = sum(1 / (k + rank)) for each result list
-    // Return top `limit` by fused score
-  }
-}
+scheduled_tasks
+  - id, name, description
+  - cron_expression (e.g., '0 5 * * *')
+  - brain_prompt (what the agent should do when triggered)
+  - enabled (boolean), system (boolean -- protects built-in tasks from deletion)
+  - last_run_at, last_result, last_error
+  - createdAt, updatedAt
+
+MCP tools:
+  - add_scheduled_task
+  - edit_scheduled_task
+  - remove_scheduled_task
+  - list_scheduled_tasks
+  - toggle_scheduled_task (enable/disable)
 ```
 
-### 5. FactExtractor (Automatic Extraction)
+**cronRunner.ts modification:**
+```
+Current: Hardcoded cron.schedule() calls
+Target:  On startup, load all enabled tasks from DB
+         Schedule each via node-cron
+         Watch for DB changes (poll every 60s or on MCP tool call)
+         Hot-reload: reschedule on add/edit/remove
+         Each task execution: spawn thinkWithSdk() with the task's brain_prompt
 
-Extracts memorable facts from conversations using Claude.
+Migration: Existing hardcoded tasks become DB records with system=true
+```
 
-```typescript
-// src/lib/jarvis/memory/extraction/FactExtractor.ts
-export class FactExtractor {
-  async extractFromConversation(
-    messages: Message[],
-    existingFacts: string[]
-  ): Promise<ExtractedFact[]> {
-    const prompt = `Analyze this conversation and extract facts worth remembering.
+## Component Boundaries
 
-Rules:
-- Only extract NOVEL information not already known
-- Focus on: preferences, patterns, important events, relationships
-- Assign importance 1-10 (10 = critical to remember)
-- Be conservative - better to miss facts than store noise
+| Component | Responsibility | Communicates With |
+|-----------|---------------|-------------------|
+| ccodeBrain.ts | SDK query orchestration, sub-agent definitions | providerRouter, MCP servers (Playwright, Bitwarden, jarvis-tools) |
+| chatProcessor.ts | Message routing, persistence, evaluation | ccodeBrain, toolBridge, evaluator |
+| toolBridge.ts (MCP server) | Tool registration and execution routing | All tool executors (existing 5 + new 3) |
+| research/researchStore.ts | Research CRUD + search | SQLite, vectorSearch.ts |
+| approval/approvalGateway.ts | Approval lifecycle management | Telegram bot, SQLite |
+| scheduler/taskStore.ts | Scheduled task CRUD | SQLite, cronRunner |
+| cronRunner.ts | Task execution at scheduled times | taskStore, ccodeBrain |
+| telegram/bot.ts | User interface + approval callbacks | chatProcessor, approvalGateway |
 
-Already known facts:
-${existingFacts.join('\n')}
+## Existing Components Requiring Modification
 
-Conversation:
-${messages.map(m => `${m.role}: ${m.content}`).join('\n')}
+### 1. `ccodeBrain.ts` -- SIGNIFICANT CHANGES
 
-Respond in JSON:
+**What changes:**
+- Add `agents` parameter to `query()` options for sub-agent definitions
+- Add `'Agent'` to `JARVIS_ALLOWED_TOOLS` (required for sub-agent invocation)
+- Add `'mcp__playwright__*'` and `'mcp__bitwarden__*'` to allowed tools
+- Add sub-agent event detection in the message loop (detect `tool_use` where `name === 'Agent'`)
+- May need to switch import from `@anthropic-ai/claude-code` to `@anthropic-ai/claude-agent-sdk`
+
+**Risk:** LOW -- additive changes, existing flow unaffected unless new tools are invoked.
+
+### 2. `chatProcessor.ts` -- MODERATE CHANGES
+
+**What changes:**
+- Add routing for new tool categories (research, scheduler, approval)
+- Remove Agent Zero routing logic (A0 sunset): delete `isComplexQuery()`, `COMPLEX_REASONING_PATTERNS`, A0 routing block
+- Remove `sendToAgentZero` and `getAgentZeroStatus` imports
+- Add `onPostToolResult` hooks for approval tracking
+
+**Risk:** LOW -- mostly removing dead code (A0 routing) and adding new tool name sets following existing pattern.
+
+### 3. `.mcp.json` -- ADD BITWARDEN SERVER
+
+```json
 {
-  "facts": [
-    {"content": "...", "type": "preference|event|insight|relationship", "importance": 7}
-  ]
-}`;
-
-    // Call Claude for extraction
-    // Return structured facts
-  }
-}
-```
-
-## Integration Points
-
-### 1. VoicePipeline Integration
-
-Modify `VoicePipeline.ts` to use MemoryService for session management.
-
-```typescript
-// Changes to src/lib/jarvis/voice/VoicePipeline.ts
-
-export class VoicePipeline {
-  private memoryService: MemoryService;
-
-  constructor(config: VoicePipelineConfig = {}) {
-    // ... existing code ...
-
-    // Initialize memory service
-    this.memoryService = new MemoryService();
-  }
-
-  async initialize(): Promise<boolean> {
-    // ... existing permission check ...
-
-    // Load memory context at session start
-    const memoryContext = await this.memoryService.loadSessionContext();
-    this.conversationManager.setMemoryContext(memoryContext);
-
-    return true;
-  }
-
-  private async generateIntelligentResponse(transcript: string): Promise<string> {
-    // ... existing code ...
-
-    // Build system prompt WITH memory context
-    const systemPrompt = buildSystemPrompt({
-      currentTime: new Date(),
-      keyFacts: this.conversationManager.getKeyFacts(),
-      memoryContext: this.conversationManager.getMemoryContext(), // NEW
-    });
-
-    // ... rest of method ...
-  }
-}
-```
-
-### 2. SystemPrompt Integration
-
-Extend `systemPrompt.ts` to include memory context.
-
-```typescript
-// Changes to src/lib/jarvis/intelligence/systemPrompt.ts
-
-export interface SystemPromptContext {
-  currentTime: Date;
-  userName?: string;
-  keyFacts?: string[];
-  memoryContext?: MemoryContext;  // NEW
-}
-
-export function buildSystemPrompt(context: SystemPromptContext): string {
-  const sections: string[] = [];
-
-  // ... existing personality section ...
-
-  // NEW: Long-term memory section
-  if (context.memoryContext?.longTermFacts) {
-    sections.push(`PERSISTENT MEMORY (always relevant):
-${context.memoryContext.longTermFacts}`);
-  }
-
-  // NEW: Recent events section
-  if (context.memoryContext?.recentEvents?.length) {
-    const recentSummary = context.memoryContext.recentEvents
-      .slice(0, 5)
-      .map(e => `- ${e.summary}`)
-      .join('\n');
-    sections.push(`RECENT ACTIVITY:
-${recentSummary}`);
-  }
-
-  // NEW: Yesterday's summary
-  if (context.memoryContext?.sessionSummary) {
-    sections.push(`YESTERDAY'S SESSION:
-${context.memoryContext.sessionSummary}`);
-  }
-
-  // ... existing sections ...
-
-  return sections.join('\n\n');
-}
-```
-
-### 3. Memory Tools for Claude
-
-Add memory tools so Claude can explicitly store/recall information.
-
-```typescript
-// Additions to src/lib/jarvis/intelligence/tools.ts
-
-export const memoryTools: ToolDefinition[] = [
-  {
-    name: 'remember_fact',
-    description: 'Store an important fact for future reference. Use when user shares preferences, important information, or patterns worth remembering.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        content: {
-          type: 'string',
-          description: 'The fact to remember'
-        },
-        type: {
-          type: 'string',
-          description: 'Category of information',
-          enum: ['preference', 'fact', 'relationship', 'pattern']
-        },
-        importance: {
-          type: 'number',
-          description: 'How important (1-10, default 5)'
-        }
-      },
-      required: ['content']
-    }
-  },
-  {
-    name: 'recall_memory',
-    description: 'Search past conversations and stored facts. Use when user asks about something discussed before or when context would help.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        query: {
-          type: 'string',
-          description: 'What to search for in memory'
-        }
-      },
-      required: ['query']
-    }
-  },
-  {
-    name: 'update_long_term',
-    description: 'Update permanent memory file with a new fact. Use sparingly for truly persistent information.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        fact: {
-          type: 'string',
-          description: 'The fact to permanently store'
-        },
-        section: {
-          type: 'string',
-          description: 'Memory section',
-          enum: ['preferences', 'work', 'personal', 'patterns', 'system']
-        }
-      },
-      required: ['fact', 'section']
+  "mcpServers": {
+    "jarvis-tools": { "..." },
+    "notion": { "..." },
+    "playwright": { "..." },
+    "bitwarden": {
+      "command": "npx",
+      "args": ["-y", "@bitwarden/mcp-server"],
+      "env": { "BW_SESSION": "${BW_SESSION}" }
     }
   }
-];
+}
 ```
 
-### 4. API Route Changes
+**Risk:** LOW -- additive config change.
 
-Add memory endpoints for server-side operations.
+### 4. `toolBridge.ts` -- ADD NEW TOOL CATEGORIES
 
-```
-src/app/api/jarvis/
-+-- chat/route.ts           # MODIFY: add memory tools
-+-- memory/
-    +-- route.ts            # NEW: GET session context, POST events
-    +-- search/route.ts     # NEW: Memory search endpoint
-```
+**What changes:**
+- Import and register research, scheduler, and approval tool executors
+- Add tool name sets for routing (following exact same pattern as existing 5 categories)
+- Add new tool definitions to `getAllToolDefinitions()`
 
-## Data Flow: Memory-Enhanced Conversation
+**Risk:** LOW -- follows established pattern exactly.
 
-### Session Start Flow
+### 5. `config.ts` -- ADD FEATURE FLAGS
 
-```
-1. User opens Jarvis page
-2. VoicePipeline.initialize() called
-3. MemoryService.loadSessionContext() executes:
-   a. Read JARVIS_MEMORY.md (long-term facts)
-   b. Query SQLite for last 2 days of events
-   c. Query SQLite for top 10 high-importance facts
-   d. Get last session summary
-4. Memory context injected into ConversationManager
-5. System prompt built with memory context
-6. Ready for conversation
+```typescript
+// New flags in JarvisConfig interface
+enableBrowserAutomation: boolean;    // Gate Playwright + form filling
+enableVaultIntegration: boolean;     // Gate Bitwarden MCP
+enableResearchLibrary: boolean;      // Gate research storage
+enableApprovalGateway: boolean;      // Gate Telegram approvals
 ```
 
-### During Conversation Flow
+**Risk:** NONE -- additive.
+
+### 6. `telegram/bot.ts` -- ADD APPROVAL CALLBACKS
+
+**What changes:**
+- New callback handlers for `approval:approve:{id}`, `approval:reject:{id}`, `approval:modify:{id}`
+- New `/approve` command to list pending approvals
+- Photo message support for sending form screenshots
+
+**Risk:** LOW -- additive to existing callback routing.
+
+### 7. `cronRunner.ts` -- DYNAMIC TASK LOADING
+
+**What changes:**
+- Replace hardcoded `cron.schedule()` calls with dynamic task loading from DB
+- Add task execution via `thinkWithSdk()` (each task is a brain prompt)
+- Add hot-reload capability (reschedule on DB changes)
+
+**Risk:** MEDIUM -- this replaces the core scheduling mechanism. Existing hardcoded tasks (daily reflection at 5 AM) should be migrated as DB records with `system: true` flag to prevent accidental deletion.
+
+### 8. `data/schema.ts` -- ADD TABLES
+
+**What changes:**
+- Add `research_topics`, `research_findings` tables
+- Add `scheduled_tasks` table
+- Add `pending_approvals` table
+- Run Drizzle migration
+
+**Risk:** LOW -- additive schema changes, existing tables untouched.
+
+### 9. `ecosystem.config.js` -- NO CHANGES NEEDED
+
+Playwright MCP and Bitwarden MCP run as MCP servers spawned by the Claude Code SDK process, not as separate PM2 processes. No new PM2 entries required.
+
+## Data Flow: Bill Pay Workflow
 
 ```
-1. User says something memorable ("I prefer meetings before noon")
-2. Claude recognizes this as a preference
-3. Claude calls remember_fact tool:
-   { "content": "Prefers meetings scheduled before noon", "type": "preference", "importance": 8 }
-4. ToolExecutor routes to MemoryService.recordFact()
-5. MemoryDatabase stores with hash deduplication
-6. If importance >= 8, also appends to JARVIS_MEMORY.md
-7. Fact available for future sessions
+1. User (Telegram): "Pay my electric bill"
+2. chatProcessor.ts receives message, routes to ccodeBrain.ts
+3. ccodeBrain.ts (parent agent):
+   a. Queries Notion for bill details (amount, provider, due date)
+   b. Delegates to 'browser-worker' sub-agent: "Navigate to [provider URL], find login page"
+   c. browser-worker returns: page structure, login form identified
+   d. Delegates to 'form-filler' sub-agent: "Log into [provider] using vault credentials, navigate to payment, fill amount [$X]"
+   e. form-filler:
+      - Calls mcp__bitwarden__retrieve_item for credentials
+      - Calls mcp__playwright__browser_navigate to login page
+      - Calls mcp__playwright__browser_fill for username/password
+      - Calls mcp__playwright__browser_click to submit login
+      - Navigates to payment page
+      - Fills payment amount
+      - Takes screenshot of filled form
+      - Returns screenshot + summary to parent
+   f. Parent agent calls request_approval MCP tool
+4. approvalGateway.ts sends Telegram message with screenshot
+5. Jon taps "Approve"
+6. approvalGateway.ts updates DB, triggers new thinkWithSdk() call
+7. New SDK session delegates to form-filler: "Submit the payment"
+8. form-filler clicks submit, takes confirmation screenshot
+9. Parent updates Notion bill status to "paid"
+10. Parent responds via Telegram: "Electric bill paid. Confirmation screenshot saved."
 ```
 
-### Memory Recall Flow
+## Data Flow: Research-then-Form-Fill (Grant Application)
 
 ```
-1. User asks "What did we discuss about the Johnson project?"
-2. Claude calls recall_memory tool:
-   { "query": "Johnson project discussion" }
-3. HybridRetrieval executes:
-   a. BM25 search on "Johnson project discussion"
-   b. Semantic search with query embedding
-   c. RRF fusion of results
-4. Top 5 results returned to Claude
-5. Claude synthesizes answer from memory + context
+1. User: "Research and apply for the Amber Grant"
+2. Parent agent delegates to 'researcher' sub-agent:
+   - WebSearch for Amber Grant details, deadlines, past winners
+   - WebFetch official grant page
+   - Calls mcp__jarvis-tools__save_research_finding for each structured finding
+3. researcher returns: structured brief with eligibility, deadlines, requirements
+4. Parent generates application plan from findings + Notion org profile
+5. Parent sends plan to Telegram for approval (via request_approval tool)
+6. After approval, parent delegates to 'form-filler':
+   - Parent passes research findings summary in the delegation prompt
+   - Opens grant application URL
+   - Fills each field using research + org profile data
+   - Screenshots at each step
+   - Returns filled form for final approval
+7. After final approval, form-filler submits
+8. Parent updates Notion with submission record
 ```
 
-### Session End Flow
+## Patterns to Follow
 
+### Pattern 1: MCP-First Integration
+
+**What:** Prefer MCP servers over custom wrappers for external service integration.
+**When:** Any time a service has an official or well-maintained MCP server.
+**Why:** The Claude Code SDK natively manages MCP server lifecycle (spawn, communicate, cleanup). Custom wrappers duplicate this and lose SDK-level error handling.
+
+**Apply to:**
+- Browser automation: `@playwright/mcp` (already configured)
+- Vault: `@bitwarden/mcp-server` (add to .mcp.json)
+- Notion: `@notionhq/notion-mcp-server` (already configured)
+
+### Pattern 2: Sub-Agent Delegation with Tool Restriction
+
+**What:** Define sub-agents with minimal tool sets matching their role.
+**When:** Tasks require different security levels or specialized behavior.
+**Why:** Prevents the form-filler from doing research (wasting time), prevents the researcher from accessing the vault (security), prevents the browser-worker from modifying files.
+
+**From OpenHands:** OpenHands isolates each agent session in a Docker container with full OS capabilities. For Jarvis, tool restriction on sub-agents achieves equivalent isolation without container overhead, since this is a single-user system running locally.
+
+### Pattern 3: Approval-Before-Execution
+
+**What:** Sensitive actions require explicit user approval via Telegram before execution.
+**When:** Any action involving money, form submission, credential use, or irreversible changes.
+**Why:** Safety net for autonomous operation during 12-14 hour hospital shifts.
+
+**From AutoGPT:** AutoGPT's continuous mode with optional human approval gates. Jarvis makes approval mandatory for financial actions rather than optional.
+
+### Pattern 4: Research-as-Knowledge (CrewAI Pattern)
+
+**What:** Research findings stored as structured records with topic/confidence/tags, retrievable during form-filling.
+**When:** Multi-step workflows where research phase and action phase are separated in time.
+**Why:** Grants, credit applications, and corporate filings all follow research-then-apply workflows where research happens hours or days before action.
+
+**From CrewAI:** CrewAI's knowledge sources pattern -- structured ingestion of varied content types into a searchable store with intelligent query rewriting. Jarvis adapts this as a simpler SQLite-backed store with the existing vector search infrastructure.
+
+### Pattern 5: Existing Tool Routing Extension
+
+**What:** Add new tool categories following the exact same pattern as existing 5-way routing in toolBridge.ts.
+**When:** Adding research, scheduler, or approval tools.
+**Why:** Consistency with established codebase patterns reduces bugs and cognitive load.
+
+```typescript
+// Existing pattern in toolBridge.ts -- just add more sets:
+const researchToolNames = new Set(['save_research_finding', 'search_research', ...]);
+const schedulerToolNames = new Set(['add_scheduled_task', 'edit_scheduled_task', ...]);
+const approvalToolNames = new Set(['request_approval', 'check_approval', ...]);
 ```
-1. User closes Jarvis or inactivity timeout
-2. MemoryService.closeSession() called
-3. SessionSummarizer generates summary using Claude:
-   - Key topics discussed
-   - Decisions made
-   - Facts learned
-4. Summary stored in session_summaries table
-5. Daily log entry created/updated
-```
-
-## JARVIS_MEMORY.md Structure
-
-Human-readable, curated facts file. Lives in project root.
-
-```markdown
-# Jarvis Memory
-
-Last updated: 2026-02-02
-
-## User Preferences
-
-- Prefers brief morning briefings, detailed evening reviews
-- Likes time reminders every 30 minutes during deep work
-- Prefers bill reminders 3 days before due date
-- Morning person - most productive before noon
-
-## Work Context
-
-- Current main project: Ethereal Flame Studio
-- Uses Notion for task management (PARA method)
-- Workday typically 9am-6pm
-
-## Personal Patterns
-
-- Tends to forget evening check-ins
-- Gets overwhelmed by long task lists
-- Responds well to gentle nudges, not aggressive reminders
-
-## Technical Context
-
-- Development environment: Windows, VS Code
-- Primary languages: TypeScript, React
-- Hosts on Vercel
-
-## Relationships
-
-- Reports to: [Manager name]
-- Key collaborators: [Names]
-```
-
-## Build Order (Phased Implementation)
-
-### Phase 1: Storage Foundation
-
-**What:** Set up SQLite database with Prisma, basic CRUD operations.
-
-**Depends on:** Nothing (clean start)
-
-**Deliverables:**
-- `schema.prisma` with MemoryEntry, DailyLog, SessionSummary
-- `MemoryDatabase.ts` with basic operations
-- Database migrations
-- Unit tests for CRUD
-
-**Estimated complexity:** LOW
-
-### Phase 2: Memory Loading
-
-**What:** Session start context loading, system prompt integration.
-
-**Depends on:** Phase 1 (storage exists)
-
-**Deliverables:**
-- `MemoryLoader.ts` implementation
-- `JARVIS_MEMORY.md` template
-- Modified `systemPrompt.ts` with memory context
-- Modified `VoicePipeline.ts` initialize()
-
-**Estimated complexity:** MEDIUM
-
-### Phase 3: Memory Writing
-
-**What:** Automatic and explicit memory recording during conversations.
-
-**Depends on:** Phase 2 (loading works)
-
-**Deliverables:**
-- Memory tools in `tools.ts`
-- `remember_fact` and `update_long_term` tool implementations
-- Event recording integration
-- Daily log append logic
-
-**Estimated complexity:** MEDIUM
-
-### Phase 4: Memory Search
-
-**What:** Hybrid retrieval for recall_memory tool.
-
-**Depends on:** Phase 3 (data exists to search)
-
-**Deliverables:**
-- FTS5 full-text index setup
-- `HybridRetrieval.ts` with BM25 search
-- `recall_memory` tool implementation
-- Optional: embedding generation for semantic search
-
-**Estimated complexity:** MEDIUM-HIGH
-
-### Phase 5: Session Management
-
-**What:** Session summarization and cleanup.
-
-**Depends on:** Phase 3 & 4 (full memory operations)
-
-**Deliverables:**
-- `SessionSummarizer.ts` using Claude
-- Session close flow
-- `FactExtractor.ts` for automatic fact extraction
-- Memory cleanup/expiration logic
-
-**Estimated complexity:** MEDIUM
-
-### Phase 6: Migration
-
-**What:** Migrate existing localStorage memory to new system.
-
-**Depends on:** Phase 5 (new system complete)
-
-**Deliverables:**
-- Migration script for existing keyFacts
-- Deprecation of old `MemoryStore.ts`
-- Documentation updates
-
-**Estimated complexity:** LOW
-
-## Technology Choices
-
-| Component | Technology | Why |
-|-----------|------------|-----|
-| Database | SQLite via Prisma + better-sqlite3 | Server-side, zero-config, Prisma adapter available, fast for single-user |
-| Full-text search | SQLite FTS5 | Built-in, BM25 ranking, no external dependency |
-| Vector storage | sqlite-vec OR in-memory | Optional - FTS5 may be sufficient for single user |
-| Embeddings | OpenAI text-embedding-3-small | If semantic search needed, $0.02/1M tokens |
-| Long-term facts | Markdown file | Human-readable, git-tracked, easy to edit manually |
-
-## Scalability (Not a Concern)
-
-For single-user Jarvis, memory operations will be fast:
-- SQLite handles millions of rows easily
-- FTS5 indexing is automatic
-- No concurrent access concerns
-- Local database = zero latency
 
 ## Anti-Patterns to Avoid
 
-### Anti-Pattern: Storing Everything
+### Anti-Pattern 1: Custom Browser Wrapper
 
-**Bad:** Recording every utterance as a memory entry.
+**What:** Building a custom Playwright wrapper (browserEngine.ts) that manages browser instances.
+**Why bad:** Duplicates what `@playwright/mcp` already does. Adds maintenance burden, lifecycle bugs, and loses SDK-level error recovery.
+**Instead:** Use Playwright MCP server directly. The SDK spawns and manages the browser process.
 
-**Why:** Noise drowns signal. Memory search becomes useless.
+### Anti-Pattern 2: Credentials in System Prompt
 
-**Instead:** Use importance scoring. Only store facts with importance >= 5 automatically. Let Claude judge what's worth remembering.
+**What:** Injecting vault credentials into the system prompt or conversation history.
+**Why bad:** Credentials persist in conversation logs, session transcripts, and potentially memory.
+**Instead:** Credentials flow through MCP tool calls only. The form-filler sub-agent sees them transiently during execution but cannot persist them (no Write tool access to credential-sensitive paths).
 
-### Anti-Pattern: Synchronous Embedding Generation
+### Anti-Pattern 3: Monolithic Brain with All Tools
 
-**Bad:** Generating embeddings during conversation flow.
+**What:** Giving the parent agent access to all tools including Playwright and Bitwarden directly.
+**Why bad:** Bloats context with tool descriptions, makes the agent less focused, increases risk of the agent browsing when it should be thinking.
+**Instead:** Parent delegates browser and vault work to sub-agents with restricted tool sets.
 
-**Why:** Embedding API calls add 100-500ms latency per memory operation.
+### Anti-Pattern 4: Polling for Approval
 
-**Instead:** Queue embedding generation as background task. Start with BM25-only search which is instant.
+**What:** Having the agent poll the approval DB in a loop waiting for user response.
+**Why bad:** Wastes SDK session time and Max plan rate limits. A single SDK session sitting idle while waiting for approval is a waste.
+**Instead:** The approval flow is asynchronous. The initial task completes after requesting approval. A Telegram callback triggers a new `thinkWithSdk()` call to resume the workflow.
 
-### Anti-Pattern: Loading All Memory at Session Start
+### Anti-Pattern 5: Separate PM2 Process per Capability
 
-**Bad:** Loading entire memory database into context.
+**What:** Adding jarvis-browser, jarvis-vault, jarvis-research as separate PM2 processes.
+**Why bad:** MCP servers are spawned by the SDK on demand, not long-running processes. PM2 overhead, port management, and IPC complexity for no benefit.
+**Instead:** MCP servers declared in .mcp.json, spawned by SDK when needed, cleaned up automatically.
 
-**Why:** Token limits, slow startup, unnecessary cost.
+### Anti-Pattern 6: Custom Vault Service Wrapper
 
-**Instead:** Load curated subset (MEMORY.md + recent + high-importance). Use search for specific recall.
+**What:** Building `vault/vaultService.ts` to wrap Bitwarden CLI commands.
+**Why bad:** The `@bitwarden/mcp-server` package already wraps the CLI with proper error handling, session management, and MCP protocol compliance. A custom wrapper duplicates this and introduces bugs.
+**Instead:** Configure Bitwarden MCP in .mcp.json and access via `mcp__bitwarden__*` tools.
 
-### Anti-Pattern: Browser-Side SQLite
+## Optimal Build Order (Dependency-Driven)
 
-**Bad:** Running SQLite in the browser via WASM.
+```
+Phase 1: Foundation (no external dependencies)
+  1a. Repo migration to standalone jarvis project
+  1b. Research store schema + MCP tools
+  1c. Flexible scheduler schema + MCP tools + cronRunner rewrite
+  1d. Remove Agent Zero routing from chatProcessor.ts
 
-**Why:** Complex setup, limited query capabilities, storage limits.
+Phase 2: Browser + Vault (depends on Phase 1a for clean repo)
+  2a. Bitwarden MCP integration (.mcp.json + BW_SESSION setup)
+  2b. Playwright MCP tool access (add to allowedTools in ccodeBrain.ts)
+  2c. Sub-agent definitions in ccodeBrain.ts
+  2d. Basic browser workflow test (navigate, screenshot, read page)
 
-**Instead:** All SQLite operations via API routes. Browser uses fetch().
+Phase 3: Approval Gateway (depends on Phase 2 for browser actions to approve)
+  3a. Approval schema + approvalGateway service
+  3b. Telegram bot approval callbacks + photo support
+  3c. Integration test: browser action -> approval -> execution
 
-## Open Questions (Needs Phase-Specific Research)
+Phase 4: End-to-End Workflows (depends on all above)
+  4a. Bill pay workflow (browser + vault + approval)
+  4b. Research workflow (researcher sub-agent + research store)
+  4c. Grant application workflow (research + form-fill + approval)
+  4d. Port Agent Zero scheduled tasks as DB records
 
-1. **Embedding Model Choice:** If semantic search is needed, should we use local model (Xenova/transformers.js) or OpenAI API?
+Phase 5: Agent Zero Sunset
+  5a. Verify all A0 capabilities absorbed
+  5b. Port remaining A0 skills (Visopscreen, crypto)
+  5c. Decommission A0 container and tunnel
+```
 
-2. **Memory Expiration:** Should old, low-importance, never-accessed memories be auto-deleted?
+**Build order rationale:**
+- Phase 1 has zero dependencies on new external services -- pure refactoring and schema work
+- Phase 2 introduces external service integration but no user-facing workflows yet
+- Phase 3 adds the safety layer BEFORE any real-world automation runs
+- Phase 4 connects everything into working workflows (the actual value delivery)
+- Phase 5 is cleanup after verification that all A0 capabilities are absorbed
 
-3. **Cross-Device Sync:** If user accesses from multiple devices, how to sync JARVIS_MEMORY.md changes?
+## Scalability Considerations
 
-4. **Privacy:** Should sensitive memories (financial, health) have additional protection?
+| Concern | At 1 user (Jon) | At scale (future) | Notes |
+|---------|-----------------|---------------------|-------|
+| Browser sessions | 1 Playwright instance via MCP | N/A (single-user system) | Playwright MCP manages lifecycle |
+| Vault access | 1 BW_SESSION | Per-user sessions needed | Bitwarden MCP is local-only by design |
+| Research storage | SQLite (more than sufficient) | Would need Postgres | SQLite handles single-user workloads trivially |
+| Sub-agent concurrency | 2-3 concurrent sub-agents | Rate limit concern on Max plan | Monitor for throttling |
+| Approval latency | Minutes (Jon checks Telegram) | N/A | Critical path for sensitive actions |
+| Scheduled task volume | 10-20 tasks | Hundreds | node-cron handles this fine |
 
 ## Sources
 
-### HIGH Confidence
-- [Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory](https://arxiv.org/abs/2504.19413) - Memory architecture patterns
-- [Prisma better-sqlite3 Adapter](https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/sqlite) - Database setup
-- [SQLite FTS5](https://www.sqlite.org/fts5.html) - Full-text search
-- Existing Jarvis codebase analysis
-
-### MEDIUM Confidence
-- [sqlite-vec Extension](https://github.com/asg017/sqlite-vec) - Vector search in SQLite
-- [Hybrid Search Patterns](https://superlinked.com/vectorhub/articles/optimizing-rag-with-hybrid-search-reranking) - BM25 + vector fusion
-- [Design Patterns for Long-Term Memory in LLM-Powered Architectures](https://serokell.io/blog/design-patterns-for-long-term-memory-in-llm-powered-architectures) - Architecture patterns
-
-### LOW Confidence (Needs Validation)
-- Optimal importance threshold for auto-storage
-- Best embedding model for conversational memory
-- Memory retention periods
+- [Playwright MCP Server - GitHub](https://github.com/microsoft/playwright-mcp) -- official Microsoft MCP server for browser automation
+- [Bitwarden MCP Server - GitHub](https://github.com/bitwarden/mcp-server) -- official Bitwarden MCP server for vault operations
+- [Bitwarden MCP Server - npm](https://www.npmjs.com/package/@bitwarden/mcp-server) -- package details and configuration
+- [Claude Agent SDK - Subagents](https://platform.claude.com/docs/en/agent-sdk/subagents) -- official sub-agent API reference
+- [Claude Agent SDK - TypeScript Reference](https://platform.claude.com/docs/en/agent-sdk/typescript) -- full SDK API including agents parameter
+- [OpenHands Architecture](https://arxiv.org/abs/2511.03690) -- event-stream agent architecture, containerized execution pattern
+- [CrewAI Knowledge Sources](https://docs.crewai.com/en/concepts/knowledge) -- structured research storage patterns
+- [Playwright MCP Field Guide](https://medium.com/@adnanmasood/playwright-and-playwright-mcp-a-field-guide-for-agentic-browser-automation-f11b9daa3627) -- accessibility tree vs screenshots tradeoffs
+- [Bitwarden MCP Security Model](https://cyberinsider.com/bitwarden-launches-mcp-server-to-enable-secure-ai-credential-management/) -- local-only deployment requirement
+- Existing Jarvis source code: ccodeBrain.ts, chatProcessor.ts, providerRouter.ts, sdkBrain.ts, toolBridge.ts, cronRunner.ts, config.ts, telegram/bot.ts, data/schema.ts, .mcp.json
