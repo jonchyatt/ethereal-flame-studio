@@ -28,9 +28,9 @@
 ### Browser Automation
 
 - [x] **BROWSER-01**: Playwright engine for navigating websites, clicking elements, filling forms, submitting
-- [ ] **BROWSER-02**: Screenshot-based verification — capture before/after screenshots for audit trail
-- [ ] **BROWSER-03**: Graceful failure with Telegram notification when sites block automation or require manual intervention
-- [ ] **BROWSER-04**: CAPTCHA/2FA pause — detect and notify Jon via Telegram for manual completion
+- [x] **BROWSER-02**: Screenshot-based verification — capture before/after screenshots for audit trail
+- [x] **BROWSER-03**: Graceful failure with Telegram notification when sites block automation or require manual intervention
+- [x] **BROWSER-04**: CAPTCHA/2FA pause — detect and notify Jon via Telegram for manual completion
 
 ### Bill Pay
 
@@ -91,9 +91,9 @@
 | AGENT-02 | Phase 14 | Complete |
 | AGENT-03 | Phase 14 | Complete |
 | BROWSER-01 | Phase 14 | Complete |
-| BROWSER-02 | Phase 14 | Pending |
-| BROWSER-03 | Phase 14 | Pending |
-| BROWSER-04 | Phase 14 | Pending |
+| BROWSER-02 | Phase 14 | Complete |
+| BROWSER-03 | Phase 14 | Complete |
+| BROWSER-04 | Phase 14 | Complete |
 | BILL-01 | Phase 15 | Pending |
 | BILL-02 | Phase 15 | Pending |
 | BILL-03 | Phase 15 | Pending |
