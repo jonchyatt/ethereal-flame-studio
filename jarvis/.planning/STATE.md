@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-03-16)
 ## Current Position
 
 Phase: 12 of 17 (Foundation & Migration)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-17 — Roadmap created for v5.0 Agent Unification
+Plan: 1 of 3 in current phase
+Status: Executing
+Last activity: 2026-03-17 — Completed 12-01 (repo migration + SDK swap)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [##░░░░░░░░] 1/3 plans in phase, 1/~15 total
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0 (v5.0)
-- Average duration: -
-- Total execution time: 0 hours
+- Total plans completed: 1 (v5.0)
+- Average duration: ~20min
+- Total execution time: ~0.3 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 12 | 1/3 | ~20min | ~20min |
 
 **Recent Trend:**
-- Last 5 plans: -
-- Trend: -
+- Last 5 plans: 12-01 (~20min)
+- Trend: Starting
 
 *Updated after each plan completion*
 
@@ -55,12 +55,12 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- Repo migration must not break PM2 or Cloudflare tunnel
 - Grant deadlines (March 31) may create urgency during Phase 16
-- SDK migration has 3 breaking changes (system prompt, settings sources, agents parameter)
+- SDK migration had breaking change: customSystemPrompt -> systemPrompt (RESOLVED in 12-01)
+- llmProvider.ts also imported old SDK (plan missed it, RESOLVED in 12-01)
 
 ## Session Continuity
 
 Last session: 2026-03-17
-Stopped at: Roadmap created for v5.0 — ready to plan Phase 12
+Stopped at: Completed 12-01-PLAN.md (repo migration + SDK swap)
 Resume file: None

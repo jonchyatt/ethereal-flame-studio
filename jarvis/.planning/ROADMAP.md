@@ -41,7 +41,7 @@ Jarvis v5.0 transforms a conversational life assistant into a fully autonomous e
   4. Research library SQLite tables exist and accept structured research entries with semantic search returning results
 **Plans:** 3 plans
 Plans:
-- [ ] 12-01-PLAN.md -- Repo migration to standalone + Claude Agent SDK swap
+- [x] 12-01-PLAN.md -- Repo migration to standalone + Claude Agent SDK swap
 - [ ] 12-02-PLAN.md -- DB-driven flexible scheduler with croner
 - [ ] 12-03-PLAN.md -- Research-as-library schema and store
 
@@ -106,7 +106,7 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 12. Foundation & Migration | 0/3 | Planning complete | - |
+| 12. Foundation & Migration | 1/3 | In progress | - |
 | 13. Vault Integration | 0/TBD | Not started | - |
 | 14. Sub-Agents & Browser Engine | 0/TBD | Not started | - |
 | 15. Approval Gateway & Bill Pay | 0/TBD | Not started | - |
