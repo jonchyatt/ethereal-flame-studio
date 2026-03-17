@@ -97,6 +97,21 @@ Plans:
   5. Corporate credit research is stored with business profile data ready for future application workflows
 **Plans**: TBD
 
+### Phase 16.1: Research Intelligence (INSERTED)
+
+**Goal**: The research library learns from usage — outcomes feed back, stale findings auto-expire, and cross-domain insights emerge (grant success strengthens credit applications)
+**Depends on**: Phase 16
+**Requirements**: INTEL-01, INTEL-02, INTEL-03, INTEL-04
+**Success Criteria** (what must be TRUE):
+  1. Application outcomes (approved/rejected/pending) are tracked against the research entries that informed them, enabling "which research led to successful applications?" queries
+  2. Research entries with expiresAt in the past are auto-flagged as stale, and a scheduled task triggers re-research for high-value expired entries
+  3. Cross-domain inference: a successful grant application automatically creates a research entry in domain='credit' noting the revenue evidence, and vice versa
+  4. Research confidence scores evolve — entries corroborated by multiple sources get upgraded, entries contradicted get downgraded
+**Plans**: TBD
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 16.1 to break down)
+
 ### Phase 17: Agent Zero Sunset
 **Goal**: All Agent Zero capabilities are verified in Jarvis and the A0 container is decommissioned, eliminating duplicate API billing
 **Depends on**: Phase 16 (all capabilities must be verified before decommission)

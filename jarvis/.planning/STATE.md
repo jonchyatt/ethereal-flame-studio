@@ -63,6 +63,10 @@ Progress: [██████████] 100% (8/8 plans with summaries)
 
 ## Accumulated Context
 
+### Roadmap Evolution
+
+- Phase 16.1 inserted after Phase 16: Research Intelligence (outcome tracking, expiry monitoring, cross-domain inference — makes the research library learn from usage)
+
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
