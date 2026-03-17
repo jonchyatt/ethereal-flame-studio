@@ -98,7 +98,7 @@ Plans:
 **Plans**: 2 planned
 Plans:
 - [x] 16-01-PLAN.md -- Research MCP tools (store, search, get_topic, list_topics) and wiring into toolBridge, chatProcessor, sub-agent
-- [ ] 16-02-PLAN.md -- Research prompt engineering and application workflows
+- [x] 16-02-PLAN.md -- Entity profiles & grant application workflow (human-verified)
 
 ### Phase 16.1: Research Intelligence (INSERTED)
 
