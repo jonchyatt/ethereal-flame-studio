@@ -80,7 +80,10 @@ Plans:
   2. The workflow pauses on approval request and resumes only after Jon approves via Telegram callback -- rejections cancel the workflow cleanly
   3. Jon can say "pay my Duke Energy bill" and Jarvis navigates to the portal, authenticates via vault, fills the payment amount, waits for approval, submits, and confirms with a receipt screenshot
   4. Payment confirmation is logged with screenshot and Notion bill status is updated
-**Plans**: TBD
+**Plans:** 2/2 plans complete
+Plans:
+- [x] 15-01-PLAN.md -- Approval gateway types, engine, audit trail, Telegram callback wiring
+- [x] 15-02-PLAN.md -- Bill payment workflow and pay_bill tool (human-verified)
 
 ### Phase 16: Research & Applications
 **Goal**: Jarvis can research topics, store structured findings, and use them to auto-populate grant and credit applications
