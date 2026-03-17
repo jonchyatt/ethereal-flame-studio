@@ -16,8 +16,8 @@
 
 - [x] **VAULT-01**: Bitwarden MCP server integrated — credentials injected into browser without LLM exposure
 - [x] **VAULT-02**: Bitwarden session management with auto-unlock and health checking (handles token expiry)
-- [ ] **VAULT-03**: Telegram approval gateway for sensitive actions (payments, form submissions) with inline keyboards
-- [ ] **VAULT-04**: Async approval flow — workflow pauses on approval request, resumes via Telegram callback
+- [x] **VAULT-03**: Telegram approval gateway for sensitive actions (payments, form submissions) with inline keyboards
+- [x] **VAULT-04**: Async approval flow — workflow pauses on approval request, resumes via Telegram callback
 
 ### Sub-Agents
 
@@ -85,8 +85,8 @@
 | FOUND-04 | Phase 12 | Complete |
 | VAULT-01 | Phase 13 | Complete |
 | VAULT-02 | Phase 13 | Complete |
-| VAULT-03 | Phase 15 | Pending |
-| VAULT-04 | Phase 15 | Pending |
+| VAULT-03 | Phase 15 | Complete |
+| VAULT-04 | Phase 15 | Complete |
 | AGENT-01 | Phase 14 | Complete |
 | AGENT-02 | Phase 14 | Complete |
 | AGENT-03 | Phase 14 | Complete |
