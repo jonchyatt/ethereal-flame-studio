@@ -66,7 +66,7 @@ Plans:
   2. A browser-worker sub-agent can navigate to a website, fill a form field, and capture a before/after screenshot
   3. When a site blocks automation or requires CAPTCHA/2FA, Jarvis pauses and notifies Jon via Telegram with a screenshot instead of failing silently
   4. Sub-agent context is scoped (focused prompts, not full system context) -- verified by checking sub-agent token usage stays under 15K input tokens per turn
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 14-01-PLAN.md -- Sub-agent registry (browser-worker, researcher, form-filler) and brain wiring
 - [ ] 14-02-PLAN.md -- Screenshot store, Telegram notifications, and end-to-end verification
@@ -113,7 +113,7 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17
 |-------|----------------|--------|-----------|
 | 12. Foundation & Migration | 3/3 | Complete    | 2026-03-17 |
 | 13. Vault Integration | 1/1 | Complete    | 2026-03-17 |
-| 14. Sub-Agents & Browser Engine | 0/2 | Planned | - |
+| 14. Sub-Agents & Browser Engine | 1/2 | In Progress|  |
 | 15. Approval Gateway & Bill Pay | 0/TBD | Not started | - |
 | 16. Research & Applications | 0/TBD | Not started | - |
 | 17. Agent Zero Sunset | 0/TBD | Not started | - |

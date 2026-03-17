@@ -3,29 +3,14 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 13-01-PLAN.md
-last_updated: "2026-03-17T14:24:52.039Z"
-last_activity: 2026-03-17 — 13-01 checkpoint approved, vault integration verified end-to-end
+stopped_at: "Completed 14-01-PLAN.md"
+last_updated: "2026-03-17T15:11:15Z"
+last_activity: 2026-03-17 — Completed 14-01 (Sub-agent registry)
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
----
-
----
-gsd_state_version: 1.0
-milestone: v5.0
-milestone_name: milestone
-status: executing
-stopped_at: "Completed 13-01-PLAN.md"
-last_updated: "2026-03-17T14:20:00Z"
-last_activity: 2026-03-17 — Completed 13-01 (Vault integration)
-progress:
-  total_phases: 6
-  completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 7
+  completed_plans: 6
 ---
 
 # Project State
@@ -35,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** One agent with complete context across all life domains, taking autonomous actions while Jon works hospital shifts
-**Current focus:** Phase 13 - Vault Integration
+**Current focus:** Phase 14 - Sub-Agents & Browser Engine
 
 ## Current Position
 
-Phase: 13 of 17 (Vault Integration) -- COMPLETE
-Plan: 1 of 1 in current phase -- COMPLETE
-Status: Phase 13 complete, ready for Phase 14
-Last activity: 2026-03-17 — 13-01 checkpoint approved, vault integration verified end-to-end
+Phase: 14 of 17 (Sub-Agents & Browser Engine)
+Plan: 1 of 2 in current phase -- COMPLETE
+Status: 14-01 complete, ready for 14-02
+Last activity: 2026-03-17 — Completed 14-01 (Sub-agent registry with 3 role-specialized agents)
 
-Progress: [██████████] 100% (5/5 plans with summaries)
+Progress: [████████░░] 86% (6/7 plans with summaries)
 
 ## Performance Metrics
 
@@ -67,6 +52,7 @@ Progress: [██████████] 100% (5/5 plans with summaries)
 | Phase 12 P02 | 7min | 2 tasks | 6 files |
 | Phase 12 P03 | 3min | 2 tasks | 3 files |
 | Phase 13 P01 | 5min | 2 tasks | 5 files |
+| Phase 14 P01 | 2min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -85,6 +71,9 @@ Recent decisions affecting current work:
 - [Phase 12-02]: PM2 launcher scripts pattern for .env.local loading on Windows
 - [Phase 13]: Vault unlock runs in start-web.js (same process), not separate PM2 process
 - [Phase 13]: Bitwarden MCP scoped to sub-agent only, never in global .mcp.json
+- [Phase 14-01]: Sub-agent registry pattern: centralized buildSubAgents() called per-request for fresh BW_SESSION
+- [Phase 14-01]: Non-fatal agent build: normal chat works even if vault unavailable
+- [Phase 14-01]: Record<string, unknown> return type to avoid SDK internal type coupling
 
 ### Pending Todos
 
@@ -99,6 +88,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-17T14:20:00Z
-Stopped at: Completed 13-01-PLAN.md
+Last session: 2026-03-17T15:11:15Z
+Stopped at: Completed 14-01-PLAN.md
 Resume file: None

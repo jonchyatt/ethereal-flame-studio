@@ -21,13 +21,13 @@
 
 ### Sub-Agents
 
-- [ ] **AGENT-01**: Sub-agent definitions with role specialization (browser-worker, researcher, form-filler)
-- [ ] **AGENT-02**: Sub-agents have restricted tool access (browser-worker can't access memory, researcher can't access vault)
-- [ ] **AGENT-03**: Context isolation — sub-agents get focused prompts, not full system context (prevent 10x token waste)
+- [x] **AGENT-01**: Sub-agent definitions with role specialization (browser-worker, researcher, form-filler)
+- [x] **AGENT-02**: Sub-agents have restricted tool access (browser-worker can't access memory, researcher can't access vault)
+- [x] **AGENT-03**: Context isolation — sub-agents get focused prompts, not full system context (prevent 10x token waste)
 
 ### Browser Automation
 
-- [ ] **BROWSER-01**: Playwright engine for navigating websites, clicking elements, filling forms, submitting
+- [x] **BROWSER-01**: Playwright engine for navigating websites, clicking elements, filling forms, submitting
 - [ ] **BROWSER-02**: Screenshot-based verification — capture before/after screenshots for audit trail
 - [ ] **BROWSER-03**: Graceful failure with Telegram notification when sites block automation or require manual intervention
 - [ ] **BROWSER-04**: CAPTCHA/2FA pause — detect and notify Jon via Telegram for manual completion
@@ -87,10 +87,10 @@
 | VAULT-02 | Phase 13 | Complete |
 | VAULT-03 | Phase 15 | Pending |
 | VAULT-04 | Phase 15 | Pending |
-| AGENT-01 | Phase 14 | Pending |
-| AGENT-02 | Phase 14 | Pending |
-| AGENT-03 | Phase 14 | Pending |
-| BROWSER-01 | Phase 14 | Pending |
+| AGENT-01 | Phase 14 | Complete |
+| AGENT-02 | Phase 14 | Complete |
+| AGENT-03 | Phase 14 | Complete |
+| BROWSER-01 | Phase 14 | Complete |
 | BROWSER-02 | Phase 14 | Pending |
 | BROWSER-03 | Phase 14 | Pending |
 | BROWSER-04 | Phase 14 | Pending |
