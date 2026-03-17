@@ -42,8 +42,8 @@ Jarvis v5.0 transforms a conversational life assistant into a fully autonomous e
 **Plans:** 3/3 plans complete
 Plans:
 - [x] 12-01-PLAN.md -- Repo migration to standalone + Claude Agent SDK swap
-- [ ] 12-02-PLAN.md -- DB-driven flexible scheduler with croner
-- [ ] 12-03-PLAN.md -- Research-as-library schema and store
+- [x] 12-02-PLAN.md -- DB-driven flexible scheduler with croner
+- [x] 12-03-PLAN.md -- Research-as-library schema and store
 
 ### Phase 13: Vault Integration
 **Goal**: Jarvis can retrieve credentials from Bitwarden and inject them into tool workflows without the LLM ever seeing raw secret values
@@ -55,7 +55,7 @@ Plans:
   3. A canary test confirms that no credential value appears in LLM conversation history or logs after a credential retrieval + injection cycle
 **Plans:** 1/1 plans complete
 Plans:
-- [ ] 13-01-PLAN.md -- Vault health manager, form-filler sub-agent with private BW MCP, canary test
+- [x] 13-01-PLAN.md -- Vault health manager, form-filler sub-agent with private BW MCP, canary test
 
 ### Phase 14: Sub-Agents & Browser Engine
 **Goal**: Jarvis can spawn role-specialized sub-agents and automate browser interactions including navigation, form filling, and screenshot verification

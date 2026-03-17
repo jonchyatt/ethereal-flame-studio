@@ -56,7 +56,7 @@ completed: 2026-03-17
 - **Duration:** 5 min
 - **Started:** 2026-03-17T13:14:29Z
 - **Completed:** 2026-03-17T13:19:00Z
-- **Tasks:** 2 of 3 (Task 3 is human-verify checkpoint)
+- **Tasks:** 3 of 3
 - **Files modified:** 5
 
 ## Accomplishments
@@ -72,7 +72,7 @@ Each task was committed atomically:
 
 1. **Task 1: Vault health manager, bootstrap script, PM2 wiring** - `4a46a56` (feat)
 2. **Task 2: Form-filler sub-agent config and canary test** - `c9a13db` (feat)
-3. **Task 3: Human verification checkpoint** - awaiting Jon's setup
+3. **Task 3: Human verification checkpoint** - APPROVED (bw v2026.2.0 installed, vault unlocks, PM2 injects BW_SESSION, canary test passes)
 
 ## Files Created/Modified
 - `src/lib/jarvis/vault/vaultHealth.ts` - checkVaultHealth() and ensureVaultUnlocked() functions
@@ -104,9 +104,29 @@ Jon must install Bitwarden CLI and login before vault features work:
 
 See Task 3 checkpoint for full verification steps.
 
+## Checkpoint Verification (Task 3)
+
+Jon verified all 5 parts:
+- **Part A (CLI Setup):** bw CLI v2026.2.0 installed, `bw login` completed for jonchyatt@gmail.com
+- **Part B (Vault Health):** Vault unlocks via BW_MASTER_PASSWORD in .env.local
+- **Part C (PM2 Wiring):** PM2 startup logs show `[vault] BW_SESSION injected (88 chars)`
+- **Part D (Isolation):** .mcp.json has no bitwarden entry, MCP server downloads via npx
+- **Part E (Canary Test):** Test vault entry "test-canary" created with password SuperSecret123!
+  - Clean conversation: PASS (no leakage detected)
+  - Leaked conversation: correctly detected credential at message index 1
+
 ## Next Phase Readiness
-- Vault plumbing complete, ready for Phase 14 (browser automation) to use form-filler sub-agent
-- Requires Jon to complete Task 3 checkpoint (install bw CLI, verify end-to-end)
+- Vault plumbing complete and verified end-to-end, ready for Phase 14 (browser automation)
+
+## Self-Check: PASSED
+
+- FOUND: src/lib/jarvis/vault/vaultHealth.ts
+- FOUND: src/lib/jarvis/vault/vaultConfig.ts
+- FOUND: src/lib/jarvis/vault/canaryTest.ts
+- FOUND: scripts/unlock-vault.sh
+- FOUND: Commit 4a46a56 (Task 1)
+- FOUND: Commit c9a13db (Task 2)
+- Task 3 checkpoint: APPROVED by user
 
 ---
 *Phase: 13-vault-integration*
