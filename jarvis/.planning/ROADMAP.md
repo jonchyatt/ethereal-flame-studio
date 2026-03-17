@@ -95,7 +95,10 @@ Plans:
   3. A form-filler sub-agent can retrieve research findings and Jon's business profile to auto-populate application fields, then request approval before submission
   4. Jon can trigger a grant application workflow that researches the grant, verifies eligibility, fills the application from stored data, and submits after approval
   5. Corporate credit research is stored with business profile data ready for future application workflows
-**Plans**: TBD
+**Plans**: 2 planned
+Plans:
+- [x] 16-01-PLAN.md -- Research MCP tools (store, search, get_topic, list_topics) and wiring into toolBridge, chatProcessor, sub-agent
+- [ ] 16-02-PLAN.md -- Research prompt engineering and application workflows
 
 ### Phase 16.1: Research Intelligence (INSERTED)
 
@@ -133,7 +136,7 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17
 | 13. Vault Integration | 1/1 | Complete    | 2026-03-17 |
 | 14. Sub-Agents & Browser Engine | 2/2 | Complete    | 2026-03-17 |
 | 15. Approval Gateway & Bill Pay | 2/2 | Complete    | 2026-03-17 |
-| 16. Research & Applications | 0/TBD | Not started | - |
+| 16. Research & Applications | 1/2 | In progress | - |
 | 17. Agent Zero Sunset | 0/TBD | Not started | - |
 
 ## Requirement Coverage
