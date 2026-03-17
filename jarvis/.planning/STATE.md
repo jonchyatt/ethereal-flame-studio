@@ -3,30 +3,14 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 12-02-PLAN.md — Phase 12 fully complete (all 3 plans)
-last_updated: "2026-03-17T12:47:03.331Z"
+stopped_at: "Phase 13-01 checkpoint: awaiting human vault setup verification"
+last_updated: "2026-03-17T13:17:23.756Z"
 last_activity: 2026-03-17 — Completed 12-02 (DB-driven flexible scheduler)
 progress:
   total_phases: 6
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
----
-
----
-gsd_state_version: 1.0
-milestone: v5.0
-milestone_name: milestone
-status: executing
-stopped_at: Completed 12-02-PLAN.md (DB-driven flexible scheduler)
-last_updated: "2026-03-17T12:36:10Z"
-last_activity: 2026-03-17 — Completed 12-02 (DB-driven flexible scheduler)
-progress:
-  total_phases: 6
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 100
+  completed_phases: 2
+  total_plans: 4
+  completed_plans: 4
 ---
 
 # Project State
@@ -36,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** One agent with complete context across all life domains, taking autonomous actions while Jon works hospital shifts
-**Current focus:** Phase 12 - Foundation & Migration
+**Current focus:** Phase 13 - Vault Integration
 
 ## Current Position
 
-Phase: 12 of 17 (Foundation & Migration) -- COMPLETE
-Plan: 3 of 3 in current phase
-Status: Phase Complete
-Last activity: 2026-03-17 — Completed 12-02 (DB-driven flexible scheduler)
+Phase: 13 of 17 (Vault Integration)
+Plan: 1 of 1 in current phase
+Status: Checkpoint -- awaiting human vault setup verification
+Last activity: 2026-03-17 — 13-01 Tasks 1-2 complete, Task 3 checkpoint pending
 
-Progress: [██████████] 100% (Phase 12 complete)
+Progress: [██████████] 100% (4/4 plans with summaries)
 
 ## Performance Metrics
 
@@ -67,6 +51,7 @@ Progress: [██████████] 100% (Phase 12 complete)
 *Updated after each plan completion*
 | Phase 12 P02 | 7min | 2 tasks | 6 files |
 | Phase 12 P03 | 3min | 2 tasks | 3 files |
+| Phase 13 P01 | 5min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -83,6 +68,8 @@ Recent decisions affecting current work:
 - [Phase 12]: Used direct libsql CREATE TABLE instead of drizzle-kit push for non-interactive environments
 - [Phase 12-02]: croner over node-cron (zero deps, native timezone, ESM-compatible)
 - [Phase 12-02]: PM2 launcher scripts pattern for .env.local loading on Windows
+- [Phase 13]: Vault unlock runs in start-web.js (same process), not separate PM2 process
+- [Phase 13]: Bitwarden MCP scoped to sub-agent only, never in global .mcp.json
 
 ### Pending Todos
 
@@ -97,6 +84,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-17T12:36:10Z
-Stopped at: Completed 12-02-PLAN.md — Phase 12 fully complete (all 3 plans)
+Last session: 2026-03-17T13:17:23.754Z
+Stopped at: Phase 13-01 checkpoint: awaiting human vault setup verification
 Resume file: None

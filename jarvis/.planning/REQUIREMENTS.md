@@ -14,8 +14,8 @@
 
 ### Security & Vault
 
-- [ ] **VAULT-01**: Bitwarden MCP server integrated — credentials injected into browser without LLM exposure
-- [ ] **VAULT-02**: Bitwarden session management with auto-unlock and health checking (handles token expiry)
+- [x] **VAULT-01**: Bitwarden MCP server integrated — credentials injected into browser without LLM exposure
+- [x] **VAULT-02**: Bitwarden session management with auto-unlock and health checking (handles token expiry)
 - [ ] **VAULT-03**: Telegram approval gateway for sensitive actions (payments, form submissions) with inline keyboards
 - [ ] **VAULT-04**: Async approval flow — workflow pauses on approval request, resumes via Telegram callback
 
@@ -83,8 +83,8 @@
 | FOUND-02 | Phase 12 | Pending |
 | FOUND-03 | Phase 12 | Complete |
 | FOUND-04 | Phase 12 | Complete |
-| VAULT-01 | Phase 13 | Pending |
-| VAULT-02 | Phase 13 | Pending |
+| VAULT-01 | Phase 13 | Complete |
+| VAULT-02 | Phase 13 | Complete |
 | VAULT-03 | Phase 15 | Pending |
 | VAULT-04 | Phase 15 | Pending |
 | AGENT-01 | Phase 14 | Pending |

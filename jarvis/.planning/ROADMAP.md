@@ -22,7 +22,7 @@ Jarvis v5.0 transforms a conversational life assistant into a fully autonomous e
 - Decimal phases (e.g., 13.1): Urgent insertions if needed
 
 - [x] **Phase 12: Foundation & Migration** - Standalone repo, SDK upgrade, scheduler and research schemas (completed 2026-03-17)
-- [ ] **Phase 13: Vault Integration** - Bitwarden MCP with session management and credential injection
+- [x] **Phase 13: Vault Integration** - Bitwarden MCP with session management and credential injection (completed 2026-03-17)
 - [ ] **Phase 14: Sub-Agents & Browser Engine** - Role-specialized sub-agents with Playwright browser automation
 - [ ] **Phase 15: Approval Gateway & Bill Pay** - Telegram approval flow and first end-to-end bill payment
 - [ ] **Phase 16: Research & Applications** - Research-as-library with grant and credit application workflows
@@ -53,7 +53,7 @@ Plans:
   1. Bitwarden MCP server is configured as sub-agent-private MCP and responds to credential retrieval requests
   2. Vault session auto-unlocks on Jarvis startup and re-authenticates transparently when session expires mid-task
   3. A canary test confirms that no credential value appears in LLM conversation history or logs after a credential retrieval + injection cycle
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 13-01-PLAN.md -- Vault health manager, form-filler sub-agent with private BW MCP, canary test
 
@@ -109,7 +109,7 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 12. Foundation & Migration | 3/3 | Complete    | 2026-03-17 |
-| 13. Vault Integration | 0/1 | Planning complete | - |
+| 13. Vault Integration | 1/1 | Complete   | 2026-03-17 |
 | 14. Sub-Agents & Browser Engine | 0/TBD | Not started | - |
 | 15. Approval Gateway & Bill Pay | 0/TBD | Not started | - |
 | 16. Research & Applications | 0/TBD | Not started | - |
