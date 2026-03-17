@@ -1,240 +1,113 @@
-# Jarvis: Personal Executive Function Partner
+# Jarvis: Autonomous Life Agent
 
 ## What This Is
 
-A voice-enabled AI companion that integrates with Notion Life OS workspaces to provide executive function support. Jarvis captures ideas, delivers daily briefings, maintains time awareness during deep work, and runs voice-guided review sessions. It uses the Ethereal Flame audio orb as its visual avatar and is hosted on whatareyouappreciatingnow.com.
+Jarvis is Jonathan's autonomous personal AI life agent — a unified intelligence layer that manages his entire life: bills, businesses, research, applications, scheduling, and decision-making. It runs locally on Windows 11 via Claude Code SDK (free on Max plan), with mobile access through Telegram and a Next.js web UI exposed via Cloudflare tunnel at jarvis.whatamiappreciatingnow.com.
 
 ## Core Value
 
-**One system that knows everything, surfaces what matters, and keeps you on track.** Ideas get captured, priorities stay clear, and nothing slips through cracks - so you can focus on doing the work instead of managing the work.
+One agent with complete context across all of Jon's life domains — personal finance, businesses, projects, health, scheduling — making connections and taking autonomous actions that siloed tools never could, while Jon works 12-14hr hospital shifts.
 
-## Current Milestone: v4.0 Brain Swap & Life Manager UI
+## Current Milestone: v5.0 Agent Unification
 
-**Goal:** Replace Jarvis's custom Claude API backend with Claude Code SDK for a smarter, self-improving brain, and rebuild the UI as an elegant responsive life manager.
+**Goal:** Absorb Agent Zero's unique capabilities, add battle-tested browser automation for bill pay, grant applications, and corporate credit, and sunset A0 to eliminate duplicate API billing.
 
 **Target features:**
-- Brain swap: Replace custom tool loop (chatProcessor, tools.ts, ClaudeClient) with Claude Code SDK (`@anthropic-ai/claude-code`)
-- Preserve intelligence gems: Audit existing memory system, learning patterns, personality before removing anything
-- MCP-native tools: Notion MCP + Playwright MCP via `.mcp.json` (same architecture as ClaudeClaw)
-- Responsive UI redesign: Elegant life manager for both desktop and mobile
-- Archive 3D orb (preserve for future miniaturized version), build clean chat + voice + dashboard
-- Self-improving agent: Preserve and enhance memory/learning capabilities from v2.0 and Agent Zero patterns
-
-**Prior milestones (complete):**
-
-### v2.0 Memory & Production — COMPLETE
-- Persistent memory system (facts, preferences, session logs) — Phase 7-9
-- Cross-session conversation continuity — Phase 8
-- Production deployment to jarvis.whatareyouappreciatingnow.com — Phase 11
-- Fix known bugs (inbox capture, tomorrow preview) — Phase 10
-- Explicit guardrails and self-healing patterns — Phase 10 (7/7 verified)
-
-## v1 State (Shipped 2026-02-02)
-
-**Tech Stack:** Next.js + TypeScript, Three.js/R3F, Claude API, Deepgram STT, ElevenLabs TTS, Notion MCP
-
-**Capabilities:**
-- Voice input via push-to-talk with real-time transcription
-- Intelligent responses via Claude with omnipresent guide personality
-- Full Notion CRUD (10 tools for tasks, bills, projects, goals, habits)
-- Morning briefing with outline-first spoken summary
-- Time nudges for calendar events, deadlines, bills
-- Midday and evening check-ins with capture mode
-- Weekly review with factual retrospective and forward planning
-- Life area tracking with neglect detection
-- Dashboard showing tasks/calendar/habits/bills with priority indicators
-
-**Stats:** 49 files, 11,851 LOC TypeScript
+- Repo migration to standalone project (C:\Users\jonch\Projects\jarvis)
+- Sub-agent spawning with role specialization (from Agent Zero)
+- Bitwarden vault integration for credential injection (LLM never sees passwords)
+- Browser automation engine (navigate, authenticate, fill forms, submit)
+- Bill pay workflows (personal bills via browser automation)
+- Research-as-library (research → store structured findings → recall during form-filling)
+- Grant application research and form-filling
+- Corporate credit application groundwork
+- Flexible scheduled task system (add/remove/edit as configuration)
+- Port Agent Zero scheduled tasks and skills
+- Agent Zero sunset
 
 ## Requirements
 
 ### Validated
 
+<!-- Shipped and confirmed valuable across v1-v4.4 -->
+
 - ✓ Push-to-talk voice activation — v1
-- ✓ Sub-300ms response latency target — v1
-- ✓ Omnipresent guide voice persona — v1
-- ✓ Context retention across turns — v1
-- ✓ Streaming TTS response — v1
-- ✓ Daily morning briefing — v1
-- ✓ Time awareness nudges — v1
-- ✓ End-of-work check-in — v1
-- ✓ Midday pulse check — v1
-- ✓ Evening wrap — v1
-- ✓ Habit/goal progress in briefings — v1
-- ✓ Life area priority weighting — v1
-- ✓ Voice-guided weekly review — v1
-- ✓ Notion MCP integration (tasks, bills, projects, goals, habits) — v1
-- ✓ Task CRUD via voice — v1
-- ✓ Bill tracking via voice — v1
-- ✓ Ethereal Flame orb avatar with state indicators — v1
-- ✓ Dashboard with priority indicators — v1
-- ✓ Mobile-responsive web app — v1
+- ✓ Claude integration with omnipresent guide personality — v1
+- ✓ Notion MCP integration (tasks, bills, projects, goals, habits, recipes, meals, shopping, pantry) — v1+v4.2
+- ✓ Morning briefing, midday/evening check-ins, weekly review — v1
+- ✓ Persistent memory system (facts, preferences, session logs, decay) — v2
+- ✓ Self-improvement loop (evaluation, reflection, behavior rules) — v2+v4.0
+- ✓ Production deployment with auth — v2
+- ✓ Tutorial system (13 modules, 6 tools) — v3
+- ✓ Claude Code SDK brain (free on Max plan) — v4.0
+- ✓ Mobile-first domain OS UI — v4.0
+- ✓ Vector memory with dual retrieval (BM25 + semantic) — v4.0
+- ✓ Google Calendar integration — v4.1
+- ✓ Bill payment navigation (pay now links) — v4.1
+- ✓ Meal planning pipeline (7 tools, smart shopping) — v4.2
+- ✓ Academy engine (7 tools, 28 topics, multi-project) — v4.3
+- ✓ Guided onboarding with spotlight overlays — v4.4 (in progress)
+- ✓ Telegram bot with voice, commands, inline keyboards — v4.0
+- ✓ Voice I/O (Deepgram STT + AWS Polly TTS) — v4.0
+- ✓ PM2 local deployment with Cloudflare tunnel — v4.0
+- ✓ Scheduled cron tasks (reflection, memory decay) — v4.0
 
-### Delivered (v2.0) — All Complete
+### Active
 
-- ✓ Persistent memory system with facts, preferences, and session logs — Phase 7-9
-- ✓ Cross-session conversation continuity — Phase 8
-- ✓ Production deployment to jarvis.whatareyouappreciatingnow.com — Phase 11
-- ✓ Fix inbox capture (items not reaching Notion) — Phase 10
-- ✓ Fix tomorrow preview (placeholder data in evening check-in) — Phase 10
-- ✓ Explicit guardrails configuration — Phase 10 (7/7 verified)
-- ✓ Self-healing error logging — Phase 10 (audit trail via query_audit_log)
+<!-- v5.0 milestone scope -->
+
+- [ ] Repo migration to standalone project
+- [ ] Sub-agent spawning with role specialization
+- [ ] Bitwarden vault integration for credential injection
+- [ ] Browser automation engine (navigate, authenticate, fill forms, submit)
+- [ ] Bill pay workflows via browser automation
+- [ ] Research-as-library (structured research storage with recall)
+- [ ] Grant application research and form-filling
+- [ ] Corporate credit application groundwork
+- [ ] Flexible scheduled task system (CRUD configuration)
+- [ ] Port Agent Zero Visopscreen + crypto skills
+- [ ] Agent Zero sunset (decommission container + tunnel)
 
 ### Out of Scope
 
-- Mobile native app — web-first approach, PWA works well
-- Calendar write access — read is enough, writing adds risk
-- Multi-user accounts — single creator workflow
-- Automated task execution — Jarvis advises, user executes
-- Real-time streaming transcription — push-to-talk sufficient
-- Offline mode — requires LLM, always needs internet
-- Client & Content OS — personal first, add in v2
-
-### Future Considerations (v3+)
-
-- **Agent Zero Daemon**: Deploy Agent Zero in Docker on dedicated Linux box for always-on agent capabilities (periodic tasks, Telegram, self-healing, sub-agents). Replaces old MacBook/Atlas plan. Any Docker-capable machine works.
-- **VPS option**: Can run Agent Zero on cheap VPS ($7-15/month) if no local hardware available
-
-## v3.0 Tutorial & Teaching System (2026-02-03 — 2026-02-05)
-
-**Research Complete - See `.planning/V3-MASTER-RESEARCH.md`**
-
-Key documents created:
-- `V3-MASTER-RESEARCH.md` - Consolidated research and roadmap
-- `V3-AGENT-ARCHITECTURE-DEEP-DIVE.md` - GOTCHA vs OpenClaw comparison
-- `V3-OPENCLAW-N8N-RESEARCH.md` - N8N integration analysis
-- `JARVIS-TUTORIAL-FRAMEWORK.md` - Pedagogical framework
-- `ATLAS-INTEGRATION-PREP.md` - MacBook setup guide
-
-### Completed Phases
-
-**Phase 12: Tutorial System — COMPLETE**
-- 13 tutorial modules with voice content
-- TutorialManager for progress tracking
-- 6 tutorial tools integrated with Claude
-- Voice commands: "start tutorial", "teach me about X", "what can you do?"
-
-**Phase T1: Notion Panel Foundation — COMPLETE**
-- NotionPanel overlay (80% width, slide-in, swipe-to-dismiss)
-- notionPanelStore (Zustand, ephemeral)
-- open_notion_panel / close_notion_panel tools
-- 38 database URLs + 21 dashboard page URLs mapped
-
-**Phase T2: View Mode + Dashboard Integration — COMPLETE**
-- CurriculumCard in dashboard sidebar
-- 6 cluster cards with lesson counts
-- "What can I learn?" voice trigger → get_curriculum_status tool
-
-**Phase T3: Curriculum UI + Progress Tracking — COMPLETE**
-- Lesson registry (24 lessons across 6 clusters)
-- curriculumProgressStore (persisted, tracks completed lessons)
-- CurriculumCard shows progress bars per cluster
-
-**Phase T4: Teach Mode + Daily Action Tutorials — COMPLETE**
-- Lesson execution engine (start_lesson / complete_lesson tools)
-- Step-by-step content for 5 Daily Action lessons
-- Teach mode UI in NotionPanel (step list, practice link, voice hint)
-- Claude narrates lessons conversationally, panel is visual companion
-- Bug fix: get_curriculum_status routing in chat/route.ts
-
-### Backlog: T5 — Remaining Lesson Content (19 lessons)
-
-Write step-by-step lesson content for the remaining 4 clusters:
-
-| Cluster | Lessons | IDs |
-|---------|---------|-----|
-| Financial (4) | Budgets, Income, Expenditure, Invoices | budgets-intro, income-tracking, expenses-overview, invoices-intro |
-| Knowledge (4) | Notes, Journal, CRM, Topics | notes-intro, journal-intro, crm-intro, topics-intro |
-| Tracking (4) | Workouts, Meals, Timesheets, Daily Log | workouts-intro, meals-intro, timesheets-intro, days-intro |
-| Planning (4) | Goals, Yearly, Wheel of Life, Dreams | goals-intro, years-intro, wheel-intro, dreams-intro |
-| Business (3) | Content, Clients, Channels | content-intro, clients-intro, channels-intro |
-
-**Scope:** Add entries to `src/lib/jarvis/curriculum/lessonContent.ts` only. No new architecture — same pattern as Daily Action lessons. Each lesson needs intro, 3-5 steps with narration + panel notes, and outro.
-
-**Priority:** Low — can be done incrementally as clusters become relevant. Daily Action (the most-used cluster) is already complete.
-
-### Remaining v3 Phases
-
-- **Phase 13: Memory Enhancement** — conversation continuity, hybrid search (BM25 + semantic). Borrow Agent Zero's progressive summarization pattern (100-1000x context compression) and secrets masking (placeholder injection so LLM never sees raw API keys).
-- **Phase 14: Self-Healing Loop** — automatic error recovery with learning. Inspired by Agent Zero's agentic cron pattern where periodic tasks are agent chats that can self-fix on failure.
-- **Phase 15: Telegram Control** — remote command capability via Telegram
-- **Phase 16: Agent Zero Daemon** — Deploy Agent Zero in Docker on a dedicated Linux box (replaces old "Atlas/MacBook" plan). Any machine with Docker works — mini PC, old laptop with Ubuntu, or VPS. Agent Zero provides: sandboxed execution, sub-agent spawning, secrets management, periodic tasks, vector memory, and plugin/skills architecture. Connects to Jarvis web app via A2A protocol or webhook bridge.
-
-### Agent Zero Integration Strategy (2026-02-15)
-
-**Key Insight:** Agent Zero is not a replacement for Jarvis — it's the **always-on daemon backbone** that Jarvis's web UI connects to.
-
-**Architecture:**
-```
-[Phone/Browser] → [Jarvis Web UI on Vercel] → voice, dashboard, orb avatar
-                          ↕ API/webhook
-              [Agent Zero in Docker on Linux box] → always-on daemon
-                    ↕            ↕           ↕
-              [Notion API]  [Telegram]  [Scheduled tasks]
-              [Memory DB]   [SSH/tools] [Self-healing]
-```
-
-**What Agent Zero adds over Atlas/GOTCHA:**
-- Proven, maintained open-source project with community
-- Docker sandbox (safe code execution, no host pollution)
-- Sub-agent spawning with context isolation
-- Secrets management (LLM never sees raw keys)
-- Progressive context summarization (hours-long sessions)
-- Periodic agentic tasks (briefing cron, health checks, backups)
-- Cloud skills marketplace + self-creating skills
-- Plugin system (upcoming) for modular capabilities
-
-**Hardware:** Any Linux-capable machine with Docker:
-- Mini PC (~$150-200, low power, headless)
-- Old laptop with Ubuntu (free, already owned)
-- VPS ($7-15/month, Hostinger/Hetzner)
-- NOT restricted to MacBook — Docker runs natively on Linux (better than macOS)
+- Agent Zero continued development — sunsetting, not enhancing
+- Phone call automation — requires telephony, future milestone
+- Physical world automation (smart home) — different domain
+- Multi-user support — Jarvis is Jon's personal agent only
+- Mobile native app — web + Telegram sufficient
+- v4.4 completion (guided onboarding) — pause, resume after v5.0
 
 ## Context
 
-**Shipped v1** with 11,851 LOC TypeScript across 49 files.
-
-**User Environment:**
-- Primary device: phone (often away from computer)
-- Work pattern: gets deeply absorbed, loses track of time and priorities
-- Challenge: Not procrastination - *too much engagement*, forgets to shift
-- Need: External system to hold the big picture while user focuses
-
-**Known Issues:**
-- ~~Captured items during check-ins not yet sent to Notion inbox~~ Fixed in Phase 10
-- ~~Tomorrow preview in evening check-in uses placeholder data~~ Fixed in Phase 10
-- ANTHROPIC_API_KEY requires user configuration
-- Notion databases require user sharing setup
+- Jon works 12-14hr hospital shifts in healthcare — needs autonomous task handling
+- Jarvis currently nested at ethereal-flame-studio/jarvis, causing Claude context confusion (repeatedly tries to modify parent project files)
+- Agent Zero runs on Anthropic API (separate per-token billing) — duplicate cost for same capability
+- Agent Zero's unique capabilities to absorb: multi-agent orchestration, 9 agent profiles, 20+ skills, FAISS memory, 5 scheduled tasks
+- Jarvis is already more capable in most areas: 40+ MCP tools, Notion, Telegram, voice, self-improvement, calendar
+- Prior research exists: agent-capabilities.md, jarvis-claude-code-integration-architecture.md, agent-landscape-2026.md
+- secure-bridge.ts pattern (Bitwarden CLI + Playwright page.fill) previously identified as key missing piece
+- Grant research already started: 3 urgent grants due March 31 (Verizon Digital Ready, Pilot Growth Fund, Amber Grant)
+- ClaudeClaw (Telegram → Claude Code SDK bridge) is running reference implementation
 
 ## Constraints
 
-- **Tech Stack**: Next.js + Three.js/R3F — consistent with Ethereal Flame Studio
-- **Voice**: Deepgram STT, ElevenLabs TTS — proven providers
-- **Data Layer**: Notion SDK v5 (direct) + Turso/libsql for memory
-- **AI Backend**: Claude API (Anthropic)
-- **Hosting**: whatareyouappreciatingnow.com (Vercel)
+- **Cost**: Must run on Max plan (Claude Code SDK) — no additional API billing
+- **Security**: LLM must NEVER see raw credentials — vault injection only
+- **Approval**: Sensitive actions (payments, submissions) require Telegram approval before execution
+- **Platform**: Windows 11, Docker Desktop, PM2, Node.js/TypeScript
+- **Migration**: Repo move must not break running PM2 processes or Cloudflare tunnel
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Web app on existing domain | Leverage current infrastructure, accessible from any device | ✓ Good |
-| Notion as single source of truth | User already has rich PARA system, avoid data duplication | ✓ Good |
-| Ethereal Flame orb as avatar | Creates visual presence, reuses existing component | ✓ Good |
-| MCP for Notion integration | Secure tool-based access, no direct API exposure | ✓ Good |
-| Push-to-talk (not wake word) | Simpler, more reliable, privacy-friendly | ✓ Good |
-| Raw PCM audio (Web Audio API) | MediaRecorder format issues, PCM works reliably | ✓ Good |
-| Omnipresent guide personality | Calm, knowing, warm — NOT butler/British assistant | ✓ Good |
-| Fuzzy title matching | Natural voice commands like "mark call mom complete" | ✓ Good |
-| State machine for briefing flows | Consistent pattern across Morning/Evening/Weekly | ✓ Good |
-| 28-day rolling baseline for life areas | Detects relative neglect without rigid schedules | ✓ Good |
-| Integration token (not OAuth) | Works for single user, OAuth deferred to v2 | ✓ Good |
-| Agent Zero over Atlas/GOTCHA | Proven open-source, Docker sandbox, community, plugins, secrets mgmt | Decided 2026-02-15 |
-| Any Linux box (not MacBook-only) | Docker runs natively on Linux, cheaper, headless, no sleep issues | Decided 2026-02-15 |
-| Hybrid Vercel + Linux daemon | Web UI stays on Vercel (fast, global), daemon on Linux for always-on tasks | Decided 2026-02-15 |
-| Claude Code SDK over custom Claude API | Same brain as ClaudeClaw — SDK handles tool loop, MCP servers, agentic behavior natively | Decided 2026-02-25 |
-| Archive 3D orb, don't delete | Preserve for future miniaturized version, remove from main UI for now | Decided 2026-02-25 |
-| Research before removing intelligence | Audit existing memory/tools/personality for hidden gems before any removal | Decided 2026-02-25 |
+| Claude Code SDK over custom API | Same brain, free on Max, handles tool loop natively | ✓ Good (v4.0) |
+| Sunset Agent Zero | Duplicate billing, Jarvis absorbs all unique capabilities | — Pending |
+| Own repo for Jarvis | Context confusion when nested in ethereal-flame-studio | — Pending |
+| Bitwarden for credentials | Free, CLI-accessible, LLM-safe vault injection | — Pending |
+| GSD framework for v5.0 | Parallel subagents + 1M context = surgical execution | — Pending |
+| Research-as-library pattern | Structured retrieval for form-filling (grants, credit apps) | — Pending |
+| Unified agent over project isolation | One agent with full life context > 6 siloed agents | — Pending |
 
 ---
-*Last updated: 2026-02-25 — v4.0 milestone started (Brain Swap & Life Manager UI)*
+*Last updated: 2026-03-16 after milestone v5.0 initialization*
