@@ -34,9 +34,9 @@
 
 ### Bill Pay
 
-- [ ] **BILL-01**: User can trigger bill payment for any bill tracked in Notion via voice, Telegram, or web UI
-- [ ] **BILL-02**: Jarvis navigates to billing portal, authenticates via vault, fills payment amount, submits after approval
-- [ ] **BILL-03**: Payment confirmation captured and logged (screenshot + status update in Notion)
+- [x] **BILL-01**: User can trigger bill payment for any bill tracked in Notion via voice, Telegram, or web UI
+- [x] **BILL-02**: Jarvis navigates to billing portal, authenticates via vault, fills payment amount, submits after approval
+- [x] **BILL-03**: Payment confirmation captured and logged (screenshot + status update in Notion)
 
 ### Research & Applications
 
@@ -94,9 +94,9 @@
 | BROWSER-02 | Phase 14 | Complete |
 | BROWSER-03 | Phase 14 | Complete |
 | BROWSER-04 | Phase 14 | Complete |
-| BILL-01 | Phase 15 | Pending |
-| BILL-02 | Phase 15 | Pending |
-| BILL-03 | Phase 15 | Pending |
+| BILL-01 | Phase 15 | Complete |
+| BILL-02 | Phase 15 | Complete |
+| BILL-03 | Phase 15 | Complete |
 | RESEARCH-01 | Phase 16 | Pending |
 | RESEARCH-02 | Phase 16 | Pending |
 | RESEARCH-03 | Phase 16 | Pending |

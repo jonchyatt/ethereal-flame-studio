@@ -24,7 +24,7 @@ Jarvis v5.0 transforms a conversational life assistant into a fully autonomous e
 - [x] **Phase 12: Foundation & Migration** - Standalone repo, SDK upgrade, scheduler and research schemas (completed 2026-03-17)
 - [x] **Phase 13: Vault Integration** - Bitwarden MCP with session management and credential injection (completed 2026-03-17)
 - [x] **Phase 14: Sub-Agents & Browser Engine** - Role-specialized sub-agents with Playwright browser automation (completed 2026-03-17)
-- [ ] **Phase 15: Approval Gateway & Bill Pay** - Telegram approval flow and first end-to-end bill payment
+- [x] **Phase 15: Approval Gateway & Bill Pay** - Telegram approval flow and first end-to-end bill payment (completed 2026-03-17)
 - [ ] **Phase 16: Research & Applications** - Research-as-library with grant and credit application workflows
 - [ ] **Phase 17: Agent Zero Sunset** - Port remaining capabilities and decommission A0
 
@@ -114,7 +114,7 @@ Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17
 | 12. Foundation & Migration | 3/3 | Complete    | 2026-03-17 |
 | 13. Vault Integration | 1/1 | Complete    | 2026-03-17 |
 | 14. Sub-Agents & Browser Engine | 2/2 | Complete    | 2026-03-17 |
-| 15. Approval Gateway & Bill Pay | 1/2 | In Progress|  |
+| 15. Approval Gateway & Bill Pay | 2/2 | Complete   | 2026-03-17 |
 | 16. Research & Applications | 0/TBD | Not started | - |
 | 17. Agent Zero Sunset | 0/TBD | Not started | - |
 
