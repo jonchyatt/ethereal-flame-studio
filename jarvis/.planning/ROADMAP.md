@@ -1,272 +1,180 @@
-# Roadmap: Jarvis v2.0 Memory & Production
+# Roadmap: Jarvis v5.0 Agent Unification
 
-**Milestone:** v2.0
-**Status:** Active
-**Phases:** 7-11 (continues from v1 phases 1-6)
-**Requirements:** 22 total
+## Milestones
+
+- v1.0 Executive Function Partner - Phases 1-6 (shipped 2026-02-02)
+- v2.0 Memory & Production - Phases 7-11 (shipped 2026-02-15)
+- v3.0 Tutorial & Teaching - Phase 12 + T1-T4 (partial, 2026-02-05)
+- v4.0-v4.3 Brain Swap through Academy - PAUL phases A-L (shipped 2026-03-02)
+- v4.4 Guided Onboarding - paused for v5.0
+- v5.0 Agent Unification - Phases 12-17 (active)
 
 ## Overview
 
-Jarvis v2.0 adds persistent cross-session memory and production deployment to the existing voice assistant. The roadmap follows a strict dependency chain: database foundation before memory loading, loading before writing, writing before guardrails, and guardrails before production. Each phase delivers a verifiable capability that unblocks the next while maintaining safety guarantees for production deployment.
+Jarvis v5.0 transforms a conversational life assistant into a fully autonomous execution agent. The dependency chain is strict: repo migration and SDK upgrade establish the foundation, vault integration provides the security layer that browser automation requires, sub-agents and browser tools build the execution engine, approval gateway makes it safe for real-world financial actions, research-as-library enables intelligent form-filling, and Agent Zero sunset eliminates duplicate billing once all capabilities are verified. Six phases, each delivering a complete verifiable capability that unblocks the next.
 
----
+## Phases
 
-## Phase 7: Database Foundation
+**Phase Numbering:**
+- Phases 1-11: v1-v2 milestones (GSD, complete)
+- Phases A-L: v4.0-v4.3 milestones (PAUL, complete)
+- Phases 12-17: v5.0 Agent Unification (GSD, active)
+- Decimal phases (e.g., 13.1): Urgent insertions if needed
 
-**Goal:** Jarvis has a persistent storage layer that survives browser sessions and works on serverless
+- [ ] **Phase 12: Foundation & Migration** - Standalone repo, SDK upgrade, scheduler and research schemas
+- [ ] **Phase 13: Vault Integration** - Bitwarden MCP with session management and credential injection
+- [ ] **Phase 14: Sub-Agents & Browser Engine** - Role-specialized sub-agents with Playwright browser automation
+- [ ] **Phase 15: Approval Gateway & Bill Pay** - Telegram approval flow and first end-to-end bill payment
+- [ ] **Phase 16: Research & Applications** - Research-as-library with grant and credit application workflows
+- [ ] **Phase 17: Agent Zero Sunset** - Port remaining capabilities and decommission A0
 
-**Depends on:** v1 complete (Phase 6)
+## Phase Details
 
-**Requirements:**
-- MEM-01: User can have facts persist across browser sessions
-- MEM-08: Jarvis logs daily session events to persistent storage
+### Phase 12: Foundation & Migration
+**Goal**: Jarvis runs from its own repo with the new Claude Agent SDK, flexible scheduler, and research storage schemas ready for feature work
+**Depends on**: v4.3 complete (PAUL phases)
+**Requirements**: FOUND-01, FOUND-02, FOUND-03, FOUND-04
+**Success Criteria** (what must be TRUE):
+  1. Jarvis runs from C:\Users\jonch\Projects\jarvis with PM2 processes healthy and Cloudflare tunnel serving jarvis.whatamiappreciatingnow.com
+  2. Claude Agent SDK (@anthropic-ai/claude-agent-sdk) is installed and ccodeBrain.ts calls succeed with the new API surface
+  3. User can add, edit, and remove scheduled tasks via Telegram or web UI without restarting the process
+  4. Research library SQLite tables exist and accept structured research entries with semantic search returning results
+**Plans**: TBD
 
-**Plans:** 3 plans
+### Phase 13: Vault Integration
+**Goal**: Jarvis can retrieve credentials from Bitwarden and inject them into tool workflows without the LLM ever seeing raw secret values
+**Depends on**: Phase 12
+**Requirements**: VAULT-01, VAULT-02
+**Success Criteria** (what must be TRUE):
+  1. Bitwarden MCP server is configured in .mcp.json and responds to credential retrieval requests
+  2. Vault session auto-unlocks on Jarvis startup and re-authenticates transparently when session expires mid-task
+  3. A canary test confirms that no credential value appears in LLM conversation history or logs after a credential retrieval + injection cycle
+**Plans**: TBD
 
-Plans:
-- [x] 07-01-PLAN.md — Install Drizzle + libsql, configure environment
-- [x] 07-02-PLAN.md — Create schema (memory_entries, sessions, daily_logs) + db client
-- [x] 07-03-PLAN.md — Query functions, API routes, verify persistence
+### Phase 14: Sub-Agents & Browser Engine
+**Goal**: Jarvis can spawn role-specialized sub-agents and automate browser interactions including navigation, form filling, and screenshot verification
+**Depends on**: Phase 13 (browser login flows require vault credentials)
+**Requirements**: AGENT-01, AGENT-02, AGENT-03, BROWSER-01, BROWSER-02, BROWSER-03, BROWSER-04
+**Success Criteria** (what must be TRUE):
+  1. Sub-agents (browser-worker, researcher, form-filler) can be spawned with restricted tool sets matching their role
+  2. A browser-worker sub-agent can navigate to a website, fill a form field, and capture a before/after screenshot
+  3. When a site blocks automation or requires CAPTCHA/2FA, Jarvis pauses and notifies Jon via Telegram with a screenshot instead of failing silently
+  4. Sub-agent context is scoped (focused prompts, not full system context) -- verified by checking sub-agent token usage stays under 15K input tokens per turn
+**Plans**: TBD
 
-**Success Criteria:**
-1. User can close browser, reopen, and see that previous session data exists
-2. Session events (start time, topics discussed) are written to database
-3. Database works in both local development (SQLite file) and serverless (libsql)
-4. Schema includes tables for memory_entries, daily_logs, and sessions
+### Phase 15: Approval Gateway & Bill Pay
+**Goal**: Jon can trigger a bill payment through voice, Telegram, or web UI and Jarvis executes it end-to-end with mandatory human approval before any financial action
+**Depends on**: Phase 14 (needs browser automation + vault)
+**Requirements**: VAULT-03, VAULT-04, BILL-01, BILL-02, BILL-03
+**Success Criteria** (what must be TRUE):
+  1. When Jarvis is about to perform a sensitive action (payment, form submission), Jon receives a Telegram approval request with a confirmation screenshot and inline keyboard buttons
+  2. The workflow pauses on approval request and resumes only after Jon approves via Telegram callback -- rejections cancel the workflow cleanly
+  3. Jon can say "pay my Duke Energy bill" and Jarvis navigates to the portal, authenticates via vault, fills the payment amount, waits for approval, submits, and confirms with a receipt screenshot
+  4. Payment confirmation is logged with screenshot and Notion bill status is updated
+**Plans**: TBD
 
-**Research Needed:** No - @libsql/client + Drizzle well-documented
+### Phase 16: Research & Applications
+**Goal**: Jarvis can research topics, store structured findings, and use them to auto-populate grant and credit applications
+**Depends on**: Phase 15 (needs approval gateway for form submissions + browser automation)
+**Requirements**: RESEARCH-01, RESEARCH-02, RESEARCH-03, RESEARCH-04, RESEARCH-05
+**Success Criteria** (what must be TRUE):
+  1. A researcher sub-agent can search the web, read pages, and store structured findings (eligibility, deadlines, requirements, amounts) in the research library
+  2. Jon can ask "what grants am I eligible for?" and get results from the research library with semantic search across stored findings
+  3. A form-filler sub-agent can retrieve research findings and Jon's business profile to auto-populate application fields, then request approval before submission
+  4. Jon can trigger a grant application workflow that researches the grant, verifies eligibility, fills the application from stored data, and submits after approval
+  5. Corporate credit research is stored with business profile data ready for future application workflows
+**Plans**: TBD
 
-**Status:** COMPLETE
-
----
-
-## Phase 8: Memory Loading & Integration
-
-**Goal:** Jarvis loads and references memory context at conversation start without breaking existing features
-
-**Depends on:** Phase 7
-
-**Requirements:**
-- MEM-06: Jarvis loads relevant memory context at session start
-- MEM-07: Jarvis references previous conversations naturally ("Yesterday you mentioned...")
-- MEM-11: Jarvis proactively surfaces relevant memories in context
-
-**Plans:** 3 plans
-
-Plans:
-- [x] 08-01-PLAN.md — Memory retrieval with scoring and token budgeting
-- [x] 08-02-PLAN.md — System prompt integration with feature flag
-- [x] 08-03-PLAN.md — Proactive surfacing of pending items and context
-
-**Success Criteria:**
-1. When user opens Jarvis, relevant facts from previous sessions appear in system context
-2. Jarvis can reference yesterday's conversation naturally in responses
-3. Jarvis proactively mentions relevant stored facts when contextually appropriate
-4. Feature flag allows disabling memory loading without breaking v1 features
-5. Memory injection respects context window limits (no overflow)
-
-**Research Needed:** No - extension of existing architecture
-
-**Status:** COMPLETE
-
----
-
-## Phase 9: Memory Writing & Tools
-
-**Goal:** User can explicitly manage what Jarvis remembers through voice commands
-
-**Depends on:** Phase 8
-
-**Requirements:**
-- MEM-02: User can explicitly tell Jarvis to remember something
-- MEM-03: User can explicitly tell Jarvis to forget something
-- MEM-04: User can ask what Jarvis remembers
-- MEM-05: User can delete all stored memories
-- MEM-09: Jarvis learns user communication preferences over time
-- MEM-10: Jarvis decays unused memories to prevent bloat
-
-**Plans:** 4 plans in 3 waves
-
-Plans:
-- [x] 09-01-PLAN.md — Soft delete infrastructure and fuzzy matching
-- [x] 09-02-PLAN.md — Memory tools (remember, forget, list, delete all)
-- [x] 09-03-PLAN.md — System prompt guidance and memory decay
-- [x] 09-04-PLAN.md — Preference learning (observation tracking, inference)
-
-**Wave Structure:**
-- Wave 1: 09-01 (soft delete foundation)
-- Wave 2: 09-02, 09-03 (memory tools + decay - parallel)
-- Wave 3: 09-04 (preference learning)
-
-**Success Criteria:**
-1. User can say "Remember I have therapy on Thursdays" and fact persists
-2. User can say "Forget that preference" and targeted fact is removed
-3. User can ask "What do you know about me?" and get comprehensive answer
-4. User can say "Delete all memories" with confirmation and all data is cleared
-5. Jarvis adapts response style based on observed preferences (brevity vs detail)
-6. Old unaccessed memories have reduced retrieval priority
-
-**Research Needed:** Minimal - tool format may need iteration
-
-**Status:** COMPLETE
-
----
-
-## Phase 10: Guardrails & Safety
-
-**Goal:** All Jarvis actions have appropriate safety controls and audit trails
-
-**Depends on:** Phase 9
-
-**Requirements:**
-- GUARD-01: Destructive actions require explicit confirmation (ALREADY EXISTS for memory tools)
-- GUARD-02: All tool invocations logged with timestamp and parameters
-- GUARD-03: Memory entries tagged with source (user-explicit vs inferred) - provenance affects decay
-- GUARD-04: ~~Malicious content detection~~ SKIPPED per CONTEXT.md (single-user, trust self)
-- GUARD-05: Context window utilization monitored to prevent instruction drift
-- FIX-01: Captured items during check-ins reach Notion inbox
-- FIX-02: Tomorrow preview in evening check-in shows real data
-
-**Plans:** 4 plans in 2 waves
-
-Plans:
-- [x] 10-01-PLAN.md — Wire audit logging to tool executors (sessionId propagation)
-- [x] 10-02-PLAN.md — Add query_audit_log tool for "what did you do?" queries
-- [x] 10-03-PLAN.md — Fix check-in bugs (Notion capture, tomorrow preview)
-- [x] 10-04-PLAN.md — Decay respects provenance, context window monitoring
-
-**Wave Structure:**
-- Wave 1: 10-01, 10-03, 10-04 (parallel - independent concerns)
-- Wave 2: 10-02 (depends on 10-01 for audit data to exist)
-
-**Success Criteria:**
-1. Every tool call appears in audit log with timestamp, tool name, parameters
-2. User can ask "what did you do?" and get readable action history
-3. Explicit memories never decay (permanent until user deletes)
-4. Context utilization logged, warnings at 80%+
-5. Items captured during check-ins appear in Notion inbox
-6. Evening check-in tomorrow preview shows actual task data
-
-**Research Needed:** No - research complete (10-RESEARCH.md)
-
-**Status:** COMPLETE
-
----
-
-## Phase 11: Production Deployment
-
-**Goal:** Jarvis is deployed to production with proper security and monitoring
-
-**Depends on:** Phase 10
-
-**Requirements:**
-- PROD-01: Jarvis deployed to jarvis.whatamiappreciatingnow.com
-- PROD-02: All API keys stored securely (not exposed to client)
-- PROD-03: Production database configured (Turso)
-- PROD-04: Custom domain with HTTPS configured
-
-**Plans:** 4 plans in 2 waves
-
-Plans:
-- [x] 11-01-PLAN.md — Replace MCP with Direct Notion SDK
-- [x] 11-02-PLAN.md — API authentication middleware
-- [x] 11-03-PLAN.md — Production hardening (race condition, env leaks, timezone)
-- [x] 11-04-PLAN.md — Deploy and verify all functionality
-
-**Wave Structure:**
-- Wave 1: 11-01, 11-02, 11-03 (parallel - independent fixes)
-- Wave 2: 11-04 (depends on Wave 1 - deployment + verification)
-
-**Success Criteria:**
-1. User can access Jarvis at jarvis.whatamiappreciatingnow.com
-2. No API keys appear in client-side JavaScript or network requests
-3. Production database (Turso) is connected and storing data
-4. HTTPS certificate valid and auto-renewing
-5. Cold start latency acceptable (under 3 seconds)
-
-**Research Needed:** Complete (11-RESEARCH.md)
-
-**Status:** COMPLETE
-
----
+### Phase 17: Agent Zero Sunset
+**Goal**: All Agent Zero capabilities are verified in Jarvis and the A0 container is decommissioned, eliminating duplicate API billing
+**Depends on**: Phase 16 (all capabilities must be verified before decommission)
+**Requirements**: SUNSET-01, SUNSET-02, SUNSET-03
+**Success Criteria** (what must be TRUE):
+  1. All 5 Agent Zero scheduled tasks are running in Jarvis flexible scheduler and producing expected outputs
+  2. Visopscreen and crypto skills are accessible from Jarvis (as MCP tools, sub-agent workflows, or explicit deferral with documented rationale)
+  3. Agent Zero container and Cloudflare tunnel are stopped and docker-compose entry removed, with no loss of functionality Jon actively uses
+**Plans**: TBD
 
 ## Progress
 
-| Phase | Name | Requirements | Status |
-|-------|------|--------------|--------|
-| 7 | Database Foundation | MEM-01, MEM-08 | Complete (3/3 plans) |
-| 8 | Memory Loading & Integration | MEM-06, MEM-07, MEM-11 | Complete (3/3 plans) |
-| 9 | Memory Writing & Tools | MEM-02, MEM-03, MEM-04, MEM-05, MEM-09, MEM-10 | Complete (4/4 plans) |
-| 10 | Guardrails & Safety | GUARD-01 to GUARD-05, FIX-01, FIX-02 | Complete (4/4 plans) |
-| 11 | Production Deployment | PROD-01 to PROD-04 | Complete (4/4 plans) |
+**Execution Order:**
+Phases execute in numeric order: 12 -> 13 -> 14 -> 15 -> 16 -> 17
 
----
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 12. Foundation & Migration | 0/TBD | Not started | - |
+| 13. Vault Integration | 0/TBD | Not started | - |
+| 14. Sub-Agents & Browser Engine | 0/TBD | Not started | - |
+| 15. Approval Gateway & Bill Pay | 0/TBD | Not started | - |
+| 16. Research & Applications | 0/TBD | Not started | - |
+| 17. Agent Zero Sunset | 0/TBD | Not started | - |
 
 ## Requirement Coverage
 
 | REQ-ID | Phase | Description |
 |--------|-------|-------------|
-| MEM-01 | 7 | Facts persist across browser sessions |
-| MEM-02 | 9 | Explicit "remember" command |
-| MEM-03 | 9 | Explicit "forget" command |
-| MEM-04 | 9 | Ask what Jarvis remembers |
-| MEM-05 | 9 | Delete all stored memories |
-| MEM-06 | 8 | Load memory context at session start |
-| MEM-07 | 8 | Reference previous conversations |
-| MEM-08 | 7 | Log daily session events |
-| MEM-09 | 9 | Learn communication preferences |
-| MEM-10 | 9 | Decay unused memories |
-| MEM-11 | 8 | Proactively surface relevant memories |
-| PROD-01 | 11 | Deploy to subdomain |
-| PROD-02 | 11 | Secure API key storage |
-| PROD-03 | 11 | Turso production database |
-| PROD-04 | 11 | Custom domain with HTTPS |
-| FIX-01 | 10 | Inbox capture bug |
-| FIX-02 | 10 | Tomorrow preview bug |
-| GUARD-01 | 10 | Confirmation for destructive actions (EXISTS) |
-| GUARD-02 | 10 | Tool invocation logging |
-| GUARD-03 | 10 | Memory source tagging (provenance) |
-| GUARD-04 | 10 | ~~Malicious content detection~~ SKIPPED |
-| GUARD-05 | 10 | Context window monitoring |
+| FOUND-01 | 12 | Repo migrated to standalone project with working PM2 |
+| FOUND-02 | 12 | Claude Agent SDK replaces claude-code SDK |
+| FOUND-03 | 12 | Flexible scheduler with DB-driven task CRUD |
+| FOUND-04 | 12 | Research-as-library schema in SQLite |
+| VAULT-01 | 13 | Bitwarden MCP integrated for credential injection |
+| VAULT-02 | 13 | Bitwarden session management with auto-unlock |
+| AGENT-01 | 14 | Sub-agent definitions with role specialization |
+| AGENT-02 | 14 | Sub-agents have restricted tool access |
+| AGENT-03 | 14 | Context isolation for sub-agents |
+| BROWSER-01 | 14 | Playwright engine for browser automation |
+| BROWSER-02 | 14 | Screenshot-based verification |
+| BROWSER-03 | 14 | Graceful failure with Telegram notification |
+| BROWSER-04 | 14 | CAPTCHA/2FA pause and notify |
+| VAULT-03 | 15 | Telegram approval gateway for sensitive actions |
+| VAULT-04 | 15 | Async approval flow with pause/resume |
+| BILL-01 | 15 | Trigger bill payment via voice, Telegram, or web |
+| BILL-02 | 15 | Navigate, authenticate, fill, submit after approval |
+| BILL-03 | 15 | Payment confirmation captured and logged |
+| RESEARCH-01 | 16 | Research sub-agent stores structured findings |
+| RESEARCH-02 | 16 | Research library with structured fields and semantic search |
+| RESEARCH-03 | 16 | Form-filler retrieves research + business profile for auto-populate |
+| RESEARCH-04 | 16 | Grant application workflow end-to-end |
+| RESEARCH-05 | 16 | Corporate credit application groundwork |
+| SUNSET-01 | 17 | Agent Zero scheduled tasks ported to Jarvis |
+| SUNSET-02 | 17 | Visopscreen and crypto skills accessible from Jarvis |
+| SUNSET-03 | 17 | Agent Zero container and tunnel decommissioned |
 
-**Coverage:** 21/22 requirements mapped (GUARD-04 intentionally skipped)
-
----
+**Coverage:** 26/26 v5.0 requirements mapped
 
 ## Key Dependencies
 
 ```
-Phase 7: Database Foundation
-    |
+Phase 12: Foundation & Migration
+    |  (SDK migration unblocks sub-agents)
     v
-Phase 8: Memory Loading & Integration
-    |
+Phase 13: Vault Integration
+    |  (credentials required for browser login flows)
     v
-Phase 9: Memory Writing & Tools
-    |
+Phase 14: Sub-Agents & Browser Engine
+    |  (browser automation needed for bill pay)
     v
-Phase 10: Guardrails & Safety
-    |
+Phase 15: Approval Gateway & Bill Pay
+    |  (approval + browser needed for application submissions)
     v
-Phase 11: Production Deployment
+Phase 16: Research & Applications
+    |  (all capabilities must be verified before sunset)
+    v
+Phase 17: Agent Zero Sunset
 ```
-
-All phases are sequential - each builds on the previous. No parallel work possible across phases.
-
----
 
 ## Research Flags
 
 | Phase | Needs Research | Notes |
 |-------|----------------|-------|
-| 7 | No | Drizzle + @libsql/client well-documented |
-| 8 | No | Extension of existing VoicePipeline |
-| 9 | Minimal | Tool format may need iteration |
-| 10 | No | Research complete (10-RESEARCH.md) |
-| 11 | No | Research complete (11-RESEARCH.md) |
+| 12 | No | SDK migration documented, schemas follow existing Drizzle conventions |
+| 13 | Yes | BW_SESSION lifecycle on Windows + PM2, master password storage approach |
+| 14 | Yes | Per-site bot detection, sub-agent prompt sizing, headed mode on Windows |
+| 15 | Yes | Grant form structures, approval UX patterns, target bill pay site recon |
+| 16 | Minimal | Research schema may need field additions after reviewing real forms |
+| 17 | No | Skill audit is inventory work, translation pattern documented |
 
 ---
 
-*Created: 2026-02-02*
-*Updated: 2026-02-15 - Phase 11 complete, v2.0 milestone done*
-*Milestone: v2.0 Memory & Production*
+*Created: 2026-03-17*
+*Milestone: v5.0 Agent Unification*

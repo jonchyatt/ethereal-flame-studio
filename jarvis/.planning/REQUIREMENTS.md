@@ -79,38 +79,38 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | — | Pending |
-| FOUND-02 | — | Pending |
-| FOUND-03 | — | Pending |
-| FOUND-04 | — | Pending |
-| VAULT-01 | — | Pending |
-| VAULT-02 | — | Pending |
-| VAULT-03 | — | Pending |
-| VAULT-04 | — | Pending |
-| AGENT-01 | — | Pending |
-| AGENT-02 | — | Pending |
-| AGENT-03 | — | Pending |
-| BROWSER-01 | — | Pending |
-| BROWSER-02 | — | Pending |
-| BROWSER-03 | — | Pending |
-| BROWSER-04 | — | Pending |
-| BILL-01 | — | Pending |
-| BILL-02 | — | Pending |
-| BILL-03 | — | Pending |
-| RESEARCH-01 | — | Pending |
-| RESEARCH-02 | — | Pending |
-| RESEARCH-03 | — | Pending |
-| RESEARCH-04 | — | Pending |
-| RESEARCH-05 | — | Pending |
-| SUNSET-01 | — | Pending |
-| SUNSET-02 | — | Pending |
-| SUNSET-03 | — | Pending |
+| FOUND-01 | Phase 12 | Pending |
+| FOUND-02 | Phase 12 | Pending |
+| FOUND-03 | Phase 12 | Pending |
+| FOUND-04 | Phase 12 | Pending |
+| VAULT-01 | Phase 13 | Pending |
+| VAULT-02 | Phase 13 | Pending |
+| VAULT-03 | Phase 15 | Pending |
+| VAULT-04 | Phase 15 | Pending |
+| AGENT-01 | Phase 14 | Pending |
+| AGENT-02 | Phase 14 | Pending |
+| AGENT-03 | Phase 14 | Pending |
+| BROWSER-01 | Phase 14 | Pending |
+| BROWSER-02 | Phase 14 | Pending |
+| BROWSER-03 | Phase 14 | Pending |
+| BROWSER-04 | Phase 14 | Pending |
+| BILL-01 | Phase 15 | Pending |
+| BILL-02 | Phase 15 | Pending |
+| BILL-03 | Phase 15 | Pending |
+| RESEARCH-01 | Phase 16 | Pending |
+| RESEARCH-02 | Phase 16 | Pending |
+| RESEARCH-03 | Phase 16 | Pending |
+| RESEARCH-04 | Phase 16 | Pending |
+| RESEARCH-05 | Phase 16 | Pending |
+| SUNSET-01 | Phase 17 | Pending |
+| SUNSET-02 | Phase 17 | Pending |
+| SUNSET-03 | Phase 17 | Pending |
 
 **Coverage:**
 - v5.0 requirements: 26 total
-- Mapped to phases: 0 (pending roadmap creation)
-- Unmapped: 26
+- Mapped to phases: 26
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-16*
-*Last updated: 2026-03-16 after research synthesis*
+*Last updated: 2026-03-17 after roadmap creation*
