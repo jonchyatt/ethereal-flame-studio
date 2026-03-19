@@ -8,27 +8,27 @@ An audio-reactive video generation engine that transforms audio files (meditatio
 
 **Phone to published video without touching a computer.** A creator should be able to upload audio from their phone, pick a preset, and have a finished video posted to YouTube/social media — fully automated.
 
-## Current Milestone: v3.0 Floating Widget Design System
+## Current Milestone: v4.0 Cinema VFX Pipeline
 
-**Goal:** Replace the deeply nested AdvancedEditor with Photoshop-style free-floating widget panels for one-click access to any control, plus template actions and render target splitting.
+**Goal:** Add Blender as a second render path controlled by Claude via MCP, producing cinema-quality fire, water, VFX, and "luminous being" transformations far beyond WebGL limits.
 
 **Target features:**
-- Free-floating draggable/resizable widget panels on the Design screen
-- 18 parameter groups consolidated into 9 focused widget components
-- Widget toolbar with open/close toggles for all widgets
-- Z-order management (click-to-front) and minimize-to-title-bar
-- Widget positions/sizes persist across page refreshes (localStorage)
-- Workspace layouts: save/load/delete named widget arrangements
-- Template action buttons ("Use in Render", "Use in Experience")
-- Render target split: processing target vs save destination
-- Mobile fallback to scrollable sheets instead of floating widgets
-- Lazy-loaded widget content (closed widgets = zero bundle cost)
+- Blender MCP integration (Claude controls Blender via blender-mcp)
+- Mantaflow fire simulation driven by audio analysis
+- Mantaflow water simulation with caustics, foam, reflections
+- World building with Poly Haven, Sketchfab, AI-generated assets
+- 8K stereoscopic equirectangular VR renders from Blender/Cycles
+- Video compositing with depth-aware occlusion on real 360 footage
+- EDM light show effects (volumetric lasers, LED grids, beat-synced strobes)
+- Luminous Being pipeline (transform person video into glowing being of light)
+- Chrome MCP visual intelligence research (analyze reference creators like UON Visuals)
+- CLI-Anything integration for token-efficient repeated Blender operations
 
-**Architecture (approved):**
-- react-rnd for drag + resize (15KB gzipped, touch support, bounds)
-- Z-index range z-[75]-z-[85] (above panels z-50, below modals z-100)
-- Workspace layouts in localStorage (independent from visual templates)
-- Widget content reads directly from useVisualStore with individual selectors
+**Two render paths (new architecture):**
+- **Preview:** Three.js (browser) — real-time, good quality, live tweaking
+- **Cinema:** Blender/Cycles (via MCP) — minutes-hours, photorealistic, final output
+
+**Parallel milestone:** v3.0 (Floating Widget Design System, phases 20-25) continues for UI polish
 
 ## Requirements
 
@@ -51,23 +51,35 @@ An audio-reactive video generation engine that transforms audio files (meditatio
 
 ### Active
 
-- [ ] Free-floating draggable/resizable widget panels (react-rnd)
-- [ ] 9 standalone widget components extracted from AdvancedEditor
-- [ ] Widget toolbar with open/close toggles
-- [ ] Z-order management, minimize, persist positions
-- [ ] Workspace layouts (save/load/delete named arrangements)
-- [ ] Template action buttons ("Use in Render", "Use in Experience")
-- [ ] Render target split (processing target + save destination)
-- [ ] Mobile fallback to scrollable sheets
+**v4.0 Cinema VFX Pipeline:**
+- [ ] Blender MCP integration (blender-mcp + CLI-Anything setup)
+- [ ] Mantaflow fire simulation driven by audio bass channel
+- [ ] Mantaflow water with caustics, foam, fire-over-water scene
+- [ ] World building with Poly Haven HDRIs and Sketchfab/AI assets
+- [ ] 8K stereoscopic equirectangular VR renders from Cycles
+- [ ] Depth-aware video compositing on real 360 footage
+- [ ] EDM volumetric lasers, LED grids, beat-synced strobes
+- [ ] Luminous Being: person segmentation + volumetric glow + fire body
+- [ ] Chrome MCP visual research (analyze UON Visuals and reference creators)
+- [ ] Audio-to-keyframe mapping system for Blender animations
+- [ ] Multi-layer Blender compositor and render pipeline
+
+**v3.0 Floating Widget Design System (parallel, phases 20-25):**
+- [ ] 9 widget content components extracted from AdvancedEditor
+- [ ] Widget toolbar + localStorage persistence
+- [ ] Workspace layouts, template actions, render target split
+- [ ] Mobile fallback + lazy loading
 
 ### Out of Scope
 
 - Real-time live streaming — batch rendering only
 - Mobile native app — web-based, mobile-friendly
 - Multi-user accounts — single creator workflow initially
-- Cloud-synced workspace layouts — localStorage is sufficient for single user
-- Collaborative editing — single creator workflow
-- Plugin system for custom widgets — not needed at current scale
+- Real-time Blender rendering — batch/offline via Cycles only
+- Face recognition in Luminous Being — Claude refuses, use silhouette only
+- Continuous video frame polling — event-driven and on-demand only
+- Custom Blender UI addon — Claude controls via MCP, no GUI addon needed
+- Self-hosted ML models on Vercel — segmentation runs locally or on GPU service
 
 ## Context
 
@@ -75,23 +87,36 @@ An audio-reactive video generation engine that transforms audio files (meditatio
 
 **v2.0 Complete:** Phases 12-18 shipped the full cloud production stack (Vercel + Render + Turso + R2 + Modal).
 
-**Current pain point:** The AdvancedEditor (2,293 lines) buries controls 5-7 clicks deep in nested accordion panels. Users want Photoshop-style free-floating panels with one-click access to any control.
+**v3.0 In Progress:** Phase 19 shipped (widget shell). Phases 20-25 queued for UI polish (parallel with v4.0).
 
-**Critical files to decompose:**
-- `src/components/ui/AdvancedEditor.tsx` (2,293 lines → 9 widget components)
-- `src/components/ui/ControlPanel.tsx` (407 lines → widget toolbar)
-- `src/components/ui/TemplateCard.tsx` (112 lines → action buttons)
-- `src/components/ui/CreateOverlay.tsx` (409 lines → render target)
-- `src/components/ui/RenderDialog.tsx` (~1,700 lines → render target)
+**v4.0 Motivation:** The Three.js browser engine is beautiful for real-time preview but physically limited by WebGL. Blender's Mantaflow, Cycles, and compositor unlock cinema-quality output: volumetric fire, realistic water, depth-aware compositing, and the "Luminous Being" concept (transforming a person into a glowing being of light).
+
+**Prior research (from v1.0 Phase 7):**
+- `.planning/research/BLENDER_FIRE_ORB.md` — Mantaflow fire simulation
+- `.planning/research/BLENDER_WATER.md` — Water simulation
+- `.planning/phases/07-blender-vfx-pipeline/07-RESEARCH.md` — Full Phase 7 research
+- `.planning/phases/07-blender-vfx-pipeline/07-RESEARCH-EDM-EFFECTS.md` — EDM effects
+- `.planning/phases/07-blender-vfx-pipeline/07-RESEARCH-BLENDER-360-STEREO.md` — VR rendering
+- `.planning/phases/07-blender-vfx-pipeline/07-RESEARCH-VR-COMPOSITING.md` — Compositing
+- `.planning/phases/07-blender-vfx-pipeline/07-RESEARCH-DEPTH-MAPS.md` — Depth extraction
+- `.planning/phases/07-blender-vfx-pipeline/07-VISION-BLENDER-MCP-REVOLUTION.md` — Full vision doc
+
+**Reference creators:**
+- **UON Visuals** (youtube.com/channel/UCS1TSWgO5uh6g3lCw6Kgj4A) — Sound-reactive 4K HDR fractal visuals, 360/VR psychedelic content. Jonathan's primary reference for understanding what makes EDM visuals "spark off the screen" despite using the same pixels as a spreadsheet.
+
+**Key tools:**
+- **blender-mcp** (v1.5.5, 18K stars) — MCP bridge giving Claude direct Python access to Blender
+- **CLI-Anything** (v1.0.0, 19K stars) — CLI generation framework for token-efficient repeated operations
 
 ## Constraints
 
-- **Tech Stack**: Next.js + Three.js + Zustand + Tailwind — consistent with existing code
-- **react-rnd**: Only new dependency for drag/resize (15KB gzipped)
+- **Tech Stack**: Next.js + Three.js + Zustand + Tailwind (web app), Blender + Python (cinema pipeline)
+- **Blender**: 4.x LTS required for Mantaflow, Cycles, compositor
+- **blender-mcp**: Single MCP client, 180s timeout, unsandboxed exec(), base64 screenshots (use sparingly)
 - **No UI libraries**: Hand-built Tailwind (no MUI, Radix, etc.)
-- **Mobile support**: Widgets must fall back to scrollable sheets on mobile
-- **Bundle size**: Closed widgets must not contribute to bundle (lazy loading)
 - **Resolution**: Must support up to 8K for VR master output
+- **Segmentation**: MediaPipe for fast inference, SAM for high quality — both run in Python
+- **No face recognition**: Claude refuses face recognition; use silhouette/mask only
 
 ## Key Decisions
 
@@ -104,10 +129,15 @@ An audio-reactive video generation engine that transforms audio files (meditatio
 | R2 over Vercel Blob | Free egress, cheaper storage, S3-compatible | ✓ Good |
 | Turso polling over Redis queue | Simpler, cheaper ($0 vs $10/mo), sufficient at launch volume | ✓ Good |
 | Storage adapter pattern | Keep local dev working, swap to R2 in production | ✓ Good |
-| react-rnd for widgets | 15KB gzipped, handles touch, bounds, edge cases | — Pending |
-| z-[75]-z-[85] for widgets | Above panels z-50, below modals z-100 | — Pending |
-| 18 groups → 9 widgets | Logical grouping reduces clutter while keeping discoverability | — Pending |
-| localStorage for workspaces | Independent from visual templates, single-user sufficient | — Pending |
+| react-rnd for widgets | 15KB gzipped, handles touch, bounds, edge cases | — Pending (v3.0) |
+| z-[75]-z-[85] for widgets | Above panels z-50, below modals z-100 | — Pending (v3.0) |
+| 18 groups → 9 widgets | Logical grouping reduces clutter while keeping discoverability | — Pending (v3.0) |
+| localStorage for workspaces | Independent from visual templates, single-user sufficient | — Pending (v3.0) |
+| blender-mcp for Claude→Blender | Direct Python access via MCP, 22 tools, asset integrations | — Pending (v4.0) |
+| CLI-Anything for token efficiency | Wrap repetitive Blender ops as CLI commands, JSON output | — Pending (v4.0) |
+| Two render paths (Preview + Cinema) | Three.js for real-time, Blender/Cycles for final output | — Pending (v4.0) |
+| MediaPipe → SAM for segmentation | Fast first, high-quality later; per-frame mask export | — Pending (v4.0) |
+| Chrome MCP for visual research | Analyze reference creators to decode perceptual principles | — Pending (v4.0) |
 
 ---
-*Last updated: 2026-03-05 after v3.0 milestone start*
+*Last updated: 2026-03-19 after v4.0 milestone start*
