@@ -1,5 +1,6 @@
 'use client';
 
+import { useShallow } from 'zustand/react/shallow';
 import { useWidgetStore, selectOpenWidgetIds } from '@/lib/stores/widgetStore';
 import { WidgetId, WIDGET_CONFIGS } from '@/types/widget';
 import { WidgetContainer } from './WidgetContainer';
@@ -60,7 +61,7 @@ function WidgetPanel({ id }: { id: WidgetId }) {
  * to constrain widgets within this container.
  */
 export function WidgetLayer() {
-  const openWidgetIds = useWidgetStore(selectOpenWidgetIds);
+  const openWidgetIds = useWidgetStore(useShallow(selectOpenWidgetIds));
 
   if (openWidgetIds.length === 0) return null;
 
