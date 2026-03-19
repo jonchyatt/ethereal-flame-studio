@@ -1,6 +1,6 @@
 # Requirements: Ethereal Flame Studio
 
-**Defined:** 2026-01-26 (v1.0), Updated: 2026-02-20 (v2.0), Updated: 2026-03-05 (v3.0)
+**Defined:** 2026-01-26 (v1.0), Updated: 2026-02-20 (v2.0), Updated: 2026-03-05 (v3.0), Updated: 2026-03-19 (v4.0)
 **Core Value:** Phone to published video without touching a computer
 
 ## v1.0 Requirements (Validated)
@@ -25,9 +25,9 @@ All v2.0 requirements shipped in Phases 12-18. See MILESTONES.md for details.
 - DEPLOY-01 through DEPLOY-04: Config & deploy (Phases 16, 17)
 - SEC-01, SEC-02: Security (Phase 14)
 
-## v3.0 Requirements
+## v3.0 Requirements (In Progress)
 
-Requirements for the Floating Widget Design System. Each maps to roadmap phases 19-25.
+Requirements for the Floating Widget Design System. Phases 19-25 (parallel with v4.0).
 
 ### Widget System (WIDG)
 
@@ -66,42 +66,7 @@ Requirements for the Floating Widget Design System. Each maps to roadmap phases 
 - [ ] **RNDR-03**: When "agent path" is selected, user can specify a file path on the local-agent machine
 - [ ] **RNDR-04**: Save destination options are context-aware (agent path disabled when processing on cloud)
 
-## v3.1 Requirements (Deferred)
-
-- **WIDG-10**: Widget snapping to edges and other widgets
-- **WIDG-11**: Widget grouping (link multiple widgets together)
-- **WKSP-05**: Import/export workspace layouts as JSON
-- **RNDR-05**: Progress streaming from local-agent render jobs
-
-## Out of Scope
-
-| Feature | Reason |
-|---------|--------|
-| Cloud-synced workspace layouts | localStorage sufficient for single user |
-| Collaborative editing | Single creator workflow |
-| Plugin system for custom widgets | Not needed at current scale |
-| Widget animation/transitions | Minimal UX value, adds complexity |
-| Undo/redo for widget positions | Save/load workspace covers this use case |
-
-## Widget Grouping Reference
-
-18 AdvancedEditor parameter groups consolidated into 9 widgets:
-
-| Widget | Name | Source Groups |
-|--------|------|---------------|
-| global | Global & Mode | Intensity slider |
-| audio | Audio Dynamics | 4 presets + 16 sliders |
-| particles | Particle Layers | LayerEditor per layer |
-| placement | Orb & Camera | Orb Placement + Camera |
-| skybox-core | Skybox | Mode, preset, rotation, VR, audio reactivity |
-| video-skybox | Video Skybox | Upload/URL + yaw/pitch |
-| masking | Masking | Luma/chroma + rect mask + seam + hole fix + pole fade |
-| patches | Patches & Logo | Patch pick + A-D + pole logo |
-| water | Water | Enable, color, reflectivity |
-
-## Traceability
-
-Which phases cover which requirements. Updated during roadmap creation.
+### v3.0 Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -128,11 +93,138 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RNDR-03 | Phase 24 | Pending |
 | RNDR-04 | Phase 24 | Pending |
 
-**Coverage:**
-- v3.0 requirements: 22 total
-- Mapped to phases: 22/22
-- Unmapped: 0
+**v3.0 Coverage:** 22 total, 22 mapped, 0 unmapped
 
 ---
-*Requirements defined: 2026-03-05*
-*Last updated: 2026-03-05 -- v3.0 traceability mapped to phases 19-25*
+
+## v4.0 Requirements
+
+Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
+
+**Constraint:** Existing Three.js orb system (Flame, Mist, Solar Breath) remains completely untouched. Blender is an additive second render path, not a replacement.
+
+### Tool Setup & Discipline (TOOL)
+
+- [ ] **TOOL-01**: Claude can create and modify Blender scenes via blender-mcp MCP commands
+- [ ] **TOOL-02**: Long operations (sim bakes, Cycles renders) run asynchronously without hitting MCP timeout
+- [ ] **TOOL-03**: Proof-of-concept Mantaflow fire orb renders successfully from test audio track
+
+### Audio Bridge (AUD4)
+
+- [ ] **AUD4-01**: Audio analysis exports as JSON from browser with 8+ frequency bands (sub-bass through air)
+- [ ] **AUD4-02**: Onset detection and envelope followers per band included in audio export
+- [ ] **AUD4-03**: keyframe_generator.py reads audio JSON and inserts Blender keyframes via bpy.keyframe_insert()
+- [ ] **AUD4-04**: Mapping presets available (Meditation / EDM / Ambient) with different parameter profiles
+- [ ] **AUD4-05**: 8+ audio features mapped to 8+ independent visual parameters simultaneously (emergent complexity principle)
+
+### Fire Simulation (FIRE)
+
+- [ ] **FIRE-01**: Mantaflow fire with Principled Volume + Blackbody shader at multi-scale detail (billows + turbulence + fine wisps)
+- [ ] **FIRE-02**: Fire intensity driven by audio bass channel via keyframe mapping
+- [ ] **FIRE-03**: Color temperature cycles with spectral centroid (brighter music = hotter/whiter fire)
+- [ ] **FIRE-04**: Cycles render with compositor bloom, motion blur, and light-casting produces cinema-quality output
+- [ ] **FIRE-05**: Side-by-side comparison shows cinema quality visibly exceeds Three.js Solar Breath
+
+### Water Simulation (WATR)
+
+- [ ] **WATR-01**: Physics-based water surface with Ocean Modifier responds to audio treble
+- [ ] **WATR-02**: Fire-over-water scene renders with caustic reflections of fire in water
+- [ ] **WATR-03**: Water includes foam and spray particle systems for physical realism
+
+### World Building (WRLD)
+
+- [ ] **WRLD-01**: Scenes use Poly Haven HDRIs for photorealistic environment lighting
+- [ ] **WRLD-02**: 3D assets from Sketchfab or AI generators (Rodin/Hunyuan3D) placed in scenes for context
+
+### VR Cinema Rendering (VR)
+
+- [ ] **VR-01**: 8K stereoscopic equirectangular output from Blender panoramic camera
+- [ ] **VR-02**: VR spatial metadata injected for correct YouTube/Meta Quest VR playback
+- [ ] **VR-03**: VR output validated in actual headset without discomfort (safe IPD, no nausea-inducing motion)
+
+### EDM Light Show Effects (EDM)
+
+- [ ] **EDM-01**: Volumetric laser beams with beat-synced scanning animation
+- [ ] **EDM-02**: LED grid with per-column frequency band mapping and amplitude-to-emission keyframes
+- [ ] **EDM-03**: Dynamic range principle implemented (10% emission during breakdowns, 100% on drops)
+
+### Compositing Pipeline (COMP)
+
+- [ ] **COMP-01**: Multi-layer compositor combines fire + water + EDM + luminous being as separate render passes
+- [ ] **COMP-02**: Depth maps extracted from video using Video Depth Anything for VR compositing
+- [ ] **COMP-03**: Virtual effects composited onto real 360 footage with depth-aware occlusion
+
+### Luminous Being (LUMI)
+
+- [ ] **LUMI-01**: Person segmented from video via SAM 2.1 with temporal consistency across frames
+- [ ] **LUMI-02**: Person silhouette filled with audio-reactive volumetric glow (Principled Volume)
+- [ ] **LUMI-03**: Particles emit from body silhouette (same modes as Three.js orb: Flame, Mist, Solar Breath)
+- [ ] **LUMI-04**: Mantaflow fire wisps emanate from body mesh as flow source
+- [ ] **LUMI-05**: Corona edge glow around body driven by treble frequency
+- [ ] **LUMI-06**: Complete Luminous Being effect is audio-reactive with per-layer frequency mapping
+
+### Visual Intelligence Research (VRES)
+
+- [ ] **VRES-01**: Chrome MCP analysis of UON Visuals decodes perceptual principles (fractal detail, emergent complexity, contrast, synchronization, expectation violation)
+- [ ] **VRES-02**: Documented principles applied to fire/water/EDM/luminous being template parameters
+
+### Integration & Efficiency (INTG)
+
+- [ ] **INTG-01**: CLI-Anything custom harness wraps 5+ validated EFS-specific Blender workflows
+- [ ] **INTG-02**: Batch render script queues multiple scenes for overnight rendering
+- [ ] **INTG-03**: Complete pipeline demonstrated from audio file to final cinema render output
+
+### v4.0 Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| (populated during roadmap creation) | | |
+
+**v4.0 Coverage:**
+- v4.0 requirements: 38 total
+- Mapped to phases: 0
+- Unmapped: 38
+
+## v4.1 Requirements (Deferred)
+
+- **WRLD-03**: World building with procedurally generated landscapes (Geometry Nodes)
+- **VR-04**: Apple Vision Pro spatial video output format
+- **LUMI-07**: Multiple people tracked simultaneously in Luminous Being
+- **INTG-04**: Modal cloud rendering for Blender scenes (GPU offload)
+- **INTG-05**: Web UI self-service for Blender render job submission
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Replacing Three.js orb system | Blender is additive only; Three.js stays for real-time preview |
+| Real-time Blender rendering | Batch/offline via Cycles only; Three.js handles real-time |
+| Face recognition in Luminous Being | Claude refuses face recognition; silhouette-only by design |
+| Custom Blender GUI addon | Claude controls via MCP; no GUI addon needed |
+| Self-hosted ML models on Vercel | SAM 2, depth estimation need persistent GPU; run locally |
+| Eevee for VR output | Does not support panoramic cameras |
+| "Bass drives scale" as sole mapping | Anti-pattern; emergent complexity requires 8+ simultaneous mappings |
+| Cloud-synced workspace layouts (v3.0) | localStorage sufficient for single user |
+| Collaborative editing (v3.0) | Single creator workflow |
+| Spatial audio | Out of scope for the visual pipeline |
+| Continuous video frame polling | Event-driven and on-demand only |
+
+## Widget Grouping Reference (v3.0)
+
+18 AdvancedEditor parameter groups consolidated into 9 widgets:
+
+| Widget | Name | Source Groups |
+|--------|------|---------------|
+| global | Global & Mode | Intensity slider |
+| audio | Audio Dynamics | 4 presets + 16 sliders |
+| particles | Particle Layers | LayerEditor per layer |
+| placement | Orb & Camera | Orb Placement + Camera |
+| skybox-core | Skybox | Mode, preset, rotation, VR, audio reactivity |
+| video-skybox | Video Skybox | Upload/URL + yaw/pitch |
+| masking | Masking | Luma/chroma + rect mask + seam + hole fix + pole fade |
+| patches | Patches & Logo | Patch pick + A-D + pole logo |
+| water | Water | Enable, color, reflectivity |
+
+---
+*Requirements defined: 2026-01-26 (v1.0)*
+*Last updated: 2026-03-19 after v4.0 milestone requirements definition*
