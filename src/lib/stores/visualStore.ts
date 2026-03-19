@@ -331,6 +331,83 @@ export const ETHEREAL_MIST_CONFIG: VisualModeConfig = {
   ],
 };
 
+// Solar Breath mode configuration
+// Inspired by Reset Biology breathing orb — static sun with solar flares
+// Dense core, zero particle drift, breathing pulse via audio reactivity
+export const SOLAR_BREATH_CONFIG: VisualModeConfig = {
+  key: 'solarBreath',
+  label: 'Solar Breath',
+  description: 'Static sun with solar flares — breathes with audio',
+  colorPalette: {
+    primary: [1.0, 0.95, 0.8],     // White-hot center
+    secondary: [1.0, 0.7, 0.2],    // Gold
+    accent: [1.0, 0.3, 0.05],      // Deep orange
+  },
+  skyboxPreset: 'DarkWorld1',
+  layers: [
+    // Layer 1: Dense white-hot core — lots of particles, zero drift
+    {
+      id: 'solar-core',
+      name: 'Solar Core',
+      enabled: true,
+      layerOpacity: 1.0,
+      particleCount: 80,
+      baseSize: 4.0,
+      spawnRadius: 0.08,            // Very tight — dense sun core
+      maxSpeed: 0.001,              // Near-zero drift — static sun
+      lifetime: 2.5,
+      audioReactivity: 3.0,         // Strong breathing pulse
+      frequencyBand: 'bass',
+      sizeAtBirth: 0.05,
+      sizeAtPeak: 1.0,
+      sizeAtDeath: 0.1,
+      peakLifetime: 0.4,
+      colorStart: [1.0, 0.95, 0.85],  // White-hot
+      colorEnd: [1.0, 0.75, 0.3],     // Gold
+    },
+    // Layer 2: Corona / solar flares — larger, sparser, slight outward reach
+    {
+      id: 'solar-corona',
+      name: 'Corona',
+      enabled: true,
+      layerOpacity: 0.85,
+      particleCount: 40,
+      baseSize: 8.0,
+      spawnRadius: 0.25,            // Slightly wider — corona halo
+      maxSpeed: 0.005,              // Barely drifting
+      lifetime: 3.5,
+      audioReactivity: 2.5,
+      frequencyBand: 'mids',
+      sizeAtBirth: 0.1,
+      sizeAtPeak: 1.0,
+      sizeAtDeath: 0.15,
+      peakLifetime: 0.35,
+      colorStart: [1.0, 0.6, 0.15],   // Orange-gold
+      colorEnd: [1.0, 0.25, 0.0],     // Deep orange-red
+    },
+    // Layer 3: Flare wisps — sparse, large, slow pulse for solar flare tendrils
+    {
+      id: 'solar-flares',
+      name: 'Flares',
+      enabled: true,
+      layerOpacity: 0.6,
+      particleCount: 15,
+      baseSize: 12.0,               // Large for dramatic flare effect
+      spawnRadius: 0.4,             // Wider reach — flare tendrils
+      maxSpeed: 0.003,              // Almost static
+      lifetime: 5.0,
+      audioReactivity: 2.0,
+      frequencyBand: 'treble',
+      sizeAtBirth: 0.02,
+      sizeAtPeak: 1.0,
+      sizeAtDeath: 0.05,
+      peakLifetime: 0.5,
+      colorStart: [1.0, 0.4, 0.05],   // Orange
+      colorEnd: [0.8, 0.15, 0.0],     // Dark red edge
+    },
+  ],
+};
+
 // Default dual-layer configuration (VIS-05)
 // Target: 15-20% at rest, expands to 30-40% with audio
 // Reduced counts, larger sizes for organic texture-based rendering
@@ -462,6 +539,7 @@ export const useVisualStore = create<VisualState>((set) => ({
   modeConfigs: {
     etherealMist: ETHEREAL_MIST_CONFIG,
     etherealFlame: ETHEREAL_FLAME_CONFIG,
+    solarBreath: SOLAR_BREATH_CONFIG,
   },
   // Audio dynamics defaults
   decaySpeed: 0.04,

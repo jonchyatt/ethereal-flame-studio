@@ -5,7 +5,7 @@ import { ParticleLayerConfig } from '@/types';
  * Matches renderable fields from visualStore/template settings.
  */
 export interface RenderVisualConfig {
-  mode?: 'flame' | 'mist';
+  mode?: 'flame' | 'mist' | 'solar';
   intensity?: number;
   skyboxPreset?: string;
   skyboxRotationSpeed?: number;

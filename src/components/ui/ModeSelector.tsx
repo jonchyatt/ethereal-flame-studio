@@ -17,7 +17,7 @@ export function ModeSelector() {
   const modeConfigs = useVisualStore((state) => state.modeConfigs);
   const setMode = useVisualStore((state) => state.setMode);
 
-  const modes: VisualMode[] = ['etherealMist', 'etherealFlame'];
+  const modes: VisualMode[] = ['etherealMist', 'etherealFlame', 'solarBreath'];
 
   return (
     <div className="flex flex-col gap-2">

@@ -37,7 +37,7 @@ export const RenderConfigSchema = z.object({
   }),
 
   visual: z.object({
-    mode: z.enum(['flame', 'mist'] as const),
+    mode: z.enum(['flame', 'mist', 'solar'] as const),
     intensity: z.number().optional(),
     skyboxPreset: z.string(),
     skyboxRotationSpeed: z.number().min(0).max(2),
@@ -260,7 +260,7 @@ export interface RenderConfigVisualState {
 
 export function buildVisualConfigFromState(visualState: RenderConfigVisualState): RenderConfig['visual'] {
   const config: RenderConfig['visual'] = {
-    mode: visualState.currentMode === 'etherealFlame' ? 'flame' : 'mist',
+    mode: visualState.currentMode === 'etherealFlame' ? 'flame' : visualState.currentMode === 'solarBreath' ? 'solar' : 'mist',
     intensity: visualState.intensity,
     skyboxPreset: visualState.skyboxPreset.key,
     skyboxRotationSpeed: visualState.skyboxRotationSpeed,

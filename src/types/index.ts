@@ -49,7 +49,7 @@ export interface ParticleSystemConfig {
 }
 
 // Visual mode types (plans 01-05, 01-06)
-export type VisualMode = 'etherealMist' | 'etherealFlame';
+export type VisualMode = 'etherealMist' | 'etherealFlame' | 'solarBreath';
 
 export type VisualModeConfig = {
   key: VisualMode;

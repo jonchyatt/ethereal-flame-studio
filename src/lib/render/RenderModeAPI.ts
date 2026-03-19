@@ -191,7 +191,7 @@ const renderModeAPI: WindowRenderModeAPI = {
 
     // Set the mode (without replacing layers, since we set them explicitly)
     if (mode) {
-      const storeMode = mode === 'flame' ? 'etherealFlame' : 'etherealMist';
+      const storeMode = mode === 'flame' ? 'etherealFlame' : mode === 'solar' ? 'solarBreath' : 'etherealMist';
       store.setState({ currentMode: storeMode } as any);
     }
 
