@@ -1,0 +1,122 @@
+{
+  "name": "Cinematic",
+  "description": "Dynamic, dramatic fire for orchestral, ambient, and cinematic audio. Crest factor and chromagram drive intensity swells. Spectral contrast creates depth variation.",
+  "audio_style": "cinematic",
+  "auto_classify_hints": {
+    "bpm_max": 200,
+    "centroid_min": 0.0,
+    "crest_factor_min": 0.0
+  },
+  "mappings": [
+    {
+      "source_feature": "crest_factor",
+      "target_object": "efs_fire_flow",
+      "target_property": "fuel_amount",
+      "data_path": "modifiers[\"Fluid\"].flow_settings.fuel_amount",
+      "curve_type": "BEZIER",
+      "scale": 2.5,
+      "offset": 0.3,
+      "clamp_min": 0.1,
+      "clamp_max": 3.0
+    },
+    {
+      "source_feature": "lufs",
+      "target_object": "efs_fire_flow",
+      "target_property": "temperature",
+      "data_path": "modifiers[\"Fluid\"].flow_settings.temperature",
+      "curve_type": "BEZIER",
+      "scale": 3.0,
+      "offset": 1.5,
+      "clamp_min": 0.5,
+      "clamp_max": 4.0
+    },
+    {
+      "source_feature": "chromagram",
+      "target_object": "efs_fire_material",
+      "target_property": "blackbody_intensity",
+      "data_path": "active_material.node_tree.nodes[\"Principled Volume\"].inputs[\"Blackbody Intensity\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 2.5,
+      "offset": 0.3,
+      "clamp_min": 0.1,
+      "clamp_max": 2.5
+    },
+    {
+      "source_feature": "spectral_contrast",
+      "target_object": "efs_fire_material",
+      "target_property": "density",
+      "data_path": "active_material.node_tree.nodes[\"Principled Volume\"].inputs[\"Density\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 10.0,
+      "offset": 3.0,
+      "clamp_min": 1.0,
+      "clamp_max": 12.0
+    },
+    {
+      "source_feature": "envelopes.bass",
+      "target_object": "efs_fire_domain",
+      "target_property": "flame_max_temp",
+      "data_path": "modifiers[\"Fluid\"].domain_settings.flame_max_temp",
+      "curve_type": "BEZIER",
+      "scale": 4.0,
+      "offset": 1.5,
+      "clamp_min": 1.0,
+      "clamp_max": 5.5
+    },
+    {
+      "source_feature": "rms_energy",
+      "target_object": "efs_fire_key_light",
+      "target_property": "energy",
+      "data_path": "data.energy",
+      "curve_type": "BEZIER",
+      "scale": 200.0,
+      "offset": 30.0,
+      "clamp_min": 10.0,
+      "clamp_max": 250.0
+    },
+    {
+      "source_feature": "spectral_centroid",
+      "target_object": "efs_fire_key_light",
+      "target_property": "color_temp",
+      "data_path": "data.color",
+      "curve_type": "BEZIER",
+      "scale": 1.0,
+      "offset": 0.0,
+      "clamp_min": 0.0,
+      "clamp_max": 1.0
+    },
+    {
+      "source_feature": "envelopes.mid",
+      "target_object": "efs_fire_camera",
+      "target_property": "focal_length",
+      "data_path": "data.lens",
+      "curve_type": "BEZIER",
+      "scale": 25.0,
+      "offset": 45.0,
+      "clamp_min": 35.0,
+      "clamp_max": 85.0
+    },
+    {
+      "source_feature": "spectral_flatness",
+      "target_object": "__world__",
+      "target_property": "background_strength",
+      "data_path": "node_tree.nodes[\"Background\"].inputs[\"Strength\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 0.4,
+      "offset": 0.02,
+      "clamp_min": 0.01,
+      "clamp_max": 0.4
+    },
+    {
+      "source_feature": "lr_balance",
+      "target_object": "efs_fire_camera",
+      "target_property": "horizontal_shift",
+      "data_path": "data.shift_x",
+      "curve_type": "BEZIER",
+      "scale": 0.05,
+      "offset": 0.0,
+      "clamp_min": -0.05,
+      "clamp_max": 0.05
+    }
+  ]
+}
