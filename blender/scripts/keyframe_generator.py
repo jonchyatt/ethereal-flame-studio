@@ -24,6 +24,7 @@ Addresses:
 import bpy
 import json
 import os
+import re
 import shutil
 from pathlib import Path
 
@@ -369,6 +370,24 @@ def resolve_target(mapping):
 
         return (obj, set_val, kf_insert)
 
+    # -- Pattern 9: Object rotation (rotation_euler with axis index) --
+    if data_path.startswith("rotation_euler"):
+        # Parse: rotation_euler[0], rotation_euler[1], rotation_euler[2]
+        match = re.match(r'rotation_euler\[(\d+)\]', data_path)
+        if match:
+            axis_index = int(match.group(1))
+
+            def set_val(v, o=obj, idx=axis_index):
+                o.rotation_euler[idx] = v
+
+            def kf_insert(frame, o=obj, idx=axis_index):
+                o.keyframe_insert(data_path="rotation_euler", index=idx, frame=frame)
+
+            return (obj, set_val, kf_insert)
+        else:
+            print(f"[keyframe_gen] WARNING: Could not parse rotation_euler index from: {data_path}")
+            return (None, None, None)
+
     # -- Fallback: try generic attribute path --
     print(f"[keyframe_gen] WARNING: Unrecognized data_path pattern: {data_path} -- "
           f"attempting generic setattr")
@@ -569,6 +588,79 @@ def apply_audio_keyframes(audio_json_path, preset_name=None, preset_path=None):
         if frame_count > 100 and (i + 1) % (frame_count // 10) == 0:
             pct = int((i + 1) / frame_count * 100)
             print(f"[keyframe_gen] Progress: {pct}% ({i + 1}/{frame_count} frames)")
+
+    # -- Dynamic range pass (EDM-03: breakdown darkness / drop brightness) --
+    dynamic_range = preset.get("dynamic_range", None)
+    if dynamic_range:
+        rms_threshold = dynamic_range.get("breakdown_rms_threshold", 0.15)
+        breakdown_multiplier = dynamic_range.get("breakdown_multiplier", 0.1)
+        drop_multiplier = dynamic_range.get("drop_multiplier", 1.0)
+        sustain_frames = dynamic_range.get("breakdown_sustain_frames", 15)
+        target_mappings = dynamic_range.get("targets", [])
+
+        # Resolve dynamic range targets upfront
+        dr_resolved = []
+        for target_spec in target_mappings:
+            target_obj, set_fn, kf_fn = resolve_target(target_spec)
+            if target_obj is None:
+                print(f"[keyframe_gen] SKIPPING dynamic_range target: "
+                      f"{target_spec.get('target_object', '?')}.{target_spec.get('target_property', '?')} "
+                      f"(target not found)")
+                continue
+            dr_resolved.append((target_spec, set_fn, kf_fn))
+
+        if dr_resolved:
+            print(f"[keyframe_gen] Dynamic range pass: {len(dr_resolved)} targets, "
+                  f"RMS threshold={rms_threshold}, sustain={sustain_frames} frames")
+
+            # Detect breakdown/drop regions
+            in_breakdown = False
+            low_rms_count = 0
+
+            for i, frame_data in enumerate(frames):
+                blender_frame = frame_data["frame"] + 1
+                rms = resolve_feature_value(frame_data, "rms_energy")
+                bass_onset = resolve_feature_value(frame_data, "onsets.bass")
+
+                # Breakdown detection: RMS below threshold for N consecutive frames
+                if rms < rms_threshold:
+                    low_rms_count += 1
+                    if low_rms_count >= sustain_frames:
+                        in_breakdown = True
+                else:
+                    if in_breakdown and bass_onset > 0.5:
+                        # DROP detected: bass onset after breakdown
+                        in_breakdown = False
+                        low_rms_count = 0
+                        multiplier = drop_multiplier
+                    elif not in_breakdown:
+                        low_rms_count = 0
+                        continue  # Normal section, skip multiplier application
+                    else:
+                        # Still in breakdown but RMS spiked without bass onset
+                        pass
+
+                if in_breakdown:
+                    multiplier = breakdown_multiplier
+                elif low_rms_count > 0 and low_rms_count < sustain_frames:
+                    continue  # Building up to breakdown, don't modify yet
+                elif not (in_breakdown or (low_rms_count == 0 and bass_onset > 0.5)):
+                    continue  # Normal, no multiplier needed
+
+                # Apply multiplier to all dynamic_range target objects
+                for target_spec, set_fn, kf_fn in dr_resolved:
+                    current = resolve_feature_value(frame_data, target_spec.get("source_feature", "rms_energy"))
+                    scaled = current * target_spec.get("scale", 1.0) + target_spec.get("offset", 0.0)
+                    final = clamp(scaled * multiplier, target_spec.get("clamp_min", 0.0), target_spec.get("clamp_max", 1e6))
+                    try:
+                        apply_mapping(set_fn, kf_fn, final, blender_frame, target_spec.get("curve_type", "CONSTANT"))
+                        total_keyframes += 1
+                    except Exception as e:
+                        print(f"[keyframe_gen] ERROR in dynamic_range at frame {blender_frame}: {e}")
+
+            print(f"[keyframe_gen] Dynamic range pass complete")
+        else:
+            print(f"[keyframe_gen] Dynamic range: no valid targets resolved, skipping")
 
     # Set scene frame range and FPS from audio metadata
     scene = bpy.context.scene
