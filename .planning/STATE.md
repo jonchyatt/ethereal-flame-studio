@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Floating Widget Design System
-status: executing
-stopped_at: Completed 32-02-PLAN.md
-last_updated: "2026-03-20T05:40:02.033Z"
-last_activity: 2026-03-20 -- Completed 32-02 Luminous Being template with 4 effect layers
+status: completed
+stopped_at: Completed 32-03-PLAN.md
+last_updated: "2026-03-20T05:44:42.765Z"
+last_activity: 2026-03-20 -- Completed 32-03 Luminous Being audio mapping preset (14 mappings)
 progress:
   total_phases: 8
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 18
-  completed_plans: 17
-  percent: 94
+  completed_plans: 18
+  percent: 100
 ---
 
 # Project State
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Phase 32 -- Luminous Being (2/3 plans done)
+**Current focus:** Phase 32 -- Luminous Being (3/3 plans COMPLETE)
 
 ---
 
 ## Current Position
 
 Phase: 32 of 33 (Luminous Being)
-Plan: 2 of 3 in current phase
-Status: In Progress
-Last activity: 2026-03-20 -- Completed 32-02 Luminous Being template with 4 effect layers
+Plan: 3 of 3 in current phase
+Status: Phase Complete
+Last activity: 2026-03-20 -- Completed 32-03 Luminous Being audio mapping preset (14 mappings)
 
-Progress: [█████████░] 94%
+Progress: [██████████] 100%
 
 ---
 
@@ -117,6 +117,9 @@ Progress: [█████████░] 94%
 - [Phase 32]: Fire wisps at 50% quality resolution (accent effect, not hero)
 - [Phase 32]: Multi-modifier body mesh: same object carries particle system + Fluid Flow modifier
 - [Phase 32]: Per-effect-layer collections for compositor isolation (LumiVolFill/Particles/FireWisps/Corona)
+- [Phase 32]: Per-layer frequency separation for emergent complexity (bass->fill, mid->particles, treble->corona, onsets->fire)
+- [Phase 32]: Particle emission target is efs_lumi_particles (render instance), not efs_lumi_body (emitter mesh)
+- [Phase 32]: Dynamic range breakdown at 0.12 RMS threshold, 20-frame sustain, 15% dimming (more sensitive than EDM)
 
 ### Critical Pitfalls (from research)
 
@@ -135,11 +138,11 @@ None blocking. Blender 5.0.1 fire crash is documented but not blocking (pipeline
 
 ## Session Continuity
 
-Last session: 2026-03-20T05:39:58.314Z
-Stopped at: Completed 32-02-PLAN.md
-Resume with: Phase 32 Plan 03
+Last session: 2026-03-20T05:44:41.675Z
+Stopped at: Completed 32-03-PLAN.md
+Resume with: Phase 33 (next phase)
 Resume file: None
 
 ---
 
-*Last updated: 2026-03-20 -- Phase 32 in progress (2/3 plans: Luminous Being template with 4 effect layers)*
+*Last updated: 2026-03-20 -- Phase 32 COMPLETE (3/3 plans: body mesh pipeline + template + audio mapping preset)*

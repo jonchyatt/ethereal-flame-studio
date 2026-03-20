@@ -161,7 +161,7 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 - [x] **LUMI-03**: Particles emit from body silhouette (same modes as Three.js orb: Flame, Mist, Solar Breath)
 - [x] **LUMI-04**: Mantaflow fire wisps emanate from body mesh as flow source
 - [x] **LUMI-05**: Corona edge glow around body driven by treble frequency
-- [ ] **LUMI-06**: Complete Luminous Being effect is audio-reactive with per-layer frequency mapping
+- [x] **LUMI-06**: Complete Luminous Being effect is audio-reactive with per-layer frequency mapping
 
 ### Visual Intelligence Research (VRES)
 
@@ -210,7 +210,7 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 | LUMI-03 | Phase 32 | Complete |
 | LUMI-04 | Phase 32 | Complete |
 | LUMI-05 | Phase 32 | Complete |
-| LUMI-06 | Phase 32 | Pending |
+| LUMI-06 | Phase 32 | Complete |
 | VRES-01 | Phase 33 | Pending |
 | VRES-02 | Phase 33 | Pending |
 | INTG-01 | Phase 33 | Pending |
