@@ -165,12 +165,12 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 
 ### Visual Intelligence Research (VRES)
 
-- [ ] **VRES-01**: Chrome MCP analysis of UON Visuals decodes perceptual principles (fractal detail, emergent complexity, contrast, synchronization, expectation violation)
-- [ ] **VRES-02**: Documented principles applied to fire/water/EDM/luminous being template parameters
+- [x] **VRES-01**: Chrome MCP analysis of UON Visuals decodes perceptual principles (fractal detail, emergent complexity, contrast, synchronization, expectation violation)
+- [x] **VRES-02**: Documented principles applied to fire/water/EDM/luminous being template parameters
 
 ### Integration & Efficiency (INTG)
 
-- [ ] **INTG-01**: CLI-Anything custom harness wraps 5+ validated EFS-specific Blender workflows
+- [x] **INTG-01**: CLI-Anything custom harness wraps 5+ validated EFS-specific Blender workflows
 - [ ] **INTG-02**: Batch render script queues multiple scenes for overnight rendering
 - [ ] **INTG-03**: Complete pipeline demonstrated from audio file to final cinema render output
 
@@ -211,9 +211,9 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 | LUMI-04 | Phase 32 | Complete |
 | LUMI-05 | Phase 32 | Complete |
 | LUMI-06 | Phase 32 | Complete |
-| VRES-01 | Phase 33 | Pending |
-| VRES-02 | Phase 33 | Pending |
-| INTG-01 | Phase 33 | Pending |
+| VRES-01 | Phase 33 | Complete |
+| VRES-02 | Phase 33 | Complete |
+| INTG-01 | Phase 33 | Complete |
 | INTG-02 | Phase 33 | Pending |
 | INTG-03 | Phase 33 | Pending |
 

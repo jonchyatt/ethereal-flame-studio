@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Floating Widget Design System
-status: completed
-stopped_at: Completed 32-03-PLAN.md
-last_updated: "2026-03-20T05:45:27.494Z"
-last_activity: 2026-03-20 -- Completed 32-03 Luminous Being audio mapping preset (14 mappings)
+status: executing
+stopped_at: Completed 33-01-PLAN.md
+last_updated: "2026-03-20T06:00:03.064Z"
+last_activity: 2026-03-20 -- Completed 33-03 Visual principles JSON + apply utility
 progress:
   total_phases: 8
-  completed_phases: 7
-  total_plans: 18
-  completed_plans: 18
-  percent: 100
+  completed_phases: 8
+  total_plans: 21
+  completed_plans: 21
+  percent: 95
 ---
 
 # Project State
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Phase 32 -- Luminous Being (3/3 plans COMPLETE)
+**Current focus:** Phase 33 -- Integration & Visual Intelligence (3/3 plans in progress)
 
 ---
 
 ## Current Position
 
-Phase: 32 of 33 (Luminous Being)
+Phase: 33 of 33 (Integration & Visual Intelligence)
 Plan: 3 of 3 in current phase
-Status: Phase Complete
-Last activity: 2026-03-20 -- Completed 32-03 Luminous Being audio mapping preset (14 mappings)
+Status: In Progress
+Last activity: 2026-03-20 -- Completed 33-03 Visual principles JSON + apply utility
 
-Progress: [██████████] 100%
+Progress: [█████████░] 95%
 
 ---
 
@@ -120,6 +120,14 @@ Progress: [██████████] 100%
 - [Phase 32]: Per-layer frequency separation for emergent complexity (bass->fill, mid->particles, treble->corona, onsets->fire)
 - [Phase 32]: Particle emission target is efs_lumi_particles (render instance), not efs_lumi_body (emitter mesh)
 - [Phase 32]: Dynamic range breakdown at 0.12 RMS threshold, 20-frame sustain, 15% dimming (more sensitive than EDM)
+- [Phase 33]: Lazy imports inside CLI handler functions -- avoids import errors in partial-template contexts
+- [Phase 33]: No argparse for CLI -- positional string args only, designed for exec(open()) in Blender
+- [Phase 33]: Scene type detection ordered most-specific-first: luminous > edm > combo > fire > water
+- [Phase 33]: Default preset/output names derived from detected scene type for zero-arg dispatch
+- [Phase 33]: 5 perceptual VFX principles from professional analysis (UON Visuals, Beeple, Electric Sheep) -- Chrome MCP live analysis deferred
+- [Phase 33]: sync_precision and expectation_violation are keyframe-generation recommendations, not direct scene modifications
+- [Phase 33]: Safe object detection checks efs_fire_domain / efs_combo_* / efs_lumi_* naming patterns before modifying
+- [Phase 33]: 5 perceptual VFX principles from professional analysis -- Chrome MCP live analysis deferred
 
 ### Critical Pitfalls (from research)
 
@@ -138,11 +146,11 @@ None blocking. Blender 5.0.1 fire crash is documented but not blocking (pipeline
 
 ## Session Continuity
 
-Last session: 2026-03-20T05:44:41.675Z
-Stopped at: Completed 32-03-PLAN.md
-Resume with: Phase 33 (next phase)
+Last session: 2026-03-20T06:00:00.991Z
+Stopped at: Completed 33-01-PLAN.md
+Resume with: Check if all 33-XX plans have summaries
 Resume file: None
 
 ---
 
-*Last updated: 2026-03-20 -- Phase 32 COMPLETE (3/3 plans: body mesh pipeline + template + audio mapping preset)*
+*Last updated: 2026-03-20 -- Phase 33-03 complete (visual principles JSON + apply utility)*
