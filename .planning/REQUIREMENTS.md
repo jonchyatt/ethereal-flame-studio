@@ -157,10 +157,10 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 ### Luminous Being (LUMI)
 
 - [x] **LUMI-01**: Person segmented from video via SAM 2.1 with temporal consistency across frames
-- [ ] **LUMI-02**: Person silhouette filled with audio-reactive volumetric glow (Principled Volume)
-- [ ] **LUMI-03**: Particles emit from body silhouette (same modes as Three.js orb: Flame, Mist, Solar Breath)
-- [ ] **LUMI-04**: Mantaflow fire wisps emanate from body mesh as flow source
-- [ ] **LUMI-05**: Corona edge glow around body driven by treble frequency
+- [x] **LUMI-02**: Person silhouette filled with audio-reactive volumetric glow (Principled Volume)
+- [x] **LUMI-03**: Particles emit from body silhouette (same modes as Three.js orb: Flame, Mist, Solar Breath)
+- [x] **LUMI-04**: Mantaflow fire wisps emanate from body mesh as flow source
+- [x] **LUMI-05**: Corona edge glow around body driven by treble frequency
 - [ ] **LUMI-06**: Complete Luminous Being effect is audio-reactive with per-layer frequency mapping
 
 ### Visual Intelligence Research (VRES)
@@ -206,10 +206,10 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 | EDM-02 | Phase 31 | Complete |
 | EDM-03 | Phase 31 | Complete |
 | LUMI-01 | Phase 32 | Complete |
-| LUMI-02 | Phase 32 | Pending |
-| LUMI-03 | Phase 32 | Pending |
-| LUMI-04 | Phase 32 | Pending |
-| LUMI-05 | Phase 32 | Pending |
+| LUMI-02 | Phase 32 | Complete |
+| LUMI-03 | Phase 32 | Complete |
+| LUMI-04 | Phase 32 | Complete |
+| LUMI-05 | Phase 32 | Complete |
 | LUMI-06 | Phase 32 | Pending |
 | VRES-01 | Phase 33 | Pending |
 | VRES-02 | Phase 33 | Pending |

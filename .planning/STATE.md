@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Floating Widget Design System
 status: executing
-stopped_at: Completed 32-01-PLAN.md
-last_updated: "2026-03-20T05:33:31.625Z"
-last_activity: 2026-03-20 -- Completed 32-01 SAM segmentation + mask-to-mesh pipeline
+stopped_at: Completed 32-02-PLAN.md
+last_updated: "2026-03-20T05:40:02.033Z"
+last_activity: 2026-03-20 -- Completed 32-02 Luminous Being template with 4 effect layers
 progress:
   total_phases: 8
   completed_phases: 6
   total_plans: 18
-  completed_plans: 16
-  percent: 89
+  completed_plans: 17
+  percent: 94
 ---
 
 # Project State
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Phase 32 -- Luminous Being (1/3 plans done)
+**Current focus:** Phase 32 -- Luminous Being (2/3 plans done)
 
 ---
 
 ## Current Position
 
 Phase: 32 of 33 (Luminous Being)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In Progress
-Last activity: 2026-03-20 -- Completed 32-01 SAM segmentation + mask-to-mesh pipeline
+Last activity: 2026-03-20 -- Completed 32-02 Luminous Being template with 4 effect layers
 
-Progress: [█████████░] 89%
+Progress: [█████████░] 94%
 
 ---
 
@@ -111,6 +111,12 @@ Progress: [█████████░] 89%
 - [Phase 32]: Shape key count capped at 100 with triangular window drivers for smooth frame interpolation
 - [Phase 32]: efs_lumi_* naming namespace for Luminous Being objects
 - [Phase 32]: Two-step pipeline: sam_segmenter.py in system Python (torch), mask_to_mesh.py in Blender Python (bpy)
+- [Phase 32]: Fresnel + ColorRamp + MixShader for corona edge glow (surface shader, not volume)
+- [Phase 32]: Shrinkwrap modifier binds corona to body mesh for shape key synchronization
+- [Phase 32]: Hair particle type with gravity weight controlling drift direction (neg=up, zero=float)
+- [Phase 32]: Fire wisps at 50% quality resolution (accent effect, not hero)
+- [Phase 32]: Multi-modifier body mesh: same object carries particle system + Fluid Flow modifier
+- [Phase 32]: Per-effect-layer collections for compositor isolation (LumiVolFill/Particles/FireWisps/Corona)
 
 ### Critical Pitfalls (from research)
 
@@ -129,11 +135,11 @@ None blocking. Blender 5.0.1 fire crash is documented but not blocking (pipeline
 
 ## Session Continuity
 
-Last session: 2026-03-20T05:33:27.177Z
-Stopped at: Completed 32-01-PLAN.md
-Resume with: Phase 32 Plan 02
+Last session: 2026-03-20T05:39:58.314Z
+Stopped at: Completed 32-02-PLAN.md
+Resume with: Phase 32 Plan 03
 Resume file: None
 
 ---
 
-*Last updated: 2026-03-20 -- Phase 32 in progress (1/3 plans: SAM segmentation + mask-to-mesh pipeline)*
+*Last updated: 2026-03-20 -- Phase 32 in progress (2/3 plans: Luminous Being template with 4 effect layers)*
