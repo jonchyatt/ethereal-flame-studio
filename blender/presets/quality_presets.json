@@ -1,0 +1,50 @@
+{
+  "draft": {
+    "name": "Draft",
+    "description": "Laptop-friendly fast iteration",
+    "resolution_max": 64,
+    "noise_scale": 2,
+    "cycles_samples": 64,
+    "frame_count": 30,
+    "resolution_x": 1280,
+    "resolution_y": 720,
+    "use_denoiser": true,
+    "motion_blur_shutter": 0.3
+  },
+  "preview": {
+    "name": "Preview",
+    "description": "Decent quality, quick turnaround",
+    "resolution_max": 128,
+    "noise_scale": 2,
+    "cycles_samples": 128,
+    "frame_count": 90,
+    "resolution_x": 1920,
+    "resolution_y": 1080,
+    "use_denoiser": true,
+    "motion_blur_shutter": 0.4
+  },
+  "production": {
+    "name": "Production",
+    "description": "Cinema quality output",
+    "resolution_max": 256,
+    "noise_scale": 4,
+    "cycles_samples": 256,
+    "frame_count": 150,
+    "resolution_x": 1920,
+    "resolution_y": 1080,
+    "use_denoiser": true,
+    "motion_blur_shutter": 0.5
+  },
+  "ultra": {
+    "name": "Ultra",
+    "description": "Maximum detail for high-end GPU",
+    "resolution_max": 512,
+    "noise_scale": 4,
+    "cycles_samples": 512,
+    "frame_count": 300,
+    "resolution_x": 3840,
+    "resolution_y": 2160,
+    "use_denoiser": true,
+    "motion_blur_shutter": 0.5
+  }
+}
