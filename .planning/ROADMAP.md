@@ -887,7 +887,12 @@ Plans:
   2. A batch render script queues 3+ scenes and renders them sequentially overnight, with completed renders saved to disk and errors logged
   3. The full pipeline is demonstrated end-to-end: audio file goes in, cinema-quality rendered video comes out, with no manual intermediate steps beyond Claude orchestration
   4. Chrome MCP analysis of UON Visuals (or equivalent reference creator) produces a documented set of perceptual principles with specific parameter recommendations applied to at least one fire/water/EDM template
-**Plans**: TBD
+**Plans**: 3 plans in 1 wave
+
+Plans:
+- [ ] 33-01-PLAN.md — CLI harness wrapping all EFS Blender workflows (13 commands)
+- [ ] 33-02-PLAN.md — Batch render queue + end-to-end pipeline orchestrator
+- [ ] 33-03-PLAN.md — Visual intelligence principles with concrete parameter values
 
 ---
 
