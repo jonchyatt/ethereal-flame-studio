@@ -869,7 +869,12 @@ Plans:
   4. Mantaflow fire wisps emanate from the body mesh, creating the appearance of a person made of flame
   5. A corona edge glow surrounds the body that intensifies with treble frequency content
   6. The complete Luminous Being effect plays back with audio and all layers (volumetric fill, particles, fire wisps, corona) respond to different frequency bands simultaneously
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 32-01-PLAN.md -- SAM 2.1 segmentation + mask-to-mesh pipeline
+- [ ] 32-02-PLAN.md -- Luminous being scene template (volumetric fill, particles, fire wisps, corona)
+- [ ] 32-03-PLAN.md -- Audio mapping preset with per-layer frequency wiring
 
 ---
 
@@ -919,7 +924,7 @@ Plans:
 | 29. Water + World Building | 3/3 | Complete    | 2026-03-20 | - |
 | 30. VR Cinema + Compositing | 3/3 | Complete    | 2026-03-20 | - |
 | 31. EDM Light Show | 2/2 | Complete    | 2026-03-20 | - |
-| 32. Luminous Being | v4.0 | 0/TBD | Not started | - |
+| 32. Luminous Being | v4.0 | 0/3 | Planned | - |
 | 33. Integration + Visual Intelligence | v4.0 | 0/TBD | Not started | - |
 
 ---
