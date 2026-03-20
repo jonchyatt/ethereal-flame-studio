@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Floating Widget Design System
 status: executing
-stopped_at: Completed 30-02-PLAN.md
-last_updated: "2026-03-20T04:54:07.027Z"
-last_activity: 2026-03-20 -- Completed 30-02 multi-layer compositor module
+stopped_at: Completed 30-03-PLAN.md
+last_updated: "2026-03-20T04:59:28.680Z"
+last_activity: 2026-03-20 -- Completed 30-03 depth-aware compositor module
 progress:
   total_phases: 8
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
   percent: 92
 ---
 
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Phase 30 -- VR Cinema Compositing (Plan 02 of 3 complete)
+**Current focus:** Phase 30 -- VR Cinema Compositing (COMPLETE, 3/3 plans done)
 
 ---
 
 ## Current Position
 
 Phase: 30 of 33 (VR Cinema Compositing)
-Plan: 2 of 3 in current phase
-Status: In Progress
-Last activity: 2026-03-20 -- Completed 30-02 multi-layer compositor module
+Plan: 3 of 3 in current phase
+Status: Phase Complete
+Last activity: 2026-03-20 -- Completed 30-03 depth-aware compositor module
 
-Progress: [█████████░] 92%
+Progress: [██████████] 100%
 
 ---
 
@@ -95,6 +95,10 @@ Progress: [█████████░] 92%
 - [Phase 30]: Idempotent collection creation -- reuses existing collection if name matches (safe for MCP re-runs)
 - [Phase 30]: View Layer per element pattern -- each scene element gets own View Layer rendering only its Collection
 - [Phase 30]: View Layer per element: each scene element rendered in isolation via own View Layer + Collection
+- [Phase 30]: LESS_THAN math node for depth comparison: effects_depth < footage_depth = visible, >= = occluded
+- [Phase 30]: Gaussian blur on depth mask for soft edge transitions (resolution-independent blend_width)
+- [Phase 30]: OpenEXR format for Z-pass output: preserves 32-bit float depth precision
+- [Phase 30]: Camera clip_start..clip_end used for Z-pass normalization to 0..1 range
 
 ### Critical Pitfalls (from research)
 
@@ -113,11 +117,11 @@ None blocking. Blender 5.0.1 fire crash is documented but not blocking (pipeline
 
 ## Session Continuity
 
-Last session: 2026-03-20T04:54:04.527Z
-Stopped at: Completed 30-02-PLAN.md
+Last session: 2026-03-20T04:59:28.676Z
+Stopped at: Completed 30-03-PLAN.md
 Resume with: Phase 30 Plan 03
 Resume file: None
 
 ---
 
-*Last updated: 2026-03-20 -- Phase 30 in progress (Plan 02 complete: multi-layer compositor module)*
+*Last updated: 2026-03-20 -- Phase 30 complete (3/3 plans: VR camera, multi-layer compositor, depth-aware compositor)*

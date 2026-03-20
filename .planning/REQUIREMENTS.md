@@ -151,8 +151,8 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 ### Compositing Pipeline (COMP)
 
 - [x] **COMP-01**: Multi-layer compositor combines fire + water + EDM + luminous being as separate render passes
-- [ ] **COMP-02**: Depth maps extracted from video using Video Depth Anything for VR compositing
-- [ ] **COMP-03**: Virtual effects composited onto real 360 footage with depth-aware occlusion
+- [x] **COMP-02**: Depth maps extracted from video using Video Depth Anything for VR compositing
+- [x] **COMP-03**: Virtual effects composited onto real 360 footage with depth-aware occlusion
 
 ### Luminous Being (LUMI)
 
@@ -200,8 +200,8 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 | VR-02 | Phase 30 | Complete |
 | VR-03 | Phase 30 | Complete |
 | COMP-01 | Phase 30 | Complete |
-| COMP-02 | Phase 30 | Pending |
-| COMP-03 | Phase 30 | Pending |
+| COMP-02 | Phase 30 | Complete |
+| COMP-03 | Phase 30 | Complete |
 | EDM-01 | Phase 31 | Pending |
 | EDM-02 | Phase 31 | Pending |
 | EDM-03 | Phase 31 | Pending |
