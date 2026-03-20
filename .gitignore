@@ -104,6 +104,9 @@ blender/masks/
 blender/scenes/*.blend
 blender/scenes/*.blend1
 !blender/scenes/.gitkeep
+blender/jobs/*
+!blender/jobs/.gitkeep
+!blender/jobs/render_queue_example.json
 *.uni
 *.vdb
 *.openexr

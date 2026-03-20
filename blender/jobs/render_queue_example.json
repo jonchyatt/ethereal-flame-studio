@@ -1,0 +1,34 @@
+{
+  "jobs": [
+    {
+      "id": "fire-meditation-preview",
+      "template": "fire",
+      "quality": "preview",
+      "audio_json": "C:/Users/jonch/Projects/ethereal-flame-studio/blender/audio/example-analysis.json",
+      "preset": "fire_cinema",
+      "output_name": "fire_meditation",
+      "vr": false,
+      "enabled": true
+    },
+    {
+      "id": "edm-lights-preview",
+      "template": "edm",
+      "quality": "preview",
+      "audio_json": "C:/Users/jonch/Projects/ethereal-flame-studio/blender/audio/example-analysis.json",
+      "preset": "edm_lights",
+      "output_name": "edm_show",
+      "vr": false,
+      "enabled": true
+    },
+    {
+      "id": "water-ocean-vr-preview",
+      "template": "water",
+      "quality": "preview",
+      "audio_json": "C:/Users/jonch/Projects/ethereal-flame-studio/blender/audio/example-analysis.json",
+      "preset": "water_ocean",
+      "output_name": "water_vr",
+      "vr": true,
+      "enabled": true
+    }
+  ]
+}
