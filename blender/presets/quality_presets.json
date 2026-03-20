@@ -9,7 +9,10 @@
     "resolution_x": 1280,
     "resolution_y": 720,
     "use_denoiser": true,
-    "motion_blur_shutter": 0.3
+    "motion_blur_shutter": 0.3,
+    "vr_resolution_x": 2048,
+    "vr_resolution_y": 1024,
+    "vr_samples_multiplier": 1.0
   },
   "preview": {
     "name": "Preview",
@@ -21,7 +24,10 @@
     "resolution_x": 1920,
     "resolution_y": 1080,
     "use_denoiser": true,
-    "motion_blur_shutter": 0.4
+    "motion_blur_shutter": 0.4,
+    "vr_resolution_x": 4096,
+    "vr_resolution_y": 2048,
+    "vr_samples_multiplier": 1.0
   },
   "production": {
     "name": "Production",
@@ -33,7 +39,10 @@
     "resolution_x": 1920,
     "resolution_y": 1080,
     "use_denoiser": true,
-    "motion_blur_shutter": 0.5
+    "motion_blur_shutter": 0.5,
+    "vr_resolution_x": 8192,
+    "vr_resolution_y": 4096,
+    "vr_samples_multiplier": 1.5
   },
   "ultra": {
     "name": "Ultra",
@@ -45,6 +54,9 @@
     "resolution_x": 3840,
     "resolution_y": 2160,
     "use_denoiser": true,
-    "motion_blur_shutter": 0.5
+    "motion_blur_shutter": 0.5,
+    "vr_resolution_x": 8192,
+    "vr_resolution_y": 4096,
+    "vr_samples_multiplier": 2.0
   }
 }
