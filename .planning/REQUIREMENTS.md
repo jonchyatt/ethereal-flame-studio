@@ -144,9 +144,9 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 
 ### EDM Light Show Effects (EDM)
 
-- [ ] **EDM-01**: Volumetric laser beams with beat-synced scanning animation
-- [ ] **EDM-02**: LED grid with per-column frequency band mapping and amplitude-to-emission keyframes
-- [ ] **EDM-03**: Dynamic range principle implemented (10% emission during breakdowns, 100% on drops)
+- [x] **EDM-01**: Volumetric laser beams with beat-synced scanning animation
+- [x] **EDM-02**: LED grid with per-column frequency band mapping and amplitude-to-emission keyframes
+- [x] **EDM-03**: Dynamic range principle implemented (10% emission during breakdowns, 100% on drops)
 
 ### Compositing Pipeline (COMP)
 
@@ -202,9 +202,9 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 | COMP-01 | Phase 30 | Complete |
 | COMP-02 | Phase 30 | Complete |
 | COMP-03 | Phase 30 | Complete |
-| EDM-01 | Phase 31 | Pending |
-| EDM-02 | Phase 31 | Pending |
-| EDM-03 | Phase 31 | Pending |
+| EDM-01 | Phase 31 | Complete |
+| EDM-02 | Phase 31 | Complete |
+| EDM-03 | Phase 31 | Complete |
 | LUMI-01 | Phase 32 | Pending |
 | LUMI-02 | Phase 32 | Pending |
 | LUMI-03 | Phase 32 | Pending |

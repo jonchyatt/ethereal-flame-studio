@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Floating Widget Design System
-status: completed
-stopped_at: Completed 30-03-PLAN.md
-last_updated: "2026-03-20T05:00:26.806Z"
-last_activity: 2026-03-20 -- Completed 30-03 depth-aware compositor module
+status: executing
+stopped_at: Completed 31-01-PLAN.md
+last_updated: "2026-03-20T05:12:11.219Z"
+last_activity: 2026-03-20 -- Completed 31-01 EDM light show scene template
 progress:
   total_phases: 8
   completed_phases: 5
-  total_plans: 13
-  completed_plans: 13
-  percent: 100
+  total_plans: 15
+  completed_plans: 14
+  percent: 93
 ---
 
 # Project State
@@ -27,12 +27,12 @@ See: .planning/PROJECT.md (updated 2026-03-19)
 
 ## Current Position
 
-Phase: 30 of 33 (VR Cinema Compositing)
-Plan: 3 of 3 in current phase
-Status: Phase Complete
-Last activity: 2026-03-20 -- Completed 30-03 depth-aware compositor module
+Phase: 31 of 33 (EDM Light Show)
+Plan: 1 of 2 in current phase
+Status: In Progress
+Last activity: 2026-03-20 -- Completed 31-01 EDM light show scene template
 
-Progress: [██████████] 100%
+Progress: [█████████░] 93%
 
 ---
 
@@ -99,6 +99,9 @@ Progress: [██████████] 100%
 - [Phase 30]: Gaussian blur on depth mask for soft edge transitions (resolution-independent blend_width)
 - [Phase 30]: OpenEXR format for Z-pass output: preserves 32-bit float depth precision
 - [Phase 30]: Camera clip_start..clip_end used for Z-pass normalization to 0..1 range
+- [Phase 31]: World Volume Scatter + dedicated fog cube for dual-layer laser visibility in EDM scene
+- [Phase 31]: Total darkness principle: world Strength=0.0, effects are the sole illumination source
+- [Phase 31]: Bloom threshold 0.5 (lower than fire 0.8 / water 0.9) for heavy laser/LED flare effects
 
 ### Critical Pitfalls (from research)
 
@@ -117,11 +120,11 @@ None blocking. Blender 5.0.1 fire crash is documented but not blocking (pipeline
 
 ## Session Continuity
 
-Last session: 2026-03-20T04:59:28.676Z
-Stopped at: Completed 30-03-PLAN.md
-Resume with: Phase 30 Plan 03
+Last session: 2026-03-20T05:12:11.216Z
+Stopped at: Completed 31-01-PLAN.md
+Resume with: Phase 31 Plan 02
 Resume file: None
 
 ---
 
-*Last updated: 2026-03-20 -- Phase 30 complete (3/3 plans: VR camera, multi-layer compositor, depth-aware compositor)*
+*Last updated: 2026-03-20 -- Phase 31 in progress (1/2 plans: EDM light show scene template)*
