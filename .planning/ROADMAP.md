@@ -780,7 +780,15 @@ Plans:
   3. Fire color shifts from deep red/orange during quiet passages to bright yellow-white during high-energy sections (spectral centroid driving Blackbody temperature)
   4. The Cycles-rendered output with compositor bloom and motion blur looks like a cinema VFX shot, not a game engine effect
   5. A side-by-side screenshot of Blender fire vs. Three.js Solar Breath shows the Blender output is in a different quality class (justifying the second render path)
-**Plans**: TBD
+**Plans**: 2 plans in 2 waves
+
+Plans:
+- [ ] 28-01-PLAN.md  --  Multi-scale fire scene template with quality presets (Draft/Preview/Production/Ultra)
+- [ ] 28-02-PLAN.md  --  Compositor effects (bloom, color grading) + audio-reactive fire mapping preset
+
+**Wave Structure:**
+- Wave 1: 28-01 (scene template + quality presets)
+- Wave 2: 28-02 (compositor + audio mapping + human verify)
 
 ---
 
