@@ -352,6 +352,77 @@ const NEON_PULSE_SETTINGS: TemplateSettings = {
 };
 
 // Built-in presets array
+// Cinema template presets — rendered via Blender pipeline, not WebGL
+// These use the Ethereal Flame base settings for WebGL preview but mark
+// renderEngine: 'blender' so the UI knows to route to Blender cinema pipeline.
+const CINEMA_PRESETS: VisualTemplate[] = [
+  {
+    id: 'cinema-fire',
+    name: 'Fire Cinema',
+    description: 'Mantaflow fire simulation with volumetric Principled Volume shader, bass-reactive fuel and temperature',
+    createdAt: 0,
+    updatedAt: 0,
+    isBuiltIn: true,
+    renderEngine: 'blender',
+    category: 'cinema',
+    blenderTemplate: 'fire_cinema_template',
+    blenderPreset: 'fire_cinema',
+    settings: ETHEREAL_FLAME_SETTINGS,
+  },
+  {
+    id: 'cinema-water',
+    name: 'Water Ocean',
+    description: 'Procedural ocean with Glass BSDF refraction, foam particles, caustics, and cool color grading',
+    createdAt: 0,
+    updatedAt: 0,
+    isBuiltIn: true,
+    renderEngine: 'blender',
+    category: 'cinema',
+    blenderTemplate: 'water_template',
+    blenderPreset: 'water_ocean',
+    settings: ETHEREAL_FLAME_SETTINGS,
+  },
+  {
+    id: 'cinema-edm',
+    name: 'EDM Light Show',
+    description: 'Volumetric laser beams, LED frequency grid, fog volume — total darkness, lights are the show',
+    createdAt: 0,
+    updatedAt: 0,
+    isBuiltIn: true,
+    renderEngine: 'blender',
+    category: 'cinema',
+    blenderTemplate: 'edm_light_template',
+    blenderPreset: 'edm_lights',
+    settings: ETHEREAL_FLAME_SETTINGS,
+  },
+  {
+    id: 'cinema-luminous',
+    name: 'Luminous Being',
+    description: 'SAM-segmented silhouette with corona glow, fire wisps, and multi-layer frequency separation',
+    createdAt: 0,
+    updatedAt: 0,
+    isBuiltIn: true,
+    renderEngine: 'blender',
+    category: 'cinema',
+    blenderTemplate: 'luminous_being_template',
+    blenderPreset: 'luminous_being',
+    settings: ETHEREAL_FLAME_SETTINGS,
+  },
+  {
+    id: 'cinema-combo',
+    name: 'Fire + Water',
+    description: 'Combined Mantaflow fire above procedural ocean — fire and water unified in one scene',
+    createdAt: 0,
+    updatedAt: 0,
+    isBuiltIn: true,
+    renderEngine: 'blender',
+    category: 'cinema',
+    blenderTemplate: 'combo_fire_water',
+    blenderPreset: 'fire_water_combo',
+    settings: ETHEREAL_FLAME_SETTINGS,
+  },
+];
+
 export const BUILT_IN_PRESETS: VisualTemplate[] = [
   {
     id: 'builtin-ethereal-flame',
@@ -415,6 +486,13 @@ export const BUILT_IN_PRESETS: VisualTemplate[] = [
   },
 ];
 
+export { CINEMA_PRESETS };
+
+/**
+ * All built-in presets (WebGL + Cinema)
+ */
+export const ALL_BUILT_IN_PRESETS: VisualTemplate[] = [...BUILT_IN_PRESETS, ...CINEMA_PRESETS];
+
 /**
  * Initialize built-in presets in the template store
  * Call this on app startup to merge built-ins with user templates
@@ -425,6 +503,6 @@ export function initializeBuiltInPresets(
   setTemplates((existing) => {
     // Filter out any old built-in versions, add fresh ones
     const userTemplates = existing.filter(t => !t.isBuiltIn);
-    return [...BUILT_IN_PRESETS, ...userTemplates];
+    return [...ALL_BUILT_IN_PRESETS, ...userTemplates];
   });
 }

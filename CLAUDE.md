@@ -1,23 +1,11 @@
 # Ethereal Flame Studio
 
-## TESTING RULE (MANDATORY — NO EXCEPTIONS)
+## Testing
 
-**DO NOT spin up local dev servers, Vercel previews, or any test environments.**
-
-Testing workflow:
-1. Write the code
-2. Push to GitHub
-3. It auto-deploys to https://www.whatamiappreciatingnow.com/
-4. Test from the live site
-
-**What is FORBIDDEN:**
-- `npm run dev` for testing purposes
-- `vercel --yes` or any Vercel preview deploys
-- Starting background dev servers
-- Any local test environment whatsoever
-- Playwright/browser automation against localhost
-
-**Why:** Local/preview testing wastes tokens. The GitHub → auto-deploy pipeline is the only testing path.
+- Production site: https://www.whatamiappreciatingnow.com/ (auto-deploys from GitHub push)
+- Local access via Cloudflare tunnel + Parsec for iterative debugging
+- `npm run dev` is allowed for local rendering, script testing, and Playwright automation
+- `npm run build` for build validation
 
 ---
 

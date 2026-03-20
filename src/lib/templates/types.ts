@@ -101,6 +101,16 @@ export interface TemplateSettings {
 }
 
 /**
+ * Render engine type — WebGL (browser) or Blender (cinema pipeline)
+ */
+export type RenderEngine = 'webgl' | 'blender';
+
+/**
+ * Template category for gallery grouping
+ */
+export type TemplateCategory = 'preset' | 'cinema' | 'user';
+
+/**
  * Visual Template - saved configuration with metadata
  */
 export interface VisualTemplate {
@@ -112,4 +122,8 @@ export interface VisualTemplate {
   thumbnail?: string;            // Base64 data URL (JPEG, ~10-30KB)
   isBuiltIn: boolean;            // true for curated presets, false for user-created
   settings: TemplateSettings;
+  renderEngine?: RenderEngine;   // 'webgl' (default) or 'blender'
+  category?: TemplateCategory;   // Gallery grouping
+  blenderTemplate?: string;      // Blender script name (e.g., 'fire_cinema_template')
+  blenderPreset?: string;        // Blender audio preset (e.g., 'fire_cinema')
 }

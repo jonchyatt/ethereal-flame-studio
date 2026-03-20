@@ -330,6 +330,20 @@ export class PuppeteerRenderer {
       throw new Error('Failed to initialize render mode');
     }
 
+    // Dismiss the landing overlay by switching viewMode to 'experience'.
+    // The landing overlay only renders when viewMode === 'landing', and
+    // renderMode.init() doesn't change it.
+    await this.page.evaluate(() => {
+      // Click the "Experience" button if the landing overlay is visible
+      const btns = Array.from(document.querySelectorAll('button'));
+      const experienceBtn = btns.find(b => b.textContent?.includes('Experience'));
+      if (experienceBtn) {
+        experienceBtn.click();
+      }
+    });
+    // Brief wait for React state update to propagate
+    await new Promise(r => setTimeout(r, 500));
+
     // Hide all UI elements — only the Three.js canvas should be visible.
     // page.tsx already hides most UI when renderMode.isActive, but this CSS
     // acts as a safety net to catch any stragglers (toasts, overlays, etc.)

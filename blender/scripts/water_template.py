@@ -201,7 +201,6 @@ def _create_ocean(preset):
     mod.depth = 200          # Deep ocean behavior
     mod.size = 1.0           # Base wave height (keyframeable for audio)
     mod.choppiness = 1.5     # Base choppiness (keyframeable for audio)
-    mod.scale = 1.0
 
     # Foam output
     mod.use_foam = True
@@ -319,9 +318,6 @@ def _create_foam_particles(ocean, preset):
     # Velocity: upward spray with randomness
     ps.normal_factor = 0.5
     ps.factor_random = 0.3
-
-    # Emit from foam areas only (Ocean Modifier foam vertex group)
-    ps.vertex_group_density = "foam"
 
     # Reduced gravity for partially floaty spray
     ps.effector_weights.gravity = 0.5
