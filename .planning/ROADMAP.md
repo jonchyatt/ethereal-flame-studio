@@ -735,7 +735,16 @@ Phase 24 (Render Target Split) --- independent, can run anytime
   2. A Mantaflow fire simulation bakes to completion without hitting the 180-second MCP timeout (async timer pattern validated)
   3. A Cycles render of the proof-of-concept fire orb completes and saves a PNG to disk without blocking the MCP connection
   4. A full Claude-controlled session (create scene, bake sim, render) runs without exceeding $2 in screenshot tokens (discipline validated)
-**Plans**: TBD
+**Plans:** 3 plans in 2 waves
+
+Plans:
+- [ ] 26-01-PLAN.md — Directory structure, scene utilities, connection test, setup docs (TOOL-01)
+- [ ] 26-02-PLAN.md — Async bake and render scripts for 180s timeout avoidance (TOOL-02)
+- [ ] 26-03-PLAN.md — Proof-of-concept Mantaflow fire orb scene (TOOL-03)
+
+**Wave Structure:**
+- Wave 1: 26-01, 26-02 (directory setup + async scripts, parallel)
+- Wave 2: 26-03 (fire orb POC, depends on 26-01 + 26-02)
 
 ---
 
@@ -862,7 +871,7 @@ Phase 24 (Render Target Split) --- independent, can run anytime
 | 23. Template Actions | v3.0 | 0/1 | Not started | - |
 | 24. Render Target Split | v3.0 | 0/2 | Not started | - |
 | 25. Mobile Fallback + Polish | v3.0 | 0/3 | Not started | - |
-| 26. MCP Bridge + Tool Discipline | v4.0 | 0/TBD | Not started | - |
+| 26. MCP Bridge + Tool Discipline | v4.0 | 0/3 | Not started | - |
 | 27. Audio Bridge | v4.0 | 0/TBD | Not started | - |
 | 28. Fire Simulation | v4.0 | 0/TBD | Not started | - |
 | 29. Water + World Building | v4.0 | 0/TBD | Not started | - |
