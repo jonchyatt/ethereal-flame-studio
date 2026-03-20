@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Floating Widget Design System
 status: executing
-stopped_at: Completed 29-02-PLAN.md
-last_updated: "2026-03-20T04:27:49.499Z"
-last_activity: 2026-03-20 -- Completed 29-02 world template (HDRI + asset placement utilities)
+stopped_at: Completed 29-01-PLAN.md
+last_updated: "2026-03-20T04:29:43.130Z"
+last_activity: 2026-03-20 -- Completed 29-01 water template (Ocean Modifier + Glass BSDF + audio preset)
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 10
-  completed_plans: 8
-  percent: 80
+  completed_plans: 9
+  percent: 90
 ---
 
 # Project State
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Phase 29 -- Water & World Building (Plan 02 complete, Plans 01/03 queued)
+**Current focus:** Phase 29 -- Water & World Building (Plans 01/02 complete, Plan 03 queued)
 
 ---
 
 ## Current Position
 
 Phase: 29 of 33 (Water & World Building)
-Plan: 2 of 3 in current phase
+Plan: 2 of 3 in current phase (01 + 02 complete, 03 queued)
 Status: In Progress
-Last activity: 2026-03-20 -- Completed 29-02 world template (HDRI + asset placement utilities)
+Last activity: 2026-03-20 -- Completed 29-01 water template (Ocean Modifier + Glass BSDF + audio preset)
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 90%
 
 ---
 
@@ -41,7 +41,7 @@ Progress: [████████░░] 80%
 **v1.0:** 35+ plans completed across 5 phases
 **v2.0:** 18 plans completed across 7 phases
 **v3.0 (parallel):** 3/17 plans (Phase 19 complete, Phases 20-25 queued)
-**v4.0:** 3/3 plans in Phase 26 complete, 2/2 in Phase 27 complete, 1/2 in Phase 28, 1/3 in Phase 29
+**v4.0:** 3/3 plans in Phase 26 complete, 2/2 in Phase 27 complete, 1/2 in Phase 28, 2/3 in Phase 29
 
 ---
 
@@ -75,6 +75,9 @@ Progress: [████████░░] 80%
 - Two-step MCP workflow: download via MCP tools, configure via Python -- transport-independent design
 - HDRI rotation via Mapping node Z axis -- controls sun direction without re-downloading
 - [Phase 29]: World-building as composable utility module -- other templates import these functions
+- [Phase 29]: Ocean Modifier is procedural -- bake_ocean() is a no-op for API symmetry
+- [Phase 29]: Treble/brilliance drive water waves (complementary to fire bass-driven intensity)
+- [Phase 29]: Glass BSDF with IOR 1.333 for water refraction + caustics enabled (12 max bounces)
 
 ### Critical Pitfalls (from research)
 
@@ -93,8 +96,8 @@ None blocking. Blender 5.0.1 fire crash is documented but not blocking (pipeline
 
 ## Session Continuity
 
-Last session: 2026-03-20T04:27:45.315Z
-Stopped at: Completed 29-02-PLAN.md
+Last session: 2026-03-20T04:29:43.127Z
+Stopped at: Completed 29-01-PLAN.md
 Resume with: 29-01-PLAN.md or 29-03-PLAN.md (Phase 29, remaining plans)
 Resume file: None
 

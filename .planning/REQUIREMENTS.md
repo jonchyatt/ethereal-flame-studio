@@ -127,9 +127,9 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 
 ### Water Simulation (WATR)
 
-- [ ] **WATR-01**: Physics-based water surface with Ocean Modifier responds to audio treble
+- [x] **WATR-01**: Physics-based water surface with Ocean Modifier responds to audio treble
 - [ ] **WATR-02**: Fire-over-water scene renders with caustic reflections of fire in water
-- [ ] **WATR-03**: Water includes foam and spray particle systems for physical realism
+- [x] **WATR-03**: Water includes foam and spray particle systems for physical realism
 
 ### World Building (WRLD)
 
@@ -191,9 +191,9 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 | FIRE-03 | Phase 28 | Pending |
 | FIRE-04 | Phase 28 | Pending |
 | FIRE-05 | Phase 28 | Pending |
-| WATR-01 | Phase 29 | Pending |
+| WATR-01 | Phase 29 | Complete |
 | WATR-02 | Phase 29 | Pending |
-| WATR-03 | Phase 29 | Pending |
+| WATR-03 | Phase 29 | Complete |
 | WRLD-01 | Phase 29 | Complete |
 | WRLD-02 | Phase 29 | Complete |
 | VR-01 | Phase 30 | Pending |
