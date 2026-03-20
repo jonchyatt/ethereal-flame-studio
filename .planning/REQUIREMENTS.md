@@ -138,9 +138,9 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 
 ### VR Cinema Rendering (VR)
 
-- [ ] **VR-01**: 8K stereoscopic equirectangular output from Blender panoramic camera
-- [ ] **VR-02**: VR spatial metadata injected for correct YouTube/Meta Quest VR playback
-- [ ] **VR-03**: VR output validated in actual headset without discomfort (safe IPD, no nausea-inducing motion)
+- [x] **VR-01**: 8K stereoscopic equirectangular output from Blender panoramic camera
+- [x] **VR-02**: VR spatial metadata injected for correct YouTube/Meta Quest VR playback
+- [x] **VR-03**: VR output validated in actual headset without discomfort (safe IPD, no nausea-inducing motion)
 
 ### EDM Light Show Effects (EDM)
 
@@ -150,7 +150,7 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 
 ### Compositing Pipeline (COMP)
 
-- [ ] **COMP-01**: Multi-layer compositor combines fire + water + EDM + luminous being as separate render passes
+- [x] **COMP-01**: Multi-layer compositor combines fire + water + EDM + luminous being as separate render passes
 - [ ] **COMP-02**: Depth maps extracted from video using Video Depth Anything for VR compositing
 - [ ] **COMP-03**: Virtual effects composited onto real 360 footage with depth-aware occlusion
 
@@ -196,10 +196,10 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 | WATR-03 | Phase 29 | Complete |
 | WRLD-01 | Phase 29 | Complete |
 | WRLD-02 | Phase 29 | Complete |
-| VR-01 | Phase 30 | Pending |
-| VR-02 | Phase 30 | Pending |
-| VR-03 | Phase 30 | Pending |
-| COMP-01 | Phase 30 | Pending |
+| VR-01 | Phase 30 | Complete |
+| VR-02 | Phase 30 | Complete |
+| VR-03 | Phase 30 | Complete |
+| COMP-01 | Phase 30 | Complete |
 | COMP-02 | Phase 30 | Pending |
 | COMP-03 | Phase 30 | Pending |
 | EDM-01 | Phase 31 | Pending |

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Floating Widget Design System
-status: completed
-stopped_at: Completed 29-03-PLAN.md
-last_updated: "2026-03-20T04:40:28.608Z"
-last_activity: 2026-03-20 -- Completed 29-03 fire-over-water combo scene (caustics + 17 audio mappings)
+status: executing
+stopped_at: Completed 30-02-PLAN.md
+last_updated: "2026-03-20T04:54:07.027Z"
+last_activity: 2026-03-20 -- Completed 30-02 multi-layer compositor module
 progress:
   total_phases: 8
   completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
-  percent: 100
+  total_plans: 13
+  completed_plans: 12
+  percent: 92
 ---
 
 # Project State
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Phase 29 -- Water & World Building (all 3 plans COMPLETE)
+**Current focus:** Phase 30 -- VR Cinema Compositing (Plan 02 of 3 complete)
 
 ---
 
 ## Current Position
 
-Phase: 29 of 33 (Water & World Building)
-Plan: 3 of 3 in current phase (all complete)
-Status: Phase Complete
-Last activity: 2026-03-20 -- Completed 29-03 fire-over-water combo scene (caustics + 17 audio mappings)
+Phase: 30 of 33 (VR Cinema Compositing)
+Plan: 2 of 3 in current phase
+Status: In Progress
+Last activity: 2026-03-20 -- Completed 30-02 multi-layer compositor module
 
-Progress: [██████████] 100%
+Progress: [█████████░] 92%
 
 ---
 
@@ -83,6 +83,18 @@ Progress: [██████████] 100%
 - [Phase 29]: HDRI strength 0.8 in combo to avoid overpowering fire self-illumination
 - [Phase 29]: efs_combo_* namespace for combo-specific objects prevents conflicts with fire/water presets
 - [Phase 29]: fire_water_combo.json has 17 merged audio mappings (9 fire + 4 water + 4 combo-specific)
+- [Phase 30]: IPD fixed at 64mm (human average) -- safe for general audience VR
+- [Phase 30]: Top-bottom stereo layout -- YouTube VR and Meta Quest standard format
+- [Phase 30]: OFFAXIS convergence mode at 10m -- most natural stereoscopic depth
+- [Phase 30]: Static VR camera only (no keyframes, no Track To) -- prevents motion sickness
+- [Phase 30]: ffmpeg metadata tags (spherical, stitched, stereo_mode) for VR spatial marking
+- [Phase 30]: VR sample multiplier per tier (1.0x draft/preview, 1.5x production, 2.0x ultra)
+- [Phase 30]: Additive VR camera overlay -- create_vr_camera() works on any existing scene
+- [Phase 30]: Neutral Color Balance at end of compositor chain -- users adjust grade without changing layer setup
+- [Phase 30]: film_transparent=True at scene level -- all View Layers inherit transparent background for alpha-over
+- [Phase 30]: Idempotent collection creation -- reuses existing collection if name matches (safe for MCP re-runs)
+- [Phase 30]: View Layer per element pattern -- each scene element gets own View Layer rendering only its Collection
+- [Phase 30]: View Layer per element: each scene element rendered in isolation via own View Layer + Collection
 
 ### Critical Pitfalls (from research)
 
@@ -101,11 +113,11 @@ None blocking. Blender 5.0.1 fire crash is documented but not blocking (pipeline
 
 ## Session Continuity
 
-Last session: 2026-03-20T04:36:35.660Z
-Stopped at: Completed 29-03-PLAN.md
-Resume with: Phase 30 (next phase)
+Last session: 2026-03-20T04:54:04.527Z
+Stopped at: Completed 30-02-PLAN.md
+Resume with: Phase 30 Plan 03
 Resume file: None
 
 ---
 
-*Last updated: 2026-03-20 -- Phase 29 complete (all 3 plans: water template, world template, fire-water combo)*
+*Last updated: 2026-03-20 -- Phase 30 in progress (Plan 02 complete: multi-layer compositor module)*

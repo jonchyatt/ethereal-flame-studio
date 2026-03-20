@@ -909,7 +909,7 @@ Plans:
 | 27. Audio Bridge | 2/2 | Complete    | 2026-03-20 | - |
 | 28. Fire Simulation | 2/2 | Complete    | 2026-03-20 | - |
 | 29. Water + World Building | 3/3 | Complete    | 2026-03-20 | - |
-| 30. VR Cinema + Compositing | v4.0 | 0/TBD | Not started | - |
+| 30. VR Cinema + Compositing | 2/3 | In Progress|  | - |
 | 31. EDM Light Show | v4.0 | 0/TBD | Not started | - |
 | 32. Luminous Being | v4.0 | 0/TBD | Not started | - |
 | 33. Integration + Visual Intelligence | v4.0 | 0/TBD | Not started | - |
