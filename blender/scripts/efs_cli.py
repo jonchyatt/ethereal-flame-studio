@@ -6,7 +6,7 @@ multi-line Python imports and function calls, Claude calls run(["create-fire", "
 -- a single short line that dispatches to the correct template function with the correct
 arguments.
 
-10 commands wrapping 6 templates + shared utilities:
+13 commands wrapping 6 templates + shared utilities:
 
   Scene creation:
     create-fire    [quality]                    Create Mantaflow fire scene
@@ -19,6 +19,11 @@ arguments.
     bake           [type?]                      Auto-detect and bake simulation
     render         [output_name?] [frame?]      Auto-detect and render scene
     render-vr      [output_name?] [frame?]      Render stereoscopic VR output
+
+  Utilities:
+    status                                      Check bake/render operation status
+    scene-info                                  Full scene info + detected type
+    clean-cache    [subdirectory?]              Clean cache directory
 
   Audio:
     apply-audio    <audio_json_path> [preset?]  Apply audio keyframes to scene
@@ -35,6 +40,8 @@ Usage (via MCP execute_blender_code):
   run(["render", "my_fire_scene", "45"])
   run(["list-presets"])
 """
+VERSION = "1.0.0"
+
 import sys
 import os
 import traceback
@@ -280,10 +287,65 @@ def _cmd_list_presets(args):
     print(f"\n{'Name':<25} {'Mappings':>8}  {'Audio Style':<20}  Description")
     print(f"{'-'*25} {'-'*8}  {'-'*20}  {'-'*40}")
     for p in presets:
-        print(f"{p['name']:<25} {p['mapping_count']:>8}  {p.get('audio_style', '')::<20}  {p.get('description', '')}")
+        print(f"{p['name']:<25} {p['mapping_count']:>8}  {p.get('audio_style', ''):<20}  {p.get('description', '')}")
     print(f"\n{len(presets)} preset(s) found.\n")
 
     return presets
+
+
+def _cmd_status(args):
+    """Check bake/render operation status.  No args."""
+    import json as _json
+    from poll_status import poll_status, is_render_active
+
+    print("[efs_cli] Checking operation status...")
+    status = poll_status()
+
+    print("\n[efs_cli] Checking render activity...")
+    render_info = is_render_active()
+
+    return {
+        "operation_status": status,
+        "render_active": render_info,
+    }
+
+
+def _cmd_scene_info(args):
+    """Full scene info + detected scene type.  No args."""
+    import json as _json
+    from scene_utils import full_scene_info
+
+    scene_type = _detect_scene_type()
+    info_json = full_scene_info()
+
+    print(f"\n[efs_cli] Detected scene type: {scene_type}")
+    print(f"[efs_cli] Scene info:")
+    print(info_json)
+
+    return {
+        "scene_type": scene_type,
+        "scene_info": info_json,
+    }
+
+
+def _cmd_clean_cache(args):
+    """Clean cache directory.  Args: [subdirectory?]"""
+    from scene_utils import clean_cache
+
+    subdirectory = args[0] if args else None
+    target_desc = subdirectory if subdirectory else "entire cache"
+
+    print(f"[efs_cli] Cleaning cache: {target_desc}")
+    bytes_freed = clean_cache(subdirectory=subdirectory)
+    mb_freed = bytes_freed / (1024 * 1024)
+
+    print(f"[efs_cli] Freed {mb_freed:.1f} MB ({bytes_freed:,} bytes)")
+
+    return {
+        "bytes_freed": bytes_freed,
+        "mb_freed": round(mb_freed, 1),
+        "target": target_desc,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -301,6 +363,10 @@ COMMANDS = {
     "bake":             _cmd_bake,
     "render":           _cmd_render,
     "render-vr":        _cmd_render_vr,
+    # Utilities
+    "status":           _cmd_status,
+    "scene-info":       _cmd_scene_info,
+    "clean-cache":      _cmd_clean_cache,
     # Audio
     "apply-audio":      _cmd_apply_audio,
     "list-presets":     _cmd_list_presets,
@@ -372,6 +438,11 @@ def help():
             ("bake",            "[type?]",                              "Auto-detect and bake (or specify 'ocean')"),
             ("render",          "[output_name?] [frame?]",              "Auto-detect scene type and render"),
             ("render-vr",       "[output_name?] [frame?]",             "Render stereoscopic VR output"),
+        ]),
+        ("Utilities", [
+            ("status",          "",                                      "Check bake/render operation status"),
+            ("scene-info",      "",                                      "Full scene info + detected type"),
+            ("clean-cache",     "[subdirectory?]",                       "Clean cache directory (prints MB freed)"),
         ]),
         ("Audio", [
             ("apply-audio",     "<audio_json_path> [preset_name?]",    "Apply audio keyframes (auto-detects preset)"),
