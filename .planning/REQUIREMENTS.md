@@ -105,8 +105,8 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 
 ### Tool Setup & Discipline (TOOL)
 
-- [ ] **TOOL-01**: Claude can create and modify Blender scenes via blender-mcp MCP commands
-- [ ] **TOOL-02**: Long operations (sim bakes, Cycles renders) run asynchronously without hitting MCP timeout
+- [x] **TOOL-01**: Claude can create and modify Blender scenes via blender-mcp MCP commands
+- [x] **TOOL-02**: Long operations (sim bakes, Cycles renders) run asynchronously without hitting MCP timeout
 - [ ] **TOOL-03**: Proof-of-concept Mantaflow fire orb renders successfully from test audio track
 
 ### Audio Bridge (AUD4)
@@ -178,8 +178,8 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TOOL-01 | Phase 26 | Pending |
-| TOOL-02 | Phase 26 | Pending |
+| TOOL-01 | Phase 26 | Complete |
+| TOOL-02 | Phase 26 | Complete |
 | TOOL-03 | Phase 26 | Pending |
 | AUD4-01 | Phase 27 | Pending |
 | AUD4-02 | Phase 27 | Pending |
