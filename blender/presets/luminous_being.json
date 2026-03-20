@@ -1,0 +1,203 @@
+{
+  "name": "Luminous Being",
+  "description": "Crown jewel audio mapping: per-layer frequency separation with bass->volumetric fill, mid->particles, treble->corona, onsets->fire wisps. 14 simultaneous mappings for emergent complexity.",
+  "audio_style": "all",
+  "auto_classify_hints": {},
+  "mappings": [
+    {
+      "source_feature": "envelopes.bass",
+      "target_object": "efs_lumi_fill",
+      "target_property": "density",
+      "data_path": "active_material.node_tree.nodes[\"Principled Volume\"].inputs[\"Density\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 6.0,
+      "offset": 1.5,
+      "clamp_min": 0.5,
+      "clamp_max": 8.0
+    },
+    {
+      "source_feature": "envelopes.sub_bass",
+      "target_object": "efs_lumi_fill",
+      "target_property": "emission_strength",
+      "data_path": "active_material.node_tree.nodes[\"Principled Volume\"].inputs[\"Emission Strength\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 8.0,
+      "offset": 2.0,
+      "clamp_min": 1.0,
+      "clamp_max": 10.0
+    },
+    {
+      "source_feature": "rms_energy",
+      "target_object": "efs_lumi_fill",
+      "target_property": "blackbody_intensity",
+      "data_path": "active_material.node_tree.nodes[\"Principled Volume\"].inputs[\"Blackbody Intensity\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 1.5,
+      "offset": 0.3,
+      "clamp_min": 0.1,
+      "clamp_max": 1.5
+    },
+    {
+      "source_feature": "envelopes.mid",
+      "target_object": "efs_lumi_particles",
+      "target_property": "particle_emission",
+      "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 5.0,
+      "offset": 0.5,
+      "clamp_min": 0.2,
+      "clamp_max": 6.0
+    },
+    {
+      "source_feature": "envelopes.low_mid",
+      "target_object": "efs_lumi_particles",
+      "target_property": "particle_emission_secondary",
+      "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 3.0,
+      "offset": 1.0,
+      "clamp_min": 0.5,
+      "clamp_max": 4.0
+    },
+    {
+      "source_feature": "onsets.bass",
+      "target_object": "efs_lumi_body",
+      "target_property": "fuel_amount",
+      "data_path": "modifiers[\"Fluid\"].flow_settings.fuel_amount",
+      "curve_type": "CONSTANT",
+      "scale": 2.0,
+      "offset": 0.0,
+      "clamp_min": 0.0,
+      "clamp_max": 3.0
+    },
+    {
+      "source_feature": "envelopes.upper_mid",
+      "target_object": "efs_lumi_body",
+      "target_property": "fuel_amount_sustained",
+      "data_path": "modifiers[\"Fluid\"].flow_settings.fuel_amount",
+      "curve_type": "BEZIER",
+      "scale": 1.5,
+      "offset": 0.3,
+      "clamp_min": 0.1,
+      "clamp_max": 2.0
+    },
+    {
+      "source_feature": "envelopes.presence",
+      "target_object": "efs_lumi_body",
+      "target_property": "temperature",
+      "data_path": "modifiers[\"Fluid\"].flow_settings.temperature",
+      "curve_type": "BEZIER",
+      "scale": 2.5,
+      "offset": 0.5,
+      "clamp_min": 0.3,
+      "clamp_max": 3.0
+    },
+    {
+      "source_feature": "spectral_centroid",
+      "target_object": "efs_lumi_fire_domain",
+      "target_property": "flame_max_temp",
+      "data_path": "modifiers[\"Fluid\"].domain_settings.flame_max_temp",
+      "curve_type": "BEZIER",
+      "scale": 3.0,
+      "offset": 1.0,
+      "clamp_min": 0.5,
+      "clamp_max": 4.0
+    },
+    {
+      "source_feature": "envelopes.treble",
+      "target_object": "efs_lumi_corona",
+      "target_property": "emission_strength",
+      "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 6.0,
+      "offset": 1.0,
+      "clamp_min": 0.5,
+      "clamp_max": 8.0
+    },
+    {
+      "source_feature": "envelopes.brilliance",
+      "target_object": "efs_lumi_corona",
+      "target_property": "emission_strength_shimmer",
+      "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 4.0,
+      "offset": 0.5,
+      "clamp_min": 0.3,
+      "clamp_max": 6.0
+    },
+    {
+      "source_feature": "rms_energy",
+      "target_object": "efs_lumi_rim_light",
+      "target_property": "energy",
+      "data_path": "data.energy",
+      "curve_type": "BEZIER",
+      "scale": 50.0,
+      "offset": 10.0,
+      "clamp_min": 5.0,
+      "clamp_max": 60.0
+    },
+    {
+      "source_feature": "spectral_centroid",
+      "target_object": "efs_lumi_rim_light",
+      "target_property": "color_temp",
+      "data_path": "data.color",
+      "curve_type": "BEZIER",
+      "scale": 1.0,
+      "offset": 0.0,
+      "clamp_min": 0.0,
+      "clamp_max": 1.0
+    },
+    {
+      "source_feature": "envelopes.air",
+      "target_object": "efs_lumi_corona",
+      "target_property": "emission_air",
+      "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 3.0,
+      "offset": 0.3,
+      "clamp_min": 0.1,
+      "clamp_max": 5.0
+    }
+  ],
+  "dynamic_range": {
+    "breakdown_rms_threshold": 0.12,
+    "breakdown_sustain_frames": 20,
+    "breakdown_multiplier": 0.15,
+    "drop_multiplier": 1.0,
+    "targets": [
+      {
+        "source_feature": "envelopes.bass",
+        "target_object": "efs_lumi_fill",
+        "target_property": "density",
+        "data_path": "active_material.node_tree.nodes[\"Principled Volume\"].inputs[\"Density\"].default_value",
+        "scale": 6.0,
+        "offset": 1.5,
+        "clamp_min": 0.5,
+        "clamp_max": 8.0,
+        "curve_type": "CONSTANT"
+      },
+      {
+        "source_feature": "onsets.bass",
+        "target_object": "efs_lumi_body",
+        "target_property": "fuel_amount",
+        "data_path": "modifiers[\"Fluid\"].flow_settings.fuel_amount",
+        "scale": 2.0,
+        "offset": 0.0,
+        "clamp_min": 0.0,
+        "clamp_max": 3.0,
+        "curve_type": "CONSTANT"
+      },
+      {
+        "source_feature": "envelopes.treble",
+        "target_object": "efs_lumi_corona",
+        "target_property": "emission_strength",
+        "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+        "scale": 6.0,
+        "offset": 1.0,
+        "clamp_min": 0.5,
+        "clamp_max": 8.0,
+        "curve_type": "CONSTANT"
+      }
+    ]
+  }
+}
