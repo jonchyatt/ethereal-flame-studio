@@ -758,7 +758,15 @@ Plans:
   3. Running `keyframe_generator.py` against the exported JSON inserts keyframes into an open Blender scene that visibly animate a test object (e.g., cube scale pulsing to bass)
   4. Switching the mapping preset from "Meditation" to "EDM" produces noticeably different animation behavior from the same audio file (slower/smoother vs. aggressive/punchy)
   5. At least 8 audio features drive 8 independent visual parameters simultaneously in a test scene (emergent complexity, not single-parameter mapping)
-**Plans**: TBD
+**Plans:** 2 plans in 2 waves
+
+Plans:
+- [ ] 27-01-PLAN.md — 37-feature audio analysis engine + JSON export from browser
+- [ ] 27-02-PLAN.md — Keyframe generator + 3 mapping presets (Meditation/EDM/Cinematic)
+
+**Wave Structure:**
+- Wave 1: 27-01 (browser-side analysis + export)
+- Wave 2: 27-02 (Python keyframe generator + presets, depends on 27-01 JSON schema)
 
 ---
 
