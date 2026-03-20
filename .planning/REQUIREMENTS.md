@@ -171,8 +171,8 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 ### Integration & Efficiency (INTG)
 
 - [x] **INTG-01**: CLI-Anything custom harness wraps 5+ validated EFS-specific Blender workflows
-- [ ] **INTG-02**: Batch render script queues multiple scenes for overnight rendering
-- [ ] **INTG-03**: Complete pipeline demonstrated from audio file to final cinema render output
+- [x] **INTG-02**: Batch render script queues multiple scenes for overnight rendering
+- [x] **INTG-03**: Complete pipeline demonstrated from audio file to final cinema render output
 
 ### v4.0 Traceability
 
@@ -214,8 +214,8 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 | VRES-01 | Phase 33 | Complete |
 | VRES-02 | Phase 33 | Complete |
 | INTG-01 | Phase 33 | Complete |
-| INTG-02 | Phase 33 | Pending |
-| INTG-03 | Phase 33 | Pending |
+| INTG-02 | Phase 33 | Complete |
+| INTG-03 | Phase 33 | Complete |
 
 **v4.0 Coverage:**
 - v4.0 requirements: 38 total

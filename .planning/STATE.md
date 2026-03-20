@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Floating Widget Design System
 status: executing
-stopped_at: Completed 33-01-PLAN.md
-last_updated: "2026-03-20T06:00:03.064Z"
+stopped_at: Completed 33-02-PLAN.md
+last_updated: "2026-03-20T06:00:35.628Z"
 last_activity: 2026-03-20 -- Completed 33-03 Visual principles JSON + apply utility
 progress:
   total_phases: 8
@@ -128,6 +128,9 @@ Progress: [█████████░] 95%
 - [Phase 33]: sync_precision and expectation_violation are keyframe-generation recommendations, not direct scene modifications
 - [Phase 33]: Safe object detection checks efs_fire_domain / efs_combo_* / efs_lumi_* naming patterns before modifying
 - [Phase 33]: 5 perceptual VFX principles from professional analysis -- Chrome MCP live analysis deferred
+- [Phase 33]: Lazy template imports in batch/pipeline -- avoids loading all 5 templates at startup
+- [Phase 33]: Append-to-log per-job for crash resilience in overnight batch renders
+- [Phase 33]: SUPPORTED_TEMPLATES registry pattern maps template name -> module/functions/metadata for pipeline dispatch
 
 ### Critical Pitfalls (from research)
 
@@ -146,8 +149,8 @@ None blocking. Blender 5.0.1 fire crash is documented but not blocking (pipeline
 
 ## Session Continuity
 
-Last session: 2026-03-20T06:00:00.991Z
-Stopped at: Completed 33-01-PLAN.md
+Last session: 2026-03-20T06:00:35.624Z
+Stopped at: Completed 33-02-PLAN.md
 Resume with: Check if all 33-XX plans have summaries
 Resume file: None
 
