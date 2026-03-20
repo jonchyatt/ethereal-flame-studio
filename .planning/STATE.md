@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Floating Widget Design System
-status: completed
-stopped_at: Completed 31-02-PLAN.md
-last_updated: "2026-03-20T05:17:38.144Z"
-last_activity: 2026-03-20 -- Completed 31-02 EDM audio-reactive light wiring
+status: executing
+stopped_at: Completed 32-01-PLAN.md
+last_updated: "2026-03-20T05:33:31.625Z"
+last_activity: 2026-03-20 -- Completed 32-01 SAM segmentation + mask-to-mesh pipeline
 progress:
   total_phases: 8
   completed_phases: 6
-  total_plans: 15
-  completed_plans: 15
-  percent: 100
+  total_plans: 18
+  completed_plans: 16
+  percent: 89
 ---
 
 # Project State
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Phase 31 -- EDM Light Show (COMPLETE, 2/2 plans done)
+**Current focus:** Phase 32 -- Luminous Being (1/3 plans done)
 
 ---
 
 ## Current Position
 
-Phase: 31 of 33 (EDM Light Show)
-Plan: 2 of 2 in current phase
-Status: Phase Complete
-Last activity: 2026-03-20 -- Completed 31-02 EDM audio-reactive light wiring
+Phase: 32 of 33 (Luminous Being)
+Plan: 1 of 3 in current phase
+Status: In Progress
+Last activity: 2026-03-20 -- Completed 32-01 SAM segmentation + mask-to-mesh pipeline
 
-Progress: [██████████] 100%
+Progress: [█████████░] 89%
 
 ---
 
@@ -105,6 +105,12 @@ Progress: [██████████] 100%
 - [Phase 31]: Dynamic range targets resolved upfront before frame loop (fail-fast, same pattern as main mappings)
 - [Phase 31]: CONSTANT curve type for dynamic_range overwrite keyframes (instant snap, not interpolated)
 - [Phase 31]: Breakdown detection via consecutive low-RMS frame counting (sustain_frames threshold)
+- [Phase 32]: Two-step pipeline: sam_segmenter.py in system Python (torch), mask_to_mesh.py in Blender Python (bpy)
+- [Phase 32]: SAM 2.1 video propagation for temporal consistency (not per-frame independent segmentation)
+- [Phase 32]: cv2 primary contour extraction with bpy fallback for environments without opencv
+- [Phase 32]: Shape key count capped at 100 with triangular window drivers for smooth frame interpolation
+- [Phase 32]: efs_lumi_* naming namespace for Luminous Being objects
+- [Phase 32]: Two-step pipeline: sam_segmenter.py in system Python (torch), mask_to_mesh.py in Blender Python (bpy)
 
 ### Critical Pitfalls (from research)
 
@@ -123,11 +129,11 @@ None blocking. Blender 5.0.1 fire crash is documented but not blocking (pipeline
 
 ## Session Continuity
 
-Last session: 2026-03-20T05:17:08.488Z
-Stopped at: Completed 31-02-PLAN.md
-Resume with: Phase 32 Plan 01
+Last session: 2026-03-20T05:33:27.177Z
+Stopped at: Completed 32-01-PLAN.md
+Resume with: Phase 32 Plan 02
 Resume file: None
 
 ---
 
-*Last updated: 2026-03-20 -- Phase 31 complete (2/2 plans: EDM light show scene template + audio wiring)*
+*Last updated: 2026-03-20 -- Phase 32 in progress (1/3 plans: SAM segmentation + mask-to-mesh pipeline)*

@@ -156,7 +156,7 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 
 ### Luminous Being (LUMI)
 
-- [ ] **LUMI-01**: Person segmented from video via SAM 2.1 with temporal consistency across frames
+- [x] **LUMI-01**: Person segmented from video via SAM 2.1 with temporal consistency across frames
 - [ ] **LUMI-02**: Person silhouette filled with audio-reactive volumetric glow (Principled Volume)
 - [ ] **LUMI-03**: Particles emit from body silhouette (same modes as Three.js orb: Flame, Mist, Solar Breath)
 - [ ] **LUMI-04**: Mantaflow fire wisps emanate from body mesh as flow source
@@ -205,7 +205,7 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 | EDM-01 | Phase 31 | Complete |
 | EDM-02 | Phase 31 | Complete |
 | EDM-03 | Phase 31 | Complete |
-| LUMI-01 | Phase 32 | Pending |
+| LUMI-01 | Phase 32 | Complete |
 | LUMI-02 | Phase 32 | Pending |
 | LUMI-03 | Phase 32 | Pending |
 | LUMI-04 | Phase 32 | Pending |
