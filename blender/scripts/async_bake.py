@@ -73,14 +73,6 @@ def start_bake(domain_name, bake_type="ALL", clean_first=True):
             bpy.context.view_layer.objects.active = domain
             domain.select_set(True)
 
-            # Free existing bake if requested (Pitfall 4: prevent stale cache buildup)
-            if clean_first:
-                _write_status("bake", "running", "Freeing previous bake data", 5)
-                try:
-                    bpy.ops.fluid.free_all()
-                except Exception:
-                    pass  # OK if nothing to free
-
             _write_status("bake", "running", f"Baking {bake_type}...", 10)
 
             # Execute the bake
@@ -100,9 +92,30 @@ def start_bake(domain_name, bake_type="ALL", clean_first=True):
 
         return None  # None = don't repeat the timer
 
-    # Register the bake to run on the next Blender main-thread tick
-    # This returns immediately so the MCP call completes within the 180s timeout
-    bpy.app.timers.register(_do_bake, first_interval=0.1)
+    def _free_then_bake():
+        """Two-phase approach: free cache first, then schedule bake on next tick.
+
+        Calling free_all() and bake_*() in the same callback causes a race
+        condition crash in Mantaflow's MANTA::initHeat (the free hasn't finished
+        when the bake reinitializes the domain). Separating them with a timer
+        tick ensures the free completes before baking starts.
+        """
+        try:
+            bpy.context.view_layer.objects.active = domain
+            domain.select_set(True)
+            _write_status("bake", "running", "Freeing previous bake data", 5)
+            bpy.ops.fluid.free_all()
+        except Exception:
+            pass  # OK if nothing to free
+        # Schedule the actual bake on the NEXT timer tick
+        bpy.app.timers.register(_do_bake, first_interval=0.5)
+        return None
+
+    # Register: if cleaning first, free then bake in two steps; otherwise bake directly
+    if clean_first:
+        bpy.app.timers.register(_free_then_bake, first_interval=0.1)
+    else:
+        bpy.app.timers.register(_do_bake, first_interval=0.1)
 
     result = {"status": "bake_started", "domain": domain_name, "type": bake_type, "poll_file": str(STATUS_FILE)}
     print(json.dumps(result))
