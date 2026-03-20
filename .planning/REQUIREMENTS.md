@@ -113,9 +113,9 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 
 - [x] **AUD4-01**: Audio analysis exports as JSON from browser with 8+ frequency bands (sub-bass through air)
 - [x] **AUD4-02**: Onset detection and envelope followers per band included in audio export
-- [ ] **AUD4-03**: keyframe_generator.py reads audio JSON and inserts Blender keyframes via bpy.keyframe_insert()
-- [ ] **AUD4-04**: Mapping presets available (Meditation / EDM / Ambient) with different parameter profiles
-- [ ] **AUD4-05**: 8+ audio features mapped to 8+ independent visual parameters simultaneously (emergent complexity principle)
+- [x] **AUD4-03**: keyframe_generator.py reads audio JSON and inserts Blender keyframes via bpy.keyframe_insert()
+- [x] **AUD4-04**: Mapping presets available (Meditation / EDM / Ambient) with different parameter profiles
+- [x] **AUD4-05**: 8+ audio features mapped to 8+ independent visual parameters simultaneously (emergent complexity principle)
 
 ### Fire Simulation (FIRE)
 
@@ -183,9 +183,9 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 | TOOL-03 | Phase 26 | Pending |
 | AUD4-01 | Phase 27 | Complete |
 | AUD4-02 | Phase 27 | Complete |
-| AUD4-03 | Phase 27 | Pending |
-| AUD4-04 | Phase 27 | Pending |
-| AUD4-05 | Phase 27 | Pending |
+| AUD4-03 | Phase 27 | Complete |
+| AUD4-04 | Phase 27 | Complete |
+| AUD4-05 | Phase 27 | Complete |
 | FIRE-01 | Phase 28 | Pending |
 | FIRE-02 | Phase 28 | Pending |
 | FIRE-03 | Phase 28 | Pending |

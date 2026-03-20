@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Floating Widget Design System
-status: executing
-stopped_at: Completed 27-01-PLAN.md (audio analysis engine)
-last_updated: "2026-03-20T03:07:10Z"
-last_activity: 2026-03-20 -- Completed 27-01 audio analysis engine
+status: completed
+stopped_at: Completed 27-02-PLAN.md (Phase 27 complete)
+last_updated: "2026-03-20T03:15:31.414Z"
+last_activity: 2026-03-20 -- Completed 27-02 keyframe generator + presets
 progress:
   total_phases: 8
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 4
-  percent: 80
+  completed_plans: 5
+  percent: 100
 ---
 
 # Project State
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Phase 27 -- Audio Bridge (Plan 01 complete, Plan 02 next)
+**Current focus:** Phase 27 -- Audio Bridge (COMPLETE -- both plans shipped)
 
 ---
 
 ## Current Position
 
 Phase: 27 of 33 (Audio Bridge)
-Plan: 1 of 2 in current phase
-Status: Executing
-Last activity: 2026-03-20 -- Completed 27-01 audio analysis engine
+Plan: 2 of 2 in current phase (COMPLETE)
+Status: Phase Complete
+Last activity: 2026-03-20 -- Completed 27-02 keyframe generator + presets
 
-Progress: [████████░░] 80%
+Progress: [██████████] 100%
 
 ---
 
@@ -41,7 +41,7 @@ Progress: [████████░░] 80%
 **v1.0:** 35+ plans completed across 5 phases
 **v2.0:** 18 plans completed across 7 phases
 **v3.0 (parallel):** 3/17 plans (Phase 19 complete, Phases 20-25 queued)
-**v4.0:** 3/3 plans in Phase 26 complete, 1/2 in Phase 27
+**v4.0:** 3/3 plans in Phase 26 complete, 2/2 in Phase 27 complete
 
 ---
 
@@ -64,6 +64,10 @@ Progress: [████████░░] 80%
 - Own FFT implementation for AudioExporter (no new deps), stereo from raw L/R channels
 - BPM via autocorrelation on RMS energy (8s window, 60-200 BPM range)
 - LUFS approximated via K-weighted RMS windowing (not true ITU BS.1770)
+- resolve_target() returns (set_fn, keyframe_fn) closures -- no exec() for safety
+- Color temp RGB ramp: 1500K red -> 3000K orange -> 6500K white
+- Preset-driven mapping: JSON preset defines source_feature -> data_path with scale/offset/clamp
+- Targets resolved upfront before frame loop (fail fast on missing objects)
 
 ### Critical Pitfalls (from research)
 
@@ -82,11 +86,11 @@ None blocking. Blender 5.0.1 fire crash is documented but not blocking (pipeline
 
 ## Session Continuity
 
-Last session: 2026-03-20T03:07:10Z
-Stopped at: Completed 27-01-PLAN.md
-Resume with: Phase 27 Plan 02 (Python keyframe generator)
+Last session: 2026-03-20T03:15:31.411Z
+Stopped at: Completed 27-02-PLAN.md (Phase 27 complete)
+Resume with: Next phase in ROADMAP.md
 Resume file: None
 
 ---
 
-*Last updated: 2026-03-20 -- Phase 27 Plan 01 complete*
+*Last updated: 2026-03-20 -- Phase 27 complete (both plans shipped)*
