@@ -120,3 +120,127 @@ export interface PreAnalyzeOptions {
   signal?: AbortSignal;                 // Abort signal for cancellation
   useCache?: boolean;                   // Use IndexedDB cache (default: true)
 }
+
+// ============================================================================
+// Audio Export types (Phase 27 - Audio Bridge)
+// ============================================================================
+
+/**
+ * 8-band frequency analysis for a single frame (expanded from 3-band FrameAudioData)
+ */
+export interface ExportedAudioFrame {
+  frame: number;
+  time: number;
+  // 8 frequency bands - amplitude (0-1)
+  bands: {
+    sub_bass: number;     // 20-60Hz
+    bass: number;         // 60-250Hz
+    low_mid: number;      // 250-500Hz
+    mid: number;          // 500-2kHz
+    upper_mid: number;    // 2-4kHz
+    presence: number;     // 4-6kHz
+    brilliance: number;   // 6-12kHz
+    air: number;          // 12-20kHz
+  };
+  // 8 envelope followers (0-1, exponential decay)
+  envelopes: {
+    sub_bass: number;
+    bass: number;
+    low_mid: number;
+    mid: number;
+    upper_mid: number;
+    presence: number;
+    brilliance: number;
+    air: number;
+  };
+  // 8 onset flags (boolean per band)
+  onsets: {
+    sub_bass: boolean;
+    bass: boolean;
+    low_mid: boolean;
+    mid: boolean;
+    upper_mid: boolean;
+    presence: boolean;
+    brilliance: boolean;
+    air: boolean;
+  };
+  // Global spectral descriptors
+  spectral_centroid: number;   // 0-1 normalized (weighted mean frequency)
+  spectral_flatness: number;   // 0-1 (1=noise, 0=tonal)
+  rms_energy: number;          // 0-1 normalized
+  zero_crossing_rate: number;  // 0-1 normalized
+  // Stereo features
+  lr_balance: number;          // -1 (left) to 1 (right), 0 = center
+  stereo_width: number;        // 0-1 (0=mono, 1=wide)
+  mid_side_energy: number;     // 0-1 (0=all mid, 1=all side)
+  // Musical features
+  chromagram: number[];        // 12-element array (C,C#,D,...B), each 0-1
+  bpm: number;                 // Estimated beats per minute
+  beat_phase: number;          // 0-1 cycle position within current beat
+  spectral_contrast: number;   // 0-1 (difference between peaks and valleys)
+  // Dynamics
+  lufs: number;                // -70 to 0 (perceptual loudness, LUFS-ish via RMS windowing)
+  crest_factor: number;        // 0-1 normalized (peak/RMS ratio, higher = more dynamic)
+}
+
+/**
+ * Band definition metadata for self-documenting JSON
+ */
+export interface AudioBandDefinition {
+  name: string;
+  key: string;
+  min_hz: number;
+  max_hz: number;
+  description: string;
+  typical_use: string;
+}
+
+/**
+ * Feature description metadata
+ */
+export interface AudioFeatureDescription {
+  name: string;
+  key: string;
+  range: string;
+  description: string;
+  typical_use: string;
+}
+
+/**
+ * Auto-classification hints for preset suggestion
+ */
+export interface AudioClassificationHints {
+  estimated_bpm: number;
+  avg_spectral_centroid: number;
+  avg_crest_factor: number;
+  suggested_preset: string;
+  confidence: number;
+}
+
+/**
+ * Complete audio export result (the JSON file structure)
+ */
+export interface AudioExportResult {
+  metadata: {
+    version: string;
+    exported_at: string;
+    source_file: string;
+    duration_seconds: number;
+    fps: number;
+    total_frames: number;
+    sample_rate: number;
+    feature_count: number;
+  };
+  band_definitions: AudioBandDefinition[];
+  feature_descriptions: AudioFeatureDescription[];
+  classification: AudioClassificationHints;
+  frames: ExportedAudioFrame[];
+  summary: {
+    peak_rms: number;
+    avg_rms: number;
+    beat_count: number;
+    estimated_bpm: number;
+    dominant_band: string;
+    spectral_centroid_mean: number;
+  };
+}
