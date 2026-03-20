@@ -715,7 +715,7 @@ Phase 24 (Render Target Split) --- independent, can run anytime
 
 ## Phases
 
-- [ ] **Phase 26: MCP Bridge + Tool Discipline** - blender-mcp installation, async patterns for long operations, screenshot token discipline, proof-of-concept Mantaflow fire orb
+- [x] **Phase 26: MCP Bridge + Tool Discipline** - blender-mcp installation, async patterns for long operations, screenshot token discipline, proof-of-concept Mantaflow fire orb (completed 2026-03-20)
 - [ ] **Phase 27: Audio Bridge** - Browser audio analysis JSON export with 8+ bands, onset detection, envelope followers; keyframe_generator.py for Blender keyframe insertion with mapping presets
 - [ ] **Phase 28: Fire Simulation** - Mantaflow fire with Principled Volume + Blackbody, audio-driven intensity and color temperature, Cycles cinema render with compositor bloom
 - [ ] **Phase 29: Water + World Building** - Ocean Modifier water surface, fire-over-water scene with caustics, foam/spray particles, Poly Haven HDRIs, Sketchfab/AI asset placement
@@ -735,7 +735,7 @@ Phase 24 (Render Target Split) --- independent, can run anytime
   2. A Mantaflow fire simulation bakes to completion without hitting the 180-second MCP timeout (async timer pattern validated)
   3. A Cycles render of the proof-of-concept fire orb completes and saves a PNG to disk without blocking the MCP connection
   4. A full Claude-controlled session (create scene, bake sim, render) runs without exceeding $2 in screenshot tokens (discipline validated)
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 26-01-PLAN.md — Directory structure, scene utilities, connection test, setup docs (TOOL-01)
@@ -871,7 +871,7 @@ Plans:
 | 23. Template Actions | v3.0 | 0/1 | Not started | - |
 | 24. Render Target Split | v3.0 | 0/2 | Not started | - |
 | 25. Mobile Fallback + Polish | v3.0 | 0/3 | Not started | - |
-| 26. MCP Bridge + Tool Discipline | 2/3 | In Progress|  | - |
+| 26. MCP Bridge + Tool Discipline | 3/3 | Complete   | 2026-03-20 | - |
 | 27. Audio Bridge | v4.0 | 0/TBD | Not started | - |
 | 28. Fire Simulation | v4.0 | 0/TBD | Not started | - |
 | 29. Water + World Building | v4.0 | 0/TBD | Not started | - |
