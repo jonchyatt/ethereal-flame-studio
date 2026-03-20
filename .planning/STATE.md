@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Floating Widget Design System
-status: verifying
-stopped_at: Phase 26 complete, entering verification
-last_updated: "2026-03-20T02:20:20.710Z"
-last_activity: 2026-03-20 -- Completed 26-03 fire orb POC
+status: executing
+stopped_at: Completed 27-01-PLAN.md (audio analysis engine)
+last_updated: "2026-03-20T03:07:10Z"
+last_activity: 2026-03-20 -- Completed 27-01 audio analysis engine
 progress:
   total_phases: 8
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 100
+  total_plans: 5
+  completed_plans: 4
+  percent: 80
 ---
 
 # Project State
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Phase 26 -- MCP Bridge + Tool Discipline (all plans complete, verifying)
+**Current focus:** Phase 27 -- Audio Bridge (Plan 01 complete, Plan 02 next)
 
 ---
 
 ## Current Position
 
-Phase: 26 of 33 (MCP Bridge + Tool Discipline)
-Plan: 3 of 3 in current phase (all complete)
-Status: Verifying
-Last activity: 2026-03-20 -- Completed 26-03 fire orb POC
+Phase: 27 of 33 (Audio Bridge)
+Plan: 1 of 2 in current phase
+Status: Executing
+Last activity: 2026-03-20 -- Completed 27-01 audio analysis engine
 
-Progress: [██████████] 100%
+Progress: [████████░░] 80%
 
 ---
 
@@ -41,7 +41,7 @@ Progress: [██████████] 100%
 **v1.0:** 35+ plans completed across 5 phases
 **v2.0:** 18 plans completed across 7 phases
 **v3.0 (parallel):** 3/17 plans (Phase 19 complete, Phases 20-25 queued)
-**v4.0:** 3/3 plans in Phase 26 complete
+**v4.0:** 3/3 plans in Phase 26 complete, 1/2 in Phase 27
 
 ---
 
@@ -61,6 +61,9 @@ Progress: [██████████] 100%
 - OpenImageDenoise default denoiser -- 128 samples comparable to 2048 without denoising
 - exec(open()) needs __file__ fallback for MCP script execution
 - Blender 5.0.1 Mantaflow FIRE bake crashes (MANTA::initHeat bug) -- use 4.5 LTS for fire sims
+- Own FFT implementation for AudioExporter (no new deps), stereo from raw L/R channels
+- BPM via autocorrelation on RMS energy (8s window, 60-200 BPM range)
+- LUFS approximated via K-weighted RMS windowing (not true ITU BS.1770)
 
 ### Critical Pitfalls (from research)
 
@@ -79,11 +82,11 @@ None blocking. Blender 5.0.1 fire crash is documented but not blocking (pipeline
 
 ## Session Continuity
 
-Last session: 2026-03-20T02:40:00.000Z
-Stopped at: Phase 26 complete, entering verification
-Resume with: Phase verification, then Phase 27
+Last session: 2026-03-20T03:07:10Z
+Stopped at: Completed 27-01-PLAN.md
+Resume with: Phase 27 Plan 02 (Python keyframe generator)
 Resume file: None
 
 ---
 
-*Last updated: 2026-03-20 -- Phase 26 all plans complete*
+*Last updated: 2026-03-20 -- Phase 27 Plan 01 complete*
