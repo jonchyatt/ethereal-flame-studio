@@ -615,3 +615,166 @@ def _walk_layer_collections(layer_collection, included, excluded, depth=0):
 
     for child in layer_collection.children:
         _walk_layer_collections(child, included, excluded, depth + 1)
+
+
+# ---------------------------------------------------------------------------
+# Depth pass extraction
+# ---------------------------------------------------------------------------
+
+def extract_z_pass(view_layer_name=None, output_dir=None, normalize=True):
+    """Extract the Z-pass (depth) from a Cycles render as a file output.
+
+    Enables the Z-pass on the specified View Layer and creates compositor
+    nodes to output the depth data to an OpenEXR file. OpenEXR preserves
+    full float precision, which is essential for accurate depth values.
+
+    If normalize=True, a MapRange node maps the raw depth values from the
+    camera's clip_start..clip_end range to 0..1, making the output compatible
+    with depth maps from Video Depth Anything and other depth estimation tools.
+
+    This function is complementary to depth_compositor.py -- it provides the
+    Blender-side depth extraction, while depth_compositor loads external depth
+    maps for real footage.
+
+    Args:
+        view_layer_name: Name of the View Layer to extract Z-pass from.
+                         If None, uses the default "ViewLayer" (or first
+                         available if "ViewLayer" was removed).
+        output_dir: Directory to write the depth EXR files. If None, uses
+                    RENDERS_DIR / "depth_passes".
+        normalize: If True, map depth from camera clip_start..clip_end to
+                   0..1 range via a MapRange node. If False, write raw
+                   distance-from-camera values.
+
+    Returns:
+        Dict describing the Z-pass extraction setup (also printed as JSON).
+
+    Raises:
+        RuntimeError: If the specified View Layer is not found.
+    """
+    scene = bpy.context.scene
+
+    # Resolve view layer
+    if view_layer_name is None:
+        vl = scene.view_layers.get("ViewLayer")
+        if vl is None and len(scene.view_layers) > 0:
+            vl = scene.view_layers[0]
+        if vl is None:
+            raise RuntimeError("No View Layers found in scene.")
+        view_layer_name = vl.name
+    else:
+        vl = scene.view_layers.get(view_layer_name)
+        if vl is None:
+            available = [v.name for v in scene.view_layers]
+            raise RuntimeError(
+                f"View Layer '{view_layer_name}' not found. "
+                f"Available: {available}"
+            )
+
+    # Enable Z-pass on the view layer
+    vl.use_pass_z = True
+
+    # Resolve output directory
+    if output_dir is None:
+        from scene_utils import RENDERS_DIR
+        output_dir = str(RENDERS_DIR / "depth_passes")
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Ensure compositor is enabled
+    scene.use_nodes = True
+    tree = scene.node_tree
+
+    # Find the Render Layers node for this view layer
+    rl_node = None
+    for node in tree.nodes:
+        if node.type == 'R_LAYERS' and node.layer == view_layer_name:
+            rl_node = node
+            break
+
+    if rl_node is None:
+        # Create one if it does not exist
+        rl_node = tree.nodes.new(type='CompositorNodeRLayers')
+        rl_node.name = f"RL_{view_layer_name}_ZPass"
+        rl_node.label = f"Z-Pass: {view_layer_name}"
+        rl_node.layer = view_layer_name
+        rl_node.location = (0, -NODE_SPACING_Y * 2)
+
+    # Current depth output socket
+    depth_output = rl_node.outputs["Depth"]
+
+    # Optional normalization
+    normalize_node = None
+    if normalize:
+        normalize_node = tree.nodes.new(type='CompositorNodeMapRange')
+        normalize_node.name = f"ZPass_Normalize_{view_layer_name}"
+        normalize_node.label = f"Normalize Z: {view_layer_name}"
+        normalize_node.location = (
+            rl_node.location.x + NODE_SPACING_X,
+            rl_node.location.y - 100
+        )
+
+        # Map from camera clip range to 0..1
+        cam = scene.camera
+        if cam and cam.data:
+            clip_start = cam.data.clip_start
+            clip_end = cam.data.clip_end
+        else:
+            clip_start = 0.1
+            clip_end = 1000.0
+
+        normalize_node.inputs["From Min"].default_value = clip_start
+        normalize_node.inputs["From Max"].default_value = clip_end
+        normalize_node.inputs["To Min"].default_value = 0.0
+        normalize_node.inputs["To Max"].default_value = 1.0
+        normalize_node.use_clamp = True
+
+        tree.links.new(depth_output, normalize_node.inputs["Value"])
+        depth_output = normalize_node.outputs["Value"]
+
+    # Create File Output node for depth EXR
+    file_output = tree.nodes.new(type='CompositorNodeOutputFile')
+    file_output.name = f"ZPass_Output_{view_layer_name}"
+    file_output.label = f"Depth Output: {view_layer_name}"
+    file_output.location = (
+        rl_node.location.x + NODE_SPACING_X * (2 if normalize else 1),
+        rl_node.location.y - 100
+    )
+
+    # Configure for OpenEXR (preserves float depth precision)
+    file_output.base_path = output_dir
+    file_output.format.file_format = 'OPEN_EXR'
+    file_output.format.color_depth = '32'
+    file_output.format.exr_codec = 'ZIP'
+
+    # Wire depth to file output
+    tree.links.new(depth_output, file_output.inputs[0])
+
+    result = {
+        "status": "z_pass_extraction_configured",
+        "view_layer": view_layer_name,
+        "z_pass_enabled": True,
+        "output_dir": output_dir,
+        "file_format": "OpenEXR (32-bit float, ZIP compression)",
+        "normalized": normalize,
+        "normalize_range": {
+            "from": [clip_start, clip_end] if normalize else "raw",
+            "to": [0.0, 1.0] if normalize else "raw",
+        } if normalize else {"from": "raw", "to": "raw"},
+        "nodes_created": [
+            rl_node.name,
+            normalize_node.name if normalize_node else None,
+            file_output.name,
+        ],
+    }
+
+    # Clean up None entries
+    result["nodes_created"] = [n for n in result["nodes_created"] if n]
+
+    print(json.dumps(result, indent=2))
+    print(f"[compositor_layers] Z-pass extraction configured: "
+          f"layer='{view_layer_name}', "
+          f"format=OpenEXR, "
+          f"normalized={'yes (0-1)' if normalize else 'no (raw distance)'}, "
+          f"output={output_dir}")
+
+    return result
