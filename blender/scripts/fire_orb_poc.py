@@ -45,7 +45,11 @@ import sys
 import os
 
 # Ensure our scripts directory is on sys.path for imports
-_SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
+try:
+    _SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
+except NameError:
+    # __file__ not defined when run via exec(open(...).read())
+    _SCRIPTS_DIR = "C:/Users/jonch/Projects/ethereal-flame-studio/blender/scripts"
 if _SCRIPTS_DIR not in sys.path:
     sys.path.insert(0, _SCRIPTS_DIR)
 
