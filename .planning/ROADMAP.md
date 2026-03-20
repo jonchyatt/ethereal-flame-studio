@@ -846,7 +846,15 @@ Plans:
   1. Volumetric laser beams scan across the scene in sync with beat onsets, with sweep speed and direction changing on detected beats
   2. An LED grid displays per-column frequency response where each column's brightness maps to a different frequency band (bass on left, treble on right, or similar mapping)
   3. During a breakdown section of an EDM track, overall scene emission drops to roughly 10% intensity, then snaps back to 100% on the drop (dynamic range principle demonstrated)
-**Plans**: TBD
+**Plans**: 2 plans in 2 waves
+
+Plans:
+- [ ] 31-01-PLAN.md -- EDM light show template (lasers, LED grid, concert scene)
+- [ ] 31-02-PLAN.md -- Audio preset and keyframe wiring (sweep, frequency mapping, dynamic range)
+
+**Wave Structure:**
+- Wave 1: 31-01 (scene template)
+- Wave 2: 31-02 (audio wiring, depends on 31-01)
 
 ---
 
