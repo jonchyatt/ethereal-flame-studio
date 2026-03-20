@@ -16,6 +16,59 @@
 
 ---
 
+## Chrome MCP — Authenticated Browser Access (via Jarvis)
+
+Jarvis controls Jon's real Chrome browser via Chrome DevTools MCP. All logins, cookies, sessions intact. 200ms round trips, 35-200x fewer tokens than Playwright.
+
+**Reference docs (in Jarvis repo at `C:/Users/jonch/Projects/jarvis/`):**
+
+| File | What |
+|------|------|
+| `docs/chrome-mcp-architecture.md` | Capabilities, protocol stack, competitive analysis |
+| `docs/chrome-146-154-virginia-setup.md` | Setup on this machine, spawn path rules |
+| `~/.claude/skills/chrome-mcp/SKILL.md` | evaluate_script-first workflow, operational patterns |
+
+**Ethereal Flame Studio capabilities:**
+
+**Live QA (aligns with testing rule — test from production):**
+- After `git push` → auto-deploy, use Chrome MCP to verify the live site visually
+- `evaluate_script` to check DOM state, component dimensions, Three.js scene params — 20-500 tokens
+- `take_screenshot` to capture visual result and compare against `/references/` targets
+- Test responsive layouts by resizing viewport via CDP
+
+**Real-Time Component Tuning:**
+- Inject CSS via `evaluate_script` — test colors, spacing, animations without rebuild cycles
+- Modify Three.js/WebGL parameters live (camera, lighting, particle counts) on the production site
+- A/B test visual treatments by toggling DOM classes and screenshotting results
+
+**Publishing Pipeline (Jon's authenticated sessions):**
+- YouTube Studio: upload renders, set metadata, thumbnails, scheduling
+- Social media distribution across authenticated platforms
+- Stock footage site browsing with Jon's subscriptions
+
+**Creative Research:**
+- Navigate reference videos, extract timestamps via player DOM
+- Pull color palettes from design reference sites
+- Inspect competitor VR/WebGL experiences — extract shader params, scene graphs via `evaluate_script`
+
+**Constraint:** The Chrome daemon must be connected before using chrome tools. Run the bash process from `docs/chrome-146-154-virginia-setup.md` first.
+
+**Protocol:** `mcp__chrome__*` tools only (NEVER `mcp__claude-in-chrome__*`). `evaluate_script` first, `take_screenshot` second, `take_snapshot` last resort.
+
+---
+
+## Jarvis Integration (AI Orchestrator)
+
+Jarvis serves as the central brain across all of Jon's projects.
+
+- **Project:** `C:/Users/jonch/Projects/jarvis/`
+- **Cross-Project Intelligence:** `~/.claude/skills/cross-project-intelligence/SKILL.md`
+- **Karpathy AutoResearch:** `C:/Users/jonch/Projects/jarvis/docs/karpathy-autoresearch-pattern.md`
+
+Jarvis can orchestrate Ethereal Flame Studio tasks: research visual techniques, generate content briefs, schedule YouTube uploads, and run Karpathy optimization loops on video performance metrics.
+
+---
+
 ## Reference Images Location
 
 `/references/` folder contains target visuals:
