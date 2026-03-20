@@ -880,7 +880,7 @@ Plans:
 | 24. Render Target Split | v3.0 | 0/2 | Not started | - |
 | 25. Mobile Fallback + Polish | v3.0 | 0/3 | Not started | - |
 | 26. MCP Bridge + Tool Discipline | 3/3 | Complete    | 2026-03-20 | - |
-| 27. Audio Bridge | 2/2 | Complete   | 2026-03-20 | - |
+| 27. Audio Bridge | 2/2 | Complete    | 2026-03-20 | - |
 | 28. Fire Simulation | v4.0 | 0/TBD | Not started | - |
 | 29. Water + World Building | v4.0 | 0/TBD | Not started | - |
 | 30. VR Cinema + Compositing | v4.0 | 0/TBD | Not started | - |
