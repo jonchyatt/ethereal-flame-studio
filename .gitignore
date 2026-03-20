@@ -93,3 +93,18 @@ jarvis-debug.png
 # Batch scripts
 audio-prep.bat
 start-render.bat
+
+# Blender VFX Pipeline (v4.0)
+blender/cache/
+!blender/cache/.gitkeep
+blender/renders/
+!blender/renders/.gitkeep
+blender/masks/
+!blender/masks/.gitkeep
+blender/scenes/*.blend
+blender/scenes/*.blend1
+!blender/scenes/.gitkeep
+*.uni
+*.vdb
+*.openexr
+*.exr
