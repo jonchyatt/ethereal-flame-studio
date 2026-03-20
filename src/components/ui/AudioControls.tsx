@@ -13,6 +13,7 @@
 
 import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import { audioAnalyzer } from '@/lib/audio/AudioAnalyzer';
+import { audioExporter } from '@/lib/audio/AudioExporter';
 import { useAudioStore } from '@/lib/stores/audioStore';
 import { AudioPrepEditor } from './AudioPrepEditor';
 
@@ -44,6 +45,8 @@ export const AudioControls = forwardRef<AudioControlsRef>(function AudioControls
   const [isLoadingUrl, setIsLoadingUrl] = useState(false);
   const [showDemoDropdown, setShowDemoDropdown] = useState(false);
   const [showAudioPrep, setShowAudioPrep] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
 
   const {
     isPlaying,
@@ -185,6 +188,29 @@ export const AudioControls = forwardRef<AudioControlsRef>(function AudioControls
       }
     } catch (error) {
       console.error('Playback error:', error);
+    }
+  };
+
+  // Handle export audio analysis
+  const handleExportAnalysis = async () => {
+    const { audioFile, audioFileName } = useAudioStore.getState();
+    if (!audioFile) return;
+
+    setIsExporting(true);
+    setExportProgress(0);
+
+    try {
+      const result = await audioExporter.analyzeForExport(audioFile, {
+        fps: 30,
+        onProgress: (pct) => setExportProgress(pct),
+      });
+      const baseName = (audioFileName || 'audio').replace(/\.[^.]+$/, '');
+      audioExporter.downloadJSON(result, `${baseName}-analysis.json`);
+    } catch (err) {
+      console.error('Audio export failed:', err);
+    } finally {
+      setIsExporting(false);
+      setExportProgress(0);
     }
   };
 
@@ -336,6 +362,19 @@ export const AudioControls = forwardRef<AudioControlsRef>(function AudioControls
             <div className="text-white/80 text-sm truncate max-w-xs">
               {audioFileName}
             </div>
+          )}
+
+          {/* Export Audio Analysis Button */}
+          {audioFileName && (
+            <button
+              onClick={handleExportAnalysis}
+              disabled={isExporting || isPlaying}
+              className="px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-cyan-600/80 hover:bg-cyan-500/80 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isExporting
+                ? `Analyzing... ${exportProgress}%`
+                : 'Export Audio Analysis'}
+            </button>
           )}
 
           {/* Debug Overlay - Audio Levels */}
