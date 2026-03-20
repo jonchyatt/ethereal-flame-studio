@@ -19,30 +19,37 @@ Multi-scale detail improvements over fire_orb_poc.py:
   - Three-point lighting (key + rim + ground bounce) vs single key light
   - Camera DOF at f/2.8 for cinematic shallow depth of field
 
-Usage (three separate execute_blender_code calls via MCP):
+Four-function API:
+  create_fire_scene() -> apply_audio() -> bake_fire() -> render_fire()
 
-  Call 1 -- Create scene:
+Usage (via MCP execute_blender_code calls):
+
+  Call 1 -- Create scene (includes compositor setup):
     import sys; sys.path.insert(0, 'C:/Users/jonch/Projects/ethereal-flame-studio/blender/scripts')
     from fire_cinema_template import create_fire_scene
     create_fire_scene(quality="preview")
 
-  Call 2 -- Start bake (returns immediately):
+  Call 2 -- Apply audio keyframes (optional, requires audio JSON):
+    from fire_cinema_template import apply_audio
+    apply_audio('C:/.../audio-analysis.json')
+
+  Call 3 -- Start bake (returns immediately):
     from fire_cinema_template import bake_fire
     bake_fire()
 
-  Call 3 -- Poll bake status:
+  Call 4 -- Poll bake status:
     from poll_status import poll_status
     poll_status()
 
-  Call 4 -- Render single frame (returns immediately):
+  Call 5 -- Render single frame (returns immediately):
     from fire_cinema_template import render_fire
     render_fire(output_name="fire_cinema", frame=45)
 
-  Call 5 -- Render full animation:
+  Call 6 -- Render full animation:
     from fire_cinema_template import render_fire
     render_fire(output_name="fire_cinema")
 
-  Call 6 -- Poll render status:
+  Call 7 -- Poll render status:
     from poll_status import is_render_active
     is_render_active()
 
@@ -486,6 +493,110 @@ def _create_lighting():
     return key_light, rim_light, ground_light
 
 
+def setup_compositor():
+    """Create compositor node tree for cinema fire: bloom + warm color grading.
+
+    Builds a node chain:
+      Render Layers -> Glare (FOG_GLOW bloom) -> Color Balance (ASC CDL warm grade) -> Composite
+                                                                                    -> Viewer
+
+    The Glare node adds a soft bloom glow to bright fire areas (threshold 0.8
+    ensures only the hottest parts bloom). The Color Balance uses ASC CDL
+    (Offset/Power/Slope) for a warm cinematic grade -- slightly warm shadows,
+    neutral midtones, warm highlights with cooled blues.
+
+    Returns:
+        Dict describing the compositor setup.
+    """
+    scene = bpy.context.scene
+
+    # Enable compositing
+    scene.use_nodes = True
+    tree = scene.node_tree
+
+    # Clear existing compositor nodes
+    tree.nodes.clear()
+
+    # -- Create nodes --
+
+    # Render Layers input
+    render_layers = tree.nodes.new(type='CompositorNodeRLayers')
+    render_layers.location = (-300, 0)
+
+    # Glare: FOG_GLOW bloom on bright fire areas
+    glare = tree.nodes.new(type='CompositorNodeGlare')
+    glare.location = (200, 100)
+    glare.glare_type = 'FOG_GLOW'
+    glare.quality = 'HIGH'
+    glare.mix = 0.0          # Additive blend (glow added on top of original)
+    glare.threshold = 0.8    # Only bright fire areas bloom
+    glare.size = 7           # Moderate glow radius
+
+    # Color Balance: ASC CDL warm color grading
+    color_balance = tree.nodes.new(type='CompositorNodeColorBalance')
+    color_balance.location = (500, 0)
+    color_balance.correction_method = 'OFFSET_POWER_SLOPE'
+    # Offset: slight warm tint in shadows
+    color_balance.offset = (1.0, 0.95, 0.88)
+    # Power: neutral midtones (gamma)
+    color_balance.power = (1.0, 1.0, 1.0)
+    # Slope: warm highlights, cooler blues
+    color_balance.slope = (1.05, 1.0, 0.95)
+
+    # Composite output
+    composite = tree.nodes.new(type='CompositorNodeComposite')
+    composite.location = (800, 0)
+
+    # Viewer node for background preview
+    viewer = tree.nodes.new(type='CompositorNodeViewer')
+    viewer.location = (800, -200)
+
+    # -- Wire the nodes --
+    links = tree.links
+    links.new(render_layers.outputs["Image"], glare.inputs["Image"])
+    links.new(glare.outputs["Image"], color_balance.inputs["Image"])
+    links.new(color_balance.outputs["Image"], composite.inputs["Image"])
+    links.new(color_balance.outputs["Image"], viewer.inputs["Image"])
+
+    print("[fire_cinema] Compositor created: "
+          "Render Layers -> Glare (FOG_GLOW, threshold=0.8) -> "
+          "Color Balance (ASC CDL warm grade) -> Composite + Viewer")
+
+    return {
+        "bloom": {
+            "type": "FOG_GLOW",
+            "quality": "HIGH",
+            "mix": 0.0,
+            "threshold": 0.8,
+            "size": 7,
+        },
+        "color_grading": {
+            "method": "OFFSET_POWER_SLOPE",
+            "offset": [1.0, 0.95, 0.88],
+            "power": [1.0, 1.0, 1.0],
+            "slope": [1.05, 1.0, 0.95],
+        },
+    }
+
+
+def apply_audio(audio_json_path, preset_name="fire_cinema"):
+    """Apply audio-driven keyframes to the fire scene using a mapping preset.
+
+    Convenience wrapper around keyframe_generator.apply_audio_keyframes()
+    that defaults to the fire_cinema preset. Provides a clean four-function API:
+        create_fire_scene -> apply_audio -> bake_fire -> render_fire
+
+    Args:
+        audio_json_path: Absolute path to the audio analysis JSON file.
+        preset_name: Mapping preset name (default "fire_cinema").
+
+    Returns:
+        Dict summary from apply_audio_keyframes().
+    """
+    from keyframe_generator import apply_audio_keyframes
+    return apply_audio_keyframes(audio_json_path, preset_name=preset_name)
+
+
 def create_fire_scene(quality="preview"):
     """Create the complete production Mantaflow fire scene.
 
@@ -495,6 +606,7 @@ def create_fire_scene(quality="preview"):
       - Principled Volume material with Blackbody temperature coloring
       - Camera with depth of field
       - Three-point lighting (key, rim, ground bounce)
+      - Compositor with bloom (Glare) and warm color grading (Color Balance)
 
     Args:
         quality: Quality preset name -- "draft", "preview", "production", or "ultra".
@@ -529,6 +641,9 @@ def create_fire_scene(quality="preview"):
 
     # Step 7: Three-point lighting
     key_light, rim_light, ground_light = _create_lighting()
+
+    # Step 8: Compositor (bloom + color grading)
+    compositor_info = setup_compositor()
 
     # Build JSON summary (same pattern as fire_orb_poc.py)
     result = {
@@ -597,6 +712,14 @@ def create_fire_scene(quality="preview"):
             "resolution": f"{preset['resolution_x']}x{preset['resolution_y']}",
             "frame_range": f"1-{preset['frame_count']}",
             "motion_blur": preset["motion_blur_shutter"],
+        },
+        "compositor": {
+            "bloom": compositor_info["bloom"],
+            "color_grading": compositor_info["color_grading"],
+            "motion_blur": {
+                "enabled": True,
+                "shutter": preset["motion_blur_shutter"],
+            },
         },
     }
 
