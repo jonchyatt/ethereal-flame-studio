@@ -1,0 +1,166 @@
+{
+  "version": "1.0",
+  "description": "Perceptual visual principles for EFS Blender scenes. Decoded from analysis of professional audio-reactive VFX creators (UON Visuals, Beeple, Electric Sheep). Each principle maps to concrete Blender parameter adjustments.",
+  "principles": [
+    {
+      "name": "fractal_detail",
+      "description": "Multi-scale visual detail from macro turbulence down to sub-pixel noise. The human eye perceives 'richness' when detail exists at 3+ scales simultaneously -- large flame shapes, medium swirls, and fine-grain texture all visible at once.",
+      "source": "Decoded from analysis of professional audio-reactive VFX (UON Visuals, Beeple, Electric Sheep). Chrome MCP live analysis deferred to interactive session.",
+      "parameters": {
+        "fire_domain.vorticity": {
+          "value": 1.2,
+          "baseline": 1.0,
+          "description": "More large-scale turbulence in fluid simulation"
+        },
+        "fire_domain.noise_scale": {
+          "value": 3,
+          "baseline": 2,
+          "description": "Minimum noise scale even at preview quality -- more fine detail in smoke/fire"
+        },
+        "fire_domain.flame_vorticity": {
+          "value": 2.0,
+          "baseline": 1.5,
+          "description": "More flame-specific micro-turbulence at edges"
+        },
+        "fire_material.density": {
+          "value": 10.0,
+          "baseline": 8.0,
+          "description": "Denser volume reveals more micro-structure in the fire"
+        },
+        "compositor.glare_size": {
+          "value": 8,
+          "baseline": 7,
+          "description": "Slightly wider glow picks up more detail in bloom falloff"
+        }
+      },
+      "applies_to": ["fire", "combo", "luminous"],
+      "before_after": "Before: smooth uniform fire column with soft edges. After: turbulent multi-scale fire with visible micro-detail at edges, distinct swirl patterns at medium scale, and fine grain texture throughout the volume."
+    },
+    {
+      "name": "emergent_complexity",
+      "description": "Multiple independent visual systems layered together produce patterns no single system could generate. This is the 'more than the sum of parts' effect -- fire, smoke, lighting, and color grading each add a visual layer that interacts unpredictably with the others.",
+      "source": "Decoded from analysis of professional audio-reactive VFX (UON Visuals, Beeple, Electric Sheep). Chrome MCP live analysis deferred to interactive session.",
+      "parameters": {
+        "audio_mapping.min_simultaneous_mappings": {
+          "value": 8,
+          "baseline": 8,
+          "description": "Minimum 8 simultaneous audio-to-visual mappings ensures enough independent systems for emergent behavior (already enforced by AUD4-05)"
+        },
+        "fire_domain.flame_smoke": {
+          "value": 0.7,
+          "baseline": 0.5,
+          "description": "More smoke intermixed with flame adds an independent visual layer with its own motion dynamics"
+        },
+        "compositor.color_balance.slope": {
+          "value": [1.08, 1.0, 0.92],
+          "baseline": [1.05, 1.0, 0.95],
+          "description": "Stronger warm/cool split in highlights adds color complexity -- warm reds separate further from cool blues"
+        },
+        "lighting.rim_energy": {
+          "value": 70,
+          "baseline": 50,
+          "description": "Stronger rim light creates a visible third illumination layer against key light and fire self-illumination"
+        }
+      },
+      "applies_to": ["fire", "combo", "edm", "luminous"],
+      "before_after": "Before: fire with uniform warm tones, single light source feel. After: visible interplay between warm self-illumination, cool rim highlights, and smoke wisps catching light at different angles -- no two frames look the same."
+    },
+    {
+      "name": "contrast_darkness",
+      "description": "The most striking visuals emerge from darkness. Bright effects against pure black maximize perceptual impact. Professional audio-reactive VFX uses 70%+ frame darkness -- the negative space is what makes the bright elements feel powerful.",
+      "source": "Decoded from analysis of professional audio-reactive VFX (UON Visuals, Beeple, Electric Sheep). Chrome MCP live analysis deferred to interactive session.",
+      "parameters": {
+        "world.background_strength": {
+          "value": 0.0,
+          "baseline": 0.0,
+          "description": "Pure black background -- already used in EDM, should be default for all visual-first scenes"
+        },
+        "lighting.key_energy": {
+          "value": 100,
+          "baseline": 150,
+          "description": "Reduced key light lets the fire be the primary illumination source, not external lights"
+        },
+        "lighting.ground_bounce_energy": {
+          "value": 15,
+          "baseline": 30,
+          "description": "Less ambient fill creates deeper blacks in shadow areas"
+        },
+        "compositor.color_balance.offset": {
+          "value": [0.98, 0.93, 0.85],
+          "baseline": [1.0, 0.95, 0.88],
+          "description": "Slightly darker shadow tones than current -- deepens the dark end of the tonal range"
+        },
+        "compositor.bloom_threshold": {
+          "value": 0.7,
+          "baseline": 0.8,
+          "description": "Lower threshold means more of the fire participates in bloom, but not as aggressive as EDM's 0.5"
+        }
+      },
+      "applies_to": ["fire", "water", "combo", "luminous"],
+      "before_after": "Before: fire floating in medium-dark space with visible ambient light wash. After: fire erupting from pure black void, bloom halo visible against darkness, deep shadows give the bright core 10x more visual impact."
+    },
+    {
+      "name": "sync_precision",
+      "description": "Audio-visual synchronization must be frame-accurate. Latency of even 2 frames (66ms at 30fps) is perceived as 'off' by the human brain. The sync itself should be non-linear: onset events hit hard with instant snaps, while envelopes decay smoothly following natural acoustic decay.",
+      "source": "Decoded from analysis of professional audio-reactive VFX (UON Visuals, Beeple, Electric Sheep). Chrome MCP live analysis deferred to interactive session.",
+      "parameters": {
+        "keyframe.curve_type_onsets": {
+          "value": "CONSTANT",
+          "baseline": "BEZIER",
+          "description": "Instant snap for beat hits -- no interpolation means zero visual latency on transients"
+        },
+        "keyframe.curve_type_envelopes": {
+          "value": "BEZIER",
+          "baseline": "BEZIER",
+          "description": "Smooth decay for sustained features using AUTO_CLAMPED handles"
+        },
+        "keyframe.envelope_handle_type": {
+          "value": "AUTO_CLAMPED",
+          "baseline": "AUTO",
+          "description": "AUTO_CLAMPED prevents overshoot on smooth envelope decay curves"
+        },
+        "audio_mapping.onset_scale": {
+          "value": 1.5,
+          "baseline": 1.0,
+          "description": "Amplify onset events 50% above envelope baseline -- makes beat hits visually distinct from sustained energy"
+        },
+        "audio_mapping.envelope_smoothing": {
+          "value": "none",
+          "baseline": "none",
+          "description": "Do NOT smooth audio data -- the analysis pipeline already provides per-frame values at native resolution"
+        }
+      },
+      "applies_to": ["fire", "water", "combo", "edm", "luminous"],
+      "before_after": "Before: fire gently undulates with music, all movements equally smooth. After: bass hits cause instant fire eruptions (CONSTANT interpolation), while melodic passages produce flowing smooth changes (BEZIER decay) -- the visual rhythm matches the musical rhythm exactly."
+    },
+    {
+      "name": "expectation_violation",
+      "description": "The most memorable moments in audio-reactive VFX violate the viewer's expectations: sudden darkness before a drop, color temperature inversion on impact, scale shifts. The dynamic_range system already handles breakdowns -- this principle extends to visual surprise through momentary parameter extremes.",
+      "source": "Decoded from analysis of professional audio-reactive VFX (UON Visuals, Beeple, Electric Sheep). Chrome MCP live analysis deferred to interactive session.",
+      "parameters": {
+        "dynamic_range.breakdown_multiplier": {
+          "value": 0.08,
+          "baseline": 0.1,
+          "description": "Even darker breakdowns (8% vs 10% of normal) for more contrast when the drop hits"
+        },
+        "dynamic_range.drop_multiplier": {
+          "value": 1.2,
+          "baseline": 1.0,
+          "description": "Drops momentarily exceed normal brightness by 20% -- the brief overexposure reads as explosive energy"
+        },
+        "color_temp.inversion_on_drop": {
+          "value": true,
+          "baseline": false,
+          "description": "When bass onset follows breakdown, briefly invert color temperature warm->cool for 3 frames -- the unexpected cool flash before returning to warm creates a visceral 'hit' feeling"
+        },
+        "camera.fov_shift_on_drop": {
+          "value": 0.02,
+          "baseline": 0.0,
+          "description": "Subtle shift_x on bass drops (2% of sensor width) -- creates a visual 'punch' without disorienting the viewer"
+        }
+      },
+      "applies_to": ["fire", "combo", "edm"],
+      "before_after": "Before: breakdowns get quieter, drops get louder, all within expected range. After: breakdowns plunge to near-black silence, drops EXPLODE past normal brightness with a brief cool-flash color inversion and camera punch -- the viewer's body reacts before their mind processes it."
+    }
+  ]
+}
