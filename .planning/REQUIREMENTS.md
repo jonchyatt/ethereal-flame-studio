@@ -133,8 +133,8 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 
 ### World Building (WRLD)
 
-- [ ] **WRLD-01**: Scenes use Poly Haven HDRIs for photorealistic environment lighting
-- [ ] **WRLD-02**: 3D assets from Sketchfab or AI generators (Rodin/Hunyuan3D) placed in scenes for context
+- [x] **WRLD-01**: Scenes use Poly Haven HDRIs for photorealistic environment lighting
+- [x] **WRLD-02**: 3D assets from Sketchfab or AI generators (Rodin/Hunyuan3D) placed in scenes for context
 
 ### VR Cinema Rendering (VR)
 
@@ -194,8 +194,8 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 | WATR-01 | Phase 29 | Pending |
 | WATR-02 | Phase 29 | Pending |
 | WATR-03 | Phase 29 | Pending |
-| WRLD-01 | Phase 29 | Pending |
-| WRLD-02 | Phase 29 | Pending |
+| WRLD-01 | Phase 29 | Complete |
+| WRLD-02 | Phase 29 | Complete |
 | VR-01 | Phase 30 | Pending |
 | VR-02 | Phase 30 | Pending |
 | VR-03 | Phase 30 | Pending |
