@@ -825,7 +825,16 @@ Plans:
   3. A user wearing a VR headset watches the fire simulation in VR for 60 seconds without discomfort (safe IPD, no nausea-inducing camera motion)
   4. The multi-layer compositor combines fire + water + effects as separate render passes, each independently controllable
   5. Depth maps extracted from a real 360 video allow virtual fire or effects to appear behind foreground objects in the footage (depth-aware occlusion works)
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
+
+Plans:
+- [ ] 30-01-PLAN.md — VR camera template (8K stereo equirectangular + metadata injection)
+- [ ] 30-02-PLAN.md — Multi-layer compositor (View Layer isolation + Alpha Over compositing)
+- [ ] 30-03-PLAN.md — Depth-aware compositing (depth maps + real footage overlay)
+
+**Wave Structure:**
+- Wave 1: 30-01 (VR camera), 30-02 (multi-layer compositor) — parallel
+- Wave 2: 30-03 (depth compositing, depends on 30-02)
 
 ---
 
