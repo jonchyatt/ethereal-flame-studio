@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Floating Widget Design System
-status: executing
-stopped_at: Completed 29-01-PLAN.md
-last_updated: "2026-03-20T04:29:43.130Z"
-last_activity: 2026-03-20 -- Completed 29-01 water template (Ocean Modifier + Glass BSDF + audio preset)
+status: completed
+stopped_at: Completed 29-03-PLAN.md
+last_updated: "2026-03-20T04:36:35.663Z"
+last_activity: 2026-03-20 -- Completed 29-03 fire-over-water combo scene (caustics + 17 audio mappings)
 progress:
   total_phases: 8
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 10
-  completed_plans: 9
-  percent: 90
+  completed_plans: 10
+  percent: 100
 ---
 
 # Project State
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Phase 29 -- Water & World Building (Plans 01/02 complete, Plan 03 queued)
+**Current focus:** Phase 29 -- Water & World Building (all 3 plans COMPLETE)
 
 ---
 
 ## Current Position
 
 Phase: 29 of 33 (Water & World Building)
-Plan: 2 of 3 in current phase (01 + 02 complete, 03 queued)
-Status: In Progress
-Last activity: 2026-03-20 -- Completed 29-01 water template (Ocean Modifier + Glass BSDF + audio preset)
+Plan: 3 of 3 in current phase (all complete)
+Status: Phase Complete
+Last activity: 2026-03-20 -- Completed 29-03 fire-over-water combo scene (caustics + 17 audio mappings)
 
-Progress: [█████████░] 90%
+Progress: [██████████] 100%
 
 ---
 
@@ -41,7 +41,7 @@ Progress: [█████████░] 90%
 **v1.0:** 35+ plans completed across 5 phases
 **v2.0:** 18 plans completed across 7 phases
 **v3.0 (parallel):** 3/17 plans (Phase 19 complete, Phases 20-25 queued)
-**v4.0:** 3/3 plans in Phase 26 complete, 2/2 in Phase 27 complete, 1/2 in Phase 28, 2/3 in Phase 29
+**v4.0:** 3/3 plans in Phase 26 complete, 2/2 in Phase 27 complete, 1/2 in Phase 28, 3/3 in Phase 29
 
 ---
 
@@ -78,6 +78,11 @@ Progress: [█████████░] 90%
 - [Phase 29]: Ocean Modifier is procedural -- bake_ocean() is a no-op for API symmetry
 - [Phase 29]: Treble/brilliance drive water waves (complementary to fire bass-driven intensity)
 - [Phase 29]: Glass BSDF with IOR 1.333 for water refraction + caustics enabled (12 max bounces)
+- [Phase 29]: Combo scenes raise fire domain to (0,0,2.5) and flow to (0,0,0.8) above water at origin
+- [Phase 29]: Combo caustic bounces: 16 max / 16 transmission / 4 volume (higher than standalone water)
+- [Phase 29]: HDRI strength 0.8 in combo to avoid overpowering fire self-illumination
+- [Phase 29]: efs_combo_* namespace for combo-specific objects prevents conflicts with fire/water presets
+- [Phase 29]: fire_water_combo.json has 17 merged audio mappings (9 fire + 4 water + 4 combo-specific)
 
 ### Critical Pitfalls (from research)
 
@@ -96,11 +101,11 @@ None blocking. Blender 5.0.1 fire crash is documented but not blocking (pipeline
 
 ## Session Continuity
 
-Last session: 2026-03-20T04:29:43.127Z
-Stopped at: Completed 29-01-PLAN.md
-Resume with: 29-01-PLAN.md or 29-03-PLAN.md (Phase 29, remaining plans)
+Last session: 2026-03-20T04:36:35.660Z
+Stopped at: Completed 29-03-PLAN.md
+Resume with: Phase 30 (next phase)
 Resume file: None
 
 ---
 
-*Last updated: 2026-03-20 -- Phase 29 Plan 02 complete (world template -- HDRI + asset placement)*
+*Last updated: 2026-03-20 -- Phase 29 complete (all 3 plans: water template, world template, fire-water combo)*

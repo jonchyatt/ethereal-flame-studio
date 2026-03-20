@@ -718,7 +718,7 @@ Phase 24 (Render Target Split) --- independent, can run anytime
 - [x] **Phase 26: MCP Bridge + Tool Discipline** - blender-mcp installation, async patterns for long operations, screenshot token discipline, proof-of-concept Mantaflow fire orb (completed 2026-03-20)
 - [x] **Phase 27: Audio Bridge** - Browser audio analysis JSON export with 8+ bands, onset detection, envelope followers; keyframe_generator.py for Blender keyframe insertion with mapping presets (completed 2026-03-20)
 - [x] **Phase 28: Fire Simulation** - Mantaflow fire with Principled Volume + Blackbody, audio-driven intensity and color temperature, Cycles cinema render with compositor bloom (completed 2026-03-20)
-- [ ] **Phase 29: Water + World Building** - Ocean Modifier water surface, fire-over-water scene with caustics, foam/spray particles, Poly Haven HDRIs, Sketchfab/AI asset placement
+- [x] **Phase 29: Water + World Building** - Ocean Modifier water surface, fire-over-water scene with caustics, foam/spray particles, Poly Haven HDRIs, Sketchfab/AI asset placement (completed 2026-03-20)
 - [ ] **Phase 30: VR Cinema + Compositing** - 8K stereoscopic equirectangular Blender output, VR metadata injection, multi-layer compositor, depth maps from video, depth-aware compositing on real 360 footage
 - [ ] **Phase 31: EDM Light Show** - Volumetric laser beams with beat-synced scanning, LED grid with per-column frequency mapping, dynamic range principle (10% breakdown, 100% drop)
 - [ ] **Phase 32: Luminous Being** - SAM 2.1 person segmentation, volumetric body fill, particle emission from silhouette, Mantaflow fire wisps from body mesh, corona edge glow, full audio-reactive per-layer mapping
@@ -899,7 +899,7 @@ Plans:
 | 26. MCP Bridge + Tool Discipline | 3/3 | Complete    | 2026-03-20 | - |
 | 27. Audio Bridge | 2/2 | Complete    | 2026-03-20 | - |
 | 28. Fire Simulation | 2/2 | Complete    | 2026-03-20 | - |
-| 29. Water + World Building | 2/3 | In Progress|  | - |
+| 29. Water + World Building | 3/3 | Complete   | 2026-03-20 | - |
 | 30. VR Cinema + Compositing | v4.0 | 0/TBD | Not started | - |
 | 31. EDM Light Show | v4.0 | 0/TBD | Not started | - |
 | 32. Luminous Being | v4.0 | 0/TBD | Not started | - |
