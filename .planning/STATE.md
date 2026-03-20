@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Floating Widget Design System
-status: executing
-stopped_at: Completed 31-01-PLAN.md
-last_updated: "2026-03-20T05:12:11.219Z"
-last_activity: 2026-03-20 -- Completed 31-01 EDM light show scene template
+status: completed
+stopped_at: Completed 31-02-PLAN.md
+last_updated: "2026-03-20T05:17:08.491Z"
+last_activity: 2026-03-20 -- Completed 31-02 EDM audio-reactive light wiring
 progress:
   total_phases: 8
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 15
-  completed_plans: 14
-  percent: 93
+  completed_plans: 15
+  percent: 100
 ---
 
 # Project State
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Phase 30 -- VR Cinema Compositing (COMPLETE, 3/3 plans done)
+**Current focus:** Phase 31 -- EDM Light Show (COMPLETE, 2/2 plans done)
 
 ---
 
 ## Current Position
 
 Phase: 31 of 33 (EDM Light Show)
-Plan: 1 of 2 in current phase
-Status: In Progress
-Last activity: 2026-03-20 -- Completed 31-01 EDM light show scene template
+Plan: 2 of 2 in current phase
+Status: Phase Complete
+Last activity: 2026-03-20 -- Completed 31-02 EDM audio-reactive light wiring
 
-Progress: [█████████░] 93%
+Progress: [██████████] 100%
 
 ---
 
@@ -102,6 +102,9 @@ Progress: [█████████░] 93%
 - [Phase 31]: World Volume Scatter + dedicated fog cube for dual-layer laser visibility in EDM scene
 - [Phase 31]: Total darkness principle: world Strength=0.0, effects are the sole illumination source
 - [Phase 31]: Bloom threshold 0.5 (lower than fire 0.8 / water 0.9) for heavy laser/LED flare effects
+- [Phase 31]: Dynamic range targets resolved upfront before frame loop (fail-fast, same pattern as main mappings)
+- [Phase 31]: CONSTANT curve type for dynamic_range overwrite keyframes (instant snap, not interpolated)
+- [Phase 31]: Breakdown detection via consecutive low-RMS frame counting (sustain_frames threshold)
 
 ### Critical Pitfalls (from research)
 
@@ -120,11 +123,11 @@ None blocking. Blender 5.0.1 fire crash is documented but not blocking (pipeline
 
 ## Session Continuity
 
-Last session: 2026-03-20T05:12:11.216Z
-Stopped at: Completed 31-01-PLAN.md
-Resume with: Phase 31 Plan 02
+Last session: 2026-03-20T05:17:08.488Z
+Stopped at: Completed 31-02-PLAN.md
+Resume with: Phase 32 Plan 01
 Resume file: None
 
 ---
 
-*Last updated: 2026-03-20 -- Phase 31 in progress (1/2 plans: EDM light show scene template)*
+*Last updated: 2026-03-20 -- Phase 31 complete (2/2 plans: EDM light show scene template + audio wiring)*
