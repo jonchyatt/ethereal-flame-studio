@@ -802,7 +802,16 @@ Plans:
   3. Water includes foam accumulation on wave crests and spray particles that sell physical realism
   4. A scene rendered with a Poly Haven HDRI shows photorealistic environment lighting (sky, ground reflections, ambient light) instead of a black void
   5. A 3D asset from Sketchfab or AI generation is placed in a scene and renders correctly with proper lighting and shadows
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
+
+Plans:
+- [ ] 29-01-PLAN.md -- Water template (Ocean Modifier + foam particles + glass material + audio preset)
+- [ ] 29-02-PLAN.md -- World template (HDRI environment setup + 3D asset placement utilities)
+- [ ] 29-03-PLAN.md -- Fire-over-water combo scene (fire + water + world + caustics + merged audio preset)
+
+**Wave Structure:**
+- Wave 1: 29-01, 29-02 (water template + world template, parallel)
+- Wave 2: 29-03 (fire-over-water combo, depends on 29-01 + 29-02)
 
 ---
 
