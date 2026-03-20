@@ -119,7 +119,7 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 
 ### Fire Simulation (FIRE)
 
-- [ ] **FIRE-01**: Mantaflow fire with Principled Volume + Blackbody shader at multi-scale detail (billows + turbulence + fine wisps)
+- [x] **FIRE-01**: Mantaflow fire with Principled Volume + Blackbody shader at multi-scale detail (billows + turbulence + fine wisps)
 - [ ] **FIRE-02**: Fire intensity driven by audio bass channel via keyframe mapping
 - [ ] **FIRE-03**: Color temperature cycles with spectral centroid (brighter music = hotter/whiter fire)
 - [ ] **FIRE-04**: Cycles render with compositor bloom, motion blur, and light-casting produces cinema-quality output
@@ -186,7 +186,7 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 | AUD4-03 | Phase 27 | Complete |
 | AUD4-04 | Phase 27 | Complete |
 | AUD4-05 | Phase 27 | Complete |
-| FIRE-01 | Phase 28 | Pending |
+| FIRE-01 | Phase 28 | Complete |
 | FIRE-02 | Phase 28 | Pending |
 | FIRE-03 | Phase 28 | Pending |
 | FIRE-04 | Phase 28 | Pending |

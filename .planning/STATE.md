@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Floating Widget Design System
-status: completed
-stopped_at: Completed 27-02-PLAN.md (Phase 27 complete)
-last_updated: "2026-03-20T03:19:25.894Z"
-last_activity: 2026-03-20 -- Completed 27-02 keyframe generator + presets
+status: executing
+stopped_at: Completed 28-01-PLAN.md
+last_updated: "2026-03-20T03:41:29.256Z"
+last_activity: 2026-03-20 -- Completed 28-01 fire cinema template + quality presets
 progress:
   total_phases: 8
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
-  percent: 100
+  total_plans: 7
+  completed_plans: 6
+  percent: 86
 ---
 
 # Project State
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Phone to published video without touching a computer
-**Current focus:** Phase 27 -- Audio Bridge (COMPLETE -- both plans shipped)
+**Current focus:** Phase 28 -- Fire Simulation (Plan 01 complete, Plan 02 queued)
 
 ---
 
 ## Current Position
 
-Phase: 27 of 33 (Audio Bridge)
-Plan: 2 of 2 in current phase (COMPLETE)
-Status: Phase Complete
-Last activity: 2026-03-20 -- Completed 27-02 keyframe generator + presets
+Phase: 28 of 33 (Fire Simulation)
+Plan: 1 of 2 in current phase
+Status: In Progress
+Last activity: 2026-03-20 -- Completed 28-01 fire cinema template + quality presets
 
-Progress: [██████████] 100%
+Progress: [█████████░] 86%
 
 ---
 
@@ -41,7 +41,7 @@ Progress: [██████████] 100%
 **v1.0:** 35+ plans completed across 5 phases
 **v2.0:** 18 plans completed across 7 phases
 **v3.0 (parallel):** 3/17 plans (Phase 19 complete, Phases 20-25 queued)
-**v4.0:** 3/3 plans in Phase 26 complete, 2/2 in Phase 27 complete
+**v4.0:** 3/3 plans in Phase 26 complete, 2/2 in Phase 27 complete, 1/2 in Phase 28
 
 ---
 
@@ -68,6 +68,9 @@ Progress: [██████████] 100%
 - Color temp RGB ramp: 1500K red -> 3000K orange -> 6500K white
 - Preset-driven mapping: JSON preset defines source_feature -> data_path with scale/offset/clamp
 - Targets resolved upfront before frame loop (fail fast on missing objects)
+- Preview as default quality for fire_cinema_template -- balance speed vs visual quality
+- Separate fire_cinema cache subdir from fire_orb_poc to avoid cross-contamination
+- efs_ object naming preserved from POC for backward compatibility with Phase 27 mapping presets
 
 ### Critical Pitfalls (from research)
 
@@ -86,11 +89,11 @@ None blocking. Blender 5.0.1 fire crash is documented but not blocking (pipeline
 
 ## Session Continuity
 
-Last session: 2026-03-20T03:15:31.411Z
-Stopped at: Completed 27-02-PLAN.md (Phase 27 complete)
-Resume with: Next phase in ROADMAP.md
+Last session: 2026-03-20T03:41:29.251Z
+Stopped at: Completed 28-01-PLAN.md
+Resume with: 28-02-PLAN.md (Phase 28, Plan 2)
 Resume file: None
 
 ---
 
-*Last updated: 2026-03-20 -- Phase 27 complete (both plans shipped)*
+*Last updated: 2026-03-20 -- Phase 28 Plan 01 complete (fire cinema template + quality presets)*
