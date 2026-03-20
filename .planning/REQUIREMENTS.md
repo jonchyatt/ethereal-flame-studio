@@ -178,12 +178,49 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated during roadmap creation) | | |
+| TOOL-01 | Phase 26 | Pending |
+| TOOL-02 | Phase 26 | Pending |
+| TOOL-03 | Phase 26 | Pending |
+| AUD4-01 | Phase 27 | Pending |
+| AUD4-02 | Phase 27 | Pending |
+| AUD4-03 | Phase 27 | Pending |
+| AUD4-04 | Phase 27 | Pending |
+| AUD4-05 | Phase 27 | Pending |
+| FIRE-01 | Phase 28 | Pending |
+| FIRE-02 | Phase 28 | Pending |
+| FIRE-03 | Phase 28 | Pending |
+| FIRE-04 | Phase 28 | Pending |
+| FIRE-05 | Phase 28 | Pending |
+| WATR-01 | Phase 29 | Pending |
+| WATR-02 | Phase 29 | Pending |
+| WATR-03 | Phase 29 | Pending |
+| WRLD-01 | Phase 29 | Pending |
+| WRLD-02 | Phase 29 | Pending |
+| VR-01 | Phase 30 | Pending |
+| VR-02 | Phase 30 | Pending |
+| VR-03 | Phase 30 | Pending |
+| COMP-01 | Phase 30 | Pending |
+| COMP-02 | Phase 30 | Pending |
+| COMP-03 | Phase 30 | Pending |
+| EDM-01 | Phase 31 | Pending |
+| EDM-02 | Phase 31 | Pending |
+| EDM-03 | Phase 31 | Pending |
+| LUMI-01 | Phase 32 | Pending |
+| LUMI-02 | Phase 32 | Pending |
+| LUMI-03 | Phase 32 | Pending |
+| LUMI-04 | Phase 32 | Pending |
+| LUMI-05 | Phase 32 | Pending |
+| LUMI-06 | Phase 32 | Pending |
+| VRES-01 | Phase 33 | Pending |
+| VRES-02 | Phase 33 | Pending |
+| INTG-01 | Phase 33 | Pending |
+| INTG-02 | Phase 33 | Pending |
+| INTG-03 | Phase 33 | Pending |
 
 **v4.0 Coverage:**
 - v4.0 requirements: 38 total
-- Mapped to phases: 0
-- Unmapped: 38
+- Mapped to phases: 38
+- Unmapped: 0
 
 ## v4.1 Requirements (Deferred)
 
@@ -227,4 +264,4 @@ Requirements for the Cinema VFX Pipeline. Each maps to roadmap phases 26+.
 
 ---
 *Requirements defined: 2026-01-26 (v1.0)*
-*Last updated: 2026-03-19 after v4.0 milestone requirements definition*
+*Last updated: 2026-03-19 after v4.0 roadmap creation (38 requirements mapped to phases 26-33)*

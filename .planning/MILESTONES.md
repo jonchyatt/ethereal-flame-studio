@@ -57,11 +57,45 @@
 ## v3.0 — Floating Widget Design System
 
 **Started:** 2026-03-05
-**Phases:** 19+ (TBD)
-**Status:** In progress
+**Phases:** 19-25 (7 phases, 22 requirements)
+**Status:** In progress (parallel with v4.0)
 
 **Goal:** Replace deeply nested AdvancedEditor with Photoshop-style free-floating widget panels, add template actions, and split render targets.
 
+**Phase 19 complete:** Widget Shell + react-rnd Foundation (3/3 plans)
+
+**Last phase number:** 25
+
 ---
 
-*Last updated: 2026-03-05 after v3.0 milestone start*
+## v4.0 — Cinema VFX Pipeline
+
+**Started:** 2026-03-19
+**Phases:** 26-33 (8 phases, 38 requirements)
+**Status:** In progress (roadmap created, ready to plan Phase 26)
+
+**Goal:** Add Blender as a second render path controlled by Claude via MCP, producing cinema-quality fire, water, VFX, and "luminous being" transformations far beyond WebGL limits.
+
+**Target features:**
+- Blender MCP integration (blender-mcp + CLI-Anything)
+- Mantaflow fire simulation driven by audio bass channel
+- Mantaflow water with caustics, foam, fire-over-water scene
+- World building with Poly Haven HDRIs and Sketchfab/AI assets
+- 8K stereoscopic equirectangular VR renders from Cycles
+- Depth-aware video compositing on real 360 footage
+- EDM volumetric lasers, LED grids, beat-synced strobes
+- Luminous Being: person segmentation + volumetric glow + fire body
+- Chrome MCP visual research (analyze UON Visuals)
+- Audio-to-keyframe mapping with 8+ simultaneous parameters
+- Multi-layer Blender compositor and render pipeline
+- CLI-Anything harness for token-efficient daily use
+
+**Architecture:** blender-mcp (TCP:9876) + librosa + SAM 2.1 + Blender Cycles + CLI-Anything
+
+**Note:** Supersedes Phase 7 from v1.0 (same scope, updated architecture with blender-mcp)
+
+**Last phase number:** 33
+
+---
+
+*Last updated: 2026-03-19 after v4.0 milestone start*

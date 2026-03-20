@@ -1,9 +1,9 @@
 # Roadmap: Ethereal Flame Studio
 
 **Created:** 2026-01-26
-**Updated:** 2026-03-05
+**Updated:** 2026-03-19
 **Depth:** Comprehensive
-**Coverage:** 57 v1.0 requirements (Phases 1-7) + 24 v2.0 requirements (Phases 12-18) + 22 v3.0 requirements (Phases 19-25)
+**Coverage:** 57 v1.0 requirements (Phases 1-7) + 24 v2.0 requirements (Phases 12-18) + 22 v3.0 requirements (Phases 19-25) + 38 v4.0 requirements (Phases 26-33)
 
 ---
 
@@ -12,6 +12,7 @@
 - ✅ **v1.0 Local Production Pipeline** - Phases 1-7 (shipped 2026-02-03, Phase 7 research only)
 - ✅ **v2.0 Cloud Production** - Phases 12-18 (shipped 2026-02-22)
 - 🚧 **v3.0 Floating Widget Design System** - Phases 19-25 (in progress)
+- 🚧 **v4.0 Cinema VFX Pipeline** - Phases 26-33 (in progress)
 
 ---
 
@@ -286,7 +287,7 @@ Plans:
 6. Complete pipeline from audio upload to VR video output
 7. Quality visibly superior to current Three.js particle system
 
-**Status:** NOT STARTED
+**Status:** SUPERSEDED by v4.0 (Phases 26-33)
 
 ---
 
@@ -474,6 +475,9 @@ Plans:
 
 ---
 
+<details>
+<summary>v3.0 Floating Widget Design System (Phases 19-25) - In Progress</summary>
+
 ## Milestone v3.0: Floating Widget Design System
 
 **Milestone Goal:** Replace the deeply nested AdvancedEditor (2,293 lines) with Photoshop-style free-floating widget panels, giving users a spatial, non-linear parameter editing experience on the Design screen.
@@ -639,36 +643,6 @@ Plans:
 
 ---
 
-## Progress
-
-**Execution Order:** 19 -> 20 -> 21 -> 22 (sequential core) | 23, 24 (parallel, independent) | 25 (after 20+21)
-
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 1. Foundation | v1.0 | 8/8 | Complete | 2026-01-28 |
-| 2. Templates | v1.0 | 6/6 | Complete | 2026-01-29 |
-| 3. Rendering | v1.0 | 10/12 | Nearly Complete | - |
-| 4. Automation | v1.0 | 9/14 | Mostly Complete | - |
-| 5. n8n Integration | v1.0 | 4/8 | Half Complete | - |
-| 6. YouTube + Multi-Platform | v1.0 | 0/6 | Planned | - |
-| 7. Blender VFX | v1.0 | 0/12 | Not Started | - |
-| 12. Cloud Storage Adapter | v2.0 | 3/3 | Complete | 2026-02-21 |
-| 13. Job State + Worker Infra | v2.0 | 3/3 | Complete | 2026-02-21 |
-| 14. API + Worker Processing | v2.0 | 3/3 | Complete | 2026-02-21 |
-| 15. Modal Render Dispatch | v2.0 | 2/2 | Complete | 2026-02-21 |
-| 16. Production Deploy + CI/CD | v2.0 | 3/3 | Complete | 2026-02-21 |
-| 17. Integration Wiring Fixes | v2.0 | 2/2 | Complete | 2026-02-22 |
-| 18. API Completeness + Timeout Accuracy | v2.0 | 2/2 | Complete | 2026-02-22 |
-| 19. Widget Shell + react-rnd | 3/3 | Complete    | 2026-03-05 | - |
-| 20. Widget Content Extraction | v3.0 | 0/4 | Not started | - |
-| 21. Widget Toolbar + Persistence | v3.0 | 0/2 | Not started | - |
-| 22. Workspace Layouts | v3.0 | 0/2 | Not started | - |
-| 23. Template Actions | v3.0 | 0/1 | Not started | - |
-| 24. Render Target Split | v3.0 | 0/2 | Not started | - |
-| 25. Mobile Fallback + Polish | v3.0 | 0/3 | Not started | - |
-
----
-
 ## Phase Dependencies (v3.0)
 
 ```
@@ -723,4 +697,249 @@ Phase 24 (Render Target Split) --- independent, can run anytime
 
 ---
 
-*Last updated: 2026-03-05 (v3.0 Floating Widget Design System roadmap added)*
+</details>
+
+---
+
+## Milestone v4.0: Cinema VFX Pipeline
+
+**Milestone Goal:** Add Blender as a second render path controlled by Claude via MCP, producing cinema-quality fire, water, VFX, and "luminous being" transformations far beyond WebGL limits.
+
+**Architecture:** blender-mcp (Claude-to-Blender bridge via TCP) + librosa (Python audio analysis) + keyframe_generator.py (audio JSON to Blender keyframes) + SAM 2.1 (person segmentation) + Blender Cycles (cinema-quality raytracing) + CLI-Anything (token-efficient Blender scaffolding)
+
+**Constraint:** Existing Three.js orb system (Flame, Mist, Solar Breath) remains completely untouched. Blender is an additive second render path, not a replacement.
+
+**Phases:** 26-33 (8 phases, 38 requirements)
+
+**Note:** Phase 7 (v1.0 Blender VFX) is superseded by this milestone. v4.0 incorporates Phase 7's scope with updated research, refined requirements, and the blender-mcp architecture that did not exist when Phase 7 was planned.
+
+## Phases
+
+- [ ] **Phase 26: MCP Bridge + Tool Discipline** - blender-mcp installation, async patterns for long operations, screenshot token discipline, proof-of-concept Mantaflow fire orb
+- [ ] **Phase 27: Audio Bridge** - Browser audio analysis JSON export with 8+ bands, onset detection, envelope followers; keyframe_generator.py for Blender keyframe insertion with mapping presets
+- [ ] **Phase 28: Fire Simulation** - Mantaflow fire with Principled Volume + Blackbody, audio-driven intensity and color temperature, Cycles cinema render with compositor bloom
+- [ ] **Phase 29: Water + World Building** - Ocean Modifier water surface, fire-over-water scene with caustics, foam/spray particles, Poly Haven HDRIs, Sketchfab/AI asset placement
+- [ ] **Phase 30: VR Cinema + Compositing** - 8K stereoscopic equirectangular Blender output, VR metadata injection, multi-layer compositor, depth maps from video, depth-aware compositing on real 360 footage
+- [ ] **Phase 31: EDM Light Show** - Volumetric laser beams with beat-synced scanning, LED grid with per-column frequency mapping, dynamic range principle (10% breakdown, 100% drop)
+- [ ] **Phase 32: Luminous Being** - SAM 2.1 person segmentation, volumetric body fill, particle emission from silhouette, Mantaflow fire wisps from body mesh, corona edge glow, full audio-reactive per-layer mapping
+- [ ] **Phase 33: Integration + Visual Intelligence** - CLI-Anything custom harness for EFS workflows, batch render overnight queuing, end-to-end pipeline demo, Chrome MCP visual research of reference creators with documented principles applied to templates
+
+## Phase Details
+
+### Phase 26: MCP Bridge + Tool Discipline
+**Goal**: Claude can reliably control Blender via MCP without session-killing timeouts, token hemorrhage, or disk explosions
+**Depends on**: Nothing (v4.0 foundational phase)
+**Requirements**: TOOL-01, TOOL-02, TOOL-03
+**Success Criteria** (what must be TRUE):
+  1. Claude sends a `execute_blender_code` command and a cube appears in the Blender viewport (basic MCP round-trip works)
+  2. A Mantaflow fire simulation bakes to completion without hitting the 180-second MCP timeout (async timer pattern validated)
+  3. A Cycles render of the proof-of-concept fire orb completes and saves a PNG to disk without blocking the MCP connection
+  4. A full Claude-controlled session (create scene, bake sim, render) runs without exceeding $2 in screenshot tokens (discipline validated)
+**Plans**: TBD
+
+---
+
+### Phase 27: Audio Bridge
+**Goal**: Audio analysis flows from the browser to Blender keyframes as a validated, reusable pipeline
+**Depends on**: Phase 26 (MCP bridge must be stable for keyframe insertion testing)
+**Requirements**: AUD4-01, AUD4-02, AUD4-03, AUD4-04, AUD4-05
+**Success Criteria** (what must be TRUE):
+  1. User clicks "Export Audio Analysis" on the Design page and downloads a JSON file containing 8+ frequency bands with per-frame amplitude data
+  2. The exported JSON includes onset detection timestamps and envelope follower curves for each band
+  3. Running `keyframe_generator.py` against the exported JSON inserts keyframes into an open Blender scene that visibly animate a test object (e.g., cube scale pulsing to bass)
+  4. Switching the mapping preset from "Meditation" to "EDM" produces noticeably different animation behavior from the same audio file (slower/smoother vs. aggressive/punchy)
+  5. At least 8 audio features drive 8 independent visual parameters simultaneously in a test scene (emergent complexity, not single-parameter mapping)
+**Plans**: TBD
+
+---
+
+### Phase 28: Fire Simulation
+**Goal**: Mantaflow fire renders at cinema quality that visibly exceeds the Three.js Solar Breath mode
+**Depends on**: Phase 27 (keyframe_generator.py must exist for audio-driven fire)
+**Requirements**: FIRE-01, FIRE-02, FIRE-03, FIRE-04, FIRE-05
+**Success Criteria** (what must be TRUE):
+  1. A Mantaflow fire simulation shows multi-scale detail: large billowing flames, mid-scale turbulence, and fine wisps at the edges (not a uniform blob)
+  2. Playing back the rendered fire video with audio shows fire intensity rising and falling in sync with bass hits
+  3. Fire color shifts from deep red/orange during quiet passages to bright yellow-white during high-energy sections (spectral centroid driving Blackbody temperature)
+  4. The Cycles-rendered output with compositor bloom and motion blur looks like a cinema VFX shot, not a game engine effect
+  5. A side-by-side screenshot of Blender fire vs. Three.js Solar Breath shows the Blender output is in a different quality class (justifying the second render path)
+**Plans**: TBD
+
+---
+
+### Phase 29: Water + World Building
+**Goal**: Photorealistic water surfaces and rich environmental context elevate scenes beyond bare-background VFX demos
+**Depends on**: Phase 28 (fire template needed for fire-over-water combo scene)
+**Requirements**: WATR-01, WATR-02, WATR-03, WRLD-01, WRLD-02
+**Success Criteria** (what must be TRUE):
+  1. A water surface responds to audio treble with visible ripple and wave activity (calm during low passages, choppy during high-frequency content)
+  2. The fire-over-water scene renders with the fire's light visibly reflected and refracted in the water surface (caustic reflections)
+  3. Water includes foam accumulation on wave crests and spray particles that sell physical realism
+  4. A scene rendered with a Poly Haven HDRI shows photorealistic environment lighting (sky, ground reflections, ambient light) instead of a black void
+  5. A 3D asset from Sketchfab or AI generation is placed in a scene and renders correctly with proper lighting and shadows
+**Plans**: TBD
+
+---
+
+### Phase 30: VR Cinema + Compositing
+**Goal**: 8K stereoscopic VR output from Blender plays correctly in VR headsets, and the multi-layer compositor enables depth-aware effects on real footage
+**Depends on**: Phase 28 (fire template validates Cycles rendering pipeline used by VR output)
+**Requirements**: VR-01, VR-02, VR-03, COMP-01, COMP-02, COMP-03
+**Success Criteria** (what must be TRUE):
+  1. An 8K stereoscopic equirectangular render from Blender's panoramic camera opens in a VR headset and displays correct 3D depth (left/right eye images are properly separated)
+  2. The VR output uploaded to YouTube appears in VR mode (not flat) without any manual metadata editing
+  3. A user wearing a VR headset watches the fire simulation in VR for 60 seconds without discomfort (safe IPD, no nausea-inducing camera motion)
+  4. The multi-layer compositor combines fire + water + effects as separate render passes, each independently controllable
+  5. Depth maps extracted from a real 360 video allow virtual fire or effects to appear behind foreground objects in the footage (depth-aware occlusion works)
+**Plans**: TBD
+
+---
+
+### Phase 31: EDM Light Show
+**Goal**: Concert-quality laser and LED effects that sync to EDM beats and demonstrate the darkness/contrast principle
+**Depends on**: Phase 27 (keyframe_generator.py needed for beat-synced animation)
+**Requirements**: EDM-01, EDM-02, EDM-03
+**Success Criteria** (what must be TRUE):
+  1. Volumetric laser beams scan across the scene in sync with beat onsets, with sweep speed and direction changing on detected beats
+  2. An LED grid displays per-column frequency response where each column's brightness maps to a different frequency band (bass on left, treble on right, or similar mapping)
+  3. During a breakdown section of an EDM track, overall scene emission drops to roughly 10% intensity, then snaps back to 100% on the drop (dynamic range principle demonstrated)
+**Plans**: TBD
+
+---
+
+### Phase 32: Luminous Being
+**Goal**: A person in video is transformed into a glowing being of light with audio-reactive fire, particles, and corona -- the crown jewel effect
+**Depends on**: Phase 27 (keyframe system), Phase 28 (fire template for wisps), Phase 30 (compositor infrastructure)
+**Requirements**: LUMI-01, LUMI-02, LUMI-03, LUMI-04, LUMI-05, LUMI-06
+**Success Criteria** (what must be TRUE):
+  1. A person is cleanly segmented from video with consistent masks across 100+ consecutive frames (no flickering or lost limbs)
+  2. The person silhouette is filled with an audio-reactive volumetric glow that breathes with the music (brighter on beats, dimmer in quiet passages)
+  3. Particles emit from the body silhouette in patterns matching the Three.js orb modes (Flame upward drift, Mist soft dispersion, Solar Breath radial pulse)
+  4. Mantaflow fire wisps emanate from the body mesh, creating the appearance of a person made of flame
+  5. A corona edge glow surrounds the body that intensifies with treble frequency content
+  6. The complete Luminous Being effect plays back with audio and all layers (volumetric fill, particles, fire wisps, corona) respond to different frequency bands simultaneously
+**Plans**: TBD
+
+---
+
+### Phase 33: Integration + Visual Intelligence
+**Goal**: The entire cinema pipeline is token-efficient for daily use, can batch-render overnight, and is informed by decoded perceptual principles from reference creators
+**Depends on**: Phase 28 (fire template), Phase 31 (EDM template), Phase 32 (luminous being) -- all templates must exist for CLI wrapping and batch queuing
+**Requirements**: INTG-01, INTG-02, INTG-03, VRES-01, VRES-02
+**Success Criteria** (what must be TRUE):
+  1. A CLI-Anything custom harness wraps 5+ validated EFS-specific Blender workflows (e.g., "create fire scene", "bake simulation", "render VR output") as structured commands that Claude can call without writing raw Python
+  2. A batch render script queues 3+ scenes and renders them sequentially overnight, with completed renders saved to disk and errors logged
+  3. The full pipeline is demonstrated end-to-end: audio file goes in, cinema-quality rendered video comes out, with no manual intermediate steps beyond Claude orchestration
+  4. Chrome MCP analysis of UON Visuals (or equivalent reference creator) produces a documented set of perceptual principles with specific parameter recommendations applied to at least one fire/water/EDM template
+**Plans**: TBD
+
+---
+
+## Progress
+
+**Execution Order:** 26 -> 27 -> 28 -> 29 (sequential core) | 30, 31 (parallel after 27/28) | 32 (after 27+28+30) | 33 (after all)
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Foundation | v1.0 | 8/8 | Complete | 2026-01-28 |
+| 2. Templates | v1.0 | 6/6 | Complete | 2026-01-29 |
+| 3. Rendering | v1.0 | 10/12 | Nearly Complete | - |
+| 4. Automation | v1.0 | 9/14 | Mostly Complete | - |
+| 5. n8n Integration | v1.0 | 4/8 | Half Complete | - |
+| 6. YouTube + Multi-Platform | v1.0 | 0/6 | Planned | - |
+| 7. Blender VFX | v1.0 | 0/12 | Superseded by v4.0 | - |
+| 12. Cloud Storage Adapter | v2.0 | 3/3 | Complete | 2026-02-21 |
+| 13. Job State + Worker Infra | v2.0 | 3/3 | Complete | 2026-02-21 |
+| 14. API + Worker Processing | v2.0 | 3/3 | Complete | 2026-02-21 |
+| 15. Modal Render Dispatch | v2.0 | 2/2 | Complete | 2026-02-21 |
+| 16. Production Deploy + CI/CD | v2.0 | 3/3 | Complete | 2026-02-21 |
+| 17. Integration Wiring Fixes | v2.0 | 2/2 | Complete | 2026-02-22 |
+| 18. API Completeness + Timeout Accuracy | v2.0 | 2/2 | Complete | 2026-02-22 |
+| 19. Widget Shell + react-rnd | v3.0 | 3/3 | Complete | 2026-03-05 |
+| 20. Widget Content Extraction | v3.0 | 0/4 | Not started | - |
+| 21. Widget Toolbar + Persistence | v3.0 | 0/2 | Not started | - |
+| 22. Workspace Layouts | v3.0 | 0/2 | Not started | - |
+| 23. Template Actions | v3.0 | 0/1 | Not started | - |
+| 24. Render Target Split | v3.0 | 0/2 | Not started | - |
+| 25. Mobile Fallback + Polish | v3.0 | 0/3 | Not started | - |
+| 26. MCP Bridge + Tool Discipline | v4.0 | 0/TBD | Not started | - |
+| 27. Audio Bridge | v4.0 | 0/TBD | Not started | - |
+| 28. Fire Simulation | v4.0 | 0/TBD | Not started | - |
+| 29. Water + World Building | v4.0 | 0/TBD | Not started | - |
+| 30. VR Cinema + Compositing | v4.0 | 0/TBD | Not started | - |
+| 31. EDM Light Show | v4.0 | 0/TBD | Not started | - |
+| 32. Luminous Being | v4.0 | 0/TBD | Not started | - |
+| 33. Integration + Visual Intelligence | v4.0 | 0/TBD | Not started | - |
+
+---
+
+## Phase Dependencies (v4.0)
+
+```
+Phase 26 (MCP Bridge + Tool Discipline)
+    |
+    v
+Phase 27 (Audio Bridge)
+    |
+    +---> Phase 28 (Fire Simulation)
+    |         |
+    |         +---> Phase 29 (Water + World Building)
+    |         |
+    |         +---> Phase 30 (VR Cinema + Compositing) *
+    |         |
+    |         +---> Phase 32 (Luminous Being) **
+    |
+    +---> Phase 31 (EDM Light Show) *
+
+* Phase 30 and 31 can run in parallel (independent tracks after Phase 27/28)
+** Phase 32 depends on Phase 27 + Phase 28 + Phase 30
+
+Phase 33 (Integration + Visual Intelligence) --- after all capability phases complete
+```
+
+---
+
+## Key Architecture Decisions (v4.0)
+
+### Two Render Paths (Preview + Cinema)
+- **Preview:** Three.js (browser) -- real-time, good quality, live tweaking. Completely untouched.
+- **Cinema:** Blender/Cycles (via MCP) -- minutes-hours, photorealistic, final output. New additive path.
+- Connected by a single JSON file (audio analysis export). No other integration points.
+
+### blender-mcp as Claude-to-Blender Bridge
+- `execute_blender_code` provides unlimited Python access inside Blender
+- 180-second timeout per MCP call -- all long operations (bakes, renders) must use async patterns
+- One client at a time (Claude Code). No concurrent sessions.
+- `get_scene_info` and `get_object_info` (text) for primary feedback; screenshots only at validation checkpoints
+
+### Audio JSON Bridge (Single Source of Truth)
+- Browser `PreAnalyzer.ts` extended with onset detection, spectral centroid, spectral flux, envelope followers
+- Exported as `audio-analysis.json` -- the one artifact shared between Three.js and Blender worlds
+- `keyframe_generator.py` reads this JSON and drives Blender keyframes via `bpy.keyframe_insert()`
+- Never re-analyze audio independently in Python (prevents FFT mismatch between the two paths)
+
+### Async Patterns for Long Operations
+- Mantaflow bakes: `bpy.app.timers.register()` for fire-and-forget
+- Cycles renders: `bpy.ops.render.render('INVOKE_DEFAULT')` (non-blocking)
+- Poll output directory for completed frames
+- Established in Phase 26 before any simulation work
+
+### Scene Template System
+- Pre-configured `.blend` files: fire, water, fire-over-water, EDM, luminous-being, compositor
+- Claude opens template and customizes for the specific audio track
+- Templates include Mantaflow domains, Cycles settings, compositor node trees
+
+### Mantaflow Keyframing Workaround
+- Domain parameter keyframing is broken (Blender T72812)
+- Keyframe Flow object parameters instead: `fuel_amount`, `temperature`, emission strength
+- This constraint is built into `keyframe_generator.py` from the start
+
+### Resolution Ladder
+- 64: Prototyping (seconds to bake)
+- 128: Test renders (minutes)
+- 256: Production (tens of minutes)
+- 512+: Only if hardware allows (calibrated in Phase 26)
+
+---
+
+*Last updated: 2026-03-19 (v4.0 Cinema VFX Pipeline roadmap added)*
