@@ -1,0 +1,195 @@
+{
+  "name": "Fire Water Combo",
+  "description": "Combined fire + water audio mappings for fire-over-water scenes. Fire responds to bass/energy, water responds to treble/brilliance. Both drive their respective objects simultaneously for emergent complexity.",
+  "audio_style": "all",
+  "auto_classify_hints": {},
+  "mappings": [
+    {
+      "source_feature": "envelopes.bass",
+      "target_object": "efs_fire_flow",
+      "target_property": "fuel_amount",
+      "data_path": "modifiers[\"Fluid\"].flow_settings.fuel_amount",
+      "curve_type": "BEZIER",
+      "scale": 3.0,
+      "offset": 0.5,
+      "clamp_min": 0.2,
+      "clamp_max": 3.5
+    },
+    {
+      "source_feature": "onsets.bass",
+      "target_object": "efs_fire_flow",
+      "target_property": "fuel_amount",
+      "data_path": "modifiers[\"Fluid\"].flow_settings.fuel_amount",
+      "curve_type": "CONSTANT",
+      "scale": 2.0,
+      "offset": 0.0,
+      "clamp_min": 0.0,
+      "clamp_max": 5.0
+    },
+    {
+      "source_feature": "spectral_centroid",
+      "target_object": "efs_fire_domain",
+      "target_property": "flame_max_temp",
+      "data_path": "modifiers[\"Fluid\"].domain_settings.flame_max_temp",
+      "curve_type": "BEZIER",
+      "scale": 4.0,
+      "offset": 1.0,
+      "clamp_min": 1.0,
+      "clamp_max": 5.0
+    },
+    {
+      "source_feature": "spectral_centroid",
+      "target_object": "efs_fire_material",
+      "target_property": "blackbody_intensity",
+      "data_path": "active_material.node_tree.nodes[\"Principled Volume\"].inputs[\"Blackbody Intensity\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 2.0,
+      "offset": 0.5,
+      "clamp_min": 0.3,
+      "clamp_max": 2.5
+    },
+    {
+      "source_feature": "envelopes.low_mid",
+      "target_object": "efs_fire_material",
+      "target_property": "density",
+      "data_path": "active_material.node_tree.nodes[\"Principled Volume\"].inputs[\"Density\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 10.0,
+      "offset": 3.0,
+      "clamp_min": 2.0,
+      "clamp_max": 12.0
+    },
+    {
+      "source_feature": "rms_energy",
+      "target_object": "efs_fire_key_light",
+      "target_property": "energy",
+      "data_path": "data.energy",
+      "curve_type": "BEZIER",
+      "scale": 200.0,
+      "offset": 30.0,
+      "clamp_min": 20.0,
+      "clamp_max": 300.0
+    },
+    {
+      "source_feature": "spectral_centroid",
+      "target_object": "efs_fire_key_light",
+      "target_property": "color_temp",
+      "data_path": "data.color",
+      "curve_type": "BEZIER",
+      "scale": 1.0,
+      "offset": 0.0,
+      "clamp_min": 0.0,
+      "clamp_max": 1.0
+    },
+    {
+      "source_feature": "envelopes.sub_bass",
+      "target_object": "efs_fire_flow",
+      "target_property": "temperature",
+      "data_path": "modifiers[\"Fluid\"].flow_settings.temperature",
+      "curve_type": "BEZIER",
+      "scale": 3.5,
+      "offset": 1.0,
+      "clamp_min": 0.5,
+      "clamp_max": 4.0
+    },
+    {
+      "source_feature": "envelopes.treble",
+      "target_object": "efs_fire_rim_light",
+      "target_property": "energy",
+      "data_path": "data.energy",
+      "curve_type": "BEZIER",
+      "scale": 80.0,
+      "offset": 20.0,
+      "clamp_min": 10.0,
+      "clamp_max": 120.0
+    },
+    {
+      "source_feature": "envelopes.treble",
+      "target_object": "efs_water_ocean",
+      "target_property": "wave_scale",
+      "data_path": "modifiers[\"Ocean\"].size",
+      "curve_type": "BEZIER",
+      "scale": 3.0,
+      "offset": 0.5,
+      "clamp_min": 0.2,
+      "clamp_max": 4.0
+    },
+    {
+      "source_feature": "envelopes.brilliance",
+      "target_object": "efs_water_ocean",
+      "target_property": "choppiness",
+      "data_path": "modifiers[\"Ocean\"].choppiness",
+      "curve_type": "BEZIER",
+      "scale": 3.0,
+      "offset": 0.8,
+      "clamp_min": 0.3,
+      "clamp_max": 4.0
+    },
+    {
+      "source_feature": "envelopes.air",
+      "target_object": "efs_water_ocean",
+      "target_property": "foam_coverage",
+      "data_path": "modifiers[\"Ocean\"].foam_coverage",
+      "curve_type": "BEZIER",
+      "scale": 0.5,
+      "offset": 0.1,
+      "clamp_min": 0.0,
+      "clamp_max": 0.7
+    },
+    {
+      "source_feature": "envelopes.bass",
+      "target_object": "efs_water_ocean",
+      "target_property": "roughness",
+      "data_path": "active_material.node_tree.nodes[\"Glass BSDF\"].inputs[\"Roughness\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 0.15,
+      "offset": 0.02,
+      "clamp_min": 0.0,
+      "clamp_max": 0.2
+    },
+    {
+      "source_feature": "rms_energy",
+      "target_object": "efs_combo_sun",
+      "target_property": "energy",
+      "data_path": "data.energy",
+      "curve_type": "BEZIER",
+      "scale": 3.5,
+      "offset": 1.0,
+      "clamp_min": 0.5,
+      "clamp_max": 4.5
+    },
+    {
+      "source_feature": "spectral_centroid",
+      "target_object": "efs_combo_sun",
+      "target_property": "color_temp",
+      "data_path": "data.color",
+      "curve_type": "BEZIER",
+      "scale": 1.0,
+      "offset": 0.0,
+      "clamp_min": 0.0,
+      "clamp_max": 1.0
+    },
+    {
+      "source_feature": "envelopes.mid",
+      "target_object": "efs_combo_camera",
+      "target_property": "focal_length",
+      "data_path": "data.lens",
+      "curve_type": "BEZIER",
+      "scale": 15.0,
+      "offset": 42.0,
+      "clamp_min": 35.0,
+      "clamp_max": 65.0
+    },
+    {
+      "source_feature": "onsets.treble",
+      "target_object": "efs_combo_rim",
+      "target_property": "energy",
+      "data_path": "data.energy",
+      "curve_type": "CONSTANT",
+      "scale": 60.0,
+      "offset": 0.0,
+      "clamp_min": 0.0,
+      "clamp_max": 80.0
+    }
+  ]
+}
