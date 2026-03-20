@@ -1,0 +1,328 @@
+{
+  "name": "EDM Lights",
+  "description": "Concert light show mapping: laser sweeps on beat onsets, LED columns map to 8 frequency bands, dynamic range for breakdown darkness and drop brightness.",
+  "audio_style": "edm",
+  "auto_classify_hints": {
+    "bpm_min": 120,
+    "centroid_min": 0.3,
+    "crest_factor_min": 0.5
+  },
+  "mappings": [
+    {
+      "source_feature": "beat_phase",
+      "target_object": "efs_edm_laser_0",
+      "target_property": "sweep_z",
+      "data_path": "rotation_euler[2]",
+      "curve_type": "LINEAR",
+      "scale": 1.2,
+      "offset": -0.6,
+      "clamp_min": -1.0,
+      "clamp_max": 1.0
+    },
+    {
+      "source_feature": "beat_phase",
+      "target_object": "efs_edm_laser_1",
+      "target_property": "sweep_z",
+      "data_path": "rotation_euler[2]",
+      "curve_type": "LINEAR",
+      "scale": -1.0,
+      "offset": 0.5,
+      "clamp_min": -1.0,
+      "clamp_max": 1.0
+    },
+    {
+      "source_feature": "beat_phase",
+      "target_object": "efs_edm_laser_2",
+      "target_property": "sweep_z",
+      "data_path": "rotation_euler[2]",
+      "curve_type": "LINEAR",
+      "scale": 0.8,
+      "offset": -0.4,
+      "clamp_min": -0.8,
+      "clamp_max": 0.8
+    },
+    {
+      "source_feature": "beat_phase",
+      "target_object": "efs_edm_laser_3",
+      "target_property": "sweep_z",
+      "data_path": "rotation_euler[2]",
+      "curve_type": "LINEAR",
+      "scale": -1.5,
+      "offset": 0.75,
+      "clamp_min": -1.2,
+      "clamp_max": 1.2
+    },
+    {
+      "source_feature": "bands.sub_bass",
+      "target_object": "efs_edm_led_0",
+      "target_property": "emission_strength",
+      "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 50.0,
+      "offset": 1.0,
+      "clamp_min": 0.5,
+      "clamp_max": 60.0
+    },
+    {
+      "source_feature": "bands.bass",
+      "target_object": "efs_edm_led_1",
+      "target_property": "emission_strength",
+      "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 45.0,
+      "offset": 1.0,
+      "clamp_min": 0.5,
+      "clamp_max": 55.0
+    },
+    {
+      "source_feature": "bands.low_mid",
+      "target_object": "efs_edm_led_2",
+      "target_property": "emission_strength",
+      "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 40.0,
+      "offset": 1.0,
+      "clamp_min": 0.5,
+      "clamp_max": 50.0
+    },
+    {
+      "source_feature": "bands.mid",
+      "target_object": "efs_edm_led_3",
+      "target_property": "emission_strength",
+      "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 35.0,
+      "offset": 1.0,
+      "clamp_min": 0.5,
+      "clamp_max": 45.0
+    },
+    {
+      "source_feature": "bands.upper_mid",
+      "target_object": "efs_edm_led_4",
+      "target_property": "emission_strength",
+      "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 35.0,
+      "offset": 1.0,
+      "clamp_min": 0.5,
+      "clamp_max": 45.0
+    },
+    {
+      "source_feature": "bands.presence",
+      "target_object": "efs_edm_led_5",
+      "target_property": "emission_strength",
+      "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 30.0,
+      "offset": 1.0,
+      "clamp_min": 0.5,
+      "clamp_max": 40.0
+    },
+    {
+      "source_feature": "bands.brilliance",
+      "target_object": "efs_edm_led_6",
+      "target_property": "emission_strength",
+      "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 25.0,
+      "offset": 1.0,
+      "clamp_min": 0.5,
+      "clamp_max": 35.0
+    },
+    {
+      "source_feature": "bands.air",
+      "target_object": "efs_edm_led_7",
+      "target_property": "emission_strength",
+      "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+      "curve_type": "BEZIER",
+      "scale": 20.0,
+      "offset": 1.0,
+      "clamp_min": 0.5,
+      "clamp_max": 30.0
+    },
+    {
+      "source_feature": "onsets.bass",
+      "target_object": "efs_edm_laser_0",
+      "target_property": "energy",
+      "data_path": "data.energy",
+      "curve_type": "CONSTANT",
+      "scale": 800.0,
+      "offset": 100.0,
+      "clamp_min": 100.0,
+      "clamp_max": 1000.0
+    },
+    {
+      "source_feature": "envelopes.bass",
+      "target_object": "efs_edm_laser_1",
+      "target_property": "energy",
+      "data_path": "data.energy",
+      "curve_type": "BEZIER",
+      "scale": 600.0,
+      "offset": 200.0,
+      "clamp_min": 100.0,
+      "clamp_max": 800.0
+    },
+    {
+      "source_feature": "onsets.mid",
+      "target_object": "efs_edm_laser_2",
+      "target_property": "energy",
+      "data_path": "data.energy",
+      "curve_type": "CONSTANT",
+      "scale": 700.0,
+      "offset": 150.0,
+      "clamp_min": 100.0,
+      "clamp_max": 900.0
+    },
+    {
+      "source_feature": "envelopes.sub_bass",
+      "target_object": "efs_edm_laser_3",
+      "target_property": "energy",
+      "data_path": "data.energy",
+      "curve_type": "BEZIER",
+      "scale": 500.0,
+      "offset": 250.0,
+      "clamp_min": 100.0,
+      "clamp_max": 750.0
+    }
+  ],
+  "dynamic_range": {
+    "breakdown_rms_threshold": 0.15,
+    "breakdown_sustain_frames": 15,
+    "breakdown_multiplier": 0.1,
+    "drop_multiplier": 1.0,
+    "targets": [
+      {
+        "source_feature": "bands.sub_bass",
+        "target_object": "efs_edm_led_0",
+        "target_property": "emission_strength",
+        "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+        "scale": 50.0,
+        "offset": 1.0,
+        "clamp_min": 0.5,
+        "clamp_max": 60.0,
+        "curve_type": "CONSTANT"
+      },
+      {
+        "source_feature": "bands.bass",
+        "target_object": "efs_edm_led_1",
+        "target_property": "emission_strength",
+        "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+        "scale": 45.0,
+        "offset": 1.0,
+        "clamp_min": 0.5,
+        "clamp_max": 55.0,
+        "curve_type": "CONSTANT"
+      },
+      {
+        "source_feature": "bands.low_mid",
+        "target_object": "efs_edm_led_2",
+        "target_property": "emission_strength",
+        "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+        "scale": 40.0,
+        "offset": 1.0,
+        "clamp_min": 0.5,
+        "clamp_max": 50.0,
+        "curve_type": "CONSTANT"
+      },
+      {
+        "source_feature": "bands.mid",
+        "target_object": "efs_edm_led_3",
+        "target_property": "emission_strength",
+        "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+        "scale": 35.0,
+        "offset": 1.0,
+        "clamp_min": 0.5,
+        "clamp_max": 45.0,
+        "curve_type": "CONSTANT"
+      },
+      {
+        "source_feature": "bands.upper_mid",
+        "target_object": "efs_edm_led_4",
+        "target_property": "emission_strength",
+        "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+        "scale": 35.0,
+        "offset": 1.0,
+        "clamp_min": 0.5,
+        "clamp_max": 45.0,
+        "curve_type": "CONSTANT"
+      },
+      {
+        "source_feature": "bands.presence",
+        "target_object": "efs_edm_led_5",
+        "target_property": "emission_strength",
+        "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+        "scale": 30.0,
+        "offset": 1.0,
+        "clamp_min": 0.5,
+        "clamp_max": 40.0,
+        "curve_type": "CONSTANT"
+      },
+      {
+        "source_feature": "bands.brilliance",
+        "target_object": "efs_edm_led_6",
+        "target_property": "emission_strength",
+        "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+        "scale": 25.0,
+        "offset": 1.0,
+        "clamp_min": 0.5,
+        "clamp_max": 35.0,
+        "curve_type": "CONSTANT"
+      },
+      {
+        "source_feature": "bands.air",
+        "target_object": "efs_edm_led_7",
+        "target_property": "emission_strength",
+        "data_path": "active_material.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value",
+        "scale": 20.0,
+        "offset": 1.0,
+        "clamp_min": 0.5,
+        "clamp_max": 30.0,
+        "curve_type": "CONSTANT"
+      },
+      {
+        "source_feature": "onsets.bass",
+        "target_object": "efs_edm_laser_0",
+        "target_property": "energy",
+        "data_path": "data.energy",
+        "scale": 800.0,
+        "offset": 100.0,
+        "clamp_min": 100.0,
+        "clamp_max": 1000.0,
+        "curve_type": "CONSTANT"
+      },
+      {
+        "source_feature": "envelopes.bass",
+        "target_object": "efs_edm_laser_1",
+        "target_property": "energy",
+        "data_path": "data.energy",
+        "scale": 600.0,
+        "offset": 200.0,
+        "clamp_min": 100.0,
+        "clamp_max": 800.0,
+        "curve_type": "CONSTANT"
+      },
+      {
+        "source_feature": "onsets.mid",
+        "target_object": "efs_edm_laser_2",
+        "target_property": "energy",
+        "data_path": "data.energy",
+        "scale": 700.0,
+        "offset": 150.0,
+        "clamp_min": 100.0,
+        "clamp_max": 900.0,
+        "curve_type": "CONSTANT"
+      },
+      {
+        "source_feature": "envelopes.sub_bass",
+        "target_object": "efs_edm_laser_3",
+        "target_property": "energy",
+        "data_path": "data.energy",
+        "scale": 500.0,
+        "offset": 250.0,
+        "clamp_min": 100.0,
+        "clamp_max": 750.0,
+        "curve_type": "CONSTANT"
+      }
+    ]
+  }
+}
