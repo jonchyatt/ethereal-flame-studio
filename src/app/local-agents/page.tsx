@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, Loader2, RefreshCw, Shield, ShieldOff } from 'lucide-react';
+import { AlertCircle, HelpCircle, Loader2, RefreshCw, Shield, ShieldOff, X } from 'lucide-react';
 import { NavShell } from '@/components/nav/NavShell';
 
 type AgentRecord = {
@@ -40,6 +40,7 @@ export default function LocalAgentsPage() {
   const [error, setError] = useState<string | null>(null);
   const [disableReason, setDisableReason] = useState('');
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
     const saved = window.sessionStorage.getItem('localAgentAdminToken');
@@ -120,12 +121,225 @@ export default function LocalAgentsPage() {
   return (
     <NavShell>
       <div className="mx-auto max-w-6xl px-4 py-8 space-y-6">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Local Agents</h1>
-          <p className="text-sm text-zinc-400">
-            Manage registered render agents, monitor heartbeats, and disable machines.
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-2xl font-semibold tracking-tight">Local Agents</h1>
+            <p className="text-sm text-zinc-400">
+              Manage registered render agents, monitor heartbeats, and disable machines.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowGuide(!showGuide)}
+            className={`
+              mt-1 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition-all flex-shrink-0
+              ${showGuide
+                ? 'bg-blue-500/15 text-blue-300 border border-blue-500/30'
+                : 'bg-white/5 text-zinc-400 border border-white/10 hover:bg-white/8 hover:text-zinc-300'
+              }
+            `}
+          >
+            {showGuide ? <X className="h-4 w-4" /> : <HelpCircle className="h-4 w-4" />}
+            {showGuide ? 'Close Guide' : 'How It Works'}
+          </button>
         </div>
+
+        {showGuide && (
+          <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-6 space-y-6 text-sm text-zinc-300">
+            {/* Overview */}
+            <div>
+              <h2 className="text-base font-medium text-white mb-2">What Are Local Agents?</h2>
+              <p className="leading-relaxed">
+                Local Agents are render workers that run on your own machines (your PC, a spare laptop, a GPU server).
+                When you submit a render job from the <span className="text-white font-medium">Create Video</span> or{' '}
+                <span className="text-white font-medium">Batch</span> page, the job can be routed to one of these agents instead
+                of cloud rendering. The agent downloads the audio, renders the video locally using Puppeteer + FFmpeg (or Blender),
+                then uploads the finished file back to cloud storage (R2).
+              </p>
+            </div>
+
+            {/* Why use them */}
+            <div>
+              <h2 className="text-base font-medium text-white mb-2">Why Use Local Agents?</h2>
+              <ul className="space-y-1.5 list-none">
+                <li className="flex gap-2">
+                  <span className="text-emerald-400 mt-0.5 flex-shrink-0">+</span>
+                  <span><span className="text-white font-medium">Free GPU power</span> — use your own hardware instead of paying for cloud compute</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-emerald-400 mt-0.5 flex-shrink-0">+</span>
+                  <span><span className="text-white font-medium">Faster for heavy renders</span> — 4K, 8K VR, and Blender Cycles renders benefit from a dedicated GPU</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-emerald-400 mt-0.5 flex-shrink-0">+</span>
+                  <span><span className="text-white font-medium">Overnight batch rendering</span> — leave your machine running, jobs get picked up automatically</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-emerald-400 mt-0.5 flex-shrink-0">+</span>
+                  <span><span className="text-white font-medium">Scale horizontally</span> — register multiple machines and they share the workload</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* How it works */}
+            <div>
+              <h2 className="text-base font-medium text-white mb-2">How It Works</h2>
+              <div className="space-y-3">
+                <div className="flex gap-3">
+                  <div className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-300 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</div>
+                  <div>
+                    <div className="text-white font-medium">Start the agent script on your machine</div>
+                    <code className="block mt-1 text-xs bg-black/40 rounded-lg px-3 py-2 text-zinc-400 overflow-x-auto">
+                      npx tsx scripts/local-render-agent.ts --server https://www.whatamiappreciatingnow.com --token YOUR_SECRET
+                    </code>
+                    <p className="mt-1 text-zinc-500 text-xs">
+                      The script auto-generates an agent ID, reports system capabilities (OS, CPU, hostname), and starts polling for jobs.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-300 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</div>
+                  <div>
+                    <div className="text-white font-medium">Agent registers and sends heartbeats</div>
+                    <p className="text-zinc-400">
+                      On startup, the agent calls <code className="text-zinc-300 bg-black/30 px-1 rounded">/api/local-agent/register</code> with its ID and capabilities.
+                      Every 5 seconds it polls <code className="text-zinc-300 bg-black/30 px-1 rounded">/api/local-agent/poll</code> — this doubles as a heartbeat and a job check.
+                      If an agent misses heartbeats, its presence lease expires and it shows as Offline here.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-300 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</div>
+                  <div>
+                    <div className="text-white font-medium">Jobs get dispatched automatically</div>
+                    <p className="text-zinc-400">
+                      When you submit a render with <span className="text-zinc-300">Local Agent</span> as the target, the job enters a queue.
+                      The next agent that polls picks it up, acquires a lease (preventing other agents from claiming it), downloads the audio via a signed URL,
+                      and begins rendering.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-300 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">4</div>
+                  <div>
+                    <div className="text-white font-medium">Agent renders and uploads</div>
+                    <p className="text-zinc-400">
+                      The agent runs the render pipeline locally (Puppeteer captures the Three.js canvas frame-by-frame, FFmpeg encodes to video).
+                      During rendering, it renews its job lease to prevent timeout. Once finished, it uploads the video to R2 storage via multipart upload
+                      and reports completion.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-300 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">5</div>
+                  <div>
+                    <div className="text-white font-medium">Job marked complete</div>
+                    <p className="text-zinc-400">
+                      The server updates the job status. Notifications fire (ntfy push, webhook). The finished video is available for download from cloud storage
+                      and can be synced to Google Drive.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* This page specifically */}
+            <div>
+              <h2 className="text-base font-medium text-white mb-2">What This Page Does</h2>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <span className="text-zinc-500 mt-px flex-shrink-0">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+                  </span>
+                  <span>
+                    <span className="text-white font-medium">Admin Token</span> — authenticates you as the admin. This is your{' '}
+                    <code className="text-zinc-300 bg-black/30 px-1 rounded">LOCAL_AGENT_ADMIN_SECRET</code> environment variable (or the shared secret fallback).
+                    Stored in sessionStorage so you don't have to re-enter it per tab.
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="text-zinc-500 mt-px flex-shrink-0">
+                    <RefreshCw className="w-4 h-4" />
+                  </span>
+                  <span>
+                    <span className="text-white font-medium">Agent List</span> — shows all agents that have ever registered. Each card displays the agent ID, label,
+                    online/offline status (based on heartbeat recency), platform, architecture, hostname, and last seen time.
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="text-zinc-500 mt-px flex-shrink-0">
+                    <ShieldOff className="w-4 h-4" />
+                  </span>
+                  <span>
+                    <span className="text-white font-medium">Disable/Enable</span> — temporarily block an agent from receiving new jobs. Useful during maintenance,
+                    GPU driver updates, or if a machine is rendering poorly. Disabled agents still heartbeat but the server refuses to dispatch jobs to them.
+                    You can optionally provide a reason (e.g. &quot;unstable GPU driver&quot;) that shows on the agent card.
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="text-zinc-500 mt-px flex-shrink-0">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                  </span>
+                  <span>
+                    <span className="text-white font-medium">Auto-refresh</span> — when enabled, the agent list polls every 15 seconds so you can watch agents come online/offline in real time.
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick reference */}
+            <div className="border-t border-blue-500/10 pt-4">
+              <h2 className="text-base font-medium text-white mb-2">Quick Reference</h2>
+              <div className="grid gap-2 sm:grid-cols-2 text-xs">
+                <div className="rounded-lg bg-black/20 border border-white/5 p-3">
+                  <div className="text-zinc-500 mb-1">Start an agent</div>
+                  <code className="text-zinc-300">npx tsx scripts/local-render-agent.ts -s URL -t TOKEN</code>
+                </div>
+                <div className="rounded-lg bg-black/20 border border-white/5 p-3">
+                  <div className="text-zinc-500 mb-1">Custom agent ID</div>
+                  <code className="text-zinc-300">--agent-id my-gpu-rig --label &quot;RTX 4090 Desktop&quot;</code>
+                </div>
+                <div className="rounded-lg bg-black/20 border border-white/5 p-3">
+                  <div className="text-zinc-500 mb-1">Poll interval</div>
+                  <code className="text-zinc-300">--poll-ms 3000</code> <span className="text-zinc-500">(default 5000ms)</span>
+                </div>
+                <div className="rounded-lg bg-black/20 border border-white/5 p-3">
+                  <div className="text-zinc-500 mb-1">Required env vars</div>
+                  <code className="text-zinc-300">LOCAL_AGENT_SECRET</code> <span className="text-zinc-500">(auth token)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* API endpoints */}
+            <div className="border-t border-blue-500/10 pt-4">
+              <h2 className="text-base font-medium text-white mb-2">API Endpoints (for debugging)</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-zinc-500 border-b border-white/5">
+                      <th className="text-left py-1.5 pr-3 font-medium">Method</th>
+                      <th className="text-left py-1.5 pr-3 font-medium">Endpoint</th>
+                      <th className="text-left py-1.5 font-medium">Purpose</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-zinc-400">
+                    <tr className="border-b border-white/3"><td className="py-1.5 pr-3 text-emerald-400">POST</td><td className="py-1.5 pr-3 font-mono text-zinc-300">/api/local-agent/register</td><td className="py-1.5">Agent registers with ID, label, capabilities</td></tr>
+                    <tr className="border-b border-white/3"><td className="py-1.5 pr-3 text-emerald-400">POST</td><td className="py-1.5 pr-3 font-mono text-zinc-300">/api/local-agent/poll</td><td className="py-1.5">Heartbeat + check for available jobs</td></tr>
+                    <tr className="border-b border-white/3"><td className="py-1.5 pr-3 text-blue-400">POST</td><td className="py-1.5 pr-3 font-mono text-zinc-300">/api/local-agent/heartbeat</td><td className="py-1.5">Keep-alive without polling for jobs</td></tr>
+                    <tr className="border-b border-white/3"><td className="py-1.5 pr-3 text-blue-400">GET</td><td className="py-1.5 pr-3 font-mono text-zinc-300">/api/local-agent/agents</td><td className="py-1.5">List all registered agents (admin)</td></tr>
+                    <tr className="border-b border-white/3"><td className="py-1.5 pr-3 text-amber-400">PATCH</td><td className="py-1.5 pr-3 font-mono text-zinc-300">/api/local-agent/agents/:id</td><td className="py-1.5">Enable/disable an agent (admin)</td></tr>
+                    <tr className="border-b border-white/3"><td className="py-1.5 pr-3 text-emerald-400">POST</td><td className="py-1.5 pr-3 font-mono text-zinc-300">/api/local-agent/jobs/:id/renew</td><td className="py-1.5">Renew job lease during render</td></tr>
+                    <tr className="border-b border-white/3"><td className="py-1.5 pr-3 text-emerald-400">POST</td><td className="py-1.5 pr-3 font-mono text-zinc-300">/api/local-agent/jobs/:id/complete</td><td className="py-1.5">Mark job as finished</td></tr>
+                    <tr><td className="py-1.5 pr-3 text-red-400">POST</td><td className="py-1.5 pr-3 font-mono text-zinc-300">/api/local-agent/jobs/:id/fail</td><td className="py-1.5">Report job failure</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-4">
           <div className="grid gap-3 md:grid-cols-[1fr_auto_auto] md:items-end">
