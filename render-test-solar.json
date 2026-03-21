@@ -1,0 +1,19 @@
+{
+  "version": "1.0",
+  "audio": { "path": "./audio/test_beats_5sec.wav" },
+  "output": { "path": "./output/test_solar_1080p.mp4", "format": "flat-1080p-landscape", "fps": 30 },
+  "visual": {
+    "mode": "solar",
+    "skyboxPreset": "DarkWorld1",
+    "skyboxRotationSpeed": 0.05,
+    "waterEnabled": false,
+    "waterColor": "#1a3a5c",
+    "waterReflectivity": 0.8,
+    "layers": [
+      { "id": "solar-core", "name": "Solar Core", "enabled": true, "particleCount": 80, "baseSize": 4.0, "spawnRadius": 0.08, "maxSpeed": 0.005, "lifetime": 2, "audioReactivity": 3.0, "frequencyBand": "bass", "sizeAtBirth": 0.5, "sizeAtPeak": 1.0, "sizeAtDeath": 0.6, "peakLifetime": 0.2 },
+      { "id": "corona", "name": "Corona", "enabled": true, "particleCount": 40, "baseSize": 8.0, "spawnRadius": 0.2, "maxSpeed": 0.015, "lifetime": 3, "audioReactivity": 2.0, "frequencyBand": "mids", "sizeAtBirth": 0.3, "sizeAtPeak": 1.0, "sizeAtDeath": 0.2, "peakLifetime": 0.3 },
+      { "id": "flares", "name": "Flares", "enabled": true, "particleCount": 15, "baseSize": 12.0, "spawnRadius": 0.3, "maxSpeed": 0.02, "lifetime": 4, "audioReactivity": 2.5, "frequencyBand": "treble", "sizeAtBirth": 0.1, "sizeAtPeak": 1.0, "sizeAtDeath": 0.15, "peakLifetime": 0.25 }
+    ]
+  },
+  "options": { "quality": "balanced" }
+}

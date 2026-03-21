@@ -1,11 +1,12 @@
 /**
  * PM2 Process Configuration — Jarvis Local Deployment
  *
- * Runs 4 processes:
+ * Runs 5 processes:
  * 1. jarvis-web    — Next.js app on port 3001
  * 2. jarvis-mcp    — MCP tool server (stdio, used by Claude Code SDK)
  * 3. jarvis-cron   — Daily reflection + backfill via node-cron
  * 4. jarvis-tunnel — Cloudflare tunnel → jarvis.whatamiappreciatingnow.com
+ * 5. jarvis-chrome — Chrome CDP health monitor (port 9222)
  *
  * Usage:
  *   pm2 start jarvis/ecosystem.config.js
@@ -88,6 +89,22 @@ module.exports = {
       cwd: './',
       autorestart: true,
       watch: false,
+    },
+    {
+      name: 'jarvis-chrome',
+      script: 'npx',
+      args: 'tsx jarvis/scripts/chrome-cli.ts',
+      interpreter: 'cmd',
+      interpreter_args: '/c',
+      cwd: './',
+      env: {
+        NODE_ENV: 'production',
+        CHROME_DEBUG_PORT: '9222',
+        CLAUDECODE: '',
+      },
+      autorestart: true,
+      watch: false,
+      restart_delay: 10000,
     },
   ],
 };

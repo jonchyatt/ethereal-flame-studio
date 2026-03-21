@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "audio": { "path": "./audio/test_beats_5sec.wav" },
+  "output": { "path": "./output/test_mist_1080p.mp4", "format": "flat-1080p-landscape", "fps": 30 },
+  "visual": {
+    "mode": "mist",
+    "skyboxPreset": "DarkWorld1",
+    "skyboxRotationSpeed": 0.15,
+    "waterEnabled": false,
+    "waterColor": "#1a3a5c",
+    "waterReflectivity": 0.8,
+    "layers": [
+      { "id": "mist-core", "name": "Mist Core", "enabled": true, "particleCount": 25, "baseSize": 7.0, "spawnRadius": 0.15, "maxSpeed": 0.01, "lifetime": 4, "audioReactivity": 2.0, "frequencyBand": "mids", "sizeAtBirth": 0.3, "sizeAtPeak": 1.0, "sizeAtDeath": 0.4, "peakLifetime": 0.35 },
+      { "id": "ambient-haze", "name": "Ambient Haze", "enabled": true, "particleCount": 20, "baseSize": 8.0, "spawnRadius": 0.4, "maxSpeed": 0.008, "lifetime": 5, "audioReactivity": 1.5, "frequencyBand": "bass", "sizeAtBirth": 0.2, "sizeAtPeak": 1.0, "sizeAtDeath": 0.3, "peakLifetime": 0.4 }
+    ]
+  },
+  "options": { "quality": "balanced" }
+}
