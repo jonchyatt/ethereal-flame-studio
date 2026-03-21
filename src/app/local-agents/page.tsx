@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertCircle, Loader2, RefreshCw, Shield, ShieldOff } from 'lucide-react';
+import { NavShell } from '@/components/nav/NavShell';
 
 type AgentRecord = {
   agentId: string;
@@ -117,12 +118,12 @@ export default function LocalAgentsPage() {
   }, [agents]);
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100">
+    <NavShell>
       <div className="mx-auto max-w-6xl px-4 py-8 space-y-6">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-semibold tracking-tight">Local Agents</h1>
-          <p className="text-sm text-neutral-400">
-            Manage registered render agents, monitor heartbeats, and disable machines from receiving new jobs.
+          <p className="text-sm text-zinc-400">
+            Manage registered render agents, monitor heartbeats, and disable machines.
           </p>
         </div>
 
@@ -278,6 +279,6 @@ export default function LocalAgentsPage() {
           )}
         </div>
       </div>
-    </div>
+    </NavShell>
   );
 }

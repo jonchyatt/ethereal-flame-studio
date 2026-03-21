@@ -1,46 +1,48 @@
+import { NavShell } from '@/components/nav/NavShell';
+
 export default function CreatorHomePage() {
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100 p-6">
-      <div className="max-w-5xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-2xl font-semibold">Creator Workflow</h1>
-          <p className="text-sm text-zinc-400">
-            Library, metadata drafts, recut planning, and thumbnail safe-zone tooling for multi-platform publishing.
+    <NavShell>
+      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Creator Workflow</h1>
+          <p className="text-sm text-zinc-400 mt-1">
+            Library, metadata drafts, recut planning, and thumbnail safe-zone tooling.
           </p>
-        </header>
+        </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           <a
             href="/creator/dashboard"
-            className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-5 hover:border-zinc-700 transition-colors"
+            className="rounded-xl border border-white/8 bg-white/3 p-5 hover:border-white/15 hover:bg-white/5 transition-all"
           >
-            <h2 className="text-lg font-medium">Batch Dashboard</h2>
+            <h2 className="text-base font-medium text-white">Batch Dashboard</h2>
             <p className="mt-2 text-sm text-zinc-400">
-              Live per-pack status rollups for render, recut, and publish jobs with one-click queue actions.
+              Live per-pack status rollups for render, recut, and publish jobs.
             </p>
           </a>
 
           <a
             href="/creator/library"
-            className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-5 hover:border-zinc-700 transition-colors"
+            className="rounded-xl border border-white/8 bg-white/3 p-5 hover:border-white/15 hover:bg-white/5 transition-all"
           >
-            <h2 className="text-lg font-medium">Content Library</h2>
+            <h2 className="text-base font-medium text-white">Content Library</h2>
             <p className="mt-2 text-sm text-zinc-400">
-              Browse creator packs, edit mood/BPM/topic tags, review auto recut segment plans, and inspect publish metadata drafts.
+              Browse packs, edit tags, review recut plans, inspect publish metadata.
             </p>
           </a>
 
           <a
             href="/creator/thumbnail-planner"
-            className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-5 hover:border-zinc-700 transition-colors"
+            className="rounded-xl border border-white/8 bg-white/3 p-5 hover:border-white/15 hover:bg-white/5 transition-all"
           >
-            <h2 className="text-lg font-medium">Thumbnail Planner</h2>
+            <h2 className="text-base font-medium text-white">Thumbnail Planner</h2>
             <p className="mt-2 text-sm text-zinc-400">
-              Auto-pick candidate timestamps, scrub manually, and preview text-safe zones for YouTube, Shorts, and square feeds.
+              Auto-pick timestamps, scrub manually, preview text-safe zones.
             </p>
           </a>
         </div>
       </div>
-    </main>
+    </NavShell>
   );
 }
