@@ -94,6 +94,10 @@ jarvis-debug.png
 audio-prep.bat
 start-render.bat
 
+# Host-specific deployment markers
+.jarvis-host
+.jarvis-primary
+
 # Blender VFX Pipeline (v4.0)
 blender/cache/
 !blender/cache/.gitkeep

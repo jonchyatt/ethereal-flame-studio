@@ -1,5 +1,24 @@
 # Ethereal Flame Studio
 
+## Dual-Host Rules
+
+This repo is worked on from two machines. Check `.jarvis-host` in the repo root to know which you are. Missing file = assume Local.
+
+### Local instance (master branch) — THE DEVELOPER
+- All Next.js/React/Three.js code changes happen HERE. You own the web codebase.
+- Work on `master` branch. Push triggers Vercel auto-deploy to production.
+- Blender script development (Python, scene files) also happens here.
+
+### Utah instance — THE RENDER FARM
+- You run Blender renders, batch jobs, and GPU-intensive work. You do NOT change web source code.
+- **NEVER push to master.** A push to master triggers a Vercel production deploy.
+- Render outputs go to **R2 cloud storage**, not git. Use the render pipeline APIs.
+- You may modify files in `blender/renders/`, `blender/cache/`, `blender/jobs/` — these are local working directories.
+- If you create new Blender scenes or presets worth keeping, commit to a `utah` branch and let Local merge when ready.
+- If you need a web code change, create a Notion task for the Local instance.
+
+---
+
 ## Testing
 
 - Production site: https://www.whatamiappreciatingnow.com/ (auto-deploys from GitHub push)
