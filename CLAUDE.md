@@ -35,6 +35,42 @@ This repo is worked on from two machines. Check `.jarvis-host` in the repo root 
 
 ---
 
+## Blender VFX Pipeline — GPU Rendering via MCP
+
+Claude has direct control of Blender via the Blender MCP server (`mcp__blender__*` tools). This is not theoretical — the pipeline is built, tested, and operational.
+
+**What Claude can do:**
+- `mcp__blender__execute_blender_code` — Run arbitrary Python in Blender (scene setup, materials, particles, physics, animation)
+- `mcp__blender__get_scene_info` / `mcp__blender__get_object_info` — Inspect current scene state
+- `mcp__blender__get_viewport_screenshot` — Visual verification of scene setup
+- `mcp__blender__set_texture` — Apply textures to objects
+- `mcp__blender__search_polyhaven_assets` / `mcp__blender__download_polyhaven_asset` — Source HDRIs, textures, models
+- `mcp__blender__search_sketchfab_models` / `mcp__blender__download_sketchfab_model` — Import 3D models
+- AI model generation: `generate_hyper3d_model_via_text`, `generate_hunyuan3d_model` — Text/image to 3D
+
+**Pipeline scripts** (`blender/scripts/` — 24 Python modules):
+- **Templates:** `fire_cinema_template.py`, `water_template.py`, `edm_light_template.py`, `luminous_being_template.py`, `vr_template.py`, `world_template.py`
+- **Infrastructure:** `efs_cli.py` (unified CLI), `batch_render.py`, `pipeline.py` (orchestrator), `async_render.py`, `async_bake.py`
+- **Compositing:** `compositor_layers.py`, `depth_compositor.py`, `keyframe_generator.py`
+- **Intelligence:** `apply_visual_principles.py`, `sam_segmenter.py`, `mask_to_mesh.py`
+- **Utilities:** `scene_utils.py`, `connection_test.py`, `poll_status.py`, `combo_fire_water.py`
+
+**Running renders:**
+- Via MCP: `mcp__blender__execute_blender_code` with Python that imports and calls template scripts
+- Via CLI: `blender --background --python blender/scripts/<script>.py`
+- Via harness: `blender --background --python blender/scripts/efs_cli.py -- render --template fire`
+- Output goes to `blender/renders/` (images) or `output/` (videos, composited)
+
+**Machine capabilities (Utah — "nepalt"):**
+- RTX 2060 (6GB VRAM), 24GB RAM, B550 UD AC, Blender 4.5.8 LTS, Windows 11
+- Cycles GPU rendering operational (CUDA), tested at 1920x1080, 128 samples
+- Templates verified: fire, water, EDM, aurora, neon, solar, mist, portrait/square formats
+- Jon accesses this machine remotely from Virginia via Parsec
+
+**Planning docs:** `.planning/phases/28-33` cover the full pipeline build (connection, templates, compositing, VR, EDM, luminous being, CLI harness, batch render, visual intelligence).
+
+---
+
 ## Chrome MCP — Authenticated Browser Access (via Jarvis)
 
 Jarvis controls Jon's real Chrome browser via Chrome DevTools MCP. All logins, cookies, sessions intact. 200ms round trips, 35-200x fewer tokens than Playwright.
