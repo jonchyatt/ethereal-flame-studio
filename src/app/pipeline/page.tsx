@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-type Section = 'overview' | 'engines' | 'automation' | 'presets' | 'features' | 'cloud' | 'roadmap';
+type Section = 'overview' | 'engines' | 'automation' | 'presets' | 'features' | 'cloud' | 'roadmap' | 'setup' | 'planning';
 
 const SECTIONS: { id: Section; label: string }[] = [
   { id: 'overview', label: 'Overview' },
@@ -11,6 +11,8 @@ const SECTIONS: { id: Section; label: string }[] = [
   { id: 'presets', label: 'Presets' },
   { id: 'features', label: 'Features' },
   { id: 'cloud', label: 'Cloud Rendering' },
+  { id: 'setup', label: 'Setup Guide' },
+  { id: 'planning', label: 'Planning' },
   { id: 'roadmap', label: 'Roadmap' },
 ];
 
@@ -78,6 +80,8 @@ export default function PipelinePage() {
           {activeSection === 'presets' && <PresetsSection />}
           {activeSection === 'features' && <FeaturesSection />}
           {activeSection === 'cloud' && <CloudSection />}
+          {activeSection === 'setup' && <SetupSection />}
+          {activeSection === 'planning' && <PlanningSection />}
           {activeSection === 'roadmap' && <RoadmapSection />}
         </div>
       </div>
@@ -432,6 +436,146 @@ function CloudSection() {
           <p>A 15-minute VR 360 video on a cloud T4 GPU: <strong className="text-white">~1-3 hours = $0.50-$1.60</strong></p>
           <p>Same video on Utah (RTX 2060, free): <strong className="text-white">~2-4 hours = $0</strong> but ties up the machine.</p>
           <p className="text-zinc-400">Cloud makes sense for: batch jobs (10+ videos), time-critical renders, or when Utah is busy with other work.</p>
+        </div>
+      </SectionCard>
+    </>
+  );
+}
+
+function SetupSection() {
+  return (
+    <>
+      <SectionCard title="Utah Setup (Render Farm)">
+        <div className="space-y-4">
+          <p className="text-sm text-zinc-400">
+            Get the Unity pipeline running on Utah (nepalt) in 5 steps.
+          </p>
+          <div className="space-y-3">
+            {[
+              { step: '1', label: 'Pull the repo', cmd: 'cd C:\\Users\\jonch\\Projects\\ethereal-flame-studio && git pull origin master', note: 'Gets the clean 3MB Unity project + all automation scripts.' },
+              { step: '2', label: 'Install Unity Hub', cmd: 'Download from https://unity.com/download', note: 'If not already installed. Unity Hub manages editor versions.' },
+              { step: '3', label: 'Install Unity 2021.2.8f1', cmd: 'Unity Hub → Installs → Install Editor → Archive → 2021.2.8f1', note: 'Must match exactly. The project was built on this version.' },
+              { step: '4', label: 'Open the project', cmd: 'Unity Hub → Open → C:\\Users\\jonch\\Projects\\ethereal-flame-studio\\unity', note: 'First open takes ~1 minute to regenerate Library/. This is normal.' },
+              { step: '5', label: 'Open the scene', cmd: 'Assets → AStarNestSkybox → Example (double-click)', note: 'You should see orbs, starfield, and water. Hit Play to test.' },
+            ].map((item) => (
+              <div key={item.step} className="bg-white/5 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-7 h-7 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center text-sm font-bold shrink-0">
+                    {item.step}
+                  </div>
+                  <span className="text-white font-medium text-sm">{item.label}</span>
+                </div>
+                <code className="text-xs text-orange-400 bg-black/30 rounded px-2 py-1 block mb-2 overflow-x-auto">{item.cmd}</code>
+                <p className="text-xs text-zinc-500">{item.note}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Testing a Render">
+        <div className="space-y-3 text-sm text-zinc-300">
+          <p>Once the scene is open and running:</p>
+          <ol className="list-decimal ml-4 space-y-2 text-zinc-400">
+            <li>Drag any WAV or MP3 file onto the <strong className="text-zinc-300">audio</strong> GameObject in the Hierarchy (or into the Audio Clip field in the Inspector).</li>
+            <li>Hit <strong className="text-zinc-300">Play</strong> — orbs should pulse with the music.</li>
+            <li>Open the Recorder: <strong className="text-zinc-300">Window → General → Recorder → Recorder Window</strong></li>
+            <li>Click <strong className="text-zinc-300">Start Recording</strong> while playing.</li>
+            <li>Output goes to the project&apos;s Recordings/ folder.</li>
+          </ol>
+          <p className="text-zinc-500 mt-4">For headless batch rendering (no GUI):</p>
+          <code className="text-xs text-orange-400 bg-black/30 rounded px-2 py-1 block overflow-x-auto">
+            ./unity/render.sh --audio /path/to/audio.wav --name test_001 --mode 360stereo --res 4096
+          </code>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Virginia Setup (Brain)">
+        <div className="space-y-2 text-sm text-zinc-400">
+          <p>Virginia writes code and pushes. No Unity rendering needed here.</p>
+          <ol className="list-decimal ml-4 space-y-1">
+            <li>Edit C# scripts, presets, shaders in any editor (VS Code, Claude Code).</li>
+            <li><code className="text-orange-400">git push origin master</code> — web app auto-deploys via Vercel.</li>
+            <li>Utah pulls changes and runs renders.</li>
+            <li>Virginia verifies results on the production site and uploads to YouTube.</li>
+          </ol>
+          <p className="mt-2">Unity 2021.2.8f1 is also installed on Virginia for local testing if needed, but renders should run on Utah (RTX 2060) or cloud GPUs.</p>
+        </div>
+      </SectionCard>
+    </>
+  );
+}
+
+function PlanningSection() {
+  return (
+    <>
+      <SectionCard title="How We Plan and Execute">
+        <div className="space-y-4 text-sm text-zinc-300">
+          <p>
+            This pipeline is built using <strong className="text-white">PAUL</strong> (the scalpel approach) —
+            each phase is planned individually, researched, discussed, and executed with precision.
+          </p>
+          <div className="bg-white/5 rounded-lg p-4 space-y-3">
+            <h4 className="text-white font-medium">The Workflow</h4>
+            <div className="space-y-2 text-zinc-400">
+              <div className="flex items-start gap-2">
+                <span className="text-orange-400 font-mono text-xs w-24 shrink-0">/paul:plan</span>
+                <span>Plan the phase — define scope, tasks, dependencies, exit criteria.</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-orange-400 font-mono text-xs w-24 shrink-0">/paul:apply</span>
+                <span>Execute the approved plan — write code, test, commit.</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-orange-400 font-mono text-xs w-24 shrink-0">/paul:verify</span>
+                <span>Manual UAT — Jonathan tests the feature live.</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-orange-400 font-mono text-xs w-24 shrink-0">/paul:pause</span>
+                <span>Create handoff document when switching sessions.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Current Status">
+        <div className="space-y-3">
+          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-emerald-400 font-semibold text-sm">Phase 1: Foundation</span>
+              <StatusBadge status="live" />
+            </div>
+            <p className="text-xs text-zinc-400">Unity project in git (3MB), AutoRecorder.cs, AudioAnalyzer.cs, render.sh, /pipeline page. Scene verified working.</p>
+          </div>
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-amber-400 font-semibold text-sm">Phase 2: Preset System</span>
+              <StatusBadge status="planned" />
+            </div>
+            <p className="text-xs text-zinc-400">SceneConfigurator.cs + JSON presets. One command configures entire scene. This is the bridge between &quot;manual grind&quot; and &quot;fully automated.&quot;</p>
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Decision Log">
+        <div className="space-y-3 text-sm">
+          <div className="bg-white/5 rounded-lg p-3">
+            <div className="text-zinc-500 text-xs">2026-03-30</div>
+            <p className="text-zinc-300">Unity chosen over Blender Cycles for video production. Blender takes weeks per video; Unity does it in hours. Proven pipeline since 2017.</p>
+          </div>
+          <div className="bg-white/5 rounded-lg p-3">
+            <div className="text-zinc-500 text-xs">2026-03-30</div>
+            <p className="text-zinc-300">Stay on Unity 2021.2.8f1. Project was painfully migrated from 2017 era by a contractor. No upgrade unless carefully planned.</p>
+          </div>
+          <div className="bg-white/5 rounded-lg p-3">
+            <div className="text-zinc-500 text-xs">2026-03-30</div>
+            <p className="text-zinc-300">Cloud GPU rendering confirmed viable. Unity -batchmode -nographics is designed for headless servers. Vast.ai ~$0.10/hr, AWS Spot ~$0.16/hr. A 15-min VR video costs ~$0.50-$1.60 on cloud.</p>
+          </div>
+          <div className="bg-white/5 rounded-lg p-3">
+            <div className="text-zinc-500 text-xs">2026-03-30</div>
+            <p className="text-zinc-300">Audio files stored externally, not in Unity project. AutoRecorder loads from any path at runtime. Project went from 1.3GB to 3MB.</p>
+          </div>
         </div>
       </SectionCard>
     </>

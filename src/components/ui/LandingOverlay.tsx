@@ -81,6 +81,18 @@ export function LandingOverlay({ viewMode, onSelectMode }: LandingOverlayProps) 
         ))}
       </div>
 
+      {/* Pipeline link */}
+      <button
+        onClick={() => router.push('/pipeline')}
+        className="mt-8 text-white/30 hover:text-orange-400 text-sm transition-colors flex items-center gap-1.5"
+        style={{ animationDelay: '0.7s' }}
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
+        </svg>
+        Production Pipeline
+      </button>
+
       {/* Animations — inlined so they work without global CSS changes */}
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes landingFadeIn {
