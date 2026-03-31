@@ -1,0 +1,45 @@
+# Unity generated
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+
+# IDE
+.vs/
+.vscode/
+*.csproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.unityproj
+
+# Unity cache
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+sysinfo.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Audio files — loaded externally by AutoRecorder, NOT baked into project
+*.wav
+*.mp3
+*.ogg
+*.aif
+*.aiff
+
+# Render outputs
+/Recordings/
+/SampleRecordings/
+
+# Crash reports
+crashlytics-buildid.txt
