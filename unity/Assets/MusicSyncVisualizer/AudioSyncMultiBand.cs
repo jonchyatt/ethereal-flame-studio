@@ -24,9 +24,10 @@ public class AudioSyncMultiBand : MonoBehaviour
     [Header("Scale (driven by Bass)")]
     public bool enableScale = true;
     public Vector3 restScale = Vector3.one;
-    public Vector3 beatScale = new Vector3(1.5f, 1.5f, 1.5f);
+    public Vector3 beatScale = new Vector3(1.8f, 1.8f, 1.8f);
     [Range(0, 7)] public int scaleBand = 1;
-    public float scaleSmoothing = 8f;
+    public float scaleAttackSpeed = 30f;
+    public float scaleDecaySpeed = 3f;
 
     [Header("Emission Color (driven by Low-Mid)")]
     public bool enableEmission = true;
@@ -82,21 +83,18 @@ public class AudioSyncMultiBand : MonoBehaviour
 
     void Update()
     {
-        // -- Scale from bass --
+        // -- Scale from bass — snap up fast, decay slow (like the original) --
         if (enableScale)
         {
-            float scaleValue;
-            if (useOnsetForScale && AudioAnalyzer.IsBeat(scaleBand, onsetThreshold))
-            {
-                // Snap to beat scale on onset
-                _currentScale = beatScale;
-            }
+            float bandVal = AudioAnalyzer.GetBand(scaleBand);
+            Vector3 target = Vector3.Lerp(restScale, beatScale, Mathf.Clamp01(bandVal));
+
+            // Fast attack, slow decay — this is what makes it "pop"
+            if (target.magnitude > _currentScale.magnitude)
+                _currentScale = Vector3.Lerp(_currentScale, target, Time.deltaTime * scaleAttackSpeed);
             else
-            {
-                scaleValue = AudioAnalyzer.GetBand(scaleBand);
-                Vector3 target = Vector3.Lerp(restScale, beatScale, scaleValue);
-                _currentScale = Vector3.Lerp(_currentScale, target, Time.deltaTime * scaleSmoothing);
-            }
+                _currentScale = Vector3.Lerp(_currentScale, target, Time.deltaTime * scaleDecaySpeed);
+
             transform.localScale = _currentScale;
         }
 

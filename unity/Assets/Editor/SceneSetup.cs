@@ -21,9 +21,9 @@ public static class SceneSetup
         {
             var analyzer = analyzerObj.AddComponent<AudioAnalyzer>();
             analyzer.spectrumSize = 1024;
-            analyzer.sensitivity = 2.5f;
-            analyzer.riseSmoothing = 0.05f;   // Fast attack
-            analyzer.fallSmoothing = 0.80f;   // Moderate decay
+            analyzer.sensitivity = 150f;       // Raw FFT is tiny, needs massive boost
+            analyzer.riseSmoothing = 0.02f;    // Near-instant attack
+            analyzer.fallSmoothing = 0.75f;    // Visible decay
             added++;
             Debug.Log("[SceneSetup] Added AudioAnalyzer");
         }
@@ -87,10 +87,12 @@ public static class SceneSetup
                 if (oldSync != null)
                 {
                     multi.restScale = oldSync.restScale;
-                    multi.beatScale = oldSync.beatScale;
-                    multi.scaleSmoothing = 12f;
-                    multi.useOnsetForScale = true;
-                    multi.onsetThreshold = 0.08f;
+                    multi.beatScale = oldSync.beatScale * 1.2f; // Slightly bigger than original
+                    multi.scaleAttackSpeed = 30f;   // Snap up fast
+                    multi.scaleDecaySpeed = 3f;     // Fade back slowly
+                    multi.useOnsetForScale = false;  // Use raw band value, simpler
+                    multi.beatEmissionRate = 300f;   // Aggressive particle bursts
+                    multi.beatRotationSpeed = 270f;  // Noticeable spin on presence
 
                     // Disable old syncer (keep it for reference, don't delete)
                     oldSync.enabled = false;

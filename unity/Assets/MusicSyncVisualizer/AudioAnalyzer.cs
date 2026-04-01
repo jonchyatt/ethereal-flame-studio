@@ -47,11 +47,11 @@ public class AudioAnalyzer : MonoBehaviour
     public float fallSmoothing = 0.85f;
 
     [Header("Sensitivity")]
-    [Tooltip("Global multiplier for all band values. Increase if visuals feel weak.")]
-    public float sensitivity = 2.0f;
+    [Tooltip("Global multiplier for all band values. Raw FFT values are tiny (0.001), so this needs to be high (50-200).")]
+    public float sensitivity = 100f;
 
-    [Tooltip("Per-band sensitivity multipliers (optional override).")]
-    public float[] bandSensitivity = new float[] { 1.5f, 1.2f, 1.0f, 1.0f, 1.1f, 1.3f, 1.5f, 2.0f };
+    [Tooltip("Per-band sensitivity multipliers. Bass needs less boost (louder), highs need more.")]
+    public float[] bandSensitivity = new float[] { 3f, 2f, 1.5f, 1.2f, 1.5f, 2f, 3f, 5f };
 
     // -- Static API (backward compatible + new) --
 
@@ -153,12 +153,13 @@ public class AudioAnalyzer : MonoBehaviour
             // RMS energy for this band
             float rawValue = (count > 0) ? Mathf.Sqrt(sum / count) : 0f;
 
-            // Apply sensitivity
+            // Apply sensitivity — raw FFT values are tiny (0.0001-0.01)
+            // Need aggressive amplification to get usable 0-1 range
             float bandSens = (band < bandSensitivity.Length) ? bandSensitivity[band] : 1f;
             rawValue *= sensitivity * bandSens;
 
-            // Clamp to 0-1
-            rawValue = Mathf.Clamp01(rawValue);
+            // Soft clamp — allow values above 1 for peak detection but
+            // compress them so the visual range stays useful
             bandRaw[band] = rawValue;
 
             // Asymmetric smoothing: fast rise, slow fall
