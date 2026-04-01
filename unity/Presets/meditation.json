@@ -1,0 +1,32 @@
+{
+  "name": "meditation",
+  "orb_prefab": "simple_rainbow",
+  "skybox_material": "1DarkWorld1",
+  "water_enabled": true,
+  "beat_sensitivity": 0.3,
+  "color_palette": ["#00ffff", "#8b5cf6", "#ffffff", "#06b6d4", "#a78bfa"],
+  "camera": {
+    "mode": "static",
+    "height": 1.6,
+    "orbit_speed": 0,
+    "orbit_radius": 0
+  },
+  "audio_bands": {
+    "bass_to_scale": 0.8,
+    "mid_to_color": 0.5,
+    "high_to_particles": 0.3,
+    "sub_bass_to_water": 0.4,
+    "presence_to_skybox": 0.1
+  },
+  "recording": {
+    "mode": "360stereo",
+    "resolution": 4096,
+    "framerate": 30,
+    "stereo_separation": 0.065
+  },
+  "extras": {
+    "birds": false,
+    "patreon_wall": false,
+    "patreon_data_path": ""
+  }
+}

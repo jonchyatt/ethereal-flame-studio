@@ -1,0 +1,32 @@
+{
+  "name": "edm",
+  "orb_prefab": "additive_rainbow",
+  "skybox_material": "CrazyFractal_Hueshift",
+  "water_enabled": true,
+  "beat_sensitivity": 0.9,
+  "color_palette": ["#ff0040", "#ff6600", "#ffcc00", "#00ffff", "#ff00ff", "#00ff88"],
+  "camera": {
+    "mode": "slow_orbit",
+    "height": 1.6,
+    "orbit_speed": 2.0,
+    "orbit_radius": 0.5
+  },
+  "audio_bands": {
+    "bass_to_scale": 2.0,
+    "mid_to_color": 1.5,
+    "high_to_particles": 1.2,
+    "sub_bass_to_water": 0.8,
+    "presence_to_skybox": 0.6
+  },
+  "recording": {
+    "mode": "360stereo",
+    "resolution": 4096,
+    "framerate": 30,
+    "stereo_separation": 0.065
+  },
+  "extras": {
+    "birds": false,
+    "patreon_wall": false,
+    "patreon_data_path": ""
+  }
+}

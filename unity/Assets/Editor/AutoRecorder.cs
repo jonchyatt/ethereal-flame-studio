@@ -70,7 +70,8 @@ public static class AutoRecorder
         float framerate = float.Parse(GetArg(args, "framerate", "30"));
         float stereoSep = float.Parse(GetArg(args, "stereoSeparation", "0.065"));
         int mapSize = int.Parse(GetArg(args, "mapSize", resolution.ToString()));
-        string sceneName = GetArg(args, "scene", "BTTB");
+        string sceneName = GetArg(args, "scene", "Example");
+        string presetName = GetArg(args, "preset", "");
 
         Debug.Log($"[AutoRecorder] Audio: {audioFile}");
         Debug.Log($"[AutoRecorder] Output: {outputDir}/{outputName}");
@@ -85,6 +86,22 @@ public static class AutoRecorder
             return;
         }
         EditorSceneManager.OpenScene(scenePath);
+
+        // Apply preset if specified (configures scene before recording)
+        if (!string.IsNullOrEmpty(presetName))
+        {
+            Debug.Log($"[AutoRecorder] Applying preset: {presetName}");
+            var preset = SceneConfigurator.ApplyPreset(presetName);
+            if (preset != null && preset.recording != null)
+            {
+                // Override recording settings from preset
+                mode = preset.recording.mode ?? mode;
+                resolution = preset.recording.resolution > 0 ? preset.recording.resolution : resolution;
+                framerate = preset.recording.framerate > 0 ? preset.recording.framerate : framerate;
+                stereoSep = preset.recording.stereo_separation > 0 ? preset.recording.stereo_separation : stereoSep;
+                Debug.Log($"[AutoRecorder] Preset overrides — mode: {mode}, res: {resolution}, fps: {framerate}");
+            }
+        }
 
         // Set up the recorder
         var controllerSettings = ScriptableObject.CreateInstance<RecorderControllerSettings>();

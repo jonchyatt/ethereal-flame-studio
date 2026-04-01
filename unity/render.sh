@@ -24,7 +24,8 @@ MODE="360stereo"         # 360stereo | 360mono | flat
 RESOLUTION=4096
 FRAMERATE=30
 STEREO_SEP=0.065
-SCENE="BTTB"
+SCENE="Example"
+PRESET=""
 OUTPUT_DIR=""
 INJECT_VR_META=true
 SKIP_RENDER=false
@@ -63,6 +64,7 @@ while [[ $# -gt 0 ]]; do
         --res)       RESOLUTION="$2"; shift 2 ;;
         --fps)       FRAMERATE="$2"; shift 2 ;;
         --stereo)    STEREO_SEP="$2"; shift 2 ;;
+        --preset)    PRESET="$2"; shift 2 ;;
         --scene)     SCENE="$2"; shift 2 ;;
         --output)    OUTPUT_DIR="$2"; shift 2 ;;
         --no-meta)   INJECT_VR_META=false; shift ;;
@@ -71,11 +73,12 @@ while [[ $# -gt 0 ]]; do
             echo "Usage: ./render.sh --audio <path> --name <name> [options]"
             echo "  --audio     Audio file path (WAV/MP3/OGG) [required]"
             echo "  --name      Output filename [default: efs_render]"
+            echo "  --preset    Visual preset (meditation/edm/ambient/fire_cinema)"
             echo "  --mode      360stereo | 360mono | flat [default: 360stereo]"
             echo "  --res       Resolution [default: 4096]"
             echo "  --fps       Frame rate [default: 30]"
             echo "  --stereo    Stereo separation in meters [default: 0.065]"
-            echo "  --scene     Unity scene name [default: BTTB]"
+            echo "  --scene     Unity scene name [default: Example]"
             echo "  --output    Output directory [default: project/Recordings]"
             echo "  --no-meta   Skip VR metadata injection"
             echo "  --skip-render  Skip Unity render (just do post-processing)"
@@ -114,6 +117,7 @@ echo "  Output:     $OUTPUT_DIR/$OUTPUT_NAME"
 echo "  Mode:       $MODE"
 echo "  Resolution: $RESOLUTION"
 echo "  FPS:        $FRAMERATE"
+echo "  Preset:     ${PRESET:-none}"
 echo "  Scene:      $SCENE"
 echo "  Unity:      $UNITY_EXE"
 echo "============================================"
@@ -123,6 +127,11 @@ if [ "$SKIP_RENDER" = false ]; then
     echo ""
     echo "[Step 1/3] Starting Unity batch render..."
     START_TIME=$(date +%s)
+
+    PRESET_ARG=""
+    if [ -n "$PRESET" ]; then
+        PRESET_ARG="-preset $PRESET"
+    fi
 
     "$UNITY_EXE" \
         -batchmode \
@@ -137,6 +146,7 @@ if [ "$SKIP_RENDER" = false ]; then
         -framerate "$FRAMERATE" \
         -stereoSeparation "$STEREO_SEP" \
         -scene "$SCENE" \
+        $PRESET_ARG \
         -logFile "$OUTPUT_DIR/${OUTPUT_NAME}_unity.log"
 
     UNITY_EXIT=$?

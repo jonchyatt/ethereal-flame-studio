@@ -1,0 +1,32 @@
+{
+  "name": "ambient",
+  "orb_prefab": "simple_white",
+  "skybox_material": "HighQuality_Scroll",
+  "water_enabled": false,
+  "beat_sensitivity": 0.15,
+  "color_palette": ["#ffffff", "#e0e7ff", "#c4b5fd", "#93c5fd", "#d1d5db"],
+  "camera": {
+    "mode": "drift",
+    "height": 1.6,
+    "orbit_speed": 0.3,
+    "orbit_radius": 0.2
+  },
+  "audio_bands": {
+    "bass_to_scale": 0.4,
+    "mid_to_color": 0.3,
+    "high_to_particles": 0.6,
+    "sub_bass_to_water": 0.0,
+    "presence_to_skybox": 0.4
+  },
+  "recording": {
+    "mode": "360mono",
+    "resolution": 4096,
+    "framerate": 30,
+    "stereo_separation": 0.065
+  },
+  "extras": {
+    "birds": false,
+    "patreon_wall": false,
+    "patreon_data_path": ""
+  }
+}
