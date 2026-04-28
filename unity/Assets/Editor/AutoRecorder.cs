@@ -195,7 +195,7 @@ public static class AutoRecorder
     static bool _isBatchMode;
     static bool _hasStartedPlaying;
     static bool _hasStartedRecording;
-    static float _recordingStartTime;
+    static double _recordingStartTime;
     static float _audioDuration;
 
     static void BatchUpdateLoop()
@@ -241,7 +241,7 @@ public static class AutoRecorder
                 _controller.PrepareRecording();
                 _controller.StartRecording();
                 _hasStartedRecording = true;
-                _recordingStartTime = Time.time;
+                _recordingStartTime = EditorApplication.timeSinceStartup;
 
                 // Start audio playback
                 audioSource.Play();
@@ -255,7 +255,8 @@ public static class AutoRecorder
         // Check if recording is done (audio finished + small buffer)
         if (_hasStartedRecording)
         {
-            float elapsed = Time.time - _recordingStartTime;
+            double elapsed = EditorApplication.timeSinceStartup - _recordingStartTime;
+            EditorApplication.QueuePlayerLoopUpdate();
 
             // Add 1 second buffer after audio ends to capture tail
             if (elapsed >= _audioDuration + 1.0f)
