@@ -29,6 +29,7 @@ PRESET=""
 OUTPUT_DIR=""
 INJECT_VR_META=true
 SKIP_RENDER=false
+HEADED=false            # true = drop -batchmode (GUI licenses Personal where batchmode cannot on pinned 2021.2.8f1)
 
 # -- Detect Unity path --
 detect_unity() {
@@ -55,6 +56,41 @@ detect_unity() {
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_PATH="$SCRIPT_DIR"
 
+# -- Normalize Recorder frame names to ffmpeg's frame_%06d.png sequence --
+normalize_frame_sequence() {
+    local frames_dir="$1"
+
+    if [ -f "$frames_dir/frame_000000.png" ]; then
+        return 0
+    fi
+
+    mapfile -t frames < <(find "$frames_dir" -maxdepth 1 -type f -name 'frame_*.png' | sort -V)
+    if [ "${#frames[@]}" -eq 0 ]; then
+        echo "ERROR: No PNG frames found in $frames_dir"
+        return 1
+    fi
+
+    local staging_dir="$frames_dir/.renumbered"
+    if [ -e "$staging_dir" ]; then
+        echo "ERROR: Frame renumber staging path already exists: $staging_dir"
+        return 1
+    fi
+
+    mkdir -p "$staging_dir"
+
+    local frame
+    local target
+    local index=0
+    for frame in "${frames[@]}"; do
+        printf -v target "%s/frame_%06d.png" "$staging_dir" "$index"
+        mv "$frame" "$target"
+        index=$((index + 1))
+    done
+
+    mv "$staging_dir"/frame_*.png "$frames_dir"/
+    rmdir "$staging_dir"
+}
+
 # -- Parse args --
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -69,6 +105,7 @@ while [[ $# -gt 0 ]]; do
         --output)    OUTPUT_DIR="$2"; shift 2 ;;
         --no-meta)   INJECT_VR_META=false; shift ;;
         --skip-render) SKIP_RENDER=true; shift ;;
+        --headed)    HEADED=true; shift ;;
         --help)
             echo "Usage: ./render.sh --audio <path> --name <name> [options]"
             echo "  --audio     Audio file path (WAV/MP3/OGG) [required]"
@@ -125,7 +162,7 @@ echo "============================================"
 # -- Step 1: Unity Render --
 if [ "$SKIP_RENDER" = false ]; then
     echo ""
-    echo "[Step 1/3] Starting Unity batch render..."
+    echo "[Step 1/4] Starting Unity batch render..."
     START_TIME=$(date +%s)
 
     PRESET_ARG=""
@@ -133,12 +170,21 @@ if [ "$SKIP_RENDER" = false ]; then
         PRESET_ARG="-preset $PRESET"
     fi
 
+    BATCH_FLAG="-batchmode"
+    if [ "$HEADED" = true ]; then
+        BATCH_FLAG=""
+        echo "[Step 1/4] HEADED mode — running WITH GUI (no -batchmode) so Personal licensing works on pinned 2021.2.8f1"
+    fi
+
+    AUDIO_DURATION=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$AUDIO_FILE")
+    echo "[Step 1/4] Audio duration from ffprobe: ${AUDIO_DURATION}s"
+
     "$UNITY_EXE" \
-        -batchmode \
-        -nographics \
+        $BATCH_FLAG \
         -projectPath "$PROJECT_PATH" \
         -executeMethod AutoRecorder.BatchRender \
         -audioFile "$AUDIO_FILE" \
+        -audioDuration "$AUDIO_DURATION" \
         -outputDir "$OUTPUT_DIR" \
         -outputName "$OUTPUT_NAME" \
         -mode "$MODE" \
@@ -159,18 +205,47 @@ if [ "$SKIP_RENDER" = false ]; then
         exit $UNITY_EXIT
     fi
 
-    echo "[Step 1/3] Unity render complete (${DURATION}s)"
+    echo "[Step 1/4] Unity render complete (${DURATION}s)"
 else
-    echo "[Step 1/3] Skipped (--skip-render)"
+    echo "[Step 1/4] Skipped (--skip-render)"
 fi
 
-# -- Step 2: VR Metadata Injection --
+# -- Step 2: Assemble MP4 from PNG frames + source audio --
 VIDEO_FILE="$OUTPUT_DIR/${OUTPUT_NAME}.mp4"
+FRAMES_DIR="$OUTPUT_DIR/${OUTPUT_NAME}_frames"
+FRAME_PATTERN="$FRAMES_DIR/frame_%06d.png"
+
+echo ""
+echo "[Step 2/4] Assembling MP4 from PNG frames and source audio..."
+
+if [ ! -d "$FRAMES_DIR" ]; then
+    echo "ERROR: Frame directory not found: $FRAMES_DIR"
+    exit 1
+fi
+
+normalize_frame_sequence "$FRAMES_DIR"
+
+ffmpeg -y \
+    -framerate "$FRAMERATE" \
+    -i "$FRAME_PATTERN" \
+    -i "$AUDIO_FILE" \
+    -map 0:v:0 \
+    -map 1:a:0 \
+    -c:v libx264 \
+    -pix_fmt yuv420p \
+    -c:a aac \
+    -shortest \
+    -movflags +faststart \
+    "$VIDEO_FILE"
+
+echo "[Step 2/4] MP4 assembled: $VIDEO_FILE"
+
+# -- Step 3: VR Metadata Injection --
 VR_VIDEO_FILE="$OUTPUT_DIR/${OUTPUT_NAME}_vr.mp4"
 
 if [ "$INJECT_VR_META" = true ] && [[ "$MODE" == 360* ]]; then
     echo ""
-    echo "[Step 2/3] Injecting VR metadata..."
+    echo "[Step 3/4] Injecting VR metadata..."
 
     if [ ! -f "$VIDEO_FILE" ]; then
         echo "WARNING: Video file not found at $VIDEO_FILE — skipping metadata injection"
@@ -189,26 +264,27 @@ if [ "$INJECT_VR_META" = true ] && [[ "$MODE" == 360* ]]; then
             "$VR_VIDEO_FILE" 2>/dev/null
 
         if [ $? -eq 0 ]; then
-            echo "[Step 2/3] VR metadata injected: $VR_VIDEO_FILE"
+            echo "[Step 3/4] VR metadata injected: $VR_VIDEO_FILE"
         else
             echo "WARNING: ffmpeg metadata injection failed"
             VR_VIDEO_FILE="$VIDEO_FILE"
         fi
     fi
 else
-    echo "[Step 2/3] Skipped (flat mode or --no-meta)"
+    echo "[Step 3/4] Skipped (flat mode or --no-meta)"
     VR_VIDEO_FILE="$VIDEO_FILE"
 fi
 
-# -- Step 3: Summary --
+# -- Step 4: Summary --
 echo ""
-echo "[Step 3/3] Pipeline complete!"
+echo "[Step 4/4] Pipeline complete!"
 echo "============================================"
 echo "  Output video: $VR_VIDEO_FILE"
 if [ -f "$VR_VIDEO_FILE" ]; then
     SIZE=$(du -sh "$VR_VIDEO_FILE" | cut -f1)
     echo "  File size:    $SIZE"
 fi
+echo "  PNG frames:   $FRAMES_DIR"
 echo "============================================"
 echo ""
 echo "Next steps:"

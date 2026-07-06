@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -13,7 +14,7 @@ using UnityEngine.SceneManagement;
 /// Headless batch recorder for Ethereal Flame Studio.
 ///
 /// Accepts an audio file, configures Unity Recorder for 360/stereo/flat capture,
-/// plays the scene, records for the duration of the audio, then exits.
+/// plays the scene, records PNG frames for the duration of the audio, then exits.
 ///
 /// Usage (command line):
 ///   Unity.exe -batchmode -projectPath "path/to/unity"
@@ -68,6 +69,7 @@ public static class AutoRecorder
         string mode = GetArg(args, "mode", "360stereo");
         int resolution = int.Parse(GetArg(args, "resolution", "4096"));
         float framerate = float.Parse(GetArg(args, "framerate", "30"));
+        float audioDuration = float.Parse(GetArg(args, "audioDuration", "0"), CultureInfo.InvariantCulture);
         float stereoSep = float.Parse(GetArg(args, "stereoSeparation", "0.065"));
         int mapSize = int.Parse(GetArg(args, "mapSize", resolution.ToString()));
         string sceneName = GetArg(args, "scene", "Example");
@@ -103,19 +105,29 @@ public static class AutoRecorder
             }
         }
 
+        if (audioDuration <= 0)
+        {
+            Debug.LogError("[AutoRecorder] ERROR: -audioDuration must be supplied by render.sh/ffprobe and be greater than zero");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        int totalFrames = Mathf.Max(1, Mathf.RoundToInt(audioDuration * framerate));
+        Debug.Log($"[AutoRecorder] ffprobe duration: {audioDuration:F3}s -> {totalFrames} frames at {framerate:F3}fps");
+
         // Set up the recorder
         var controllerSettings = ScriptableObject.CreateInstance<RecorderControllerSettings>();
-        var movieSettings = ScriptableObject.CreateInstance<MovieRecorderSettings>();
-        movieSettings.name = "EFS Auto Recorder";
-        movieSettings.Enabled = true;
-        movieSettings.OutputFormat = MovieRecorderSettings.VideoRecorderOutputFormat.MP4;
-        movieSettings.VideoBitRateMode = VideoBitrateMode.High;
+        var imageSettings = ScriptableObject.CreateInstance<ImageRecorderSettings>();
+        imageSettings.name = "EFS Auto Recorder";
+        imageSettings.Enabled = true;
+        imageSettings.OutputFormat = ImageRecorderSettings.ImageRecorderOutputFormat.PNG;
+        imageSettings.CaptureAlpha = false;
 
         // Configure input based on mode
         switch (mode.ToLower())
         {
             case "360stereo":
-                movieSettings.ImageInputSettings = new Camera360InputSettings
+                imageSettings.imageInputSettings = new Camera360InputSettings
                 {
                     Source = ImageSource.MainCamera,
                     RenderStereo = true,
@@ -127,7 +139,7 @@ public static class AutoRecorder
                 break;
 
             case "360mono":
-                movieSettings.ImageInputSettings = new Camera360InputSettings
+                imageSettings.imageInputSettings = new Camera360InputSettings
                 {
                     Source = ImageSource.MainCamera,
                     RenderStereo = false,
@@ -139,7 +151,7 @@ public static class AutoRecorder
 
             case "flat":
             default:
-                movieSettings.ImageInputSettings = new CameraInputSettings
+                imageSettings.imageInputSettings = new CameraInputSettings
                 {
                     Source = ImageSource.MainCamera,
                     OutputWidth = resolution,
@@ -148,17 +160,25 @@ public static class AutoRecorder
                 break;
         }
 
-        // Audio
-        movieSettings.AudioInputSettings.PreserveAudio = true;
-
-        // Output path
+        // Output path. The shell pipeline muxes this frame sequence with source audio.
         Directory.CreateDirectory(outputDir);
-        movieSettings.OutputFile = Path.Combine(outputDir, outputName);
+        string frameOutputDir = Path.Combine(outputDir, $"{outputName}_frames");
+        Directory.CreateDirectory(frameOutputDir);
+        foreach (var staleFrame in Directory.GetFiles(frameOutputDir, "frame_*.png"))
+        {
+            File.Delete(staleFrame);
+        }
+        // NOTE: the Recorder's "<Frame>" wildcard contains '<'/'>' which Windows Path.Combine
+        // rejects as illegal path chars — build the pattern by string concat instead.
+        imageSettings.OutputFile = frameOutputDir.Replace('\\', '/').TrimEnd('/') + "/frame_<Frame>";
+        Debug.Log($"[AutoRecorder] Frames: {frameOutputDir}/frame_<Frame>.png");
 
         // Controller settings
-        controllerSettings.AddRecorderSettings(movieSettings);
-        controllerSettings.SetRecordModeToManual(); // We control start/stop
+        controllerSettings.AddRecorderSettings(imageSettings);
+        controllerSettings.SetRecordModeToFrameInterval(0, totalFrames - 1);
         controllerSettings.FrameRate = framerate;
+        controllerSettings.FrameRatePlayback = FrameRatePlayback.Constant;
+        controllerSettings.CapFrameRate = true;
 
         var controller = new RecorderController(controllerSettings);
 
@@ -170,6 +190,9 @@ public static class AutoRecorder
         _isBatchMode = true;
         _hasStartedPlaying = false;
         _hasStartedRecording = false;
+        _audioDuration = audioDuration;
+        _totalFrames = totalFrames;
+        _safetyTimeoutSeconds = Math.Max(60.0, audioDuration * 10.0);
 
         // Register update callback — this drives the state machine
         EditorApplication.update += BatchUpdateLoop;
@@ -197,6 +220,8 @@ public static class AutoRecorder
     static bool _hasStartedRecording;
     static double _recordingStartTime;
     static float _audioDuration;
+    static int _totalFrames;
+    static double _safetyTimeoutSeconds;
 
     static void BatchUpdateLoop()
     {
@@ -234,8 +259,7 @@ public static class AutoRecorder
                 }
 
                 audioSource.clip = clip;
-                _audioDuration = clip.length;
-                Debug.Log($"[AutoRecorder] Audio loaded: {clip.length:F1}s ({clip.frequency}Hz, {clip.channels}ch)");
+                Debug.Log($"[AutoRecorder] Audio loaded: clip reports {clip.length:F1}s ({clip.frequency}Hz, {clip.channels}ch); ffprobe duration {_audioDuration:F3}s is authoritative");
 
                 // Start recording
                 _controller.PrepareRecording();
@@ -246,23 +270,21 @@ public static class AutoRecorder
                 // Start audio playback
                 audioSource.Play();
 
-                Debug.Log($"[AutoRecorder] Recording started. Duration: {_audioDuration:F1}s");
+                Debug.Log($"[AutoRecorder] Recording started. Target: {_totalFrames} frames at {_audioDuration:F3}s");
             });
 
             return;
         }
 
-        // Check if recording is done (audio finished + small buffer)
+        // Frame-interval mode stops the controller after the requested end frame.
         if (_hasStartedRecording)
         {
             double elapsed = EditorApplication.timeSinceStartup - _recordingStartTime;
             EditorApplication.QueuePlayerLoopUpdate();
 
-            // Add 1 second buffer after audio ends to capture tail
-            if (elapsed >= _audioDuration + 1.0f)
+            if (!_controller.IsRecording())
             {
-                Debug.Log($"[AutoRecorder] Recording complete. Elapsed: {elapsed:F1}s");
-                _controller.StopRecording();
+                Debug.Log($"[AutoRecorder] Recording complete. Elapsed wall-clock: {elapsed:F1}s");
 
                 if (_isBatchMode)
                 {
@@ -274,6 +296,12 @@ public static class AutoRecorder
                     EditorApplication.isPlaying = false;
                     Debug.Log("[AutoRecorder] Recording saved. Exiting Play Mode.");
                 }
+            }
+            else if (elapsed > _safetyTimeoutSeconds)
+            {
+                Debug.LogError($"[AutoRecorder] ERROR: Recording exceeded safety timeout ({elapsed:F1}s > {_safetyTimeoutSeconds:F1}s)");
+                _controller.StopRecording();
+                StopAndExit(1);
             }
         }
     }
@@ -356,6 +384,15 @@ public class AudioLoader : MonoBehaviour
             case ".wav": audioType = AudioType.WAV; break;
             case ".aif":
             case ".aiff": audioType = AudioType.AIFF; break;
+        }
+
+        // Resolve relative paths (e.g. "../public/audio/x.mp3") against the Unity project
+        // root (parent of Assets). A relative path yields "file:///../..." which
+        // UnityWebRequest cannot open — the load silently fails.
+        if (!Path.IsPathRooted(filePath))
+        {
+            string projectRoot = Directory.GetParent(Application.dataPath).FullName;
+            filePath = Path.GetFullPath(Path.Combine(projectRoot, filePath));
         }
 
         // Use file:// URI for local files
