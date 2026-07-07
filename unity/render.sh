@@ -32,6 +32,7 @@ SKIP_RENDER=false
 HEADED=false            # true = drop -batchmode (GUI licenses Personal where batchmode cannot on pinned 2021.2.8f1)
 SKIP_SPECTRUM_BAKE=false # true = fall back to realtime GetSpectrumData (pre-fix behavior, freezes under frame-lock)
 BAKED_GAIN=""            # calibration override for AudioSpectrum.BakedGain (punch-tuning sweep)
+SAFETY_TIMEOUT=""        # override AutoRecorder's safety-abort budget (seconds) — auto-scales by resolution/frames if unset
 
 # -- Detect Unity path --
 detect_unity() {
@@ -110,6 +111,7 @@ while [[ $# -gt 0 ]]; do
         --headed)    HEADED=true; shift ;;
         --no-spectrum-bake) SKIP_SPECTRUM_BAKE=true; shift ;;
         --baked-gain) BAKED_GAIN="$2"; shift 2 ;;
+        --safety-timeout) SAFETY_TIMEOUT="$2"; shift 2 ;;
         --help)
             echo "Usage: ./render.sh --audio <path> --name <name> [options]"
             echo "  --audio     Audio file path (WAV/MP3/OGG) [required]"
@@ -207,6 +209,12 @@ if [ "$SKIP_RENDER" = false ]; then
         echo "[Step 1/4] AudioSpectrum.BakedGain override: $BAKED_GAIN"
     fi
 
+    TIMEOUT_ARG=""
+    if [ -n "$SAFETY_TIMEOUT" ]; then
+        TIMEOUT_ARG="-safetyTimeoutSeconds $SAFETY_TIMEOUT"
+        echo "[Step 1/4] Safety timeout override: ${SAFETY_TIMEOUT}s"
+    fi
+
     "$UNITY_EXE" \
         $BATCH_FLAG \
         -projectPath "$PROJECT_PATH" \
@@ -223,6 +231,7 @@ if [ "$SKIP_RENDER" = false ]; then
         $PRESET_ARG \
         $SPECTRUM_ARG \
         $GAIN_ARG \
+        $TIMEOUT_ARG \
         -logFile "$OUTPUT_DIR/${OUTPUT_NAME}_unity.log"
 
     UNITY_EXIT=$?
@@ -271,32 +280,37 @@ ffmpeg -y \
 echo "[Step 2/4] MP4 assembled: $VIDEO_FILE"
 
 # -- Step 3: VR Metadata Injection --
+# NOTE (2026-07-06): the old approach here was `ffmpeg -metadata:s:v:0
+# spherical=true` — it exits 0 and LOOKS like it worked, but ffmpeg's generic
+# -metadata flag writes plain string tags, not the actual Spherical Video V1/V2
+# XML box YouTube reads. Verified empirically: ffprobe showed zero spherical
+# tags on files "injected" that way. Real fix = Google's own spatialmedia tool
+# (github.com/google/spatial-media, `pip install .` from a clone — see
+# data/efs-path-b/runtime-logs/ for the receipt). "Exit code 0" lied here the
+# same way Bug-#4 lied about MovieRecorder — never trust it without ffprobe.
 VR_VIDEO_FILE="$OUTPUT_DIR/${OUTPUT_NAME}_vr.mp4"
 
 if [ "$INJECT_VR_META" = true ] && [[ "$MODE" == 360* ]]; then
     echo ""
-    echo "[Step 3/4] Injecting VR metadata..."
+    echo "[Step 3/4] Injecting VR metadata (spatialmedia)..."
 
     if [ ! -f "$VIDEO_FILE" ]; then
         echo "WARNING: Video file not found at $VIDEO_FILE — skipping metadata injection"
+    elif ! python3 -m spatialmedia --help >/dev/null 2>&1; then
+        echo "WARNING: spatialmedia not installed (pip install from github.com/google/spatial-media) — skipping metadata injection"
+        VR_VIDEO_FILE="$VIDEO_FILE"
     else
         STEREO_MODE="none"
         if [ "$MODE" = "360stereo" ]; then
-            STEREO_MODE="top_bottom"
+            STEREO_MODE="top-bottom"
         fi
 
-        ffmpeg -y \
-            -i "$VIDEO_FILE" \
-            -c copy \
-            -metadata:s:v:0 "spherical=true" \
-            -metadata:s:v:0 "stitched=true" \
-            -metadata:s:v:0 "stereo_mode=$STEREO_MODE" \
-            "$VR_VIDEO_FILE" 2>/dev/null
+        python3 -m spatialmedia --inject -s "$STEREO_MODE" -p equirectangular "$VIDEO_FILE" "$VR_VIDEO_FILE"
 
-        if [ $? -eq 0 ]; then
+        if [ $? -eq 0 ] && [ -f "$VR_VIDEO_FILE" ]; then
             echo "[Step 3/4] VR metadata injected: $VR_VIDEO_FILE"
         else
-            echo "WARNING: ffmpeg metadata injection failed"
+            echo "WARNING: spatialmedia injection failed"
             VR_VIDEO_FILE="$VIDEO_FILE"
         fi
     fi

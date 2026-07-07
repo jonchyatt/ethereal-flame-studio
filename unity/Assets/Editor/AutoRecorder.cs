@@ -210,7 +210,24 @@ public static class AutoRecorder
         _hasStartedRecording = false;
         _audioDuration = audioDuration;
         _totalFrames = totalFrames;
-        _safetyTimeoutSeconds = Math.Max(60.0, audioDuration * 10.0);
+
+        // Safety-abort budget. The old flat "audioDuration * 10" formula was
+        // calibrated for fast 1080p flat renders and silently truncated 8K
+        // 360 renders at ~26/120 frames (measured ~12.7s/frame at 8192x4096
+        // vs ~0.2s/frame at 1920x1080 — a ~60x difference the old formula
+        // never accounted for). Scale per-frame instead of per-audio-second,
+        // and allow an explicit override for anything unusually heavy.
+        string safetyTimeoutArg = GetArg(args, "safetyTimeoutSeconds");
+        if (!string.IsNullOrEmpty(safetyTimeoutArg))
+        {
+            _safetyTimeoutSeconds = double.Parse(safetyTimeoutArg, CultureInfo.InvariantCulture);
+        }
+        else
+        {
+            double perFrameBudget = 20.0 + (resolution / 1024.0) * 15.0; // ~20s at 1080p-class, ~140s/frame ceiling at 8192
+            _safetyTimeoutSeconds = Math.Max(60.0, totalFrames * perFrameBudget);
+        }
+        Debug.Log($"[AutoRecorder] Safety timeout: {_safetyTimeoutSeconds:F0}s for {totalFrames} frames at resolution {resolution}");
 
         // Register update callback — this drives the state machine
         EditorApplication.update += BatchUpdateLoop;
