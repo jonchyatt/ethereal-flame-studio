@@ -31,6 +31,7 @@ INJECT_VR_META=true
 SKIP_RENDER=false
 HEADED=false            # true = drop -batchmode (GUI licenses Personal where batchmode cannot on pinned 2021.2.8f1)
 SKIP_SPECTRUM_BAKE=false # true = fall back to realtime GetSpectrumData (pre-fix behavior, freezes under frame-lock)
+BAKED_GAIN=""            # calibration override for AudioSpectrum.BakedGain (punch-tuning sweep)
 
 # -- Detect Unity path --
 detect_unity() {
@@ -108,6 +109,7 @@ while [[ $# -gt 0 ]]; do
         --skip-render) SKIP_RENDER=true; shift ;;
         --headed)    HEADED=true; shift ;;
         --no-spectrum-bake) SKIP_SPECTRUM_BAKE=true; shift ;;
+        --baked-gain) BAKED_GAIN="$2"; shift 2 ;;
         --help)
             echo "Usage: ./render.sh --audio <path> --name <name> [options]"
             echo "  --audio     Audio file path (WAV/MP3/OGG) [required]"
@@ -199,6 +201,12 @@ if [ "$SKIP_RENDER" = false ]; then
         echo "[Step 1/4] Spectrum bake skipped (--no-spectrum-bake) — reactivity will use realtime GetSpectrumData"
     fi
 
+    GAIN_ARG=""
+    if [ -n "$BAKED_GAIN" ]; then
+        GAIN_ARG="-bakedGain $BAKED_GAIN"
+        echo "[Step 1/4] AudioSpectrum.BakedGain override: $BAKED_GAIN"
+    fi
+
     "$UNITY_EXE" \
         $BATCH_FLAG \
         -projectPath "$PROJECT_PATH" \
@@ -214,6 +222,7 @@ if [ "$SKIP_RENDER" = false ]; then
         -scene "$SCENE" \
         $PRESET_ARG \
         $SPECTRUM_ARG \
+        $GAIN_ARG \
         -logFile "$OUTPUT_DIR/${OUTPUT_NAME}_unity.log"
 
     UNITY_EXIT=$?

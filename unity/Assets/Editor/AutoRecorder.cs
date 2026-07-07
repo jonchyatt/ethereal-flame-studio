@@ -84,6 +84,14 @@ public static class AutoRecorder
             BakedSpectrum.Load(spectrumFile);
         }
 
+        // Calibration sweep knob for the punch-tuning pass (see AudioSpectrum.cs).
+        string bakedGainArg = GetArg(args, "bakedGain");
+        if (!string.IsNullOrEmpty(bakedGainArg))
+        {
+            AudioSpectrum.BakedGain = float.Parse(bakedGainArg, CultureInfo.InvariantCulture);
+            Debug.Log($"[AutoRecorder] AudioSpectrum.BakedGain override: {AudioSpectrum.BakedGain}");
+        }
+
         Debug.Log($"[AutoRecorder] Audio: {audioFile}");
         Debug.Log($"[AutoRecorder] Output: {outputDir}/{outputName}");
         Debug.Log($"[AutoRecorder] Mode: {mode}, Resolution: {resolution}, FPS: {framerate}");
