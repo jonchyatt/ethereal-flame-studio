@@ -121,37 +121,56 @@ public class AudioAnalyzer : MonoBehaviour
 
     void Update()
     {
-        if (_spectrum == null || _spectrum.Length != spectrumSize)
-            _spectrum = new float[spectrumSize];
+        float[] rawBands;
 
-        // Get raw FFT data (Blackman-Harris for better frequency resolution than Hamming)
-        AudioListener.GetSpectrumData(_spectrum, 0, FFTWindow.BlackmanHarris);
+        if (BakedSpectrum.Active)
+        {
+            // Batch/headed recording: read the pre-baked per-frame table
+            // instead of the realtime DSP clock (see BakedSpectrum.cs for why).
+            float[] baked = BakedSpectrum.CurrentBands;
+            if (baked == null) return;
+            rawBands = baked;
+        }
+        else
+        {
+            if (_spectrum == null || _spectrum.Length != spectrumSize)
+                _spectrum = new float[spectrumSize];
 
-        if (_spectrum == null || _spectrum.Length == 0) return;
+            // Get raw FFT data (Blackman-Harris for better frequency resolution than Hamming)
+            AudioListener.GetSpectrumData(_spectrum, 0, FFTWindow.BlackmanHarris);
 
-        // Frequency resolution: each bin covers (sampleRate / 2) / spectrumSize Hz
-        float freqPerBin = (_sampleRate * 0.5f) / spectrumSize;
+            if (_spectrum == null || _spectrum.Length == 0) return;
+
+            // Frequency resolution: each bin covers (sampleRate / 2) / spectrumSize Hz
+            float freqPerBin = (_sampleRate * 0.5f) / spectrumSize;
+
+            rawBands = new float[BAND_COUNT];
+            for (int band = 0; band < BAND_COUNT; band++)
+            {
+                // Find which FFT bins fall in this band's frequency range
+                int binMin = Mathf.Max(1, Mathf.FloorToInt(BAND_FREQ_MIN[band] / freqPerBin));
+                int binMax = Mathf.Min(spectrumSize - 1, Mathf.CeilToInt(BAND_FREQ_MAX[band] / freqPerBin));
+
+                // Sum energy in this frequency range (RMS)
+                float sum = 0f;
+                int count = 0;
+                for (int bin = binMin; bin <= binMax; bin++)
+                {
+                    sum += _spectrum[bin] * _spectrum[bin];
+                    count++;
+                }
+
+                // RMS energy for this band
+                rawBands[band] = (count > 0) ? Mathf.Sqrt(sum / count) : 0f;
+            }
+        }
 
         // Calculate energy for each band
         float totalEnergy = 0f;
 
         for (int band = 0; band < BAND_COUNT; band++)
         {
-            // Find which FFT bins fall in this band's frequency range
-            int binMin = Mathf.Max(1, Mathf.FloorToInt(BAND_FREQ_MIN[band] / freqPerBin));
-            int binMax = Mathf.Min(spectrumSize - 1, Mathf.CeilToInt(BAND_FREQ_MAX[band] / freqPerBin));
-
-            // Sum energy in this frequency range (RMS)
-            float sum = 0f;
-            int count = 0;
-            for (int bin = binMin; bin <= binMax; bin++)
-            {
-                sum += _spectrum[bin] * _spectrum[bin];
-                count++;
-            }
-
-            // RMS energy for this band
-            float rawValue = (count > 0) ? Mathf.Sqrt(sum / count) : 0f;
+            float rawValue = (band < rawBands.Length) ? rawBands[band] : 0f;
 
             // Apply sensitivity — raw FFT values are tiny (0.0001-0.01)
             // Need aggressive amplification to get usable 0-1 range

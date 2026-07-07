@@ -30,6 +30,7 @@ OUTPUT_DIR=""
 INJECT_VR_META=true
 SKIP_RENDER=false
 HEADED=false            # true = drop -batchmode (GUI licenses Personal where batchmode cannot on pinned 2021.2.8f1)
+SKIP_SPECTRUM_BAKE=false # true = fall back to realtime GetSpectrumData (pre-fix behavior, freezes under frame-lock)
 
 # -- Detect Unity path --
 detect_unity() {
@@ -106,6 +107,7 @@ while [[ $# -gt 0 ]]; do
         --no-meta)   INJECT_VR_META=false; shift ;;
         --skip-render) SKIP_RENDER=true; shift ;;
         --headed)    HEADED=true; shift ;;
+        --no-spectrum-bake) SKIP_SPECTRUM_BAKE=true; shift ;;
         --help)
             echo "Usage: ./render.sh --audio <path> --name <name> [options]"
             echo "  --audio     Audio file path (WAV/MP3/OGG) [required]"
@@ -119,6 +121,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --output    Output directory [default: project/Recordings]"
             echo "  --no-meta   Skip VR metadata injection"
             echo "  --skip-render  Skip Unity render (just do post-processing)"
+            echo "  --no-spectrum-bake  Use realtime GetSpectrumData (pre-fix, freezes reactivity under frame-lock)"
             exit 0 ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
@@ -179,6 +182,23 @@ if [ "$SKIP_RENDER" = false ]; then
     AUDIO_DURATION=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$AUDIO_FILE")
     echo "[Step 1/4] Audio duration from ffprobe: ${AUDIO_DURATION}s"
 
+    SPECTRUM_ARG=""
+    if [ "$SKIP_SPECTRUM_BAKE" = false ]; then
+        TOTAL_FRAMES=$(python3 -c "print(max(1, round(${AUDIO_DURATION} * ${FRAMERATE})))")
+        SPECTRUM_FILE="$OUTPUT_DIR/${OUTPUT_NAME}_spectrum.json"
+        echo "[Step 1/4] Baking per-frame audio spectrum ($TOTAL_FRAMES frames) -> $SPECTRUM_FILE"
+        python3 "$SCRIPT_DIR/Scripts/bake_spectrum.py" \
+            --audio "$AUDIO_FILE" \
+            --fps "$FRAMERATE" \
+            --frames "$TOTAL_FRAMES" \
+            --bands 8 \
+            --spectrum-size 1024 \
+            --out "$SPECTRUM_FILE"
+        SPECTRUM_ARG="-spectrumFile $SPECTRUM_FILE"
+    else
+        echo "[Step 1/4] Spectrum bake skipped (--no-spectrum-bake) — reactivity will use realtime GetSpectrumData"
+    fi
+
     "$UNITY_EXE" \
         $BATCH_FLAG \
         -projectPath "$PROJECT_PATH" \
@@ -193,6 +213,7 @@ if [ "$SKIP_RENDER" = false ]; then
         -stereoSeparation "$STEREO_SEP" \
         -scene "$SCENE" \
         $PRESET_ARG \
+        $SPECTRUM_ARG \
         -logFile "$OUTPUT_DIR/${OUTPUT_NAME}_unity.log"
 
     UNITY_EXIT=$?

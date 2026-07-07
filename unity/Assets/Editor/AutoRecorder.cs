@@ -74,10 +74,20 @@ public static class AutoRecorder
         int mapSize = int.Parse(GetArg(args, "mapSize", resolution.ToString()));
         string sceneName = GetArg(args, "scene", "Example");
         string presetName = GetArg(args, "preset", "");
+        string spectrumFile = GetArg(args, "spectrumFile");
+
+        // Baked per-frame band table (fixes reactivity freezing after audio's
+        // real-time playback ends but frame-locked capture keeps going).
+        // See BakedSpectrum.cs + data/efs-path-b/NEXT-reactivity-sync-fix.md.
+        if (!string.IsNullOrEmpty(spectrumFile))
+        {
+            BakedSpectrum.Load(spectrumFile);
+        }
 
         Debug.Log($"[AutoRecorder] Audio: {audioFile}");
         Debug.Log($"[AutoRecorder] Output: {outputDir}/{outputName}");
         Debug.Log($"[AutoRecorder] Mode: {mode}, Resolution: {resolution}, FPS: {framerate}");
+        Debug.Log($"[AutoRecorder] SpectrumFile: {(string.IsNullOrEmpty(spectrumFile) ? "(none — realtime GetSpectrumData)" : spectrumFile)}");
 
         // Load the scene
         var scenePath = FindScenePath(sceneName);
@@ -266,6 +276,18 @@ public static class AutoRecorder
                 _controller.StartRecording();
                 _hasStartedRecording = true;
                 _recordingStartTime = EditorApplication.timeSinceStartup;
+
+                // Spin up the baked-spectrum driver at the exact moment
+                // recording + playback begin, so its frame counter (which
+                // increments once per captured frame) stays aligned with the
+                // table row baked for that same output frame.
+                if (BakedSpectrum.Active)
+                {
+                    var driverGO = new GameObject("BakedSpectrumDriver");
+                    driverGO.AddComponent<BakedSpectrumDriver>();
+                    BakedSpectrum.NotifyRecordingStarted();
+                    Debug.Log("[AutoRecorder] BakedSpectrum active — driving reactive components from baked table, not realtime GetSpectrumData");
+                }
 
                 // Start audio playback
                 audioSource.Play();

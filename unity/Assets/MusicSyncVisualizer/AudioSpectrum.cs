@@ -10,6 +10,16 @@ public class AudioSpectrum : MonoBehaviour {
 
 	private void Update()
     {
+        // Batch/headed recording: read the pre-baked per-frame table instead
+        // of the realtime DSP clock — see BakedSpectrum.cs.
+        if (BakedSpectrum.Active)
+        {
+            float[] baked = BakedSpectrum.CurrentBands;
+            if (baked != null && baked.Length > 0)
+                spectrumValue = baked[0] * 100;
+            return;
+        }
+
         // get the data
         AudioListener.GetSpectrumData(m_audioSpectrum, 0, FFTWindow.Hamming);
 
