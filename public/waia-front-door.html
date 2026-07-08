@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>What Am I Appreciating Now — WAIAN</title>
+<meta name="description" content="An immersive 360°/VR meditation collection — curated appreciation, no host, no narration. WAIANWAIANWAIAN, the loop never ends." />
+<meta property="og:title" content="What Am I Appreciating Now — WAIAN" />
+<meta property="og:description" content="An immersive 360°/VR meditation collection — curated appreciation, no host, no narration." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://whatamiappreciatingnow.com" />
+<!-- NOTE: og:image intentionally omitted — swap in the real CNC spiral carving photo/render
+     before publish. The spiral on this page is a generative placeholder for that artwork. -->
+<style>
+
+  /* ============ DESIGN TOKENS ============
+     Single deliberate visual world: a night-sky meditation void.
+     This page does not ship a light theme — the cosmic/VR-portal aesthetic
+     IS the subject, and a "light mode" void would undercut it. Choice, not omission. */
+  :root {
+    --ground: #0a0d17;
+    --ground-raised: #131829;
+    --ground-deep: #05060c;
+    --ink: #e6e2d3;
+    --ink-bright: #f7f3e6;
+    --ink-dim: #9b9788;
+    --gold: #cf9d4f;
+    --gold-bright: #e6bd77;
+    --indigo: #4a5a94;
+    --indigo-glow: rgba(74, 90, 148, 0.35);
+    --ring-w: min(46vw, 380px);
+
+    --display: "Iowan Old Style", "Sitka Text", Georgia, "Times New Roman", serif;
+    --body-font: "Seravek", "Gill Sans Nova", Corbel, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body-font);
+    overflow-x: hidden;
+  }
+
+  body {
+    line-height: 1.6;
+  }
+
+  a { color: var(--gold-bright); }
+  a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 3px;
+  }
+
+  h1, h2 {
+    font-family: var(--display);
+    color: var(--ink-bright);
+    text-wrap: balance;
+    font-weight: 400;
+    margin: 0;
+  }
+
+  .loop-label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  /* ============ AMBIENT BACKGROUND ============ */
+  .starfield {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 15%, var(--indigo-glow), transparent 60%),
+      radial-gradient(ellipse 50% 35% at 85% 70%, rgba(207, 157, 79, 0.08), transparent 65%),
+      var(--ground);
+    pointer-events: none;
+  }
+
+  main { position: relative; z-index: 1; }
+
+  /* ============ HERO / OPENING SPIRAL ============ */
+  .hero {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 2rem;
+    padding: 3rem 1.5rem 4rem;
+  }
+
+  .spiral-wrap {
+    width: var(--ring-w);
+    height: var(--ring-w);
+    position: relative;
+  }
+
+  canvas.spiral { width: 100%; height: 100%; display: block; }
+
+  .hero h1 {
+    font-size: clamp(1.9rem, 5vw, 3.1rem);
+    max-width: 18ch;
+  }
+
+  .premise {
+    max-width: 52ch;
+    font-size: 1.08rem;
+    color: var(--ink);
+    margin: 0 auto;
+  }
+
+  .premise .emphasis { color: var(--gold-bright); font-family: var(--display); font-style: italic; }
+
+  .scroll-cue {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    margin-top: 1rem;
+  }
+
+  /* ============ COLLECTION ============ */
+  .collection {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 5rem 1.5rem 6rem;
+  }
+
+  .collection-head {
+    text-align: center;
+    margin-bottom: 3.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    align-items: center;
+  }
+
+  .collection-head h2 { font-size: clamp(1.5rem, 3.4vw, 2.1rem); max-width: 24ch; }
+  .collection-head p { color: var(--ink-dim); max-width: 46ch; margin: 0; font-size: 0.98rem; }
+
+  .portals {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 3rem 2.5rem;
+  }
+
+  .portal-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.1rem;
+    text-align: center;
+  }
+
+  .portal-frame {
+    --size: clamp(180px, 22vw, 260px);
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+    position: relative;
+    background: var(--ground-deep);
+    box-shadow:
+      0 0 0 1px rgba(207, 157, 79, 0.35),
+      0 0 0 8px var(--ground-raised),
+      0 0 40px -12px var(--indigo-glow);
+    overflow: hidden;
+    transition: box-shadow 0.4s ease, transform 0.4s ease;
+  }
+
+  .portal-item:hover .portal-frame,
+  .portal-item:focus-within .portal-frame {
+    box-shadow:
+      0 0 0 1.5px var(--gold-bright),
+      0 0 0 8px var(--ground-raised),
+      0 0 56px -10px var(--indigo-glow);
+    transform: scale(1.02);
+  }
+
+  .portal-frame iframe {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 178%;
+    height: 178%;
+    transform: translate(-50%, -50%);
+    border: 0;
+  }
+
+  .portal-title {
+    font-family: var(--display);
+    font-size: 1.02rem;
+    color: var(--ink-bright);
+    max-width: 26ch;
+  }
+
+  .portal-tag { font-size: 0.82rem; color: var(--ink-dim); }
+
+  /* ============ RING CLOSE / EMAIL + CHANNEL ============ */
+  .ring-close {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.2rem;
+    text-align: center;
+    padding: 5rem 1.5rem 6rem;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .ring-close .spiral-wrap { width: calc(var(--ring-w) * 0.55); height: calc(var(--ring-w) * 0.55); opacity: 0.85; }
+
+  .ring-close h2 { font-size: clamp(1.4rem, 3vw, 1.9rem); }
+
+  .capture-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+    width: 100%;
+  }
+
+  input[type="email"] {
+    font-family: var(--body-font);
+    font-size: 0.95rem;
+    padding: 0.85rem 1.1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(230, 226, 211, 0.25);
+    background: var(--ground-raised);
+    color: var(--ink);
+    min-width: 240px;
+    flex: 1 1 240px;
+  }
+
+  input[type="email"]::placeholder { color: var(--ink-dim); }
+
+  .btn {
+    font-family: var(--body-font);
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 0.85rem 1.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--gold);
+    background: transparent;
+    color: var(--gold-bright);
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease;
+    white-space: nowrap;
+  }
+
+  .btn:hover { background: var(--gold); color: var(--ground-deep); }
+
+  .btn-solid {
+    background: var(--gold);
+    color: var(--ground-deep);
+  }
+  .btn-solid:hover { background: var(--gold-bright); }
+
+  .capture-note { font-size: 0.78rem; color: var(--ink-dim); font-family: var(--mono); letter-spacing: 0.02em; }
+
+  footer {
+    text-align: center;
+    padding: 2.5rem 1.5rem 3rem;
+    color: var(--ink-dim);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    canvas.spiral { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="starfield" aria-hidden="true"></div>
+
+<main>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="loop-label">WAIANWAIANWAIAN</div>
+    <div class="spiral-wrap">
+      <canvas class="spiral" id="spiralTop" width="600" height="600" role="img" aria-label="The WAIAN spiral — a ring with no start and no end"></canvas>
+    </div>
+    <h1>What Am I Appreciating Now</h1>
+    <p class="premise">
+      A curated loop of appreciation — immersive 360°/VR meditations built from
+      the voices of teachers and wisdom traditions we admire, layered into
+      something new. No host, no vlog, no narration —
+      <span class="emphasis">just presence</span>, curated one piece at a time.
+    </p>
+    <div class="scroll-cue">↓ enter the collection ↓</div>
+  </section>
+
+  <!-- ============ STARTER COLLECTION ============ -->
+  <section class="collection">
+    <div class="collection-head">
+      <div class="loop-label">The Starter Collection</div>
+      <h2>Four windows into the same appreciation</h2>
+      <p>Each piece layers a wisdom voice into a 360° VR environment for ambient,
+        headset-ready listening — or just let it play.</p>
+    </div>
+
+    <div class="portals">
+      <div class="portal-item">
+        <div class="portal-frame">
+          <iframe src="https://www.youtube.com/embed/LAIVtQpHYHc" title="Abraham Hicks · Rampage of Appreciation · 360° VR Meditation" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <div class="portal-title">Rampage of Appreciation</div>
+        <div class="portal-tag">Abraham Hicks · 360° VR</div>
+      </div>
+
+      <div class="portal-item">
+        <div class="portal-frame">
+          <iframe src="https://www.youtube.com/embed/GZwGVcAxXK4" title="Abraham Hicks · Appreciation Is My Final Key · 360° VR (Starfield)" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <div class="portal-title">Appreciation Is My Final Key</div>
+        <div class="portal-tag">Abraham Hicks · 360° VR, Starfield</div>
+      </div>
+
+      <div class="portal-item">
+        <div class="portal-frame">
+          <iframe src="https://www.youtube.com/embed/kBcSjgD-MAQ" title="Abraham Hicks · Nothing Is More Important · 360° VR Meditation" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <div class="portal-title">Nothing Is More Important</div>
+        <div class="portal-tag">Abraham Hicks · 360° VR</div>
+      </div>
+
+      <div class="portal-item">
+        <div class="portal-frame">
+          <iframe src="https://www.youtube.com/embed/ktfbG2iprd8" title="Abraham Hicks · Rampage of Appreciation (Blue & Gold Sky) · 360° VR Meditation" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <div class="portal-title">Rampage of Appreciation</div>
+        <div class="portal-tag">Abraham Hicks · Blue &amp; Gold Sky</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RING CLOSE ============ -->
+  <section class="ring-close">
+    <div class="spiral-wrap">
+      <canvas class="spiral" id="spiralBottom" width="400" height="400" role="img" aria-label="The WAIAN spiral closing the loop"></canvas>
+    </div>
+    <h2>The loop never ends</h2>
+    <p style="color: var(--ink-dim); max-width: 44ch; margin: 0;">
+      New pieces drop as they're ready. Follow along on YouTube, or leave
+      your email — the answer to what you're appreciating now becomes the
+      next one.
+    </p>
+
+    <form class="capture-row" onsubmit="event.preventDefault(); this.querySelector('button').textContent='Coming soon';">
+      <input type="email" placeholder="you@wherever.com" aria-label="Email address" disabled />
+      <button type="submit" class="btn" disabled>Coming soon</button>
+    </form>
+    <div class="capture-note">email capture lands with the mixer pipeline — not wired yet</div>
+
+    <a class="btn btn-solid" href="https://www.youtube.com/@What_Am_I_Appreciating_Now" target="_blank" rel="noopener">Watch on YouTube</a>
+  </section>
+
+</main>
+
+<footer>WAIANWAIANWAIANWAIANWAIANWAIANWAIANWAIAN</footer>
+
+<script>
+  // Generative spiral — logarithmic, drawn on canvas (not hand-authored SVG path data).
+  // Placeholder for Jon's original CNC-carved spiral artwork; swap via <img> when the
+  // asset is available. Text ring reinforces "no start, no end."
+  function drawSpiral(canvas, opts) {
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const cx = w / 2, cy = h / 2;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let phase = 0;
+
+    function frame() {
+      ctx.clearRect(0, 0, w, h);
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(phase);
+
+      const turns = opts.turns || 3.2;
+      const maxR = w * 0.42;
+      const steps = 260;
+
+      // Two interleaved arms (gold + indigo) for depth, like paired grooves in carved wood.
+      const arms = [
+        { color: opts.gold, offset: 0 },
+        { color: opts.indigo, offset: Math.PI },
+      ];
+
+      arms.forEach(arm => {
+        ctx.beginPath();
+        for (let i = 0; i <= steps; i++) {
+          const t = i / steps;
+          const angle = t * turns * Math.PI * 2 + arm.offset;
+          const r = t * maxR;
+          const x = Math.cos(angle) * r;
+          const y = Math.sin(angle) * r;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = arm.color;
+        ctx.lineWidth = Math.max(1.4, w * 0.006);
+        ctx.globalAlpha = 0.85;
+        ctx.stroke();
+      });
+
+      ctx.restore();
+
+      if (!reduceMotion) {
+        phase += 0.0016;
+        requestAnimationFrame(frame);
+      }
+    }
+    frame();
+  }
+
+  const goldColor = getComputedStyle(document.documentElement).getPropertyValue('--gold-bright').trim();
+  const indigoColor = getComputedStyle(document.documentElement).getPropertyValue('--indigo').trim();
+
+  drawSpiral(document.getElementById('spiralTop'), { turns: 3.4, gold: goldColor, indigo: indigoColor });
+  drawSpiral(document.getElementById('spiralBottom'), { turns: 2.6, gold: goldColor, indigo: indigoColor });
+</script>
+
+</body>
+</html>

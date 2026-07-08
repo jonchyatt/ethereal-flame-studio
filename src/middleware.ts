@@ -7,6 +7,13 @@ import type { NextRequest } from 'next/server';
  * Subdomain routing:
  * - jarvis.whatamiappreciatingnow.com → serves /jarvis content at /
  * - www.whatamiappreciatingnow.com → serves main flame visualizer
+ * - whatamiappreciatingnow.com (bare apex, no www) → serves the WAIA front-door
+ *   page (public/waia-front-door.html). This is the Phase 0 relaunch surface —
+ *   see jarvis repo data/waia-curation-pipeline/MASTER-GOAL-SPEC.md. Only fires
+ *   if a request actually reaches this app with the bare-apex Host header —
+ *   today the apex has a Vercel-dashboard-level redirect to www that happens
+ *   before middleware runs, so this branch is a no-op until that redirect is
+ *   removed (Jon-gated, one-time Vercel domain setting change).
  *
  * API Authentication:
  * - /api/jarvis/* routes require X-Jarvis-Secret header
@@ -103,6 +110,14 @@ export function middleware(request: NextRequest) {
 
     // Allow /api/jarvis/* routes as-is
     // Allow static assets and other paths
+  }
+
+  // Bare apex only (no www./jarvis./studio./other subdomain): serve the WAIA
+  // front-door page instead of the main flame visualizer. www. and studio.
+  // are untouched and keep serving the existing app exactly as today.
+  const isBareApex = hostname === 'whatamiappreciatingnow.com';
+  if (isBareApex && pathname === '/') {
+    return NextResponse.rewrite(new URL('/waia-front-door.html', request.url));
   }
 
   // Main domain: redirect /jarvis → /jarvis/app (old voice orb is dead end)
