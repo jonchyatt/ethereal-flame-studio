@@ -38,6 +38,12 @@ modal_app/__pycache__/
 # Audio prep assets (local storage)
 audio-assets/
 
+# waia-curation-pipeline Phase 2 mixer spike — large binary sources/renders,
+# reconstructible from data/waia-mixer-spike/recipe.json + render-receipt.json
+# (sourceUrl + documented ffmpeg trim commands). Only the small JSON is tracked.
+data/waia-mixer-spike/sources/
+data/waia-mixer-spike/output/
+
 # Local databases
 *.db
 *.db-wal

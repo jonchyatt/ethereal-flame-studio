@@ -1,0 +1,24 @@
+{
+  "recipeRef": "data/waia-mixer-spike/recipe.json",
+  "engine": "unity",
+  "target": "local-agent",
+  "note": "engine/target intentionally kept OUT of recipe.json per HB-7 boundary (FLW MED finding #9, phase2-mixer-spike-vanguard-spec.md ratified addendum) — recipe.json is audio-only and reproducible independent of render engine.",
+  "unityVersion": "2021.2.8f1",
+  "renderInvocation": "bash unity/render.sh --audio ../data/waia-mixer-spike/output/waia_relaunch_spike_mix.wav --name waia_relaunch_spike --mode 360stereo --res 2048 --fps 24 --scene Example --output ../data/waia-mixer-spike/output --headed",
+  "headedModeReason": "Unity Editor 2021.2.8f1 Personal license could not activate in -batchmode in this environment (BatchMode license activation error, see unity_log excerpt below) — render.sh's documented --headed workaround (GUI mode, no -batchmode) succeeded on the same invocation.",
+  "renderDurationSec": 318,
+  "outputs": {
+    "flatMp4": "data/waia-mixer-spike/output/waia_relaunch_spike.mp4",
+    "sphericalVrMp4": "data/waia-mixer-spike/output/waia_relaunch_spike_vr.mp4",
+    "unityLog": "data/waia-mixer-spike/output/waia_relaunch_spike_unity.log",
+    "spectrumBake": "data/waia-mixer-spike/output/waia_relaunch_spike_spectrum.json"
+  },
+  "verification": {
+    "batchModeFirstAttempt": "FAILED — Unity license activation error in -batchmode: 'BatchMode: Unity has not been activated with a valid License... Missing or bad username or password.' Exit code 1. No render produced.",
+    "headedModeRetry": "SUCCEEDED — exit code 0, 318s render, 1920 frames at 2048x1024/24fps",
+    "ffprobeSphericalCheck": "INDEPENDENT ffprobe -show_streams on waia_relaunch_spike_vr.mp4 shows [SIDE_DATA] side_data_type=Spherical Mapping / projection=equirectangular AND [SIDE_DATA] side_data_type=Stereo 3D / type=top and bottom. Raw byte scan of the MP4 also found the literal uuid box: <GSpherical:Spherical>true</GSpherical:Spherical><GSpherical:Stitched>true</GSpherical:Stitched><GSpherical:ProjectionType>equirectangular</GSpherical:ProjectionType>. This is an INDEPENDENT check from spatialmedia's own 'Saved file settings' printout, per the render.sh code comment history of a prior fake-metadata bug (never trust exit 0 alone).",
+    "audioSurvivedMux": "ffprobe confirms Stream #0:1 audio=aac, 44100 Hz, stereo. Re-ran the L-R difference RMS check (pan=mono|c0=c0-c1,astats) directly on the final _vr.mp4's audio track: -28.68 dB, materially matching the pre-render WAV's -28.64 dB — binaural differentiation survived the Unity render + AAC mux pipeline, not just the source WAV."
+  },
+  "status": "upload-candidate pending Jon approval — mechanism proven end-to-end per exit criteria; rights-clean per HB-6 (see recipe.json sources[].rightsBasis); Jon has NOT yet reviewed/approved this specific mix for actual publish.",
+  "renderedAt": "2026-07-09"
+}
