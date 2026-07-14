@@ -108,11 +108,17 @@ describe('Unity local-agent adapter', () => {
     });
   });
 
-  test('render.sh keeps strict metadata opt-in and fails closed only when requested', async () => {
+  test('orchestrated flags keep strict metadata and approved render settings opt-in', async () => {
     const script = await fs.readFile(path.join(process.cwd(), 'unity', 'render.sh'), 'utf8');
+    const recorder = await fs.readFile(
+      path.join(process.cwd(), 'unity', 'Assets', 'Editor', 'AutoRecorder.cs'),
+      'utf8',
+    );
     expect(script).toContain('STRICT_VR_META=false');
     expect(script).toContain('--strict-vr-meta) STRICT_VR_META=true');
     expect(script).toContain('--strict-render-settings) STRICT_RENDER_SETTINGS=true');
     expect(script).toContain('spatialmedia 2.1a1 is required for strict VR metadata');
+    expect(recorder).toContain('preset != null && preset.recording != null && !lockRenderSettings');
+    expect(recorder).toContain('Approved render settings locked');
   });
 });
