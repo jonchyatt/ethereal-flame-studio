@@ -30,7 +30,7 @@ function pendingReviewResult(): PlaylistBatchResult {
     target: 'cloud',
     outputFormat: 'flat-1080p-landscape',
     fps: 30,
-    visualConfig: { mode: 'flame' },
+    visualConfig: { mode: 'flame', skyboxPreset: 'meditation', scene: 'Example' },
     continueOnError: true,
     items: [{
       index: 0,
@@ -78,7 +78,7 @@ function context(result: PlaylistBatchResult) {
     itemIndex: 0,
     actor: 'jon',
     now: NOW,
-    visualConfig: { mode: 'flame' },
+    visualConfig: { mode: 'flame', skyboxPreset: 'meditation', scene: 'Example' },
     mixRecipe: resolveMixRecipe('data/waia-mixer-spike/recipe.json@v1')!,
     result,
   };
@@ -91,7 +91,7 @@ test('approval commits provenance, immutable lineage, audit, and both child inte
 
   expect(item.status).toBe('approved');
   expect(item.provenance).toHaveLength(3);
-  expect(item.approvals).toHaveLength(1);
+  expect(item.approvals).toHaveLength(3);
   expect(item.recipes[0].inputArtifact).toEqual(item.inputArtifact);
   expect(item.recipes[0].mixRecipeFingerprint).toBe(MIX_FINGERPRINT);
   expect(item.renderIntents.map((intent) => [intent.engine, intent.status])).toEqual([
@@ -100,6 +100,37 @@ test('approval commits provenance, immutable lineage, audit, and both child inte
   ]);
   expect(item.auditTrail).toHaveLength(1);
   expect(playlistRenderingInvariantViolations(result)).toEqual([]);
+  const variants = item.renderIntents.map((intent) => ({
+    engine: intent.engine,
+    coreHash: intent.coreHash,
+    variantFingerprint: intent.variantFingerprint,
+    approvalId: intent.approvalId,
+  }));
+  expect(new Set(variants.map((variant) => variant.coreHash)).size).toBe(2);
+  expect(new Set(variants.map((variant) => variant.variantFingerprint)).size).toBe(2);
+  expect(new Set(variants.map((variant) => variant.approvalId)).size).toBe(2);
+});
+
+test('flat engine siblings share one core and receive distinct bound approvals', () => {
+  const initial = pendingReviewResult();
+  const request = approve();
+  request.outputs = [
+    { outputFormat: 'flat-1080p-landscape', fps: 30, engine: 'puppeteer', target: 'home' },
+    { outputFormat: 'flat-1080p-landscape', fps: 30, engine: 'unity', target: 'home' },
+  ];
+  const { result } = applyPlaylistReview(initial, request, context(initial));
+  const intents = result.items[0].renderIntents;
+  expect(intents[0].coreHash).toBe(intents[1].coreHash);
+  expect(intents[0].variantFingerprint).not.toBe(intents[1].variantFingerprint);
+  expect(intents[0].approvalId).not.toBe(intents[1].approvalId);
+  for (const intent of intents) {
+    expect(result.items[0].approvals).toContainEqual(expect.objectContaining({
+      approvalId: intent.approvalId,
+      intentId: intent.intentId,
+      coreHash: intent.coreHash,
+      variantFingerprint: intent.variantFingerprint,
+    }));
+  }
 });
 
 test('client-supplied actor is stripped and cannot forge the server principal', () => {

@@ -93,6 +93,9 @@ export const PlaylistRenderRecipeOutputSchema = z.object({
   engine: PlaylistRenderEngineSchema,
   target: PlaylistRenderTargetSchema,
   targetAgentId: z.string().min(1).max(128).optional(),
+  coreHash: z.string().regex(/^[a-f0-9]{64}$/i).optional(),
+  variantFingerprint: z.string().regex(/^[a-f0-9]{64}$/i).optional(),
+  approvalId: z.string().uuid().optional(),
 });
 export type PlaylistRenderRecipeOutput = z.infer<typeof PlaylistRenderRecipeOutputSchema>;
 
@@ -130,6 +133,9 @@ export const PlaylistApprovalSchema = z.object({
   requestHash: z.string().regex(/^[a-f0-9]{64}$/i),
   idempotencyKey: z.string().min(8).max(128),
   recipeId: z.string().uuid(),
+  intentId: z.string().uuid().optional(),
+  coreHash: z.string().regex(/^[a-f0-9]{64}$/i).optional(),
+  variantFingerprint: z.string().regex(/^[a-f0-9]{64}$/i).optional(),
 });
 export type PlaylistApproval = z.infer<typeof PlaylistApprovalSchema>;
 

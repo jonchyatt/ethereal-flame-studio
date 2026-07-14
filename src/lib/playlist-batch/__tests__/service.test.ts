@@ -30,7 +30,7 @@ describe('playlist curation service', () => {
       target: 'cloud',
       outputFormat: 'flat-1080p-landscape',
       fps: 30,
-      visualConfig: { mode: 'flame' },
+      visualConfig: { mode: 'flame', skyboxPreset: 'meditation', scene: 'Example' },
       continueOnError: true,
       appUrl: 'http://localhost:3000',
       items: [{
@@ -88,7 +88,7 @@ describe('playlist curation service', () => {
     const item = reviewed.result.items[0];
 
     expect(item.status).toBe('rendering');
-    expect(item.approvals).toHaveLength(1);
+    expect(item.approvals).toHaveLength(3);
     expect(item.provenance).toHaveLength(3);
     expect(item.renderIntents).toHaveLength(2);
     expect(item.renderIntents.find((intent) => intent.engine === 'puppeteer')?.status).toBe('queued');
@@ -131,6 +131,41 @@ describe('playlist curation service', () => {
     });
   });
 
+  test('Unity cannot reuse its Puppeteer sibling approval', async () => {
+    process.env.WAIA_UNITY_RENDER_ENABLED = 'true';
+    const batch = await store.get(batchId);
+    const before = PlaylistBatchResultSchema.parse(batch?.result);
+    const { applyPlaylistReview } = await import('../curation');
+    const siblingApproval = {
+      ...approval,
+      outputs: [
+        { outputFormat: 'flat-1080p-landscape', fps: 30 as const, engine: 'puppeteer' as const, target: 'home' as const },
+        { outputFormat: 'flat-1080p-landscape', fps: 30 as const, engine: 'unity' as const, target: 'home' as const },
+      ],
+    };
+    const transition = applyPlaylistReview(before, siblingApproval, {
+      batchId,
+      itemIndex: 0,
+      actor: 'jon',
+      now: '2026-07-13T19:00:00.000Z',
+      visualConfig: { mode: 'flame', skyboxPreset: 'meditation', scene: 'Example' },
+      mixRecipe: resolveMixRecipe('data/waia-mixer-spike/recipe.json@v1')!,
+    });
+    const puppeteer = transition.result.items[0].renderIntents.find((intent) => intent.engine === 'puppeteer')!;
+    const unity = transition.result.items[0].renderIntents.find((intent) => intent.engine === 'unity')!;
+    unity.approvalId = puppeteer.approvalId;
+    expect(await store.compareAndSetResult(batchId, 0, transition.result as unknown as Record<string, unknown>)).toBe(true);
+
+    await reconcilePlaylistBatchOutbox(store, batchId);
+    const refreshed = PlaylistBatchResultSchema.parse((await store.get(batchId))?.result);
+    const blocked = refreshed.items[0].renderIntents.find((intent) => intent.engine === 'unity');
+    expect(blocked).toMatchObject({
+      status: 'blocked',
+      blockedCode: 'phase-4-variant-reapproval-required',
+    });
+    expect(await store.list({ type: 'render' })).toHaveLength(1);
+  });
+
   test('worker sweep recovers a post-commit/pre-dispatch crash with the same child UUID', async () => {
     const batch = await store.get(batchId);
     const before = PlaylistBatchResultSchema.parse(batch?.result);
@@ -140,7 +175,7 @@ describe('playlist curation service', () => {
       itemIndex: 0,
       actor: 'jon',
       now: '2026-07-13T19:00:00.000Z',
-      visualConfig: { mode: 'flame' },
+      visualConfig: { mode: 'flame', skyboxPreset: 'meditation', scene: 'Example' },
       mixRecipe: resolveMixRecipe('data/waia-mixer-spike/recipe.json@v1')!,
     });
     expect(await store.compareAndSetResult(batchId, 0, transition.result as unknown as Record<string, unknown>)).toBe(true);
@@ -168,7 +203,7 @@ describe('playlist curation service', () => {
       itemIndex: 0,
       actor: 'jon',
       now: '2026-07-13T19:00:00.000Z',
-      visualConfig: { mode: 'flame' },
+      visualConfig: { mode: 'flame', skyboxPreset: 'meditation', scene: 'Example' },
       mixRecipe: resolveMixRecipe('data/waia-mixer-spike/recipe.json@v1')!,
     });
     transition.result.items[0].provenance.pop();

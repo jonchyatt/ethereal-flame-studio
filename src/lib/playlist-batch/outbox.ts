@@ -55,6 +55,19 @@ function approvalFor(item: PlaylistBatchItemState) {
   return item.approvals.find((candidate) => candidate.approvalId === item.currentApprovalId);
 }
 
+function variantApprovalFor(item: PlaylistBatchItemState, intent: PlaylistRenderIntent) {
+  if (!intent.approvalId || !intent.coreHash || !intent.variantFingerprint) return undefined;
+  const approval = item.approvals.find((candidate) => candidate.approvalId === intent.approvalId);
+  if (
+    !approval
+    || approval.intentId !== intent.intentId
+    || approval.coreHash !== intent.coreHash
+    || approval.variantFingerprint !== intent.variantFingerprint
+    || approval.reviewGeneration !== intent.reviewGeneration
+  ) return undefined;
+  return approval;
+}
+
 function hasPendingCancellation(item: PlaylistBatchItemState): boolean {
   return item.renderIntents.some((intent) =>
     intent.status === 'superseded' && intent.cancellationStatus === 'pending',
@@ -104,6 +117,13 @@ function renderMetadata(
   if (!recipe || !approval || !item.assetId || !recipe.inputArtifact) {
     throw new Error(`Intent ${intent.intentId} is missing approval, recipe, or asset lineage`);
   }
+  const hasVariantBinding = !!(
+    intent.approvalId && intent.coreHash && intent.variantFingerprint
+  );
+  const variantApproval = variantApprovalFor(item, intent);
+  if ((hasVariantBinding || intent.engine === 'unity') && !variantApproval) {
+    throw new Error(`Intent ${intent.intentId} is missing its exact render-variant approval binding`);
+  }
   const appUrl = metadata.appUrl || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   return {
     audioName: buildAudioName(item),
@@ -126,6 +146,11 @@ function renderMetadata(
     playlistRecipeId: recipe.recipeId,
     playlistReviewGeneration: intent.reviewGeneration,
     playlistApprovalId: approval.approvalId,
+    ...(variantApproval ? {
+      playlistVariantApprovalId: variantApproval.approvalId,
+      playlistRenderCoreHash: intent.coreHash,
+      playlistVariantFingerprint: intent.variantFingerprint,
+    } : {}),
     mixRecipeId: recipe.mixRecipeId,
     mixRecipeFingerprint: recipe.mixRecipeFingerprint,
     playlistRenderFingerprint: createPlaylistRenderFingerprint({
@@ -177,6 +202,13 @@ async function reconcileOneBatch(
         ) {
           if (!recipe.inputArtifact) {
             throw new Error(`WAIA Unity dispatch blocked: item ${item.index} lacks an approved input artifact identity`);
+          }
+          if (!variantApprovalFor(item, intent)) {
+            intent.blockedCode = 'phase-4-variant-reapproval-required';
+            intent.blockedReason = 'Unity requires a separately approved engine-variant snapshot. Requeue and approve again.';
+            intent.updatedAt = now;
+            changed = true;
+            continue;
           }
           intent.status = 'pending-dispatch';
           intent.blockedCode = undefined;

@@ -11,6 +11,7 @@ import {
   type PlaylistReviewEvent,
 } from './schema';
 import type { ResolvedMixRecipe } from './mix-recipes';
+import { createWaiaRenderCore, createWaiaRenderVariant } from '@/lib/render/waiaRenderPlan';
 
 const ReviewBaseSchema = z.object({
   idempotencyKey: z.string().min(8).max(128),
@@ -158,10 +159,46 @@ export function applyPlaylistReview(
     const approvalId = idFor(context, request, 'approval');
     const recipeId = idFor(context, request, 'recipe');
     const recipeVersion = item.recipes.length + 1;
-    const outputs = request.outputs.map((output, outputIndex) => ({
-      ...output,
-      intentId: idFor(context, request, `intent:${outputIndex}:${canonicalSha256(output)}`),
-    }));
+    const visualSemantic = Object.fromEntries(Object.entries(context.visualConfig).filter(([key]) =>
+      !['skyboxPreset', 'scene', 'puppeteer', 'unity'].includes(key),
+    ));
+    const outputs = request.outputs.map((output, outputIndex) => {
+      const intentId = idFor(context, request, `intent:${outputIndex}:${canonicalSha256(output)}`);
+      try {
+        const core = createWaiaRenderCore({
+          input: {
+            assetId: item.inputArtifact!.assetId,
+            sha256: item.inputArtifact!.sha256,
+            sizeBytes: item.inputArtifact!.sizeBytes,
+            mixRecipeId: request.mixRecipeId,
+            mixRecipeFingerprint: request.mixRecipeFingerprint.toLowerCase(),
+            sourceAssetIds: expectedIds,
+          },
+          outputFormat: output.outputFormat,
+          fps: output.fps,
+          preset: context.visualConfig.skyboxPreset as 'meditation' | 'ambient' | 'fire_cinema' | 'edm',
+          scene: context.visualConfig.scene as 'Example',
+          visualSemantic,
+          target: output.target,
+          targetAgentId: output.targetAgentId || null,
+          reviewGeneration: item.reviewGeneration,
+          brandPackVersion: request.brandPackVersion,
+          experimentId: request.experimentId,
+        });
+        const variant = createWaiaRenderVariant(core, output.engine);
+        return {
+          ...output,
+          intentId,
+          coreHash: variant.coreHash,
+          variantFingerprint: variant.variantFingerprint,
+          approvalId: idFor(context, request, `variant-approval:${variant.variantFingerprint}`),
+        };
+      } catch (error) {
+        throw new PlaylistCurationConflict(
+          `Cannot approve render variant ${outputIndex}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    });
 
     item.provenance.push(...context.mixRecipe.sources.map((source) => ({
       provenanceId: idFor(context, request, `provenance:${source.assetId}`),
@@ -187,6 +224,18 @@ export function applyPlaylistReview(
       idempotencyKey: request.idempotencyKey,
       recipeId,
     });
+    item.approvals.push(...outputs.map((output) => ({
+      approvalId: output.approvalId,
+      reviewGeneration: item.reviewGeneration,
+      actor: context.actor,
+      approvedAt: context.now,
+      requestHash,
+      idempotencyKey: request.idempotencyKey,
+      recipeId,
+      intentId: output.intentId,
+      coreHash: output.coreHash,
+      variantFingerprint: output.variantFingerprint,
+    })));
     item.recipes.push({
       recipeId,
       version: recipeVersion,
