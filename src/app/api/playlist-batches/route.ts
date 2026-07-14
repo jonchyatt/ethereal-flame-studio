@@ -7,6 +7,7 @@ import {
   PlaylistBatchMetadataSchema,
   PlaylistBatchResultSchema,
 } from '@/lib/playlist-batch/schema';
+import { authenticateWaiaOperator } from '@/lib/waia/operator-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +43,7 @@ function summarizePlaylistJob(job: AudioPrepJob) {
 
   return {
     id: job.jobId,
-    status: job.status,
+    status: result.success ? result.data.status : job.status,
     progress: job.progress,
     stage: job.stage,
     createdAt: job.createdAt,
@@ -59,8 +60,10 @@ function summarizePlaylistJob(job: AudioPrepJob) {
   };
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const auth = authenticateWaiaOperator(request);
+    if (!auth.ok) return NextResponse.json({ success: false, error: auth }, { status: auth.status });
     const store = getJobStore();
     const jobs = await store.list({ type: 'playlist', limit: 20 });
     return NextResponse.json({
@@ -85,6 +88,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = authenticateWaiaOperator(request);
+    if (!auth.ok) return NextResponse.json({ success: false, error: auth }, { status: auth.status });
     const body = await request.json();
     const parsed = PlaylistBatchCreateRequestSchema.safeParse(body);
     if (!parsed.success) {

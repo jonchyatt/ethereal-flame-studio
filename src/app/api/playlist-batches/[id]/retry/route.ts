@@ -5,6 +5,8 @@ import {
   PlaylistBatchMetadataSchema,
   PlaylistBatchResultSchema,
 } from '@/lib/playlist-batch/schema';
+import { shouldRetryPlaylistItem } from '@/lib/playlist-batch/service';
+import { authenticateWaiaOperator } from '@/lib/waia/operator-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,16 +15,13 @@ const RetrySchema = z.object({
   continueOnError: z.boolean().optional(),
 });
 
-function shouldInclude(status: string, scope: 'failed' | 'incomplete'): boolean {
-  if (scope === 'failed') return status === 'failed';
-  return !['completed', 'skipped'].includes(status);
-}
-
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const auth = authenticateWaiaOperator(request);
+    if (!auth.ok) return NextResponse.json({ success: false, error: auth }, { status: auth.status });
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
     const parsedBody = RetrySchema.safeParse(body);
@@ -64,7 +63,7 @@ export async function POST(
 
     const scope = parsedBody.data.scope;
     const selected = resultItems
-      .filter((item) => shouldInclude(item.status, scope))
+      .filter((item) => shouldRetryPlaylistItem(item.status, scope))
       .sort((a, b) => a.index - b.index);
 
     if (selected.length === 0) {

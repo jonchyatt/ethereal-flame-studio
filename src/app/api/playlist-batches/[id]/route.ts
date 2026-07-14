@@ -6,6 +6,8 @@ import {
   createInitialPlaylistBatchResult,
   recalcPlaylistBatchSummary,
 } from '@/lib/playlist-batch/schema';
+import { reconcilePlaylistBatchOutbox } from '@/lib/playlist-batch/outbox';
+import { authenticateWaiaOperator } from '@/lib/waia/operator-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,12 +16,15 @@ function terminalStatus(status: string): boolean {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const auth = authenticateWaiaOperator(request);
+    if (!auth.ok) return NextResponse.json({ success: false, error: auth }, { status: auth.status });
     const { id } = await params;
     const store = getJobStore();
+    await reconcilePlaylistBatchOutbox(store, id);
     const batchJob = await store.get(id);
 
     if (!batchJob || batchJob.type !== 'playlist') {
@@ -77,7 +82,7 @@ export async function GET(
     result.summary = recalcPlaylistBatchSummary(result.items);
     if (batchJob.status === 'cancelled') result.status = 'cancelled';
     else if (batchJob.status === 'failed') result.status = 'failed';
-    else if (batchJob.status === 'complete') result.status = 'completed';
+    // Parent completion means SOURCE ingest is done; result owns ring state.
 
     return NextResponse.json({
       success: true,
@@ -110,10 +115,12 @@ export async function GET(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const auth = authenticateWaiaOperator(request);
+    if (!auth.ok) return NextResponse.json({ success: false, error: auth }, { status: auth.status });
     const { id } = await params;
     const store = getJobStore();
     const batchJob = await store.get(id);
@@ -136,6 +143,9 @@ export async function DELETE(
         }
         if (item.renderJobId) {
           await store.cancel(item.renderJobId).catch(() => {});
+        }
+        for (const intent of item.renderIntents) {
+          if (intent.renderJobId) await store.cancel(intent.renderJobId).catch(() => {});
         }
       }
     }

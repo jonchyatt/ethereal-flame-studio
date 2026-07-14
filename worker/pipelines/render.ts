@@ -38,6 +38,10 @@ export async function runRenderPipeline(
   job: AudioPrepJob,
   _childRef: { current: ChildProcess | null },
 ): Promise<void> {
+  const requestedEngine = job.metadata.renderEngine as string | undefined;
+  if (requestedEngine && requestedEngine !== 'puppeteer') {
+    throw new Error(`Render engine ${requestedEngine} is not wired in this worker`);
+  }
   const storage = getStorageAdapter();
 
   const tmpDir = path.join(os.tmpdir(), `render-${job.jobId}`);

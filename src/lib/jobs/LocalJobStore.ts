@@ -9,7 +9,14 @@ import Database from 'better-sqlite3';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import type { JobStore, AudioPrepJob, JobUpdate, ListOptions } from './types';
+import type {
+  JobStore,
+  AudioPrepJob,
+  CreateJobOptions,
+  JobUpdate,
+  ListOptions,
+  ProjectionUpdateOptions,
+} from './types';
 
 const CREATE_TABLE_SQL = `
   CREATE TABLE IF NOT EXISTS audio_prep_jobs (
@@ -100,16 +107,25 @@ export class LocalJobStore implements JobStore {
   async create(
     type: AudioPrepJob['type'],
     metadata: Record<string, unknown>,
+    options?: CreateJobOptions,
   ): Promise<AudioPrepJob> {
     const now = new Date().toISOString();
-    const jobId = randomUUID();
+    const jobId = options?.jobId || randomUUID();
 
-    this.db
+    const inserted = this.db
       .prepare(
-        `INSERT INTO audio_prep_jobs (jobId, type, status, progress, stage, metadata, retryCount, createdAt, updatedAt)
+        `${options?.jobId ? 'INSERT OR IGNORE' : 'INSERT'} INTO audio_prep_jobs (jobId, type, status, progress, stage, metadata, retryCount, createdAt, updatedAt)
          VALUES (?, ?, 'pending', 0, NULL, ?, 0, ?, ?)`,
       )
       .run(jobId, type, JSON.stringify(metadata), now, now);
+
+    if (inserted.changes === 0) {
+      const existing = await this.get(jobId);
+      if (!existing || existing.type !== type || JSON.stringify(existing.metadata) !== JSON.stringify(metadata)) {
+        throw new Error(`Deterministic job ID collision for ${jobId}`);
+      }
+      return existing;
+    }
 
     return {
       jobId,
@@ -167,6 +183,36 @@ export class LocalJobStore implements JobStore {
       .run(...values);
 
     if (result.changes === 0) throw new Error(`Job ${jobId} not found`);
+  }
+
+  async compareAndSetResult(
+    jobId: string,
+    expectedProjectionVersion: number,
+    result: Record<string, unknown>,
+    options?: ProjectionUpdateOptions,
+  ): Promise<boolean> {
+    if (result.projectionVersion !== expectedProjectionVersion + 1) {
+      throw new Error('CAS result must increment projectionVersion by exactly one');
+    }
+
+    const sets = ['updatedAt = ?', 'result = ?'];
+    const values: unknown[] = [new Date().toISOString(), JSON.stringify(result)];
+    if (options?.stage !== undefined) {
+      sets.push('stage = ?');
+      values.push(options.stage);
+    }
+    if (options?.progress !== undefined) {
+      sets.push('progress = ?');
+      values.push(options.progress);
+    }
+    values.push(jobId, expectedProjectionVersion);
+
+    const updated = this.db.prepare(
+      `UPDATE audio_prep_jobs SET ${sets.join(', ')}
+       WHERE jobId = ?
+       AND COALESCE(CAST(json_extract(result, '$.projectionVersion') AS INTEGER), 0) = ?`,
+    ).run(...values);
+    return updated.changes === 1;
   }
 
   async complete(jobId: string, result: Record<string, unknown>): Promise<void> {
