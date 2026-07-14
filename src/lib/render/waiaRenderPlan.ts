@@ -113,16 +113,34 @@ const UNITY_OUTPUTS: Readonly<Record<string, UnityOutputSpec>> = Object.freeze({
   },
 });
 
-export type UnityRenderPlan = UnityOutputSpec & {
-  engine: 'unity';
-  transport: 'local-agent';
-  target: 'home' | 'local-agent';
-  targetAgentId: string | null;
-  fps: 30 | 60;
-  preset: z.infer<typeof UnityPresetSchema>;
-  scene: z.infer<typeof UnitySceneSchema>;
-  outputName: string;
-};
+export const UnityRenderPlanSchema = z.object({
+  engine: z.literal('unity'),
+  transport: z.literal('local-agent'),
+  target: z.enum(['home', 'local-agent']),
+  targetAgentId: SafeTokenSchema.nullable(),
+  outputFormat: z.enum([
+    'flat-1080p-landscape', 'flat-4k-landscape', '360-mono-4k',
+    '360-mono-6k', '360-mono-8k', '360-stereo-8k',
+  ]),
+  fps: RenderFpsSchema,
+  preset: UnityPresetSchema,
+  scene: UnitySceneSchema,
+  outputName: SafeTokenSchema,
+  mode: z.enum(['flat', '360mono', '360stereo']),
+  resolution: z.union([z.literal(1920), z.literal(3840), z.literal(4096), z.literal(6144), z.literal(8192)]),
+  width: z.union([z.literal(1920), z.literal(3840), z.literal(4096), z.literal(6144), z.literal(8192)]),
+  height: z.union([z.literal(1080), z.literal(2160), z.literal(2048), z.literal(3072), z.literal(4096)]),
+  requireVrMetadata: z.boolean(),
+  stereoMode: z.enum(['mono', 'top-bottom']),
+}).superRefine((plan, context) => {
+  const expected = UNITY_OUTPUTS[plan.outputFormat];
+  for (const field of ['mode', 'resolution', 'width', 'height', 'requireVrMetadata', 'stereoMode'] as const) {
+    if (plan[field] !== expected[field]) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: [field], message: `${field} contradicts outputFormat` });
+    }
+  }
+});
+export type UnityRenderPlan = z.infer<typeof UnityRenderPlanSchema>;
 
 export function createWaiaRenderCore(input: WaiaRenderCoreInput): WaiaRenderCore {
   const parsed = WaiaRenderCoreInputSchema.parse(input);
@@ -238,15 +256,16 @@ export function buildUnityRenderPlan(input: {
   if (!scene.success) throw new Error('Unity render requires an approved scene');
   const fps = RenderFpsSchema.parse(input.fps);
   const outputName = assertSafeRenderToken(input.outputName, 'outputName');
-  return {
+  return UnityRenderPlanSchema.parse({
     engine: 'unity',
     transport: 'local-agent',
     target,
     targetAgentId,
+    outputFormat: input.outputFormat,
     fps,
     preset: preset.data,
     scene: scene.data,
     outputName,
     ...getUnityOutputSpec(input.outputFormat),
-  };
+  });
 }

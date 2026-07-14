@@ -54,6 +54,7 @@ export const LocalAgentCompleteSchema = LocalAgentAttemptSchema.extend({
   storageKey: StorageKeySchema,
   fileSizeBytes: z.number().int().positive().max(MAX_UPLOAD_BYTES),
   fileSha256: Sha256Schema,
+  acceptanceReceipt: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const LocalAgentFailSchema = LocalAgentAttemptSchema.extend({
@@ -198,6 +199,14 @@ async function cleanupAttempt(
 }
 
 async function releaseAttempt(deps: LocalAgentCallbackDeps, jobId: string, token: string): Promise<void> {
+  const lease = await deps.leases.get(getLocalAgentJobLeaseKey(jobId));
+  if (lease && safeEqual(lease.token, token)) {
+    const projectLeaseKey = lease.metadata?.unityProjectLeaseKey;
+    const projectLeaseToken = lease.metadata?.unityProjectLeaseToken;
+    if (typeof projectLeaseKey === 'string' && typeof projectLeaseToken === 'string') {
+      await deps.leases.release(projectLeaseKey, projectLeaseToken).catch(() => {});
+    }
+  }
   await deps.leases.release(getLocalAgentJobLeaseKey(jobId), token).catch(() => {});
 }
 
@@ -228,19 +237,30 @@ export async function reconcileAbandonedLocalAgentAttempts(
 
     const leaseKey = getLocalAgentJobLeaseKey(job.jobId);
     const lease = await deps.leases.get(leaseKey);
+    const projectLeaseKey = lease?.metadata?.unityProjectLeaseKey;
+    const projectLeaseToken = lease?.metadata?.unityProjectLeaseToken;
+    const projectLease = typeof projectLeaseKey === 'string'
+      ? await deps.leases.get(projectLeaseKey)
+      : undefined;
+    const projectLeaseActive = projectLeaseKey === undefined || (
+      typeof projectLeaseToken === 'string'
+      && projectLease?.token === projectLeaseToken
+      && new Date(projectLease.expiresAt).getTime() > Date.now()
+    );
     const active =
       job.status === 'processing' &&
       job.stage === 'rendering-local-agent' &&
       lease?.ownerId === agentId &&
       lease.metadata?.attemptId === attemptId &&
-      new Date(lease.expiresAt).getTime() > Date.now();
+      new Date(lease.expiresAt).getTime() > Date.now() &&
+      projectLeaseActive;
     if (active) continue;
 
     if (reservation?.strategy === 'multipart' && reservation.uploadId) {
       await abortR2MultipartUpload({ key: reservation.storageKey, uploadId: reservation.uploadId }).catch(() => {});
     }
     await deps.storage.deletePrefix(attemptPrefix(job.jobId, attemptId)).catch(() => {});
-    if (lease) await deps.leases.release(leaseKey, lease.token).catch(() => {});
+    if (lease) await releaseAttempt(deps, job.jobId, lease.token);
     cleaned += 1;
 
     if (job.status === 'processing' && job.stage === 'rendering-local-agent') {
@@ -295,13 +315,34 @@ export async function renewLocalAgentAttempt(
     ...(owned.lease.metadata || {}),
     renewedAt: new Date().toISOString(),
   };
+  const projectLeaseKey = owned.lease.metadata?.unityProjectLeaseKey;
+  const projectLeaseToken = owned.lease.metadata?.unityProjectLeaseToken;
+  if (typeof projectLeaseKey === 'string' || typeof projectLeaseToken === 'string') {
+    if (typeof projectLeaseKey !== 'string' || typeof projectLeaseToken !== 'string') {
+      throw new LocalAgentCallbackError('UNITY_PROJECT_LEASE_INVALID', 'Unity project lease binding is incomplete', 409);
+    }
+    const projectRenewed = await deps.leases.renew(
+      projectLeaseKey,
+      projectLeaseToken,
+      getLocalAgentJobLeaseTtlMs(),
+      { ...(owned.lease.metadata || {}), renewedAt: new Date().toISOString() },
+    );
+    if (!projectRenewed) {
+      throw new LocalAgentCallbackError('UNITY_PROJECT_LEASE_LOST', 'Unity project lease could not be renewed', 409);
+    }
+  }
   const renewed = await deps.leases.renew(
     getLocalAgentJobLeaseKey(jobId),
     owned.identity.leaseToken,
     getLocalAgentJobLeaseTtlMs(),
     metadata,
   );
-  if (!renewed) throw new LocalAgentCallbackError('LEASE_RENEW_FAILED', 'Job lease could not be renewed', 409);
+  if (!renewed) {
+    if (typeof projectLeaseKey === 'string' && typeof projectLeaseToken === 'string') {
+      await deps.leases.release(projectLeaseKey, projectLeaseToken).catch(() => {});
+    }
+    throw new LocalAgentCallbackError('LEASE_RENEW_FAILED', 'Job lease could not be renewed', 409);
+  }
   const lease = await deps.leases.get(getLocalAgentJobLeaseKey(jobId));
   if (!lease) throw new LocalAgentCallbackError('LEASE_RENEW_FAILED', 'Renewed job lease disappeared', 409);
   return { expiresAt: lease.expiresAt };
@@ -491,6 +532,7 @@ export async function finalizeLocalAgentJob(
         storageKey: request.storageKey,
         sizeBytes: request.fileSizeBytes,
         sha256: actualSha256,
+        acceptanceReceipt: request.acceptanceReceipt || null,
         completedAt,
       },
     }));

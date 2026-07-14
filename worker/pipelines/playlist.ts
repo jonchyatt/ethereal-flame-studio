@@ -1,5 +1,7 @@
 import type { ChildProcess } from 'child_process';
+import { createHash } from 'crypto';
 import type { AudioPrepJob, JobStore } from '../../src/lib/jobs/types';
+import { getStorageAdapter } from '../../src/lib/storage';
 import {
   PlaylistBatchMetadataSchema,
   createInitialPlaylistBatchResult,
@@ -95,6 +97,18 @@ export async function runPlaylistPipeline(
       }
       item.ingestStatus = 'complete';
       item.assetId = assetId;
+      const storage = getStorageAdapter();
+      const keys = await storage.list(`assets/${assetId}/`);
+      const storageKey = keys.find((key) => /\/original\.[A-Za-z0-9]+$/i.test(key));
+      if (!storageKey) throw new Error('Ingested asset is missing its original storage object');
+      const inputBytes = await storage.get(storageKey);
+      if (!inputBytes?.length) throw new Error('Ingested asset original storage object is empty or unreadable');
+      item.inputArtifact = {
+        assetId,
+        storageKey,
+        sizeBytes: inputBytes.length,
+        sha256: createHash('sha256').update(inputBytes).digest('hex'),
+      };
       item.status = 'pending-review';
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

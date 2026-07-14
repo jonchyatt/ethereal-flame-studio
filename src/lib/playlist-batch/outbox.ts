@@ -66,7 +66,7 @@ function rollUpItem(item: PlaylistBatchItemState): void {
   const intents = item.renderIntents.filter((intent) => intent.recipeId === item.currentRecipeId);
   if (intents.length === 0) return;
 
-  const supported = intents.filter((intent) => intent.engine === 'puppeteer');
+  const supported = intents.filter((intent) => intent.status !== 'blocked');
   if (supported.some((intent) => intent.status === 'failed')) {
     item.status = 'failed';
     item.error = 'One or more supported render outputs failed';
@@ -101,12 +101,15 @@ function renderMetadata(
 ): Record<string, unknown> {
   const recipe = recipeFor(item);
   const approval = approvalFor(item);
-  if (!recipe || !approval || !item.assetId) {
+  if (!recipe || !approval || !item.assetId || !recipe.inputArtifact) {
     throw new Error(`Intent ${intent.intentId} is missing approval, recipe, or asset lineage`);
   }
   const appUrl = metadata.appUrl || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   return {
     audioName: buildAudioName(item),
+    audioStorageKey: recipe.inputArtifact.storageKey,
+    approvedInputSha256: recipe.inputArtifact.sha256,
+    approvedInputSizeBytes: recipe.inputArtifact.sizeBytes,
     outputFormat: intent.outputFormat,
     fps: intent.fps,
     visualConfig: recipe.visualConfig,
@@ -156,6 +159,34 @@ async function reconcileOneBatch(
   const expectedVersion = result.projectionVersion;
   let changed = false;
   const now = nowIso();
+  const unityEnabled = process.env.WAIA_UNITY_RENDER_ENABLED === 'true';
+
+  if (unityEnabled) {
+    for (const item of result.items) {
+      if (!item.currentRecipeId || !item.currentApprovalId || hasPendingCancellation(item)) continue;
+      const recipe = recipeFor(item);
+      const approval = approvalFor(item);
+      if (!recipe || !approval || recipe.approvalId !== approval.approvalId) continue;
+      for (const intent of item.renderIntents) {
+        if (
+          intent.recipeId === item.currentRecipeId
+          && intent.reviewGeneration === item.reviewGeneration
+          && intent.engine === 'unity'
+          && intent.status === 'blocked'
+          && intent.blockedCode === 'phase-4-unity-adapter-not-wired'
+        ) {
+          if (!recipe.inputArtifact) {
+            throw new Error(`WAIA Unity dispatch blocked: item ${item.index} lacks an approved input artifact identity`);
+          }
+          intent.status = 'pending-dispatch';
+          intent.blockedCode = undefined;
+          intent.blockedReason = undefined;
+          intent.updatedAt = now;
+          changed = true;
+        }
+      }
+    }
+  }
 
   // Durable cancellation outbox: finish cancellation before a newer generation dispatches.
   for (const item of result.items) {
@@ -177,7 +208,8 @@ async function reconcileOneBatch(
     if (hasPendingCancellation(item)) continue;
     for (const intent of item.renderIntents) {
       if (intent.recipeId !== item.currentRecipeId || intent.reviewGeneration !== item.reviewGeneration) continue;
-      if (intent.engine !== 'puppeteer' || intent.status !== 'pending-dispatch') continue;
+      if (intent.status !== 'pending-dispatch') continue;
+      if (intent.engine === 'unity' && !unityEnabled) continue;
 
       const child = await store.create(
         'render',

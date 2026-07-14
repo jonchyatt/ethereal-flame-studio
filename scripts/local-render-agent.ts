@@ -4,6 +4,14 @@ import os from 'os';
 import path from 'path';
 import { createHash, randomUUID } from 'crypto';
 import { spawn, type ChildProcess } from 'child_process';
+import type { UnityRenderPlan } from '../src/lib/render/waiaRenderPlan';
+import {
+  buildUnityInvocation,
+  detectLocalAgentRuntime,
+  validateUnityArtifact,
+  type DetectedAgentRuntime,
+  type UnityArtifactReceipt,
+} from '../src/lib/local-agent/unityAdapter';
 
 type Args = {
   serverUrl?: string;
@@ -28,6 +36,7 @@ type ClaimedJob = {
     renderTarget: string;
     inputArtifact: { storageKey: string; sizeBytes: number; sha256: string };
     renderConfig: Record<string, unknown>;
+    unityPlan?: UnityRenderPlan;
     appUrl: string;
     targetAgentId: string | null;
   };
@@ -76,19 +85,20 @@ async function authedFetch(baseUrl: string, token: string, pathname: string, ini
   return fetch(new URL(pathname, baseUrl), { ...init, headers });
 }
 
-async function registerPresence(baseUrl: string, token: string, agentId: string, label?: string): Promise<void> {
+async function registerPresence(
+  baseUrl: string,
+  token: string,
+  agentId: string,
+  capabilities: Record<string, unknown>,
+  label?: string,
+): Promise<void> {
   const res = await authedFetch(baseUrl, token, '/api/local-agent/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       agentId,
       label: label || agentId,
-      capabilities: {
-        platform: process.platform,
-        arch: process.arch,
-        hostname: os.hostname(),
-        renderEngines: ['puppeteer'],
-      },
+      capabilities,
     }),
   });
   const json = await res.json().catch(() => ({}));
@@ -101,6 +111,7 @@ async function heartbeatPresence(
   baseUrl: string,
   token: string,
   agentId: string,
+  capabilities: Record<string, unknown>,
   label?: string,
   signal?: AbortSignal,
 ): Promise<void> {
@@ -111,12 +122,7 @@ async function heartbeatPresence(
     body: JSON.stringify({
       agentId,
       label: label || agentId,
-      capabilities: {
-        platform: process.platform,
-        arch: process.arch,
-        hostname: os.hostname(),
-        renderEngines: ['puppeteer'],
-      },
+      capabilities,
     }),
   });
 
@@ -126,19 +132,20 @@ async function heartbeatPresence(
   }
 }
 
-async function pollForJob(baseUrl: string, token: string, agentId: string, label?: string): Promise<ClaimedJob | null> {
+async function pollForJob(
+  baseUrl: string,
+  token: string,
+  agentId: string,
+  capabilities: Record<string, unknown>,
+  label?: string,
+): Promise<ClaimedJob | null> {
   const res = await authedFetch(baseUrl, token, '/api/local-agent/poll', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       agentId,
       label: label || agentId,
-      capabilities: {
-        platform: process.platform,
-        arch: process.arch,
-        hostname: os.hostname(),
-        renderEngines: ['puppeteer'],
-      },
+      capabilities,
       acceptUnassigned: true,
     }),
   });
@@ -183,10 +190,17 @@ async function terminateProcessTree(child: ChildProcess): Promise<void> {
   }
 }
 
-async function runLocalRender(configPath: string, appUrl: string, signal: AbortSignal): Promise<void> {
-  const tsxCli = path.resolve(process.cwd(), 'node_modules/tsx/dist/cli.mjs');
-  const child = spawn(process.execPath, [tsxCli, 'scripts/render-cli.ts', '--config', configPath, '--url', appUrl, '--no-server'], {
-    cwd: process.cwd(),
+async function runOwnedProcess(input: {
+  executable: string;
+  args: string[];
+  cwd: string;
+  env?: NodeJS.ProcessEnv;
+  label: string;
+  signal: AbortSignal;
+}): Promise<void> {
+  const child = spawn(input.executable, input.args, {
+    cwd: input.cwd,
+    env: input.env,
     shell: false,
     stdio: 'inherit',
     windowsHide: true,
@@ -199,15 +213,26 @@ async function runLocalRender(configPath: string, appUrl: string, signal: AbortS
       aborting = true;
       void terminateProcessTree(child).catch(() => {});
     };
-    signal.addEventListener('abort', onAbort, { once: true });
+    input.signal.addEventListener('abort', onAbort, { once: true });
     child.on('close', (code) => {
-      signal.removeEventListener('abort', onAbort);
-      if (aborting) reject(new Error('Render aborted after local-agent lease loss or cancellation'));
+      input.signal.removeEventListener('abort', onAbort);
+      if (aborting) reject(new Error(`${input.label} aborted after local-agent lease loss or cancellation`));
       else if (code === 0) resolve();
-      else reject(new Error(`render-cli exited with code ${code}`));
+      else reject(new Error(`${input.label} exited with code ${code}`));
     });
     child.on('error', (err) => reject(err));
-    if (signal.aborted) onAbort();
+    if (input.signal.aborted) onAbort();
+  });
+}
+
+async function runPuppeteerRender(configPath: string, appUrl: string, signal: AbortSignal): Promise<void> {
+  const tsxCli = path.resolve(process.cwd(), 'node_modules/tsx/dist/cli.mjs');
+  await runOwnedProcess({
+    executable: process.execPath,
+    args: [tsxCli, 'scripts/render-cli.ts', '--config', configPath, '--url', appUrl, '--no-server'],
+    cwd: process.cwd(),
+    label: 'render-cli',
+    signal,
   });
 }
 
@@ -384,6 +409,7 @@ async function finalizeDirectCompletion(
   storageKey: string,
   fileSizeBytes: number,
   fileSha256: string,
+  acceptanceReceipt?: Record<string, unknown>,
 ): Promise<void> {
   const res = await authedFetch(baseUrl, token, `/api/local-agent/jobs/${job.jobId}/complete`, {
     method: 'POST',
@@ -395,6 +421,7 @@ async function finalizeDirectCompletion(
       storageKey,
       fileSizeBytes,
       fileSha256,
+      ...(acceptanceReceipt ? { acceptanceReceipt } : {}),
     }),
   });
   const json = await res.json().catch(() => ({}));
@@ -403,7 +430,9 @@ async function finalizeDirectCompletion(
   }
 }
 
-function resolveAudioExt(audioUrl: string): string {
+function resolveAudioExt(storageKey: string, audioUrl: string): string {
+  const storageExt = path.extname(storageKey);
+  if (storageExt) return storageExt;
   try {
     const parsed = new URL(audioUrl);
     return path.extname(parsed.pathname) || '.mp3';
@@ -412,7 +441,26 @@ function resolveAudioExt(audioUrl: string): string {
   }
 }
 
-async function processClaimedJob(baseUrl: string, token: string, agentId: string, job: ClaimedJob, label?: string): Promise<void> {
+async function summarizeUnityFailure(logPath: string): Promise<string> {
+  try {
+    const log = await fs.readFile(logPath, 'utf8');
+    const relevant = log.split(/\r?\n/).filter((line) =>
+      /\[(?:AutoRecorder|BakedSpectrum)\]|\b(?:error|exception|failed|abort)\b/i.test(line),
+    );
+    return (relevant.length ? relevant.join('\n') : log).slice(-8000);
+  } catch {
+    return 'Unity log was not created';
+  }
+}
+
+async function processClaimedJob(
+  baseUrl: string,
+  token: string,
+  agentId: string,
+  job: ClaimedJob,
+  runtime: DetectedAgentRuntime,
+  label?: string,
+): Promise<void> {
   const tempDir = path.join(os.tmpdir(), `local-agent-${job.jobId}-${randomUUID().slice(0, 8)}`);
   await fs.mkdir(tempDir, { recursive: true });
 
@@ -424,7 +472,7 @@ async function processClaimedJob(baseUrl: string, token: string, agentId: string
     if (intervalAbort.signal.aborted) return;
     const timeoutCtrl = new AbortController();
     const timeout = setTimeout(() => timeoutCtrl.abort(), 15_000);
-    heartbeatPresence(baseUrl, token, agentId, label, timeoutCtrl.signal)
+    heartbeatPresence(baseUrl, token, agentId, runtime.capabilities, label, timeoutCtrl.signal)
       .catch((err) => {
         if (!intervalAbort.signal.aborted) {
           console.warn(`[Agent] Heartbeat failed for ${agentId}:`, err instanceof Error ? err.message : err);
@@ -449,9 +497,13 @@ async function processClaimedJob(baseUrl: string, token: string, agentId: string
   }, leaseRenewIntervalMs);
 
   try {
-    const audioPath = path.join(tempDir, `audio${resolveAudioExt(job.dispatch.audioSignedUrl)}`);
-    const outputPath = path.join(tempDir, `render-${job.jobId}.mp4`);
+    const audioPath = path.join(
+      tempDir,
+      `audio${resolveAudioExt(job.dispatch.inputArtifact.storageKey, job.dispatch.audioSignedUrl)}`,
+    );
+    let outputPath = path.join(tempDir, `render-${job.jobId}.mp4`);
     const configPath = path.join(tempDir, 'render-config.json');
+    let acceptanceReceipt: Record<string, unknown> | undefined;
 
     console.log(`[Agent] Downloading audio for job ${job.jobId}...`);
     await downloadToFile(job.dispatch.audioSignedUrl, audioPath);
@@ -463,17 +515,46 @@ async function processClaimedJob(baseUrl: string, token: string, agentId: string
       throw new Error('Downloaded input artifact does not match the dispatched byte size and SHA-256');
     }
 
-    const renderConfig = structuredClone(job.dispatch.renderConfig) as {
-      audio?: { path?: string };
-      output?: { path?: string };
-      [key: string]: unknown;
-    };
-    renderConfig.audio = { ...(renderConfig.audio || {}), path: audioPath };
-    renderConfig.output = { ...(renderConfig.output || {}), path: outputPath };
-    await fs.writeFile(configPath, JSON.stringify(renderConfig, null, 2));
-
-    console.log(`[Agent] Rendering job ${job.jobId} using app ${job.dispatch.appUrl}`);
-    await runLocalRender(configPath, job.dispatch.appUrl, renderAbort.signal);
+    if (job.dispatch.renderEngine === 'puppeteer') {
+      const renderConfig = structuredClone(job.dispatch.renderConfig) as {
+        audio?: { path?: string };
+        output?: { path?: string };
+        [key: string]: unknown;
+      };
+      renderConfig.audio = { ...(renderConfig.audio || {}), path: audioPath };
+      renderConfig.output = { ...(renderConfig.output || {}), path: outputPath };
+      await fs.writeFile(configPath, JSON.stringify(renderConfig, null, 2));
+      console.log(`[Agent] Rendering Puppeteer job ${job.jobId} using app ${job.dispatch.appUrl}`);
+      await runPuppeteerRender(configPath, job.dispatch.appUrl, renderAbort.signal);
+    } else if (job.dispatch.renderEngine === 'unity') {
+      if (!runtime.unity || !job.dispatch.unityPlan) {
+        throw new Error('Unity job was claimed without a compatible local Unity runtime and plan');
+      }
+      const invocation = await buildUnityInvocation({
+        runtime: runtime.unity,
+        plan: job.dispatch.unityPlan,
+        audioPath,
+        outputDir: path.join(tempDir, 'unity-output'),
+      });
+      outputPath = invocation.outputPath;
+      console.log(`[Agent] Unity argv ${JSON.stringify([invocation.executable, ...invocation.args])}`);
+      try {
+        await runOwnedProcess({ ...invocation, label: 'unity/render.sh', signal: renderAbort.signal });
+      } catch (error) {
+        const unityEvidence = await summarizeUnityFailure(invocation.unityLogPath);
+        throw new Error(`${error instanceof Error ? error.message : String(error)}; Unity evidence: ${unityEvidence}`);
+      }
+      const receipt: UnityArtifactReceipt = await validateUnityArtifact({
+        runtime: runtime.unity,
+        plan: job.dispatch.unityPlan,
+        artifactPath: outputPath,
+        audioPath,
+        unityLogPath: invocation.unityLogPath,
+      });
+      acceptanceReceipt = { engine: 'unity', ...receipt };
+    } else {
+      throw new Error(`Unsupported local render engine: ${job.dispatch.renderEngine}`);
+    }
     if (renderAbort.signal.aborted) throw new Error('Local-agent lease was lost before upload');
     const outputIdentity = await fileIdentity(outputPath);
 
@@ -557,6 +638,7 @@ async function processClaimedJob(baseUrl: string, token: string, agentId: string
       reservation.storageKey,
       uploadedBytes,
       outputIdentity.sha256,
+      acceptanceReceipt,
     );
 
     console.log(`[Agent] Job ${job.jobId} complete`);
@@ -592,17 +674,20 @@ async function main(): Promise<void> {
     throw new Error('Missing --server, --agent-id, or --token');
   }
 
+  const runtime = await detectLocalAgentRuntime(process.cwd());
   console.log(`[Agent] Starting local render agent "${agentId}" against ${serverUrl}`);
-  await registerPresence(serverUrl, token, agentId, args.label);
+  console.log(`[Agent] Render engines: ${JSON.stringify(runtime.capabilities.renderEngines || [])}`);
+  for (const issue of runtime.issues) console.warn(`[Agent] Capability note: ${issue}`);
+  await registerPresence(serverUrl, token, agentId, runtime.capabilities, args.label);
 
   while (true) {
     try {
-      const job = await pollForJob(serverUrl, token, agentId, args.label);
+      const job = await pollForJob(serverUrl, token, agentId, runtime.capabilities, args.label);
       if (!job) {
         await sleep(args.pollMs);
         continue;
       }
-      await processClaimedJob(serverUrl, token, agentId, job, args.label);
+      await processClaimedJob(serverUrl, token, agentId, job, runtime, args.label);
     } catch (err) {
       console.error('[Agent] Loop error:', err);
       await sleep(Math.max(args.pollMs, 5000));

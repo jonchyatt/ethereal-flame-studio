@@ -1,6 +1,41 @@
 import { z } from 'zod';
 import type { LeaseStore } from '@/lib/leases';
 
+export const EFS_UNITY_EDITOR_VERSION = '2021.2.8f1' as const;
+export const EFS_UNITY_PROJECT_CONTRACT_VERSION = 'efs-path-b-v1' as const;
+
+const SafeAgentTokenSchema = z.string().min(1).max(128).regex(/^[A-Za-z0-9_-]+$/);
+const UnityPresetSchema = z.enum(['meditation', 'ambient', 'fire_cinema', 'edm']);
+const UnityModeSchema = z.enum(['flat', '360mono', '360stereo']);
+const UnityOutputFormatSchema = z.enum([
+  'flat-1080p-landscape',
+  'flat-4k-landscape',
+  '360-mono-4k',
+  '360-mono-6k',
+  '360-mono-8k',
+  '360-stereo-8k',
+]);
+
+export const UnityAgentCapabilitiesSchema = z.object({
+  renderEngines: z.array(z.enum(['puppeteer', 'unity'])).min(1),
+  unityEditorVersion: z.literal(EFS_UNITY_EDITOR_VERSION),
+  unityProjectContractVersion: z.literal(EFS_UNITY_PROJECT_CONTRACT_VERSION),
+  unityProjectLockId: SafeAgentTokenSchema,
+  unityExecutionMode: z.enum(['batch', 'headed']),
+  bashAvailable: z.literal(true),
+  ffmpegAvailable: z.literal(true),
+  ffprobeAvailable: z.literal(true),
+  spatialmediaAvailable: z.boolean(),
+  spatialmediaVersion: z.literal('2.1a1').nullable(),
+  supportedUnityPresets: z.array(UnityPresetSchema).min(1),
+  supportedUnityFormats: z.array(UnityOutputFormatSchema).min(1),
+  supportedUnityModes: z.array(UnityModeSchema).min(1),
+}).passthrough().refine((value) => value.renderEngines.includes('unity'), {
+  message: 'Unity capability attestation must include the unity engine',
+});
+
+export type UnityAgentCapabilities = z.infer<typeof UnityAgentCapabilitiesSchema>;
+
 export const LocalAgentPresencePayloadSchema = z.object({
   agentId: z.string().min(1).max(128).regex(/^[A-Za-z0-9_-]+$/),
   label: z.string().max(200).optional(),
@@ -15,6 +50,10 @@ export function getLocalAgentPresenceLeaseKey(agentId: string): string {
 
 export function getLocalAgentJobLeaseKey(jobId: string): string {
   return `local-agent:job:${jobId}`;
+}
+
+export function getUnityProjectLeaseKey(projectLockId: string): string {
+  return `local-agent:unity-project:${SafeAgentTokenSchema.parse(projectLockId)}`;
 }
 
 export function getLocalAgentDisabledLeaseKey(agentId: string): string {

@@ -16,6 +16,7 @@ import { promises as fs } from 'fs';
 import type { JobStore, AudioPrepJob } from '../../src/lib/jobs/types';
 import { getStorageAdapter } from '../../src/lib/storage';
 import { submitToModal } from '../../src/lib/render/modalClient';
+import { buildUnityRenderPlan } from '../../src/lib/render/waiaRenderPlan';
 
 // ---------------------------------------------------------------------------
 // Pipeline entry point
@@ -39,9 +40,12 @@ export async function runRenderPipeline(
   job: AudioPrepJob,
   _childRef: { current: ChildProcess | null },
 ): Promise<void> {
-  const requestedEngine = job.metadata.renderEngine as string | undefined;
-  if (requestedEngine && requestedEngine !== 'puppeteer') {
-    throw new Error(`Render engine ${requestedEngine} is not wired in this worker`);
+  const requestedEngine = (job.metadata.renderEngine as string | undefined) || 'puppeteer';
+  if (requestedEngine !== 'puppeteer' && requestedEngine !== 'unity') {
+    throw new Error(`Render engine ${requestedEngine} is unsupported`);
+  }
+  if (requestedEngine === 'unity' && process.env.WAIA_UNITY_RENDER_ENABLED !== 'true') {
+    throw new Error('Unity render dispatch is disabled by WAIA_UNITY_RENDER_ENABLED');
   }
   const storage = getStorageAdapter();
 
@@ -115,6 +119,18 @@ export async function runRenderPipeline(
     const outputFormat = (job.metadata.outputFormat as string) || 'flat-1080p-landscape';
     const fps = (job.metadata.fps as number) || 30;
     const visualConfig = (job.metadata.visualConfig as Record<string, unknown>) || {};
+    const renderTarget = (job.metadata.renderTarget as string | undefined) || 'cloud';
+    const targetAgentId = job.metadata.targetAgentId as string | undefined;
+    const unityPlan = requestedEngine === 'unity'
+      ? buildUnityRenderPlan({
+        target: renderTarget as 'cloud' | 'home' | 'local-agent',
+        targetAgentId,
+        outputFormat,
+        fps: fps as 30 | 60,
+        visualConfig,
+        outputName: job.jobId,
+      })
+      : undefined;
 
     const renderConfig = {
       version: '1.0',
@@ -125,10 +141,9 @@ export async function runRenderPipeline(
         fps,
       },
       visual: visualConfig,
+      ...(unityPlan ? { unity: unityPlan } : {}),
     };
 
-    const renderTarget = (job.metadata.renderTarget as string | undefined) || 'cloud';
-    const targetAgentId = job.metadata.targetAgentId as string | undefined;
     const callbackBase =
       process.env.NEXT_PUBLIC_APP_URL ||
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
@@ -143,6 +158,9 @@ export async function runRenderPipeline(
       };
       const approvedSha256 = job.metadata.approvedInputSha256 as string | undefined;
       const approvedSizeBytes = job.metadata.approvedInputSizeBytes as number | undefined;
+      if (requestedEngine === 'unity' && (!approvedSha256 || approvedSizeBytes === undefined)) {
+        throw new Error('Unity render requires an approved input SHA-256 and byte size');
+      }
       if (approvedSha256 && approvedSha256.toLowerCase() !== inputArtifact.sha256) {
         throw new Error('Resolved audio SHA-256 does not match the approved input artifact');
       }
@@ -158,11 +176,12 @@ export async function runRenderPipeline(
           localAgentDispatch: {
             schemaVersion: 1,
             jobId: job.jobId,
-            renderEngine: requestedEngine || 'puppeteer',
+            renderEngine: requestedEngine,
             renderTarget,
             audioSignedUrl: signedUrl,
             inputArtifact,
             renderConfig,
+            ...(unityPlan ? { unityPlan } : {}),
             appUrl: (job.metadata.callbackUrl as string | undefined) || callbackBase,
             targetAgentId: targetAgentId || null,
             createdAt: new Date().toISOString(),

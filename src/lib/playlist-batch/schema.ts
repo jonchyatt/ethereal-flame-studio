@@ -96,6 +96,14 @@ export const PlaylistRenderRecipeOutputSchema = z.object({
 });
 export type PlaylistRenderRecipeOutput = z.infer<typeof PlaylistRenderRecipeOutputSchema>;
 
+export const PlaylistInputArtifactSchema = z.object({
+  assetId: z.string().uuid(),
+  storageKey: z.string().min(1).max(1024).regex(/^assets\/[0-9a-f-]+\/original\.[A-Za-z0-9]+$/i),
+  sha256: z.string().regex(/^[a-f0-9]{64}$/i),
+  sizeBytes: z.number().int().positive(),
+});
+export type PlaylistInputArtifact = z.infer<typeof PlaylistInputArtifactSchema>;
+
 export const PlaylistRenderRecipeSchema = z.object({
   recipeId: z.string().uuid(),
   version: z.number().int().positive(),
@@ -105,6 +113,7 @@ export const PlaylistRenderRecipeSchema = z.object({
   experimentId: z.string().min(1).max(256),
   mixRecipeId: z.string().min(1).max(512),
   mixRecipeFingerprint: z.string().regex(/^[a-f0-9]{64}$/i),
+  inputArtifact: PlaylistInputArtifactSchema.optional(),
   sourceAssetIds: z.array(z.string().min(1)).default([]),
   visualConfig: z.record(z.string(), z.unknown()),
   outputs: z.array(PlaylistRenderRecipeOutputSchema).min(1).max(8),
@@ -186,6 +195,7 @@ export const PlaylistBatchItemStateSchema = z.object({
   ingestJobId: z.string().uuid().optional(),
   ingestStatus: z.enum(['pending', 'processing', 'complete', 'failed', 'cancelled']).optional(),
   assetId: z.string().uuid().optional(),
+  inputArtifact: PlaylistInputArtifactSchema.optional(),
   provenance: z.array(PlaylistSourceProvenanceSchema).default([]),
   approvals: z.array(PlaylistApprovalSchema).default([]),
   recipes: z.array(PlaylistRenderRecipeSchema).default([]),

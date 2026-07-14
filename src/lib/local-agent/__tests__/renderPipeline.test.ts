@@ -13,6 +13,7 @@ describe('render worker local-agent dispatch', () => {
     backend: process.env.STORAGE_BACKEND,
     storagePath: process.env.STORAGE_LOCAL_PATH,
     baseUrl: process.env.NEXT_PUBLIC_BASE_URL,
+    unityEnabled: process.env.WAIA_UNITY_RENDER_ENABLED,
   };
 
   beforeEach(async () => {
@@ -33,6 +34,8 @@ describe('render worker local-agent dispatch', () => {
     else process.env.STORAGE_LOCAL_PATH = originalEnv.storagePath;
     if (originalEnv.baseUrl === undefined) delete process.env.NEXT_PUBLIC_BASE_URL;
     else process.env.NEXT_PUBLIC_BASE_URL = originalEnv.baseUrl;
+    if (originalEnv.unityEnabled === undefined) delete process.env.WAIA_UNITY_RENDER_ENABLED;
+    else process.env.WAIA_UNITY_RENDER_ENABLED = originalEnv.unityEnabled;
     await fs.rm(tempRoot, { recursive: true, force: true });
   });
 
@@ -90,5 +93,45 @@ describe('render worker local-agent dispatch', () => {
     await expect(runRenderPipeline(jobs, job, { current: null }))
       .rejects.toThrow('Resolved audio SHA-256 does not match the approved input artifact');
     expect((await jobs.get(job.jobId))?.stage).not.toBe('awaiting-local-agent');
+  });
+
+  test('stages a validated Unity plan only behind the rollout switch', async () => {
+    const audio = Buffer.from('phase-2-approved-unity-audio');
+    const audioStorageKey = 'assets/test/prepared.wav';
+    const sha256 = createHash('sha256').update(audio).digest('hex');
+    await getStorageAdapter().put(audioStorageKey, audio);
+    const job = await createProcessingRender({
+      renderEngine: 'unity',
+      renderTarget: 'home',
+      audioStorageKey,
+      audioName: 'approved.wav',
+      approvedInputSha256: sha256,
+      approvedInputSizeBytes: audio.length,
+      outputFormat: '360-mono-4k',
+      fps: 30,
+      visualConfig: { skyboxPreset: 'meditation', scene: 'Example' },
+      callbackUrl: 'http://localhost:3000',
+    });
+
+    await expect(runRenderPipeline(jobs, job, { current: null }))
+      .rejects.toThrow('WAIA_UNITY_RENDER_ENABLED');
+
+    process.env.WAIA_UNITY_RENDER_ENABLED = 'true';
+    await runRenderPipeline(jobs, job, { current: null });
+    const staged = await jobs.get(job.jobId);
+    const dispatch = staged?.result?.localAgentDispatch as Record<string, unknown>;
+    expect(dispatch).toMatchObject({
+      renderEngine: 'unity',
+      renderTarget: 'home',
+      unityPlan: {
+        outputFormat: '360-mono-4k',
+        mode: '360mono',
+        width: 4096,
+        height: 2048,
+        requireVrMetadata: true,
+        preset: 'meditation',
+        scene: 'Example',
+      },
+    });
   });
 });

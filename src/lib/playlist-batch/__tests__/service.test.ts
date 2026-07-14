@@ -16,6 +16,7 @@ describe('playlist curation service', () => {
   let store: LocalJobStore;
   let dbPath: string;
   let batchId: string;
+  const originalUnityEnabled = process.env.WAIA_UNITY_RENDER_ENABLED;
 
   beforeEach(async () => {
     dbPath = path.join(os.tmpdir(), `playlist-service-${Date.now()}-${Math.random().toString(36).slice(2)}.db`);
@@ -44,11 +45,19 @@ describe('playlist curation service', () => {
     const result = createInitialPlaylistBatchResult(metadata);
     result.items[0].status = 'pending-review';
     result.items[0].assetId = '8bb81074-f213-4d8f-8298-e06ecf2a999c';
+    result.items[0].inputArtifact = {
+      assetId: '8bb81074-f213-4d8f-8298-e06ecf2a999c',
+      storageKey: 'assets/8bb81074-f213-4d8f-8298-e06ecf2a999c/original.wav',
+      sha256: 'b'.repeat(64),
+      sizeBytes: 1024,
+    };
     result.status = 'awaiting-review';
     await store.complete(batchId, result as unknown as Record<string, unknown>);
   });
 
   afterEach(async () => {
+    if (originalUnityEnabled === undefined) delete process.env.WAIA_UNITY_RENDER_ENABLED;
+    else process.env.WAIA_UNITY_RENDER_ENABLED = originalUnityEnabled;
     store.close();
     await fs.unlink(dbPath).catch(() => {});
     await fs.unlink(`${dbPath}-wal`).catch(() => {});
@@ -104,6 +113,22 @@ describe('playlist curation service', () => {
     expect(refreshed.items[0].renderIntents.find((intent) => intent.engine === 'unity')?.status).toBe('blocked');
     expect(refreshed.items[0].status).toBe('rendering');
     expect(refreshed.status).toBe('rendering');
+  });
+
+  test('Unity blocked intent opens and dispatches only behind the Phase 4 rollout switch', async () => {
+    process.env.WAIA_UNITY_RENDER_ENABLED = 'true';
+    const reviewed = await reviewPlaylistItem({ store, batchId, itemIndex: 0, request: approval, actor: 'jon' });
+    const unity = reviewed.result.items[0].renderIntents.find((intent) => intent.engine === 'unity');
+
+    expect(unity?.status).toBe('queued');
+    expect(unity?.blockedCode).toBeUndefined();
+    const children = await store.list({ type: 'render' });
+    expect(children).toHaveLength(2);
+    expect(children.find((child) => child.metadata.renderEngine === 'unity')?.metadata).toMatchObject({
+      approvedInputSha256: 'b'.repeat(64),
+      approvedInputSizeBytes: 1024,
+      audioStorageKey: 'assets/8bb81074-f213-4d8f-8298-e06ecf2a999c/original.wav',
+    });
   });
 
   test('worker sweep recovers a post-commit/pre-dispatch crash with the same child UUID', async () => {

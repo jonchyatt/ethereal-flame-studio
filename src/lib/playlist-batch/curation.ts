@@ -134,6 +134,9 @@ export function applyPlaylistReview(
       throw new PlaylistCurationConflict(`Cannot approve item in ${item.status}`);
     }
     if (!item.assetId) throw new PlaylistCurationConflict('Cannot approve before ingest produces an asset');
+    if (!item.inputArtifact || item.inputArtifact.assetId !== item.assetId) {
+      throw new PlaylistCurationConflict('Cannot approve before ingest records the exact input artifact identity');
+    }
     if (request.mixRecipeId !== context.mixRecipe.recipeId) {
       throw new PlaylistCurationConflict('Mix recipe is not the authoritative stored artifact');
     }
@@ -193,6 +196,7 @@ export function applyPlaylistReview(
       experimentId: request.experimentId,
       mixRecipeId: request.mixRecipeId,
       mixRecipeFingerprint: request.mixRecipeFingerprint.toLowerCase(),
+      inputArtifact: item.inputArtifact,
       sourceAssetIds: expectedIds,
       visualConfig: context.visualConfig,
       outputs,
@@ -267,6 +271,10 @@ export function playlistRenderingInvariantViolations(result: PlaylistBatchResult
     if (!approval) violations.push(`item ${item.index}: missing current approval`);
     if (!recipe) violations.push(`item ${item.index}: missing current recipe`);
     if (!recipe?.mixRecipeFingerprint) violations.push(`item ${item.index}: missing mix recipe fingerprint`);
+    if (!recipe?.inputArtifact) violations.push(`item ${item.index}: missing approved input artifact identity`);
+    if (recipe?.inputArtifact && recipe.inputArtifact.assetId !== item.assetId) {
+      violations.push(`item ${item.index}: approved input artifact does not bind the current asset`);
+    }
     if (rights.length === 0) violations.push(`item ${item.index}: missing per-source rights provenance`);
     const expectedSourceIds = recipe?.sourceAssetIds || [];
     const actualSourceIds = rights.map((row) => row.sourceAssetId || row.sourceId);

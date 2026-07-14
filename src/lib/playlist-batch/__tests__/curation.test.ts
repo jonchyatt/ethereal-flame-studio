@@ -42,6 +42,12 @@ function pendingReviewResult(): PlaylistBatchResult {
   const result = createInitialPlaylistBatchResult(metadata);
   result.items[0].status = 'pending-review';
   result.items[0].assetId = '8bb81074-f213-4d8f-8298-e06ecf2a999c';
+  result.items[0].inputArtifact = {
+    assetId: '8bb81074-f213-4d8f-8298-e06ecf2a999c',
+    storageKey: 'assets/8bb81074-f213-4d8f-8298-e06ecf2a999c/original.wav',
+    sha256: 'b'.repeat(64),
+    sizeBytes: 1024,
+  };
   result.status = 'awaiting-review';
   return result;
 }
@@ -86,6 +92,7 @@ test('approval commits provenance, immutable lineage, audit, and both child inte
   expect(item.status).toBe('approved');
   expect(item.provenance).toHaveLength(3);
   expect(item.approvals).toHaveLength(1);
+  expect(item.recipes[0].inputArtifact).toEqual(item.inputArtifact);
   expect(item.recipes[0].mixRecipeFingerprint).toBe(MIX_FINGERPRINT);
   expect(item.renderIntents.map((intent) => [intent.engine, intent.status])).toEqual([
     ['puppeteer', 'pending-dispatch'],
@@ -148,6 +155,7 @@ test('requeue supersedes prior intents and permits a new-generation approval', (
 test('invalid transitions and stale generation fail closed', () => {
   const initial = pendingReviewResult();
   initial.items[0].assetId = undefined;
+  initial.items[0].inputArtifact = undefined;
   expect(() => applyPlaylistReview(initial, approve(), context(initial))).toThrow('before ingest');
 
   const ready = pendingReviewResult();

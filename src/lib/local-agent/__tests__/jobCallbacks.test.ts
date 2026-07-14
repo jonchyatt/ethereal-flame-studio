@@ -5,7 +5,7 @@ import path from 'path';
 import { LocalJobStore } from '@/lib/jobs/LocalJobStore';
 import { LocalLeaseStore } from '@/lib/leases/LocalLeaseStore';
 import { LocalStorageAdapter } from '@/lib/storage/LocalStorageAdapter';
-import { getLocalAgentJobLeaseKey } from '../registry';
+import { getLocalAgentJobLeaseKey, getUnityProjectLeaseKey } from '../registry';
 import {
   failLocalAgentJob,
   finalizeLocalAgentJob,
@@ -40,7 +40,7 @@ describe('local-agent job callbacks', () => {
     await fs.rm(tempRoot, { recursive: true, force: true });
   });
 
-  async function createAttempt(ttlMs = 60_000) {
+  async function createAttempt(ttlMs = 60_000, unityProjectLockId?: string) {
     const created = await jobs.create('render', { renderEngine: 'puppeteer', renderTarget: 'home' });
     await jobs.claimNextPending();
     await jobs.update(created.jobId, {
@@ -48,8 +48,19 @@ describe('local-agent job callbacks', () => {
       result: { localAgentDispatch: { lineageMarker: 'preserve-me' } },
     });
     const attemptId = randomUUID();
+    const projectLeaseKey = unityProjectLockId ? getUnityProjectLeaseKey(unityProjectLockId) : undefined;
+    const projectLease = projectLeaseKey
+      ? await leases.acquire(projectLeaseKey, `unity:${attemptId}`, ttlMs, { metadata: { attemptId } })
+      : undefined;
     const acquired = await leases.acquire(getLocalAgentJobLeaseKey(created.jobId), AGENT_ID, ttlMs, {
-      metadata: { attemptId },
+      metadata: {
+        attemptId,
+        ...(projectLeaseKey && projectLease?.lease ? {
+          unityProjectLeaseKey: projectLeaseKey,
+          unityProjectLeaseToken: projectLease.lease.token,
+          unityProjectLockId,
+        } : {}),
+      },
     });
     if (!acquired.lease) throw new Error('Test lease was not acquired');
     return {
@@ -59,6 +70,7 @@ describe('local-agent job callbacks', () => {
         attemptId,
         leaseToken: acquired.lease.token,
       },
+      projectLeaseKey,
     };
   }
 
@@ -79,6 +91,18 @@ describe('local-agent job callbacks', () => {
     const result = await renewLocalAgentAttempt(deps, attempt.jobId, attempt.identity);
 
     expect(new Date(result.expiresAt).getTime()).toBeGreaterThanOrEqual(new Date(before!.expiresAt).getTime());
+  });
+
+  test('renews and releases the bound Unity project lease with the job attempt', async () => {
+    const attempt = await createAttempt(60_000, 'efs-main-project');
+    const projectBefore = await leases.get(attempt.projectLeaseKey!);
+    await renewLocalAgentAttempt(deps, attempt.jobId, attempt.identity);
+    const projectAfter = await leases.get(attempt.projectLeaseKey!);
+    expect(new Date(projectAfter!.expiresAt).getTime()).toBeGreaterThanOrEqual(new Date(projectBefore!.expiresAt).getTime());
+
+    await failLocalAgentJob(deps, attempt.jobId, { ...attempt.identity, error: 'unity failed' });
+    expect(await leases.get(attempt.projectLeaseKey!)).toBeUndefined();
+    expect(await leases.get(getLocalAgentJobLeaseKey(attempt.jobId))).toBeUndefined();
   });
 
   test('completes an attempt only after server-side size and digest verification', async () => {

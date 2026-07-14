@@ -7,7 +7,8 @@ import { LocalJobStore } from '@/lib/jobs/LocalJobStore';
 import { getLeaseStore, resetLeaseStore } from '@/lib/leases';
 import { LocalLeaseStore } from '@/lib/leases/LocalLeaseStore';
 import { resetStorageAdapter } from '@/lib/storage';
-import { getLocalAgentJobLeaseKey } from '@/lib/local-agent/registry';
+import { getLocalAgentJobLeaseKey, getUnityProjectLeaseKey } from '@/lib/local-agent/registry';
+import { buildUnityRenderPlan } from '@/lib/render/waiaRenderPlan';
 import { POST } from '../poll/route';
 
 describe('local-agent poll route', () => {
@@ -98,5 +99,78 @@ describe('local-agent poll route', () => {
     const lease = await leases.get(getLocalAgentJobLeaseKey(created.jobId));
     expect(lease?.metadata?.attemptId).toBe(body.data.job.attemptId);
     expect((await jobs.get(created.jobId))?.stage).toBe('rendering-local-agent');
+  });
+
+  test('requires full Unity capabilities and enforces one lease per project lock', async () => {
+    const createUnityJob = async () => {
+      const created = await jobs.create('render', { renderTarget: 'home', renderEngine: 'unity', targetAgentId: null });
+      await jobs.claimNextPending();
+      await jobs.update(created.jobId, {
+        stage: 'awaiting-local-agent',
+        result: {
+          localAgentDispatch: {
+            schemaVersion: 1,
+            jobId: created.jobId,
+            renderEngine: 'unity',
+            renderTarget: 'home',
+            audioSignedUrl: 'http://localhost:3000/api/storage/download?key=audio',
+            inputArtifact: { storageKey: 'renders/input/audio.wav', sizeBytes: 123, sha256: 'a'.repeat(64) },
+            renderConfig: { version: '1.0' },
+            unityPlan: buildUnityRenderPlan({
+              target: 'home',
+              outputFormat: '360-mono-4k',
+              fps: 30,
+              visualConfig: { skyboxPreset: 'meditation', scene: 'Example' },
+              outputName: created.jobId,
+            }),
+            appUrl: 'http://localhost:3000',
+            targetAgentId: null,
+            createdAt: new Date().toISOString(),
+          },
+        },
+      });
+      return created;
+    };
+    const first = await createUnityJob();
+    const second = await createUnityJob();
+    const unityCapabilities = {
+      renderEngines: ['puppeteer', 'unity'],
+      unityEditorVersion: '2021.2.8f1',
+      unityProjectContractVersion: 'efs-path-b-v1',
+      unityProjectLockId: 'efs-main-project',
+      unityExecutionMode: 'batch',
+      bashAvailable: true,
+      ffmpegAvailable: true,
+      ffprobeAvailable: true,
+      spatialmediaAvailable: true,
+      spatialmediaVersion: '2.1a1',
+      supportedUnityPresets: ['meditation', 'ambient', 'fire_cinema', 'edm'],
+      supportedUnityFormats: [
+        'flat-1080p-landscape', 'flat-4k-landscape', '360-mono-4k',
+        '360-mono-6k', '360-mono-8k', '360-stereo-8k',
+      ],
+      supportedUnityModes: ['flat', '360mono', '360stereo'],
+    };
+    const poll = (agentId: string, capabilities: Record<string, unknown>) => POST(new NextRequest(
+      'http://localhost:3000/api/local-agent/poll',
+      {
+        method: 'POST',
+        headers: { authorization: 'Bearer test-local-agent-secret', 'content-type': 'application/json' },
+        body: JSON.stringify({ agentId, capabilities, acceptUnassigned: true }),
+      },
+    ));
+
+    const incomplete = await poll('generic-agent', { renderEngines: ['unity'] });
+    expect((await incomplete.json()).data.job).toBeNull();
+
+    const claimed = await poll('unity-agent-a', unityCapabilities);
+    const claimedBody = await claimed.json();
+    expect(claimedBody.data.job.jobId).toBe(first.jobId);
+    const projectLease = await leases.get(getUnityProjectLeaseKey('efs-main-project'));
+    expect(projectLease?.metadata).toMatchObject({ jobId: first.jobId, agentId: 'unity-agent-a' });
+
+    const blocked = await poll('unity-agent-b', unityCapabilities);
+    expect((await blocked.json()).data.job).toBeNull();
+    expect((await jobs.get(second.jobId))?.stage).toBe('awaiting-local-agent');
   });
 });
