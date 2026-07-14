@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import { z } from 'zod';
 import { getJobStore } from '@/lib/jobs';
 import { getLeaseStore } from '@/lib/leases';
 import { isAuthorizedLocalAgentRequest } from '@/lib/local-agent/auth';
+import { reconcileAbandonedLocalAgentAttempts } from '@/lib/local-agent/jobCallbacks';
+import { getStorageAdapter } from '@/lib/storage';
 import {
   LocalAgentPresencePayloadSchema,
   getLocalAgentJobLeaseKey,
@@ -17,28 +20,29 @@ const PollSchema = LocalAgentPresencePayloadSchema.extend({
   acceptUnassigned: z.boolean().default(true),
 });
 
-type LocalAgentDispatch = {
-  schemaVersion: number;
-  jobId: string;
-  audioSignedUrl: string;
-  renderConfig: Record<string, unknown>;
-  appUrl: string;
-  targetAgentId: string | null;
-  createdAt: string;
-  [key: string]: unknown;
-};
+const LocalAgentDispatchSchema = z.object({
+  schemaVersion: z.number().int().positive(),
+  jobId: z.string().uuid(),
+  audioSignedUrl: z.string().url(),
+  renderEngine: z.enum(['puppeteer', 'unity']),
+  renderTarget: z.enum(['home', 'local-agent']),
+  inputArtifact: z.object({
+    storageKey: z.string().min(1).max(1024),
+    sizeBytes: z.number().int().positive(),
+    sha256: z.string().regex(/^[a-f0-9]{64}$/i),
+  }),
+  renderConfig: z.record(z.string(), z.unknown()),
+  appUrl: z.string().url(),
+  targetAgentId: z.string().min(1).max(128).nullable(),
+  createdAt: z.string().datetime(),
+}).passthrough();
+
+type LocalAgentDispatch = z.infer<typeof LocalAgentDispatchSchema>;
 
 function extractLocalAgentDispatch(job: { result?: Record<string, unknown> }): LocalAgentDispatch | null {
   const dispatch = job.result?.localAgentDispatch;
-  if (!dispatch || typeof dispatch !== 'object') return null;
-  const d = dispatch as Record<string, unknown>;
-  if (typeof d.jobId !== 'string' || typeof d.audioSignedUrl !== 'string' || typeof d.appUrl !== 'string') {
-    return null;
-  }
-  if (!d.renderConfig || typeof d.renderConfig !== 'object') {
-    return null;
-  }
-  return d as unknown as LocalAgentDispatch;
+  const parsed = LocalAgentDispatchSchema.safeParse(dispatch);
+  return parsed.success ? parsed.data : null;
 }
 
 export async function POST(request: NextRequest) {
@@ -70,12 +74,13 @@ export async function POST(request: NextRequest) {
     await upsertLocalAgentPresence(leaseStore, parsed.data);
 
     const store = getJobStore();
+    await reconcileAbandonedLocalAgentAttempts({ jobs: store, leases: leaseStore, storage: getStorageAdapter() });
     const jobs = await store.list({ type: 'render' });
     const eligible = jobs
       .filter((job) => job.status === 'processing' && job.stage === 'awaiting-local-agent')
       .filter((job) => {
         const target = job.metadata.renderTarget;
-        if (target !== 'local-agent') return false;
+        if (target !== 'home' && target !== 'local-agent') return false;
         const targetAgentId = job.metadata.targetAgentId as string | undefined;
         if (targetAgentId) return targetAgentId === agentId;
         return acceptUnassigned;
@@ -87,11 +92,15 @@ export async function POST(request: NextRequest) {
     for (const job of eligible) {
       const dispatch = extractLocalAgentDispatch(job);
       if (!dispatch) continue;
+      const renderEngines = parsed.data.capabilities?.renderEngines;
+      if (!Array.isArray(renderEngines) || !renderEngines.includes(dispatch.renderEngine)) continue;
+      const attemptId = randomUUID();
 
       const lease = await leaseStore.acquire(getLocalAgentJobLeaseKey(job.jobId), agentId, jobLeaseTtlMs, {
         metadata: {
           jobId: job.jobId,
           agentId,
+          attemptId,
           claimedAt: new Date().toISOString(),
         },
       });
@@ -104,6 +113,7 @@ export async function POST(request: NextRequest) {
         localAgentDispatch: {
           ...dispatch,
           claimedByAgentId: agentId,
+          claimedAttemptId: attemptId,
           claimedAt: new Date().toISOString(),
         },
       };
@@ -118,6 +128,7 @@ export async function POST(request: NextRequest) {
         data: {
           job: {
             jobId: job.jobId,
+            attemptId,
             leaseKey: lease.lease.leaseKey,
             leaseToken: lease.lease.token,
             leaseExpiresAt: lease.lease.expiresAt,

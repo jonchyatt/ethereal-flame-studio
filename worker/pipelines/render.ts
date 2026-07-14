@@ -9,6 +9,7 @@
  */
 
 import type { ChildProcess } from 'child_process';
+import { createHash } from 'crypto';
 import path from 'path';
 import os from 'os';
 import { promises as fs } from 'fs';
@@ -132,7 +133,22 @@ export async function runRenderPipeline(
       process.env.NEXT_PUBLIC_APP_URL ||
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
-    if (renderTarget === 'local-agent') {
+    if (renderTarget === 'home' || renderTarget === 'local-agent') {
+      if (!localAudioPath) throw new Error('Resolved audio path is missing');
+      const inputBytes = await fs.readFile(localAudioPath);
+      const inputArtifact = {
+        storageKey: resolvedStorageKey,
+        sizeBytes: inputBytes.length,
+        sha256: createHash('sha256').update(inputBytes).digest('hex'),
+      };
+      const approvedSha256 = job.metadata.approvedInputSha256 as string | undefined;
+      const approvedSizeBytes = job.metadata.approvedInputSizeBytes as number | undefined;
+      if (approvedSha256 && approvedSha256.toLowerCase() !== inputArtifact.sha256) {
+        throw new Error('Resolved audio SHA-256 does not match the approved input artifact');
+      }
+      if (approvedSizeBytes !== undefined && approvedSizeBytes !== inputArtifact.sizeBytes) {
+        throw new Error('Resolved audio byte size does not match the approved input artifact');
+      }
       await store.update(job.jobId, { stage: 'awaiting-local-agent', progress: 28 });
       await store.update(job.jobId, {
         stage: 'awaiting-local-agent',
@@ -142,7 +158,10 @@ export async function runRenderPipeline(
           localAgentDispatch: {
             schemaVersion: 1,
             jobId: job.jobId,
+            renderEngine: requestedEngine || 'puppeteer',
+            renderTarget,
             audioSignedUrl: signedUrl,
+            inputArtifact,
             renderConfig,
             appUrl: (job.metadata.callbackUrl as string | undefined) || callbackBase,
             targetAgentId: targetAgentId || null,

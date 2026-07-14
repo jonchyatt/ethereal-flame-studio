@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { LeaseStore } from '@/lib/leases';
 
 export const LocalAgentPresencePayloadSchema = z.object({
-  agentId: z.string().min(1).max(128),
+  agentId: z.string().min(1).max(128).regex(/^[A-Za-z0-9_-]+$/),
   label: z.string().max(200).optional(),
   capabilities: z.record(z.string(), z.unknown()).optional(),
 });

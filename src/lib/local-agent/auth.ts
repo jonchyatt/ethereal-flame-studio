@@ -22,10 +22,9 @@ export function getLocalAgentAdminSecret(): string {
 
 function safeCompare(a: string, b: string): boolean {
   if (!a || !b) return false;
-  const bufA = Buffer.from(a);
-  const bufB = Buffer.from(b);
-  if (bufA.length !== bufB.length) return false;
-  return crypto.timingSafeEqual(bufA, bufB);
+  const digestA = crypto.createHash('sha256').update(a, 'utf8').digest();
+  const digestB = crypto.createHash('sha256').update(b, 'utf8').digest();
+  return crypto.timingSafeEqual(digestA, digestB);
 }
 
 export function isAuthorizedLocalAgentRequest(request: NextRequest): boolean {
