@@ -18,6 +18,19 @@ import { getStorageAdapter } from '../../src/lib/storage';
 import { submitToModal } from '../../src/lib/render/modalClient';
 import { buildUnityRenderPlan } from '../../src/lib/render/waiaRenderPlan';
 
+function buildCliVisualConfig(input: Record<string, unknown>): Record<string, unknown> {
+  return {
+    ...input,
+    mode: input.mode ?? 'flame',
+    skyboxPreset: input.skyboxPreset ?? 'nebula',
+    skyboxRotationSpeed: input.skyboxRotationSpeed ?? 0,
+    waterEnabled: input.waterEnabled ?? false,
+    waterColor: input.waterColor ?? '#1a3a5c',
+    waterReflectivity: input.waterReflectivity ?? 0.5,
+    layers: input.layers ?? input.particleLayers ?? [],
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Pipeline entry point
 // ---------------------------------------------------------------------------
@@ -118,7 +131,9 @@ export async function runRenderPipeline(
 
     const outputFormat = (job.metadata.outputFormat as string) || 'flat-1080p-landscape';
     const fps = (job.metadata.fps as number) || 30;
-    const visualConfig = (job.metadata.visualConfig as Record<string, unknown>) || {};
+    const visualConfig = buildCliVisualConfig(
+      (job.metadata.visualConfig as Record<string, unknown>) || {},
+    );
     const renderTarget = (job.metadata.renderTarget as string | undefined) || 'cloud';
     const targetAgentId = job.metadata.targetAgentId as string | undefined;
     const unityPlan = requestedEngine === 'unity'

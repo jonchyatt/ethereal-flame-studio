@@ -71,6 +71,17 @@ describe('render worker local-agent dispatch', () => {
       sizeBytes: audio.length,
       sha256: createHash('sha256').update(audio).digest('hex'),
     });
+    expect(dispatch.renderConfig).toMatchObject({
+      visual: {
+        mode: 'flame',
+        skyboxPreset: 'nebula',
+        skyboxRotationSpeed: 0,
+        waterEnabled: false,
+        waterColor: '#1a3a5c',
+        waterReflectivity: 0.5,
+        layers: [],
+      },
+    });
   });
 
   test('rejects bytes that do not match an explicitly approved input digest', async () => {
