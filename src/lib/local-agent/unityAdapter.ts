@@ -70,8 +70,16 @@ export type UnityArtifactReceipt = {
   sizeBytes: number;
   sphericalMetadata: Record<string, string> | null;
   lumaSamples: Array<{ atSeconds: number; yavg: number }>;
+  frameHashes: Array<{ atSeconds: number; sha256: string }>;
   spectrumFrames: number;
   spectrumBands: number;
+  spectrumEnergyRange: number;
+};
+
+type SpectrumDocument = {
+  frames?: number;
+  bands?: number;
+  data?: unknown[];
 };
 
 function commandSucceeds(executable: string, args: string[]): boolean {
@@ -285,6 +293,38 @@ async function sampleYavg(runtime: UnityRuntime, filePath: string, atSeconds: nu
   return Number(value);
 }
 
+async function sampleFrameHash(runtime: UnityRuntime, filePath: string, atSeconds: number): Promise<string> {
+  const raw = await runCapture(runtime.ffmpegPath, [
+    '-v', 'error', '-ss', atSeconds.toFixed(3), '-i', filePath, '-frames:v', '1',
+    '-f', 'hash', '-hash', 'sha256', '-',
+  ]);
+  const value = /SHA256=([0-9a-f]{64})/i.exec(raw)?.[1];
+  if (!value) throw new Error(`Could not hash frame at ${atSeconds.toFixed(3)}s`);
+  return value.toLowerCase();
+}
+
+export function measureSpectrumEnergy(document: SpectrumDocument): {
+  frames: number;
+  bands: number;
+  range: number;
+} {
+  const frames = Number(document.frames);
+  const bands = Number(document.bands);
+  if (!Number.isInteger(frames) || frames <= 0 || !Number.isInteger(bands) || bands <= 0) {
+    throw new Error('Baked spectrum dimensions are invalid');
+  }
+  if (!Array.isArray(document.data) || document.data.length !== frames * bands) {
+    throw new Error('Baked spectrum data does not match its dimensions');
+  }
+  const values = document.data.map(Number);
+  if (values.some((value) => !Number.isFinite(value) || value < 0)) {
+    throw new Error('Baked spectrum contains invalid energy values');
+  }
+  const range = Math.max(...values) - Math.min(...values);
+  if (range <= Number.EPSILON) throw new Error('Baked spectrum energy is constant');
+  return { frames, bands, range };
+}
+
 export async function validateUnityArtifact(input: {
   runtime: UnityRuntime;
   plan: UnityRenderPlan;
@@ -295,10 +335,12 @@ export async function validateUnityArtifact(input: {
 }): Promise<UnityArtifactReceipt> {
   const artifactStat = await fs.stat(input.artifactPath);
   if (artifactStat.size <= 0) throw new Error('Unity artifact is empty');
-  const [artifactProbe, audioProbe, unityLog] = await Promise.all([
+  const spectrumPath = path.join(path.dirname(input.unityLogPath), `${input.plan.outputName}_spectrum.json`);
+  const [artifactProbe, audioProbe, unityLog, spectrumDocument] = await Promise.all([
     probe(input.runtime, input.artifactPath),
     probe(input.runtime, input.audioPath),
     fs.readFile(input.unityLogPath, 'utf8'),
+    fs.readFile(spectrumPath, 'utf8').then((raw) => JSON.parse(raw) as SpectrumDocument),
   ]);
   const video = artifactProbe.streams?.find((stream) => stream.codec_type === 'video');
   const audio = artifactProbe.streams?.find((stream) => stream.codec_type === 'audio');
@@ -319,6 +361,11 @@ export async function validateUnityArtifact(input: {
   }
   const spectrum = /\[BakedSpectrum\]\s+Loaded\s+(\d+)\s+frames\s+x\s+(\d+)\s+bands/i.exec(unityLog);
   if (!spectrum) throw new Error('Unity log does not confirm the baked spectrum table loaded');
+  const spectrumEvidence = measureSpectrumEnergy(spectrumDocument);
+  if (
+    spectrumEvidence.frames !== Number(spectrum[1])
+    || spectrumEvidence.bands !== Number(spectrum[2])
+  ) throw new Error('Baked spectrum dimensions do not match the Unity load receipt');
 
   let sphericalMetadata: Record<string, string> | null = null;
   if (input.plan.requireVrMetadata) {
@@ -342,13 +389,22 @@ export async function validateUnityArtifact(input: {
   }
 
   const sampleTimes = [durationSeconds * 0.25, durationSeconds * 0.75];
-  const lumaSamples = await Promise.all(sampleTimes.map(async (atSeconds) => ({
-    atSeconds,
-    yavg: await sampleYavg(input.runtime, input.artifactPath, atSeconds),
-  })));
+  const [lumaSamples, frameHashes] = await Promise.all([
+    Promise.all(sampleTimes.map(async (atSeconds) => ({
+      atSeconds,
+      yavg: await sampleYavg(input.runtime, input.artifactPath, atSeconds),
+    }))),
+    Promise.all(sampleTimes.map(async (atSeconds) => ({
+      atSeconds,
+      sha256: await sampleFrameHash(input.runtime, input.artifactPath, atSeconds),
+    }))),
+  ]);
   const threshold = input.blackFrameMaxYavg ?? DEFAULT_BLACK_FRAME_MAX_YAVG;
   if (lumaSamples.some((sample) => sample.yavg <= threshold)) {
     throw new Error(`Unity artifact contains an all-black acceptance sample at or below YAVG ${threshold}`);
+  }
+  if (new Set(frameHashes.map((sample) => sample.sha256)).size !== frameHashes.length) {
+    throw new Error('Unity artifact acceptance frames are identical');
   }
 
   return {
@@ -360,7 +416,9 @@ export async function validateUnityArtifact(input: {
     sizeBytes: artifactStat.size,
     sphericalMetadata,
     lumaSamples,
+    frameHashes,
     spectrumFrames: Number(spectrum[1]),
     spectrumBands: Number(spectrum[2]),
+    spectrumEnergyRange: spectrumEvidence.range,
   };
 }

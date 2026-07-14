@@ -4,6 +4,7 @@ import path from 'path';
 import { buildUnityRenderPlan } from '@/lib/render/waiaRenderPlan';
 import {
   buildUnityInvocation,
+  measureSpectrumEnergy,
   parseSphericalMetadata,
   type UnityRuntime,
 } from '../unityAdapter';
@@ -106,6 +107,18 @@ describe('Unity local-agent adapter', () => {
       ProjectionType: 'equirectangular',
       StereoMode: 'top-bottom',
     });
+  });
+
+  test('requires a dimensionally valid, changing spectrum table', () => {
+    expect(measureSpectrumEnergy({ frames: 2, bands: 2, data: [0, 0.25, 0.5, 1] })).toEqual({
+      frames: 2,
+      bands: 2,
+      range: 1,
+    });
+    expect(() => measureSpectrumEnergy({ frames: 2, bands: 2, data: [1, 1, 1, 1] }))
+      .toThrow('Baked spectrum energy is constant');
+    expect(() => measureSpectrumEnergy({ frames: 2, bands: 2, data: [0, 1] }))
+      .toThrow('Baked spectrum data does not match its dimensions');
   });
 
   test('orchestrated flags keep strict metadata and approved render settings opt-in', async () => {
