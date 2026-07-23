@@ -131,3 +131,4 @@ Jarvis can orchestrate Ethereal Flame Studio tasks: research visual techniques, 
 - `skybox-with-flame.png` - Flame with visible starfield
 - `mist-mode.png` - Ethereal Mist mode
 - `flame-over-water.png` - Target aesthetic
+Code intelligence: ask CodeGraph (`codegraph_*` tools) — this repo's living map
