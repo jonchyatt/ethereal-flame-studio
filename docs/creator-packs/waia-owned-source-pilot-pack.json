@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "packId": "waia-owned-source-pilot-reset-relationship-food-v1",
+  "status": "manual-draft",
+  "publication": {
+    "blocked": true,
+    "reason": "Draft-only proposal. The source has no release/rights authorization and requires qualified editorial/content review plus Jon's separate public-release decision.",
+    "provider": "youtube",
+    "connectorMode": "manual-draft",
+    "credentialSlot": "waia",
+    "externalUploadId": null,
+    "providerUrl": null,
+    "scheduledFor": null
+  },
+  "selection": {
+    "decisionClass": "reversible-pilot-candidate-not-channel-canon",
+    "workingTitle": "A Gentle Reset: Making Peace with Food | Guided Practice",
+    "whyThisCandidate": "It is an owned Reset Biology hypnosis master already recorded in the owned-source index, has an existing local written master and structured segment index, fits WAIA's explicitly captured hypnosis-script episode type, and is capped below WAIA's ~15-minute format ceiling. This is a draft selection only, not a launch-slate or cadence decision.",
+    "doNotClaim": [
+      "No clinical, therapeutic, weight-loss, or outcome claim is approved.",
+      "No selected source is cleared for public release.",
+      "No music, voice, visual output, thumbnail, upload, or publication has been created by this pack."
+    ]
+  },
+  "ownedSource": {
+    "type": "owned-reset-biology-hypnosis-master",
+    "title": "Reset Your Relationship with Food",
+    "provenance": {
+      "authoringSystem": "Reset Biology / tts-render masters",
+      "masterPath": "C:/Users/jonch/Projects/jarvis/data/tts-render/masters/01-mmm1-reset-relationship-food.md",
+      "structuredSourcePath": "C:/Users/jonch/Projects/jarvis/data/tts-render/masters/01-mmm1-reset-relationship-food.json",
+      "sourceSha256": "f42f578ca67bbdafb324ccecd8557b044dc43074d9d9750632fabc75507704be",
+      "sourceRuntimeWords": 1629,
+      "sourceRuntimeMinutes": "13-15",
+      "candidateInventoryReceipt": "C:/Users/jonch/Projects/jarvis/data/reset-biology/receipts/RB-06-W06-hypnosis-playlist.md",
+      "inventoryFinding": "The prior owned-source receipt identifies a local rendered MP3 but marks rights and content as HOLD-MEDIA. This pack deliberately uses the still-present authored master as its local source of record and does not treat the missing MP3 or the source hash as release proof."
+    },
+    "rightsAndContent": {
+      "state": "HOLD-MEDIA",
+      "attribution": "Reset Biology authored master; do not represent it as publicly cleared or as a medical treatment.",
+      "requiredBeforeRelease": [
+        "Written ownership/release authorization for the narration and any cloned-voice output.",
+        "Qualified editorial/content review for the absolute and irreversible suggestion language identified in the candidate inventory.",
+        "Jon's public-release decision."
+      ]
+    }
+  },
+  "localAssets": [
+    {
+      "role": "owned-source-master",
+      "path": "C:/Users/jonch/Projects/jarvis/data/tts-render/masters/01-mmm1-reset-relationship-food.md"
+    },
+    {
+      "role": "owned-source-segment-index",
+      "path": "C:/Users/jonch/Projects/jarvis/data/tts-render/masters/01-mmm1-reset-relationship-food.json"
+    },
+    {
+      "role": "existing-efs-visual-preset",
+      "path": "unity/Presets/meditation.json"
+    }
+  ],
+  "audioPrep": {
+    "machinery": "src/lib/audio-prep/types.ts EditRecipeSchema + src/lib/audio-prep/audioRenderer.ts",
+    "state": "recipe-proposal-only-no-derived-audio",
+    "sourceAssetId": "815835d0-0000-4000-8000-000000000001",
+    "recipe": {
+      "version": 1,
+      "assetId": "815835d0-0000-4000-8000-000000000001",
+      "clips": [
+        {
+          "id": "full-guided-practice",
+          "sourceAssetId": "815835d0-0000-4000-8000-000000000001",
+          "startTime": 0,
+          "endTime": 532.95127,
+          "volume": 1,
+          "fadeIn": 2,
+          "fadeOut": 4
+        }
+      ],
+      "normalize": true,
+      "outputFormat": "aac",
+      "outputSampleRate": 44100
+    },
+    "plannedNarrationInput": "Create an authorized narration stem from the cited owned master only after rights/content gates clear; ingest it as an audio_file and bind this sourceAssetId to the ingest asset ID before rendering.",
+    "plannedOutput": "audio-assets/waia/waia-owned-source-pilot-reset-relationship-food.m4a",
+    "mixNote": "No background music asset is selected. Add only a separately licensed/owned bed after it receives its own provenance and rights review; do not substitute third-party audio."
+  },
+  "visual": {
+    "presetPath": "unity/Presets/meditation.json",
+    "presetName": "meditation",
+    "why": "Existing EFS meditation preset: static camera, DarkWorld1 skybox, water enabled, and 4096/30 360-stereo recording settings align with WAIA's contemplative Unity-rendered visual direction.",
+    "renderParameters": {
+      "engine": "EFS Unity",
+      "renderPath": "Path A GUI recorder for a one-off manual render; do not claim Path B autonomous rendering is ready.",
+      "format": "360stereo",
+      "resolution": 4096,
+      "fps": 30,
+      "camera": "static",
+      "waterEnabled": true,
+      "audioReactiveBands": "Use preset defaults only after the authorized narration stem exists."
+    }
+  },
+  "draftMetadata": {
+    "title": "A Gentle Reset: Making Peace with Food | Guided Practice",
+    "description": "A draft-only guided practice built from an owned Reset Biology master. This proposal is not medical advice, therapy, or a promise of any outcome.\n\nPublication is blocked pending documented narration rights, qualified content review, and a separate release decision.\n\nSource attribution (draft): Reset Biology — \"Reset Your Relationship with Food\".\n\nChapters below are provisional and must be timed from the authorized final narration stem before any upload.",
+    "keywords": ["guided practice", "mindful eating", "meditation", "self-compassion", "Reset Biology"],
+    "hashtags": ["GuidedPractice", "Meditation", "MindfulEating"],
+    "chapters": [
+      { "label": "00:00", "title": "Arrival and intention" },
+      { "label": "01:30", "title": "Letting the struggle soften" },
+      { "label": "04:00", "title": "Color, breath, and ease" },
+      { "label": "07:00", "title": "A different story at the table" },
+      { "label": "10:00", "title": "Practicing a gentler return" },
+      { "label": "12:30", "title": "Settle and close" }
+    ],
+    "thumbnailBrief": "Draft only: midnight-blue water and a quiet cyan-violet orb under the existing DarkWorld1 skybox. Use the text ‘A Gentle Reset’ plus the smaller line ‘Guided Practice’; avoid before/after bodies, food-shame imagery, medical symbols, cure language, or claims.",
+    "commentsPolicy": "Not decided on this card.",
+    "cadence": "Not decided on this card.",
+    "audienceClaims": "Not decided on this card."
+  }
+}
