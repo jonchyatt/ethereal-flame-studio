@@ -38,6 +38,6 @@ The dynamic harness was attempted, but this worktree's dependency checkout is in
 
 ## Repository proof
 
-Commit: `e29c5e3ad8dde3503227089a6c0e18ab061955c0`
+Commit: `4f15d6e055bd26a330a63b2a6328a9bd670eb50a`
 Pushed remote branch: `origin/t_9edb8eb7`
 Pull request URL (not opened): `https://github.com/jonchyatt/ethereal-flame-studio/pull/new/t_9edb8eb7`
