@@ -1,0 +1,17 @@
+{
+  "draftMp4": "D:/jarvis-data/renders/waia-owned-source-pilot/waia-owned-source-pilot-draft.mp4",
+  "streams": [
+    { "codec_name": "h264", "codec_type": "video" },
+    { "codec_name": "aac", "codec_type": "audio" }
+  ],
+  "format": {
+    "duration": "613.300000",
+    "size": "583406000"
+  },
+  "video": {
+    "width": 1920,
+    "height": 1080,
+    "avg_frame_rate": "30/1",
+    "nb_read_frames": "18399"
+  }
+}

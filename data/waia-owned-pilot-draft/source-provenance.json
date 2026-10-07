@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "sourceManifest": "docs/creator-packs/waia-owned-source-pilot-pack.json",
+  "packId": "waia-owned-source-pilot-reset-relationship-food-v1",
+  "publicationState": {
+    "status": "manual-draft",
+    "blocked": true,
+    "externalUploadId": null,
+    "providerUrl": null,
+    "scheduledFor": null
+  },
+  "draftRender": {
+    "localPath": "D:/jarvis-data/renders/waia-owned-source-pilot/waia-owned-source-pilot-draft.mp4",
+    "sha256": "3e222ff9ed35c93564e4d22bb02bc4cc0654113bba3b0c6594cddbcded319608",
+    "bytes": 583406000,
+    "durationSeconds": 613.3,
+    "frameCount": 18399,
+    "frameRate": "30/1",
+    "dimensions": "1920x1080",
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "narration": {
+    "origin": "draft narration synthesized solely from the pack's owned structured source index; no third-party narration or music was used",
+    "sourcePath": "C:/Users/jonch/Projects/jarvis/data/tts-render/masters/01-mmm1-reset-relationship-food.json",
+    "sourceSha256": "f42f578ca67bbdafb324ccecd8557b044dc43074d9d9750632fabc75507704be",
+    "textArtifact": "data/waia-owned-pilot-draft/waia-owned-source-narration.txt",
+    "localPath": "D:/jarvis-data/renders/waia-owned-source-pilot/waia-owned-source-pilot-narration.mp3",
+    "sha256": "183136e7d972917ebf6ebcbfbecbcb09c2a3c80ddd693af3fe415a06aa6f6498",
+    "durationSeconds": 612.576,
+    "provider": "Microsoft Edge TTS",
+    "voice": "en-US-EmmaMultilingualNeural",
+    "rate": "-15%"
+  },
+  "visual": {
+    "origin": "locally owned EFS Unity Path-B smoke capture, looped without its source audio and muxed only with the draft narration",
+    "sourceClipPath": "D:/c-parked-2026-09-26/Users/jonch/Projects/ethereal-flame-studio/unity/Recordings/pathb-smoke/pathb_siranthony_flat_v3.mp4",
+    "sourceClipSha256": "f2de9cc0a7afdd575dc0aaf2be58ecc4168adc9edf1bd916b930ffc9e14ae9f4",
+    "requestedPreset": "unity/Presets/meditation.json",
+    "scene": "Example",
+    "note": "The fresh 4096/360 Path-B invocation against the pilot narration was blocked by the local Unity batch-license gate. A headed fallback was started with the meditation preset but did not finish before the isolated worktree rebuilt its Unity Library. The final draft therefore uses only existing locally owned EFS visual footage; it contains no source-clip audio."
+  },
+  "rightsAndRelease": {
+    "state": "HOLD-MEDIA",
+    "note": "This is a local technical draft only. It is not cleared for public release, upload, scheduling, or publication.",
+    "requiredBeforeRelease": [
+      "Written ownership/release authorization for the narration and any cloned-voice output.",
+      "Qualified editorial/content review for the absolute and irreversible suggestion language identified in the pilot pack.",
+      "Jon's separate public-release decision."
+    ]
+  }
+}
