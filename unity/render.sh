@@ -31,7 +31,7 @@ INJECT_VR_META=true
 STRICT_VR_META=false      # orchestrated 360 jobs fail instead of falling back to a plain MP4
 STRICT_RENDER_SETTINGS=false # orchestrated jobs keep approved mode/resolution/fps instead of preset recording overrides
 SKIP_RENDER=false
-HEADED=false            # true = drop -batchmode (GUI licenses Personal where batchmode cannot on pinned 2021.2.8f1)
+HEADED=true             # Personal license is valid only in the headed 2021.2.8f1 editor on this render host.
 SKIP_SPECTRUM_BAKE=false # true = fall back to realtime GetSpectrumData (pre-fix behavior, freezes under frame-lock)
 BAKED_GAIN=""            # calibration override for AudioSpectrum.BakedGain (punch-tuning sweep)
 SAFETY_TIMEOUT=""        # override AutoRecorder's safety-abort budget (seconds) — auto-scales by resolution/frames if unset
@@ -60,6 +60,19 @@ detect_unity() {
 # -- Detect project path --
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_PATH="$SCRIPT_DIR"
+
+# Git Bash does not translate shell-generated /c/... paths for native Windows
+# executables. Convert them at the process boundary so Unity, ffmpeg, and the
+# spectrum baker all receive paths the Windows APIs can open.
+native_path() {
+    if command -v cygpath >/dev/null 2>&1; then
+        cygpath -w "$1"
+    else
+        printf '%s\n' "$1"
+    fi
+}
+
+PYTHON_EXE="${PYTHON_EXE:-python}"
 
 # -- Normalize Recorder frame names to ffmpeg's frame_%06d.png sequence --
 normalize_frame_sequence() {
@@ -148,6 +161,11 @@ if [ ! -f "$AUDIO_FILE" ]; then
     exit 1
 fi
 
+# Resolve relative input paths while still in Bash. Unity is a native Windows
+# process and otherwise receives e.g. `unity\\Assets\\...` relative to its own
+# editor directory instead of the caller's repository directory.
+AUDIO_FILE="$(cd "$(dirname "$AUDIO_FILE")" && pwd)/$(basename "$AUDIO_FILE")"
+
 UNITY_EXE=$(detect_unity)
 if [ -z "$UNITY_EXE" ] && [ "$SKIP_RENDER" = false ]; then
     echo "ERROR: Unity not found. Set UNITY_PATH environment variable."
@@ -189,7 +207,7 @@ if [ "$SKIP_RENDER" = false ]; then
         echo "[Step 1/4] HEADED mode — running WITH GUI (no -batchmode) so Personal licensing works on pinned 2021.2.8f1"
     fi
 
-    AUDIO_DURATION=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$AUDIO_FILE")
+    AUDIO_DURATION=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$(native_path "$AUDIO_FILE")")
     echo "[Step 1/4] Audio duration from ffprobe: ${AUDIO_DURATION}s"
 
     SPECTRUM_ARG=""
@@ -197,14 +215,14 @@ if [ "$SKIP_RENDER" = false ]; then
         TOTAL_FRAMES=$(python3 -c "print(max(1, round(${AUDIO_DURATION} * ${FRAMERATE})))")
         SPECTRUM_FILE="$OUTPUT_DIR/${OUTPUT_NAME}_spectrum.json"
         echo "[Step 1/4] Baking per-frame audio spectrum ($TOTAL_FRAMES frames) -> $SPECTRUM_FILE"
-        python3 "$SCRIPT_DIR/Scripts/bake_spectrum.py" \
-            --audio "$AUDIO_FILE" \
+        "$PYTHON_EXE" "$(native_path "$SCRIPT_DIR/Scripts/bake_spectrum.py")" \
+            --audio "$(native_path "$AUDIO_FILE")" \
             --fps "$FRAMERATE" \
             --frames "$TOTAL_FRAMES" \
             --bands 8 \
             --spectrum-size 1024 \
-            --out "$SPECTRUM_FILE"
-        SPECTRUM_ARG="-spectrumFile $SPECTRUM_FILE"
+            --out "$(native_path "$SPECTRUM_FILE")"
+        SPECTRUM_ARG="-spectrumFile $(native_path "$SPECTRUM_FILE")"
     else
         echo "[Step 1/4] Spectrum bake skipped (--no-spectrum-bake) — reactivity will use realtime GetSpectrumData"
     fi
@@ -228,11 +246,11 @@ if [ "$SKIP_RENDER" = false ]; then
 
     "$UNITY_EXE" \
         $BATCH_FLAG \
-        -projectPath "$PROJECT_PATH" \
+        -projectPath "$(native_path "$PROJECT_PATH")" \
         -executeMethod AutoRecorder.BatchRender \
-        -audioFile "$AUDIO_FILE" \
+        -audioFile "$(native_path "$AUDIO_FILE")" \
         -audioDuration "$AUDIO_DURATION" \
-        -outputDir "$OUTPUT_DIR" \
+        -outputDir "$(native_path "$OUTPUT_DIR")" \
         -outputName "$OUTPUT_NAME" \
         -mode "$MODE" \
         -resolution "$RESOLUTION" \
@@ -244,7 +262,7 @@ if [ "$SKIP_RENDER" = false ]; then
         $GAIN_ARG \
         $TIMEOUT_ARG \
         $RENDER_SETTINGS_ARG \
-        -logFile "$OUTPUT_DIR/${OUTPUT_NAME}_unity.log"
+        -logFile "$(native_path "$OUTPUT_DIR/${OUTPUT_NAME}_unity.log")"
 
     UNITY_EXIT=$?
     END_TIME=$(date +%s)
@@ -278,8 +296,8 @@ normalize_frame_sequence "$FRAMES_DIR"
 
 ffmpeg -y \
     -framerate "$FRAMERATE" \
-    -i "$FRAME_PATTERN" \
-    -i "$AUDIO_FILE" \
+    -i "$(native_path "$FRAME_PATTERN")" \
+    -i "$(native_path "$AUDIO_FILE")" \
     -map 0:v:0 \
     -map 1:a:0 \
     -c:v libx264 \
@@ -287,7 +305,7 @@ ffmpeg -y \
     -c:a aac \
     -shortest \
     -movflags +faststart \
-    "$VIDEO_FILE"
+    "$(native_path "$VIDEO_FILE")"
 
 echo "[Step 2/4] MP4 assembled: $VIDEO_FILE"
 
