@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "bundleId": "waia-episode-1-manual-draft-v1",
+  "channel": {
+    "platform": "youtube",
+    "handle": "@What_Am_I_Appreciating_Now",
+    "channelId": "UCyq4s4Nei7Q26tu7EIQY7xw",
+    "sourceOfTruth": "src/lib/playlist-batch/schema.ts:WAIA_YOUTUBE_CHANNEL_ID"
+  },
+  "sourcePack": "docs/creator-packs/waia-owned-source-pilot-pack.json",
+  "renderEvidence": "data/waia-owned-pilot-draft/source-provenance.json",
+  "publication": {
+    "status": "manual-draft",
+    "visibility": "private",
+    "unpublished": true,
+    "scheduledFor": null,
+    "uploaded": false,
+    "published": false,
+    "credentialsPresent": false,
+    "videosInsertCalls": 0,
+    "redAction": "Do not upload or publish; Jon's public-release decision remains required."
+  },
+  "titles": [
+    "A Gentle Reset: Making Peace with Food | Guided Practice",
+    "A Gentle Reset — Guided Practice for a Kinder Relationship with Food",
+    "Making Peace with Food: A Gentle Guided Practice"
+  ],
+  "selectedTitle": "A Gentle Reset: Making Peace with Food | Guided Practice",
+  "description": "A draft-only guided practice built from an owned Reset Biology master. This is not medical advice, therapy, or a promise of any outcome.\n\nPublication is blocked pending documented narration rights, qualified content review, and Jon's separate release decision.\n\nSource attribution: Reset Biology — \"Reset Your Relationship with Food\" (owned authored master; HOLD-MEDIA pending rights and editorial review). Visuals: locally owned Ethereal Flame Studio render.\n\nChapters are provisional and must be timed against the authorized final narration stem before any upload.",
+  "chapters": [
+    { "timestamp": "00:00", "title": "Arrival and intention" },
+    { "timestamp": "01:30", "title": "Letting the struggle soften" },
+    { "timestamp": "04:00", "title": "Color, breath, and ease" },
+    { "timestamp": "07:00", "title": "A different story at the table" },
+    { "timestamp": "10:00", "title": "Practicing a gentler return" },
+    { "timestamp": "12:30", "title": "Settle and close" }
+  ],
+  "tags": [
+    "guided practice", "mindful eating", "meditation", "self compassion", "Reset Biology",
+    "gentle reset", "food relationship", "guided meditation", "mindfulness"
+  ],
+  "hashtags": ["#GuidedPractice", "#Meditation", "#MindfulEating"],
+  "thumbnail": {
+    "asset": "data/content/waia-episode-1-upload-draft/thumbnail.jpg",
+    "dimensions": { "width": 1280, "height": 720 },
+    "brief": "Midnight-blue water with a quiet cyan-violet orb under the meditation preset mood. Text: ‘A GENTLE RESET’ and smaller ‘GUIDED PRACTICE’. Avoid before/after bodies, food-shame imagery, medical symbols, cure language, or outcome claims.",
+    "generatedFrom": "D:/jarvis-data/renders/waia-owned-source-pilot/waia-owned-source-pilot-draft.mp4 at 00:02:00, locally overlaid"
+  },
+  "media": {
+    "draftVideo": "D:/jarvis-data/renders/waia-owned-source-pilot/waia-owned-source-pilot-draft.mp4",
+    "durationSeconds": 613.3,
+    "videoCodec": "h264",
+    "audioCodec": "aac",
+    "dimensions": "1920x1080",
+    "sha256": "3e222ff9ed35c93564e4d22bb02bc4cc0654113bba3b0c6594cddbcded319608"
+  },
+  "rights": {
+    "state": "HOLD-MEDIA",
+    "requiredBeforeRelease": [
+      "Written ownership/release authorization for narration and any cloned-voice output.",
+      "Qualified editorial/content review for absolute and irreversible suggestion language.",
+      "Jon's separate public-release decision."
+    ]
+  },
+  "dryRun": {
+    "script": "scripts/run-waia-manual-draft-dry-run.ts",
+    "expectedOutput": "PASS: WAIA channel auth dry-run resolved the intended channel; manual-draft manifest written; videos.insert() was not called.",
+    "manifestStorageKey": "creator/publish-drafts/youtube/waia-episode-1-dry-run.json",
+    "apiInsertionGuard": "google.youtube().videos.insert is replaced with a throwing sentinel during the no-credential run."
+  },
+  "credentialPolicy": "This bundle contains channel identity only. No OAuth tokens, client secrets, passwords, or other credential material are included."
+}
