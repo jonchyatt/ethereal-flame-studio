@@ -10,6 +10,7 @@ import {
   type PlaylistRenderIntent,
 } from './schema';
 import { playlistRenderingInvariantViolations } from './curation';
+import { ensureRenderPacksForReleaseApproved } from './renderPack';
 
 export type PlaylistOutboxStats = {
   batchesScanned: number;
@@ -22,7 +23,7 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
-function buildAudioName(item: { title: string; videoId: string }): string {
+export function buildAudioName(item: { title: string; videoId: string }): string {
   const safe = item.title
     .replace(/[<>:"/\\|?*\u0000-\u001F]/g, ' ')
     .replace(/\s+/g, ' ')
@@ -302,6 +303,8 @@ export async function reconcilePlaylistBatchOutbox(
   for (const batch of batches) {
     stats.batchesScanned++;
     await reconcileOneBatch(store, batch, stats);
+    // Best-effort and idempotent; a storage hiccup must not block render dispatch.
+    await ensureRenderPacksForReleaseApproved(store, batch.jobId).catch(() => {});
   }
   return stats;
 }
