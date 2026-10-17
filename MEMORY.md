@@ -21,3 +21,9 @@
 - No-credentials path still writes the manual-draft manifest, now with channel id and curation evidence, and checks both before writing.
 - Existing creator queue does not yet set `curation`, so queued publishes are refused until the curated-item-to-publish wiring lands.
 - jest for `src/lib/creator` and `src/lib/playlist-batch`: 34 pass. Nothing run against YouTube, OAuth, env or production databases.
+
+## 2026-10-17 digest: Wire curated items to publish
+
+- Render packs now carry optional `curation: {batchJobId, itemIndex}`; `queueCreatorPackPublishJobs` copies it into the publish job metadata (null when absent, so a pack without it still queues and is refused by the gate as before).
+- No playlist-batch code creates a render pack, so the smallest path added is `curation` accepted on `POST /api/creator/render-packs`. The route does not check the item; the gate checks it at publish time. Nothing yet creates packs automatically from approved batch items.
+- New jest: queue copies curation; end-to-end manual-draft lane through `runPublishPipeline` (release-approved item writes the manifest with curation evidence and the WAIA channel id; pending item fails with the gate reason and writes nothing). `tsc` clean; creator and playlist-batch suites pass. `publishGate.ts` unchanged. Nothing run against YouTube, OAuth, env or production databases.

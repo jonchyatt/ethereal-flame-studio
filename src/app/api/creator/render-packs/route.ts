@@ -6,7 +6,7 @@ import { createThumbnailPlan } from '@/lib/creator/thumbnail';
 import { saveContentLibraryItem, saveCreatorRenderPack, listCreatorRenderPacks } from '@/lib/creator/store';
 import { generatePublishDrafts } from '@/lib/creator/metadata';
 import { getBundlePreset, getExportPackPreset, SAFE_ZONE_PRESETS } from '@/lib/creator/presets';
-import { ContentLibraryItemSchema, CreatorRenderPackSchema, CreatorRenderVariantSchema, CreatorTargetSchema } from '@/lib/creator/types';
+import { ContentLibraryItemSchema, CreatorCurationRefSchema, CreatorRenderPackSchema, CreatorRenderVariantSchema, CreatorTargetSchema } from '@/lib/creator/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +26,7 @@ const CreateRenderPackSchema = z.object({
   target: CreatorTargetSchema.default('cloud'),
   targetAgentId: z.string().min(1).max(128).nullable().optional(),
   metadata: z.record(z.string(), z.unknown()).default({}),
+  curation: CreatorCurationRefSchema.nullable().optional(),
   tags: z.object({
     moods: z.array(z.string().min(1).max(64)).default([]),
     topics: z.array(z.string().min(1).max(64)).default([]),
@@ -120,6 +121,7 @@ export async function POST(request: NextRequest) {
       target: input.target,
       targetAgentId: input.targetAgentId || null,
       metadata: input.metadata,
+      curation: input.curation ?? null,
     });
 
     const contentItem = ContentLibraryItemSchema.parse({
