@@ -92,6 +92,16 @@
   .rights strong { color: var(--ink); font-weight: 600; }
   .note { margin-top: 3rem; font-size: 0.8rem; color: var(--ink-dim); font-family: var(--mono); }
   footer { position: relative; z-index: 1; text-align: center; padding: 2rem 1rem 3rem; color: var(--ink-dim); font-size: 0.85rem; }
+  .tiers { list-style: none; padding: 0; }
+  .tiers .tag { font-family: var(--mono); }
+  .intake { background: var(--ground-raised); border-radius: 14px; padding: 1.25rem; margin-top: 1.5rem; max-width: 640px; box-shadow: 0 0 40px -16px var(--indigo-glow); }
+  .intake label { display: block; margin-top: 0.9rem; color: var(--ink-bright); }
+  .intake select, .intake textarea { width: 100%; margin-top: 0.3rem; background: var(--ground-deep); color: var(--ink); border: 1px solid #ffffff24; border-radius: 8px; padding: 0.6rem; font: inherit; }
+  .intake select:focus-visible, .intake textarea:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; }
+  .intake button { margin-top: 1rem; background: var(--gold); color: var(--ground-deep); border: 0; border-radius: 999px; padding: 0.6rem 1.4rem; font: inherit; cursor: pointer; }
+  .intake .echo { margin-top: 1rem; border-top: 1px solid #ffffff14; padding-top: 0.8rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .intake .echo h3 { margin: 0; font-family: var(--display); font-weight: 400; color: var(--ink-bright); }
+  .fine { font-size: 0.82rem; color: var(--ink-dim); }
 </style>
 </head>
 <body>
@@ -295,8 +305,67 @@
     </div>
   </section>
 
+  <section id="support">
+    <h2>Support the channel</h2>
+    <p>Supporters of What Am I Appreciating Now could have their name, or a short message, inscribed in the 360 scene behind the viewer, and on the closing card of flat videos. These tiers and prices are proposals only: Jonathan decides the real ones. Nothing can be bought or joined yet, and there is no payment of any kind on this page.</p>
+    <div class="grid">
+      <article class="card">
+        <div class="card-body">
+          <span class="state">Proposal</span>
+          <h3>Plain</h3>
+          <div class="tag">$5 a month, proposed. Not final.</div>
+          <p>Soft white name, steady.</p>
+        </div>
+      </article>
+      <article class="card">
+        <div class="card-body">
+          <span class="state">Proposal</span>
+          <h3>Glowing</h3>
+          <div class="tag">$10 a month, proposed. Not final.</div>
+          <p>Gentle glow, slow breathing, soft halo.</p>
+        </div>
+      </article>
+      <article class="card">
+        <div class="card-body">
+          <span class="state">Proposal</span>
+          <h3>Sparkly</h3>
+          <div class="tag">$20 a month, proposed. Not final.</div>
+          <p>Restrained sparkle in warm gold.</p>
+        </div>
+      </article>
+      <article class="card">
+        <div class="card-body">
+          <span class="state">Proposal</span>
+          <h3>Ethereal</h3>
+          <div class="tag">$35 a month, proposed. Not final.</div>
+          <p>Larger letters, slow colour drift, gentle float, plus one short moderated message.</p>
+        </div>
+      </article>
+    </div>
+    <p class="fine">Names are optional aliases. Every name is shown to the supporter and approved with their consent before it appears anywhere public.</p>
+
+    <h2 id="custom-work" style="margin-top:2.5rem">Ask for custom work</h2>
+    <p>Tell What Am I Appreciating Now what you would like: a custom hypnosis session or a custom VR session. This form is a preview. It shows your request back to you and nothing more.</p>
+    <form class="intake" id="intake-form" action="#custom-work" method="get" novalidate>
+      <label for="intake-kind">Which kind of session?
+        <select id="intake-kind" name="kind">
+          <option value="hypnosis">Custom hypnosis session</option>
+          <option value="vr">Custom VR session</option>
+        </select>
+      </label>
+      <label for="intake-details">What would you like it to hold?
+        <textarea id="intake-details" name="details" rows="5" maxlength="1000"></textarea>
+      </label>
+      <p class="fine">Please leave out your name, email and anything private. Nothing you type is saved or sent.</p>
+      <button type="submit">Show my request</button>
+      <div class="echo" id="intake-echo" role="status" aria-live="polite" hidden></div>
+      <noscript><p class="fine">This preview needs JavaScript to show your request back. Coming soon.</p></noscript>
+    </form>
+  </section>
+
   <p class="note">Rendered by scripts/render-brand-mockups.mjs. Meaning of the marks: docs/BRAND-MARK.md.</p>
 </main>
 <footer><a href="/">Back to What Am I Appreciating Now</a></footer>
+<script src="/waia-store-support.js"></script>
 </body>
 </html>
