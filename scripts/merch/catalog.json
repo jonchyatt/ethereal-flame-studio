@@ -1,0 +1,39 @@
+{
+  "brandName": "What Am I Appreciating Now",
+  "siteBase": "https://www.whatamiappreciatingnow.com",
+  "collection": "What Am I Appreciating Now",
+  "printProvider": "to be chosen inside Jonathan's own Wix store (print-on-demand app)",
+  "marks": {
+    "circle": { "file": "brand/what-am-i-appreciating-now-circle-light.svg", "means": "The full name set on a circle so Now closes back into What." },
+    "infinity": { "file": "brand/what-am-i-appreciating-now-infinity-light.svg", "means": "The name running once around the infinity loop of desire, passion, achievement, peace, contrast and new desire." },
+    "loop": { "file": "brand/what-am-i-appreciating-now-loop-light.svg", "means": "The text ring around an arrow that closes on itself." },
+    "wordmark": { "file": "brand/what-am-i-appreciating-now-wordmark-light.svg", "means": "The name on one line, with Now in the accent colour and a line returning from Now to What." },
+    "psychedelic-spiral": { "file": "overlays/WAIANCircle.png", "means": "The studio's spiral artwork behind the mark." },
+    "psychedelic-starfield": { "file": "brand/what-am-i-appreciating-now-infinity-dark.svg", "means": "The infinity loop over colours echoing the studio's star-field presets." }
+  },
+  "rights": {
+    "repo-drawn": "Mark and layout drawn in this repository.",
+    "overlay-unconfirmed": "Spiral artwork is an existing overlay in this repository; Jonathan must confirm full ownership before print."
+  },
+  "products": [
+    { "slug": "circle-shirt", "kind": "shirt", "mark": "circle", "rights": "repo-drawn" },
+    { "slug": "infinity-shirt", "kind": "shirt", "mark": "infinity", "rights": "repo-drawn" },
+    { "slug": "loop-shirt", "kind": "shirt", "mark": "loop", "rights": "repo-drawn" },
+    { "slug": "wordmark-shirt", "kind": "shirt", "mark": "wordmark", "rights": "repo-drawn" },
+    { "slug": "psychedelic-spiral-shirt", "kind": "shirt", "mark": "psychedelic-spiral", "rights": "overlay-unconfirmed" },
+    { "slug": "psychedelic-starfield-shirt", "kind": "shirt", "mark": "psychedelic-starfield", "rights": "repo-drawn" },
+    { "slug": "psychedelic-spiral-hat", "kind": "hat", "mark": "psychedelic-spiral", "rights": "overlay-unconfirmed" },
+    { "slug": "psychedelic-starfield-hat", "kind": "hat", "mark": "psychedelic-starfield", "rights": "repo-drawn" },
+    { "slug": "circle-mug", "kind": "mug", "mark": "circle", "rights": "repo-drawn" },
+    { "slug": "infinity-mug", "kind": "mug", "mark": "infinity", "rights": "repo-drawn" },
+    { "slug": "loop-mug", "kind": "mug", "mark": "loop", "rights": "repo-drawn" },
+    { "slug": "wordmark-mug", "kind": "mug", "mark": "wordmark", "rights": "repo-drawn" },
+    { "slug": "psychedelic-spiral-mug", "kind": "mug", "mark": "psychedelic-spiral", "rights": "overlay-unconfirmed" },
+    { "slug": "psychedelic-starfield-mug", "kind": "mug", "mark": "psychedelic-starfield", "rights": "repo-drawn" }
+  ],
+  "kinds": {
+    "shirt": { "label": "T-shirt", "sizes": ["S", "M", "L", "XL", "2XL"] },
+    "hat": { "label": "Hat", "sizes": [] },
+    "mug": { "label": "Mug", "sizes": [] }
+  }
+}
