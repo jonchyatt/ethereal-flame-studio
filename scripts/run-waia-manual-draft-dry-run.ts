@@ -25,7 +25,7 @@ const originalYoutube = (google as any).youtube;
 
 try {
   console.log('DRY-RUN: importing existing publish connector');
-  const { runPublishConnector } = await import('../src/lib/creator/publishConnectors.ts');
+  const { runPublishConnector } = await import('../src/lib/creator/publishConnectors');
   console.log('DRY-RUN: publish connector imported');
   const result = await runPublishConnector({
     provider: 'youtube',
