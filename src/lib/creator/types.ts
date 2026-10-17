@@ -159,6 +159,11 @@ export const ContentLibraryItemSchema = z.object({
   notes: z.string().max(2000).nullable().optional(),
 });
 
+export const CreatorCurationRefSchema = z.object({
+  batchJobId: z.string().min(1).max(128),
+  itemIndex: z.number().int().min(0),
+});
+
 export const CreatorRenderPackSchema = z.object({
   packId: z.string().uuid(),
   createdAt: z.string().datetime(),
@@ -181,6 +186,8 @@ export const CreatorRenderPackSchema = z.object({
   target: CreatorTargetSchema.default('cloud'),
   targetAgentId: z.string().min(1).max(128).nullable().optional(),
   metadata: z.record(z.string(), z.unknown()).default({}),
+  /** Playlist-batch item this pack was made from; copied onto publish jobs so the publish gate can check it. */
+  curation: CreatorCurationRefSchema.nullable().optional(),
 });
 
 export type CreatorStyleVariant = z.infer<typeof CreatorStyleVariantSchema>;

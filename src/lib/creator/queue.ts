@@ -483,6 +483,7 @@ export async function queueCreatorPackPublishJobs(
           cta: draft.ctas[0] || null,
           keywords: draft.keywordPacks || [],
           channelPresetId: draft.channelPresetId || null,
+          curation: pack.curation ?? null,
         });
 
         const publishTask = CreatorPublishTaskSchema.parse({
