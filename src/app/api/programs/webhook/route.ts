@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { grantAccess, revokeAccess } from '@/lib/entitlements/model';
+import { grantAccess, markPastDue, revokeAccess, setCancelAtPeriodEnd } from '@/lib/entitlements/model';
 import { actionForEvent, verifyWebhook, type StripeEvent } from '@/lib/entitlements/stripe';
 
 export const dynamic = 'force-dynamic';
@@ -14,6 +14,10 @@ export async function POST(req: NextRequest) {
   const action = actionForEvent(ev);
   if (action.op === 'grant') {
     await grantAccess({ ...action, eventId: ev.id });
+  } else if (action.op === 'past_due') {
+    await markPastDue(action.customerId, action.programId, { eventId: ev.id });
+  } else if (action.op === 'cancel_flag') {
+    await setCancelAtPeriodEnd(action.customerId, action.programId, action.cancel, { eventId: ev.id });
   } else if (action.op === 'revoke') {
     await revokeAccess(action.customerId, action.programId, { eventId: ev.id });
   }
