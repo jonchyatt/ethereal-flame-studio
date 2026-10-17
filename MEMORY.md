@@ -43,3 +43,10 @@
 ## 2026-10-17 digest: Branch t_3dc0160f has nothing left
 
 - Its 11 commits are a strict subset of `t_9edb8eb7` (landed in PR #2); its files match the PR #2 merge exactly. No OAuth upload slot found in it. Note in `docs/WAIA-BRANCH-t_3dc0160f-NOTE.md`; no code changed.
+
+## 2026-10-17 digest: Render pack contents from approved item
+
+- On top of #12: when the sweep creates (or finds) the pack for a release-approved item, it also writes `title.txt`, `description.txt`, `chapters.txt`, `thumbnail-brief.md`, `patrons.json` (pointer only) and `captions.srt` to storage under `creator/pack-contents/<packId>/`, `contents.json` last so a half-written folder is retried. Code: `src/lib/playlist-batch/packContents.ts`.
+- No script in the repo reads a per-pack folder today; this storage prefix is the choice made here (kept apart from `creator/packs/` so the pack listing does not parse these files). Say if the render script should read a different place.
+- Not invented: captions need `assets/<assetId>/transcript.json` (nothing writes it yet), otherwise `contents.json` says `awaiting-transcript` and no `.srt` is written. Chapters are written only with 3+ real, 10 s apart timings, otherwise `pending-timings`. Patron pointer comes from `WAIA_PATRONS_RENDER_LIST` and `..._HASH`, else null.
+- No stored approved item exists; the end-to-end test (`packContents.lane.test.ts`) uses the same synthetic release-approved fixture as the manual-draft lane test. Nothing moves an item into `release-approved` yet. `publishGate.ts` untouched; no credentials, nothing run against YouTube.

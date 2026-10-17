@@ -1,6 +1,7 @@
 import type { JobStore } from '@/lib/jobs/types';
 import { createRenderPack } from '@/lib/creator/renderPack';
 import { getCreatorRenderPack } from '@/lib/creator/store';
+import { buildPackContents, readTranscript, writePackContents } from './packContents';
 import {
   PlaylistBatchResultSchema,
   deterministicUuid,
@@ -17,6 +18,18 @@ export function renderPackIdFor(batchJobId: string, itemIndex: number): string {
 function audioNameFor(item: PlaylistBatchItemState): string {
   const safe = item.title.replace(/[<>:"/\\|?*\u0000-\u001F]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
   return `${safe || item.videoId}.mp3`;
+}
+
+/** Pack contents are best effort and retried by the next sweep; they never block pack creation. */
+async function ensureContents(batchId: string, packId: string, item: PlaylistBatchItemState, sourceItems: unknown): Promise<void> {
+  try {
+    const durationSec = (Array.isArray(sourceItems)
+      ? (sourceItems as Array<{ index: number; durationSeconds?: number }>).find((s) => s.index === item.index)?.durationSeconds
+      : undefined) ?? null;
+    await writePackContents(packId, buildPackContents({
+      item, batchJobId: batchId, packId, durationSec, transcript: await readTranscript(item.assetId),
+    }));
+  } catch { /* retried on the next sweep */ }
 }
 
 /**
@@ -39,6 +52,7 @@ export async function ensureRenderPacksForReleaseApproved(
     const packId = renderPackIdFor(batchId, item.index);
     try {
       if (await getCreatorRenderPack(packId)) {
+        await ensureContents(batchId, packId, item, batch.metadata?.items);
         stats.existing++;
         continue;
       }
@@ -76,6 +90,7 @@ export async function ensureRenderPacksForReleaseApproved(
         channelPresetIds: [],
       }, { packId });
       stats.created++;
+      await ensureContents(batchId, packId, item, batch.metadata?.items);
     } catch {
       stats.failed++;
     }
