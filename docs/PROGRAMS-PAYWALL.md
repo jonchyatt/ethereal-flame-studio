@@ -14,3 +14,6 @@ Backlog item 1. Paid programs on whatamiappreciatingnow.com: `/programs`, `/prog
 `npx jest src/lib/entitlements`. Also run end to end on a local dev server: no cookie 402, bad signature 400, signed test webhook grants, content opens for the granted program only.
 
 Not done here: protocols Jonathan has not handed over (no entry, nothing invented); real prices; subscription grace logic beyond a 3-day window until `invoice.paid` arrives.
+
+## Price config (backlog item 3)
+Every price lives in `src/lib/prices/config.ts` (`PRICES`, cents, `null` = not yet on sale). `catalog.ts` and `patrons/tiers.ts` read it through `priceFor`; no page holds a number. Options A, B and C in `src/lib/prices/options.ts` are proposals shown side by side at `/store/prices/preview` (noindex); checkout never reads them. The choice is on `approvals/2026-10-17-price-ladder.md`. Check: `npx jest src/lib/prices`.
