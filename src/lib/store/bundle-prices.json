@@ -1,0 +1,9 @@
+{
+  "note": "Prices in cents. null means not yet on sale. Bundle prices are read only from this file; when the single price config lands, point bundlePriceCents at it.",
+  "bundles": {
+    "deeper-sessions-gift": null,
+    "yale-guided-process-gift": null,
+    "loop-worn-and-held": null,
+    "custom-session-gift": null
+  }
+}
