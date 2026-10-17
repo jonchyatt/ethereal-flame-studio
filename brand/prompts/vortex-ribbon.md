@@ -1,0 +1,2 @@
+# Vortex ribbon
+A luminous ribbon of light flowing along the exact infinity-loop path in the guide image, crossing itself once at the centre. The ribbon twists and spirals like a vortex, with depth and soft motion trails, in deep indigo, violet and teal with warm gold highlights at the crossing. Keep the loop's proportions and crossing point faithful to the guide. Use the colour and spiral feeling of the channel logo. Dark, spacious background with faint stars, leaving clear room above each lobe for lettering. Mood: joy, appreciation, life.

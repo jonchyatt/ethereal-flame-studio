@@ -1,0 +1,2 @@
+# Carved wood relief
+A hand-carved wooden relief of the infinity loop from the guide image, the groove following its exact path and crossing once at the centre. Warm walnut and honey-coloured grain, soft raking light, visible chisel marks, gently polished edges, a small gold inlay at the crossing. Echo the spiral of the channel logo in the grain. Plain, calm background; leave smooth uncarved wood above each lobe for lettering. Mood: joy, appreciation, life.

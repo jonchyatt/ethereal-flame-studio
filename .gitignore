@@ -125,3 +125,8 @@ blender/jobs/*
 # Patron data (display text, consent refs) lives outside the repo
 patrons*.json
 *patron_render*.json
+
+# Brand image workflow: candidates are picked by hand, then copied to public/brand/
+brand/candidates/
+brand/guide.png
+brand/composed.*
