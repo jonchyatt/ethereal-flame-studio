@@ -39,3 +39,7 @@
 - Cherry-picked the one commit on `t_b0e55f67` onto master: three owned Reset Biology draft packs (`waia-owned-rb-food-peace-v1`, `-hunger-noticing-v1`, `-evening-rest-v1`) plus `scripts/check-waia-three-owned-rb-packs.mjs`. Docs and a check script only; no runtime code touched.
 - Gate review: all three are `private-draft-only`, `publication.blocked: true`, `connectorMode: manual-draft`, no upload id, URL or schedule, rights state `HOLD-MEDIA`, no third-party audio, and no credentials or channel id. They cannot reach upload without the curation gate.
 - The check script passes every structural rule here but fails the file-readable checks, because the source masters and mp3s live on Jonathan's machine (same local-path pattern as the pilot pack). Run it there.
+
+## 2026-10-17 digest: Branch t_3dc0160f has nothing left
+
+- Its 11 commits are a strict subset of `t_9edb8eb7` (landed in PR #2); its files match the PR #2 merge exactly. No OAuth upload slot found in it. Note in `docs/WAIA-BRANCH-t_3dc0160f-NOTE.md`; no code changed.
