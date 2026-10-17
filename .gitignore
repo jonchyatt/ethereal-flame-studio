@@ -121,3 +121,7 @@ blender/jobs/*
 *.vdb
 *.openexr
 *.exr
+
+# Patron data (display text, consent refs) lives outside the repo
+patrons*.json
+*patron_render*.json
