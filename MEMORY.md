@@ -50,3 +50,8 @@
 - No script in the repo reads a per-pack folder today; this storage prefix is the choice made here (kept apart from `creator/packs/` so the pack listing does not parse these files). Say if the render script should read a different place.
 - Not invented: captions need `assets/<assetId>/transcript.json` (nothing writes it yet), otherwise `contents.json` says `awaiting-transcript` and no `.srt` is written. Chapters are written only with 3+ real, 10 s apart timings, otherwise `pending-timings`. Patron pointer comes from `WAIA_PATRONS_RENDER_LIST` and `..._HASH`, else null.
 - No stored approved item exists; the end-to-end test (`packContents.lane.test.ts`) uses the same synthetic release-approved fixture as the manual-draft lane test. Nothing moves an item into `release-approved` yet. `publishGate.ts` untouched; no credentials, nothing run against YouTube.
+
+## 2026-10-17 digest: Reds audit and backlog
+
+- `docs/BACKLOG.md` reclassifies 28 items treated as blocked or red under the five reds; only uploads/posting (R3), live-mode payments and paid seats (R1), signing clip licences (R2) and handing logins to others (R5) remain red. Sixteen queued threads, first: programs paywall and entitlements (test mode).
+- Not verified: the jarvis repo files named in it were not readable from here.
