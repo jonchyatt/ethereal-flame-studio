@@ -13,3 +13,11 @@
 - PR opened from `claude/project-thread-qnxyst` (`t_9edb8eb7` plus one merge of `master` at `fd3d3e6`; no rebase, squash or force-push). Merge was clean.
 - On the merged tree: `npm install` ok; `tsc` has 1 error (`scripts/run-waia-manual-draft-dry-run.ts:28`, a `.ts` import extension) that master does not have; jest 161 passed, 3 suites fail identically on master (two need network, one imports a missing `retrieval.js`).
 - Nothing was run against YouTube, OAuth, env or production databases.
+
+## 2026-10-17 digest: Publish gate and channel check
+
+- Publish job now refuses (logged, no connector call, job marked failed) unless the item it points to (`curation: {batchJobId, itemIndex}` in publish metadata) is in an approved state with a current approval, a rights basis and a mix recipe fingerprint. No reference means refusal.
+- YouTube API path asks `channels.list(mine)` and aborts unless the one returned channel is `UCyq4s4Nei7Q26tu7EIQY7xw`, before `videos.insert`. The upload-only OAuth scope may not allow that call; if so the check fails closed and the credentials slot needs a read scope (not changed here).
+- No-credentials path still writes the manual-draft manifest, now with channel id and curation evidence, and checks both before writing.
+- Existing creator queue does not yet set `curation`, so queued publishes are refused until the curated-item-to-publish wiring lands.
+- jest for `src/lib/creator` and `src/lib/playlist-batch`: 34 pass. Nothing run against YouTube, OAuth, env or production databases.

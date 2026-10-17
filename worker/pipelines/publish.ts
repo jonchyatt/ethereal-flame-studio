@@ -4,6 +4,7 @@ import { getStorageAdapter } from '../../src/lib/storage';
 import { CreatorPublishJobMetadataSchema } from '../../src/lib/creator/jobs';
 import { getCreatorRenderPack, saveCreatorRenderPack } from '../../src/lib/creator/store';
 import { runPublishConnector } from '../../src/lib/creator/publishConnectors';
+import { checkPublishGate, PublishChannelMismatchError } from '../../src/lib/creator/publishGate';
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -40,6 +41,19 @@ export async function runPublishPipeline(
   const metadata = parsed.data;
   const storage = getStorageAdapter();
 
+  // HB-3: refuse before anything else (media resolution, connector, upload) if curation has not passed.
+  const gate = await checkPublishGate(store, metadata.curation);
+  if (!gate.ok) {
+    const message = `Publish refused by curation gate: ${gate.reason}`;
+    console.warn(`[publish] ${message} (job ${job.jobId}, publish ${metadata.publishId})`);
+    await patchPublishTask(metadata.creatorPackId, metadata.publishId, {
+      status: 'failed',
+      error: message,
+    }).catch(() => {});
+    await store.fail(job.jobId, message);
+    return;
+  }
+
   await patchPublishTask(metadata.creatorPackId, metadata.publishId, {
     status: 'processing',
     error: null,
@@ -58,6 +72,7 @@ export async function runPublishPipeline(
       provider: metadata.provider,
       metadata,
       mediaSignedUrl,
+      curation: gate.evidence,
     });
 
     const taskStatus =
@@ -91,6 +106,9 @@ export async function runPublishPipeline(
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    if (error instanceof PublishChannelMismatchError) {
+      console.error(`[publish] Aborted by channel check: ${message} (job ${job.jobId}, publish ${metadata.publishId})`);
+    }
     await patchPublishTask(metadata.creatorPackId, metadata.publishId, {
       status: 'failed',
       error: message,
