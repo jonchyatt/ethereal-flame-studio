@@ -12,6 +12,8 @@ export type RecutVideoOptions = {
   fps: 30 | 60;
   crf?: number;
   preset?: 'veryfast' | 'faster' | 'fast' | 'medium' | 'slow';
+  /** Optional .ass/.srt file burned in after the crop and scale, so captions sit in the final frame. */
+  subtitlePath?: string;
 };
 
 export type RecutVideoResult = {
@@ -60,14 +62,18 @@ function buildCrop(sourceWidth: number, sourceHeight: number, targetWidth: numbe
   return { cropW, cropH, cropX, cropY };
 }
 
-export async function runFfmpegRecut(options: RecutVideoOptions): Promise<RecutVideoResult> {
+function escapeFilterPath(value: string): string {
+  return value.replace(/\\/g, '/').replace(/[:'\[\],;]/g, (c) => `\\${c}`);
+}
+
+export function buildRecutArgs(options: RecutVideoOptions): { args: string[]; durationSec: number } {
   const startSec = Math.max(0, Number(options.startSec) || 0);
   const endSec = Math.max(startSec + 0.05, Number(options.endSec) || startSec + 1);
   const durationSec = Number((endSec - startSec).toFixed(3));
   const crop = buildCrop(options.sourceWidth, options.sourceHeight, options.targetWidth, options.targetHeight);
   const crf = options.crf ?? 20;
   const preset = options.preset ?? 'medium';
-  const vf = `crop=${crop.cropW}:${crop.cropH}:${crop.cropX}:${crop.cropY},scale=${evenFloor(options.targetWidth)}:${evenFloor(options.targetHeight)}:flags=lanczos,fps=${options.fps}`;
+  const vf = `crop=${crop.cropW}:${crop.cropH}:${crop.cropX}:${crop.cropY},scale=${evenFloor(options.targetWidth)}:${evenFloor(options.targetHeight)}:flags=lanczos,fps=${options.fps}${options.subtitlePath ? `,subtitles=filename=${escapeFilterPath(options.subtitlePath)}` : ''}`;
 
   const args = [
     '-y',
@@ -85,7 +91,11 @@ export async function runFfmpegRecut(options: RecutVideoOptions): Promise<RecutV
     '-movflags', '+faststart',
     options.outputPath,
   ];
+  return { args, durationSec };
+}
 
+export async function runFfmpegRecut(options: RecutVideoOptions): Promise<RecutVideoResult> {
+  const { args, durationSec } = buildRecutArgs(options);
   const ffmpegCommand = `ffmpeg ${args.map((arg) => (/\s/.test(arg) ? `"${arg}"` : arg)).join(' ')}`;
 
   return new Promise<RecutVideoResult>((resolve) => {
