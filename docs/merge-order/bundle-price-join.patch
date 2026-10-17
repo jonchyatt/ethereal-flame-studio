@@ -1,0 +1,96 @@
+diff --git a/src/lib/prices/config.ts b/src/lib/prices/config.ts
+index fbc339f..930d67c 100644
+--- a/src/lib/prices/config.ts
++++ b/src/lib/prices/config.ts
+@@ -29,6 +29,18 @@ export const PRICES: Readonly<Record<PriceKey, number | null>> = {
+   'program:yale-inversion-protocol': null,
+ };
+ 
++/**
++ * Bundle and gift prices (backlog item 11). Kept apart from PRICES because the ladder
++ * options in ./options.ts propose program and patron prices only; bundles have none
++ * proposed, so they stay blank until Jonathan sets them. Keyed by bundle id.
++ */
++export const BUNDLE_PRICES: Readonly<Record<string, number | null>> = {
++  'deeper-sessions-gift': null,
++  'yale-guided-process-gift': null,
++  'loop-worn-and-held': null,
++  'custom-session-gift': null,
++};
++
+ /** Cents for a key, or null when blank, unknown, or not a positive whole number. */
+ export function priceFor(key: string, prices: Readonly<Record<string, number | null>> = PRICES): number | null {
+   const v = prices[key];
+diff --git a/src/lib/store/__tests__/bundles.test.ts b/src/lib/store/__tests__/bundles.test.ts
+index 3cf6b5b..e7e23c3 100644
+--- a/src/lib/store/__tests__/bundles.test.ts
++++ b/src/lib/store/__tests__/bundles.test.ts
+@@ -3,6 +3,7 @@ import path from 'path';
+ import {
+   BUNDLES, validateBundles, getBundle, bundlePriceCents, isOnSale, createGiftDraft, hashGiftCode, newGiftCode, itemLabel, Bundle,
+ } from '../bundles';
++import { BUNDLE_PRICES } from '@/lib/prices/config';
+ 
+ const root = path.resolve(__dirname, '../../../..');
+ const NOW = new Date('2026-10-17T12:00:00Z');
+@@ -15,13 +16,12 @@ describe('store: gift and bundle catalog', () => {
+   });
+ 
+   it('every bundle is not yet on sale and prices come only from the price file', () => {
+-    const file = JSON.parse(fs.readFileSync(path.join(__dirname, '../bundle-prices.json'), 'utf8'));
+     for (const b of BUNDLES) {
+-      expect(Object.keys(file.bundles)).toContain(b.id);
++      expect(Object.keys(BUNDLE_PRICES)).toContain(b.id);
+       expect(bundlePriceCents(b.id)).toBeNull();
+       expect(isOnSale(b.id, { BUNDLES_OPEN: '1' })).toBe(false);
+     }
+-    expect(Object.keys(file.bundles).sort()).toEqual(BUNDLES.map((b) => b.id).sort());
++    expect(Object.keys(BUNDLE_PRICES).sort()).toEqual(BUNDLES.map((b) => b.id).sort());
+   });
+ 
+   it('needs both a price and the switch to count as on sale', () => {
+diff --git a/src/lib/store/bundle-prices.json b/src/lib/store/bundle-prices.json
+deleted file mode 100644
+index bb4a170..0000000
+--- a/src/lib/store/bundle-prices.json
++++ /dev/null
+@@ -1,9 +0,0 @@
+-{
+-  "note": "Prices in cents. null means not yet on sale. Bundle prices are read only from this file; when the single price config lands, point bundlePriceCents at it.",
+-  "bundles": {
+-    "deeper-sessions-gift": null,
+-    "yale-guided-process-gift": null,
+-    "loop-worn-and-held": null,
+-    "custom-session-gift": null
+-  }
+-}
+diff --git a/src/lib/store/bundles.ts b/src/lib/store/bundles.ts
+index c261fa0..1f9bd28 100644
+--- a/src/lib/store/bundles.ts
++++ b/src/lib/store/bundles.ts
+@@ -4,13 +4,13 @@
+  * A bundle groups things that already exist in the paid catalog (programs), the
+  * merchandise feed (print-on-demand through the Wix store) and the custom session
+  * order flow. Bundles never hold prices or program words: prices come from
+- * bundle-prices.json (null = not yet on sale), words live in private storage.
++ * src/lib/prices/config.ts (null = not yet on sale), words live in private storage.
+  * Nothing here takes money. Going on sale is Jonathan's click.
+  */
+ import { createHash, randomInt } from 'crypto';
+ import { getProgram, isFreeTool } from '@/lib/entitlements/catalog';
+ import merch from '../../../scripts/merch/catalog.json';
+-import prices from './bundle-prices.json';
++import { BUNDLE_PRICES, priceFor } from '@/lib/prices/config';
+ 
+ export type BundleItem =
+   | { type: 'program'; id: string }
+@@ -93,8 +93,7 @@ export function getBundle(id: string): Bundle | null {
+ }
+ 
+ export function bundlePriceCents(id: string): number | null {
+-  const v = (prices.bundles as Record<string, number | null>)[id];
+-  return typeof v === 'number' && Number.isInteger(v) && v > 0 ? v : null;
++  return priceFor(id, BUNDLE_PRICES);
+ }
+ 
+ /** On sale only with a price set and Jonathan's switch on; otherwise every page says "not yet on sale". */
