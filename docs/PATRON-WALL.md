@@ -67,3 +67,13 @@ Public pages: `/patrons/join` (tier, name or alias, one message on Ethereal only
 - **Curation (operator, `Authorization: Bearer $WAIA_OPERATOR_SECRET`)**: `GET /api/patrons/intake` lists submissions; `PATCH` with `{consentRef, decision: approve|reject|withdraw}` decides (approve re-runs moderation and refuses if removal was requested); `GET /api/patrons/intake?format=patrons` returns the `patrons.json` content (approved, no removal request) to save outside the repo and pass to `writePatronRenderList`.
 - **Removal**: `POST /api/patrons/removal {consentRef}` flags the record; the next export omits it. The answer is identical whether or not the code exists.
 - Checks: `npx jest src/lib/patrons`.
+
+## Public wall page (backlog queue item 8)
+
+`/patrons` shows the approved names and the tier ladder with benefits, every tier marked "Proposal · Not yet on sale" (benefits live in `src/lib/patrons/tiers.ts`; still no prices). It never reads the live intake list for content: it shows a **published snapshot** at `patrons/wall/published.json` in private storage (`src/lib/patrons/wall.ts`).
+
+- **Publish**: `POST /api/patrons/wall` with `Authorization: Bearer $WAIA_OPERATOR_SECRET` freezes the currently approved, not-removed patrons and returns `{publishedAt, hash, count}`. Newly approved names appear only after the next publish.
+- **Removal is immediate**: the page also checks each snapshot entry against its intake record, so a removal request or withdrawal hides the name at once, without a new publish. An entry with no intake record is hidden.
+- **Fail closed**: a missing, malformed or tampered snapshot (hash mismatch, failed schema or moderation) renders the empty state: "The wall is empty for now".
+- The page shows only name, optional message and tier. No consent codes, dates or contact details reach the browser as text.
+- Checks: `npx jest src/lib/patrons`.
