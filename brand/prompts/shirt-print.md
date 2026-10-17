@@ -1,0 +1,2 @@
+# Shirt print
+A screen-print style graphic for a T-shirt: the infinity loop from the guide image as a swirling psychedelic ribbon, crossing once at the centre, using the spiral and colours of the channel logo. Flat bold colour areas, a limited palette of at most six colours, crisp edges, no gradients that would not print, isolated on a solid pure black background with generous margin. Leave open space above each lobe for lettering. Mood: joy, appreciation, life.
