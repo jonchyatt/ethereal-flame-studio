@@ -119,6 +119,10 @@ export function middleware(request: NextRequest) {
   if (isBareApex && pathname === '/') {
     return NextResponse.rewrite(new URL('/waia-front-door.html', request.url));
   }
+  // Store page (placeholders only, nothing on sale): /store on the bare apex.
+  if (isBareApex && pathname === '/store') {
+    return NextResponse.rewrite(new URL('/waia-store.html', request.url));
+  }
 
   // Main domain: redirect /jarvis → /jarvis/app (old voice orb is dead end)
   if (pathname === '/jarvis') {

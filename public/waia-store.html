@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Store, What Am I Appreciating Now</title>
+<meta name="description" content="Programs, custom sessions and merchandise from What Am I Appreciating Now. Nothing is on sale yet." />
+<style>
+
+
+  /* ============ DESIGN TOKENS ============
+     Single deliberate visual world: a night-sky meditation void.
+     This page does not ship a light theme — the cosmic/VR-portal aesthetic
+     IS the subject, and a "light mode" void would undercut it. Choice, not omission. */
+  :root {
+    --ground: #0a0d17;
+    --ground-raised: #131829;
+    --ground-deep: #05060c;
+    --ink: #e6e2d3;
+    --ink-bright: #f7f3e6;
+    --ink-dim: #9b9788;
+    --gold: #cf9d4f;
+    --gold-bright: #e6bd77;
+    --indigo: #4a5a94;
+    --indigo-glow: rgba(74, 90, 148, 0.35);
+    --ring-w: min(46vw, 380px);
+
+    --display: "Iowan Old Style", "Sitka Text", Georgia, "Times New Roman", serif;
+    --body-font: "Seravek", "Gill Sans Nova", Corbel, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body-font);
+    overflow-x: hidden;
+  }
+
+  body {
+    line-height: 1.6;
+  }
+
+  a { color: var(--gold-bright); }
+  a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 3px;
+  }
+
+  h1, h2 {
+    font-family: var(--display);
+    color: var(--ink-bright);
+    text-wrap: balance;
+    font-weight: 400;
+    margin: 0;
+  }
+
+  .loop-label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  
+  .starfield { position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: radial-gradient(ellipse 60% 40% at 20% 15%, var(--indigo-glow), transparent 60%),
+      radial-gradient(ellipse 50% 35% at 85% 70%, rgba(207,157,79,0.08), transparent 65%), var(--ground); }
+  main { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 3rem 1.25rem 4rem; }
+  header { text-align: center; padding: 2rem 0 1rem; }
+  header h1 { font-size: clamp(1.9rem, 5vw, 3rem); }
+  header p { max-width: 54ch; margin: 1rem auto 0; color: var(--ink-dim); }
+  header img { width: 140px; height: 140px; margin-bottom: 1rem; }
+  section { margin-top: 3.5rem; }
+  section > h2 { font-size: clamp(1.5rem, 3.5vw, 2.1rem); }
+  section > p { color: var(--ink-dim); max-width: 60ch; }
+  .grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); margin-top: 1.5rem; }
+  .card { background: var(--ground-raised); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 40px -16px var(--indigo-glow); }
+  .card img { width: 100%; height: auto; display: block; background: #e9e6dd; }
+  .card-body { padding: 1rem 1.1rem 1.2rem; display: flex; flex-direction: column; gap: 0.35rem; }
+  .card h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 1.2rem; color: var(--ink-bright); }
+  .card p { margin: 0; font-size: 0.92rem; }
+  .tag { font-size: 0.82rem; color: var(--ink-dim); }
+  .state { align-self: flex-start; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ground-deep); background: var(--gold); padding: 0.2rem 0.6rem; border-radius: 999px; }
+  .rights { color: var(--ink-dim); font-size: 0.8rem !important; border-top: 1px solid #ffffff14; padding-top: 0.6rem; margin-top: 0.4rem !important; }
+  .rights strong { color: var(--ink); font-weight: 600; }
+  .note { margin-top: 3rem; font-size: 0.8rem; color: var(--ink-dim); font-family: var(--mono); }
+  footer { position: relative; z-index: 1; text-align: center; padding: 2rem 1rem 3rem; color: var(--ink-dim); font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<div class="starfield" aria-hidden="true"></div>
+<main>
+  <header>
+    <img src="/brand/what-am-i-appreciating-now-circle-dark.svg" alt="What Am I Appreciating Now, set on a circle so Now closes back into What" />
+    <div class="loop-label">The Store</div>
+    <h1>What Am I Appreciating Now</h1>
+    <p>Programs, custom sessions and merchandise. Nothing here is on sale yet: no prices, no cart, no payment. Every item shows where its words, voices, images and music come from.</p>
+  </header>
+
+  <section id="programs">
+    <h2>Programs</h2>
+    <p>Advanced hypnosis sessions and guided processes, offered as a subscription or one at a time.</p>
+    <div class="grid">
+      <article class="card">
+        
+        <div class="card-body">
+          <span class="state">Not yet on sale</span>
+          <h3>Advanced hypnosis sessions</h3>
+          <div class="tag">Subscription or one-time. Price to be set.</div>
+          <p>Deeper sessions for people who want to go further than the free collection. Format, length and cadence are not decided yet.</p>
+          <p class="rights"><strong>Rights and provenance.</strong> Script author, voice and music are recorded for every session before it can go on sale. Nothing here is live.</p>
+        </div>
+      </article>
+      <article class="card">
+        
+        <div class="card-body">
+          <span class="state">Not yet on sale</span>
+          <h3>The Yale inversion protocol</h3>
+          <div class="tag">Guided process. Price to be set.</div>
+          <p>A guided process built on the inversion protocol. The protocol content is handed over by Jonathan and is not written or paraphrased on this page.</p>
+          <p class="rights"><strong>Rights and provenance.</strong> Source lives with the protocol documents; its provenance note is attached before release.</p>
+        </div>
+      </article>
+      <article class="card">
+        
+        <div class="card-body">
+          <span class="state">Not yet on sale</span>
+          <h3>Further protocols</h3>
+          <div class="tag">Guided process. Placeholder.</div>
+          <p>Space held for protocols that have not been handed over yet. Their content is never invented.</p>
+          <p class="rights"><strong>Rights and provenance.</strong> Each protocol carries its own source and permission note before it appears.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="custom-sessions">
+    <h2>Custom Sessions</h2>
+    <p>Personalised hypnosis, set against a star-field or in VR.</p>
+    <div class="grid">
+      <article class="card">
+        
+        <div class="card-body">
+          <span class="state">Not yet on sale</span>
+          <h3>Custom hypnosis session</h3>
+          <div class="tag">Personalised. Price to be set.</div>
+          <p>A session written around one person, with a star-field background from the studio.</p>
+          <p class="rights"><strong>Rights and provenance.</strong> Written for the buyer. Voice and music provenance are recorded per order; no rights are claimed over the buyer's own words.</p>
+        </div>
+      </article>
+      <article class="card">
+        
+        <div class="card-body">
+          <span class="state">Not yet on sale</span>
+          <h3>Custom VR session</h3>
+          <div class="tag">Personalised, headset-ready. Price to be set.</div>
+          <p>The same personal session in a 360° VR environment rendered by Ethereal Flame Studio.</p>
+          <p class="rights"><strong>Rights and provenance.</strong> Backgrounds are studio-made (star-field shader and EFS renders). Any third-party asset is logged with its licence before use.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="merchandise">
+    <h2>Merchandise</h2>
+    <p>T-shirts, hats and mugs carrying the marks, with psychedelic variants on the studio's own backgrounds. Images are mockups.</p>
+    <div class="grid">
+      <article class="card">
+        <img src="/public/brand/mockups/circle-shirt.png" alt="T-shirt with the circular What Am I Appreciating Now mark" loading="lazy" width="500" height="500">
+        <div class="card-body">
+          <span class="state">Not yet on sale</span>
+          <h3>T-shirt, circular mark</h3>
+          <div class="tag">Merchandise. Price to be set.</div>
+          <p>The full name set on a circle so Now closes back into What.</p>
+          <p class="rights"><strong>Rights and provenance.</strong> Mark and layout drawn in this repository; shirt, hat and mug images are illustrative mockups, not product photos.</p>
+        </div>
+      </article>
+      <article class="card">
+        <img src="/public/brand/mockups/infinity-shirt.png" alt="T-shirt with the infinity-loop mark" loading="lazy" width="500" height="500">
+        <div class="card-body">
+          <span class="state">Not yet on sale</span>
+          <h3>T-shirt, infinity loop</h3>
+          <div class="tag">Merchandise. Price to be set.</div>
+          <p>The name running once around an infinity loop.</p>
+          <p class="rights"><strong>Rights and provenance.</strong> Mark and layout drawn in this repository; shirt, hat and mug images are illustrative mockups, not product photos.</p>
+        </div>
+      </article>
+      <article class="card">
+        <img src="/public/brand/mockups/circle-mug.png" alt="Mug with the circular mark" loading="lazy" width="500" height="500">
+        <div class="card-body">
+          <span class="state">Not yet on sale</span>
+          <h3>Mug, circular mark</h3>
+          <div class="tag">Merchandise. Price to be set.</div>
+          <p>The circular mark on a plain mug.</p>
+          <p class="rights"><strong>Rights and provenance.</strong> Mark and layout drawn in this repository; shirt, hat and mug images are illustrative mockups, not product photos.</p>
+        </div>
+      </article>
+      <article class="card">
+        <img src="/public/brand/mockups/wordmark-mug.png" alt="Mug with the wordmark" loading="lazy" width="500" height="500">
+        <div class="card-body">
+          <span class="state">Not yet on sale</span>
+          <h3>Mug, wordmark</h3>
+          <div class="tag">Merchandise. Price to be set.</div>
+          <p>The plain wordmark with its loop returning to the start.</p>
+          <p class="rights"><strong>Rights and provenance.</strong> Mark and layout drawn in this repository; shirt, hat and mug images are illustrative mockups, not product photos.</p>
+        </div>
+      </article>
+      <article class="card">
+        <img src="/public/brand/mockups/loop-shirt.png" alt="T-shirt with the circular loop mark" loading="lazy" width="500" height="500">
+        <div class="card-body">
+          <span class="state">Not yet on sale</span>
+          <h3>T-shirt, circular loop</h3>
+          <div class="tag">Merchandise. Price to be set.</div>
+          <p>The text ring around a loop that closes on itself.</p>
+          <p class="rights"><strong>Rights and provenance.</strong> Mark and layout drawn in this repository; shirt, hat and mug images are illustrative mockups, not product photos.</p>
+        </div>
+      </article>
+      <article class="card">
+        <img src="/public/brand/mockups/psychedelic-spiral-shirt.png" alt="Psychedelic spiral T-shirt" loading="lazy" width="500" height="500">
+        <div class="card-body">
+          <span class="state">Not yet on sale</span>
+          <h3>Psychedelic T-shirt, spiral</h3>
+          <div class="tag">Merchandise. Price to be set.</div>
+          <p>The existing spiral artwork on black.</p>
+          <p class="rights"><strong>Rights and provenance.</strong> Spiral artwork is the studio's existing public/overlays/WAIANCircle.png; confirm it is fully Jonathan-owned before print. Print-on-demand through the Wix store.</p>
+        </div>
+      </article>
+      <article class="card">
+        <img src="/public/brand/mockups/psychedelic-spiral-hat.png" alt="Psychedelic spiral hat" loading="lazy" width="500" height="500">
+        <div class="card-body">
+          <span class="state">Not yet on sale</span>
+          <h3>Psychedelic hat, spiral</h3>
+          <div class="tag">Merchandise. Price to be set.</div>
+          <p>The spiral artwork on a cap.</p>
+          <p class="rights"><strong>Rights and provenance.</strong> Spiral artwork is the studio's existing public/overlays/WAIANCircle.png; confirm it is fully Jonathan-owned before print. Print-on-demand through the Wix store.</p>
+        </div>
+      </article>
+      <article class="card">
+        <img src="/public/brand/mockups/psychedelic-spiral-mug.png" alt="Psychedelic spiral mug" loading="lazy" width="500" height="500">
+        <div class="card-body">
+          <span class="state">Not yet on sale</span>
+          <h3>Psychedelic mug, spiral</h3>
+          <div class="tag">Merchandise. Price to be set.</div>
+          <p>The spiral artwork on a mug.</p>
+          <p class="rights"><strong>Rights and provenance.</strong> Spiral artwork is the studio's existing public/overlays/WAIANCircle.png; confirm it is fully Jonathan-owned before print. Print-on-demand through the Wix store.</p>
+        </div>
+      </article>
+      <article class="card">
+        <img src="/public/brand/mockups/psychedelic-starfield-shirt.png" alt="Psychedelic star-field T-shirt" loading="lazy" width="500" height="500">
+        <div class="card-body">
+          <span class="state">Not yet on sale</span>
+          <h3>Psychedelic T-shirt, star-field</h3>
+          <div class="tag">Merchandise. Price to be set.</div>
+          <p>The circular mark over star-field colours.</p>
+          <p class="rights"><strong>Rights and provenance.</strong> Colours taken from the studio's star-field skybox presets in src/components/canvas/StarNestSkybox.tsx (Purple Nebula, Dark World 2, Crazy Fractal 2 Teal, Purple 2). Print-on-demand through the Wix store.</p>
+        </div>
+      </article>
+      <article class="card">
+        <img src="/public/brand/mockups/psychedelic-starfield-hat.png" alt="Psychedelic star-field hat" loading="lazy" width="500" height="500">
+        <div class="card-body">
+          <span class="state">Not yet on sale</span>
+          <h3>Psychedelic hat, star-field</h3>
+          <div class="tag">Merchandise. Price to be set.</div>
+          <p>The circular mark over star-field colours, on a cap.</p>
+          <p class="rights"><strong>Rights and provenance.</strong> Colours taken from the studio's star-field skybox presets in src/components/canvas/StarNestSkybox.tsx (Purple Nebula, Dark World 2, Crazy Fractal 2 Teal, Purple 2). Print-on-demand through the Wix store.</p>
+        </div>
+      </article>
+      <article class="card">
+        <img src="/public/brand/mockups/psychedelic-starfield-mug.png" alt="Psychedelic star-field mug" loading="lazy" width="500" height="500">
+        <div class="card-body">
+          <span class="state">Not yet on sale</span>
+          <h3>Psychedelic mug, star-field</h3>
+          <div class="tag">Merchandise. Price to be set.</div>
+          <p>The circular mark over star-field colours, on a mug.</p>
+          <p class="rights"><strong>Rights and provenance.</strong> Colours taken from the studio's star-field skybox presets in src/components/canvas/StarNestSkybox.tsx (Purple Nebula, Dark World 2, Crazy Fractal 2 Teal, Purple 2). Print-on-demand through the Wix store.</p>
+        </div>
+      </article>
+      <article class="card">
+        <img src="/public/brand/mockups/wordmark-shirt.png" alt="T-shirt with the wordmark" loading="lazy" width="500" height="500">
+        <div class="card-body">
+          <span class="state">Not yet on sale</span>
+          <h3>T-shirt, wordmark</h3>
+          <div class="tag">Merchandise. Price to be set.</div>
+          <p>The plain wordmark on charcoal.</p>
+          <p class="rights"><strong>Rights and provenance.</strong> Mark and layout drawn in this repository; shirt, hat and mug images are illustrative mockups, not product photos.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <p class="note">Rendered by scripts/render-brand-mockups.mjs. Meaning of the marks: docs/BRAND-MARK.md.</p>
+</main>
+<footer><a href="/">Back to What Am I Appreciating Now</a></footer>
+</body>
+</html>
