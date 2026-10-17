@@ -11,6 +11,8 @@ import { renderGuide } from './guide.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 export const DEFAULT_MODEL = 'gemini-3-pro-image';
+// The API accepts 16:9 and 21:9 for wide art, not 2:1.
+export const DEFAULT_ASPECT = '16:9';
 export const LOGO = 'public/overlays/WAIANCircle.png';
 const ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
 const MIME = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp' };
@@ -23,7 +25,7 @@ export function loadPrompt(name, dir = join(ROOT, 'brand', 'prompts')) {
   return readFileSync(file, 'utf8').replace(/^# .*\n/, '').trim();
 }
 
-export function buildRequest({ prompt, images = [], aspectRatio = '2:1' }) {
+export function buildRequest({ prompt, images = [], aspectRatio = DEFAULT_ASPECT }) {
   const parts = [{ text: `${prompt}\n\n${TEXT_FREE}` }];
   for (const img of images) parts.push({ inlineData: { mimeType: img.mimeType, data: img.data.toString('base64') } });
   return { contents: [{ role: 'user', parts }], generationConfig: { responseModalities: ['IMAGE'], imageConfig: { aspectRatio } } };

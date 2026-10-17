@@ -6,16 +6,17 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { anchors } from './lemniscate.mjs';
+import { imageSize } from './imagesize.mjs';
+import { anchors, fitA } from './lemniscate.mjs';
 
 const FONT = "'Iowan Old Style','Sitka Text',Georgia,'Times New Roman',serif";
 const MIME = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp' };
 
 // Text positions for a canvas. Words sit just above the curve (baseline = curve y - lift).
-export function layout({ width = 2048, height = 1024, margin = 0.06 } = {}) {
-  const a = (width / 2) * (1 - 2 * margin);
+export function layout({ width = 1920, height = 1080, margin = 0.06 } = {}) {
+  const a = fitA(width, height, margin);
   const an = anchors({ a, cx: width / 2, cy: height / 2 });
-  const size = Math.round(width * 0.052);
+  const size = Math.round(a * 0.118);
   const lift = Math.round(size * 0.45);
   return {
     size,
@@ -27,7 +28,7 @@ export function layout({ width = 2048, height = 1024, margin = 0.06 } = {}) {
   };
 }
 
-export function composeSvg({ href, width = 2048, height = 1024, ink = '#f7f3e6', gold = '#e6bd77' } = {}) {
+export function composeSvg({ href, width = 1920, height = 1080, ink = '#f7f3e6', gold = '#e6bd77' } = {}) {
   const { size, words } = layout({ width, height });
   const text = words
     .map((w) => `<text x="${w.x.toFixed(1)}" y="${w.y.toFixed(1)}" text-anchor="middle" font-size="${w.gold ? Math.round(size * 1.25) : size}" fill="${w.gold ? gold : ink}"${w.gold ? ' font-style="italic"' : ''} stroke="#00000066" stroke-width="3" paint-order="stroke">${w.text}</text>`)
@@ -40,7 +41,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (!args.art) { console.error('Missing --art <image>'); process.exit(1); }
   const art = resolve(args.art);
   const href = `data:${MIME[extname(art).toLowerCase()] ?? 'image/png'};base64,${readFileSync(art).toString('base64')}`;
-  const [w, h] = [+(args.width ?? 2048), +(args.height ?? 1024)];
+  // The art's real size wins: Gemini returns whatever it likes, and the lettering must fit that canvas.
+  const real = imageSize(readFileSync(art));
+  const [w, h] = [+(args.width ?? real.width), +(args.height ?? real.height)];
   const out = resolve(args.out ?? 'brand/composed.svg');
   const svg = composeSvg({ href, width: w, height: h, ink: args.ink, gold: args.gold });
   writeFileSync(out, svg);

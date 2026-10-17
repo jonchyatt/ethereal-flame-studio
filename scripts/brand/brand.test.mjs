@@ -1,4 +1,4 @@
-// Run: node --test scripts/brand/
+// Run: npm run test:brand (node --test needs the file path on Node 24, not the folder)
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync } from 'node:fs';
@@ -6,7 +6,8 @@ import { inflateSync } from 'node:zlib';
 import { lemniscatePoints, lemniscatePoint, polylineLength, anchors } from './lemniscate.mjs';
 import { renderGuide } from './guide.mjs';
 import { layout, composeSvg } from './compose.mjs';
-import { buildRequest, parseResponse, generate, loadPrompt, TEXT_FREE } from './generate.mjs';
+import { buildRequest, parseResponse, generate, loadPrompt, TEXT_FREE, DEFAULT_ASPECT } from './generate.mjs';
+import { imageSize } from './imagesize.mjs';
 
 const near = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) < eps, `${a} !~ ${b}`);
 
@@ -48,6 +49,37 @@ test('guide PNG is valid grayscale, with ink on the curve and black elsewhere', 
   assert.ok(px(w / 2, h / 2) > 200, 'crossing is lit');
   assert.equal(px(2, 2), 0);
   assert.equal(px(w / 2, 4), 0);
+});
+
+for (const [width, height] of [[1920, 1080], [2048, 1024]]) {
+  test(`layout fits a ${width}x${height} canvas`, () => {
+    const { words, size } = layout({ width, height });
+    const [l, r, n] = words;
+    near(l.x + r.x, width, 1e-6); near(l.y, r.y); near(n.x, width / 2); near(n.y - size * 0.35, height / 2);
+    for (const w of words) {
+      const half = (w.text.length * size * 0.6) / 2;
+      assert.ok(w.x - half >= 0 && w.x + half <= width, `${w.text} inside width`);
+      assert.ok(w.y - size > 0 && w.y < height, `${w.text} inside height`);
+    }
+    const svg = composeSvg({ href: 'x', width, height });
+    assert.ok(svg.includes(`viewBox="0 0 ${width} ${height}"`));
+  });
+  test(`guide for ${width}x${height} has that size`, () => {
+    const png = renderGuide({ width, height });
+    assert.equal(png.readUInt32BE(16), width); assert.equal(png.readUInt32BE(20), height);
+  });
+}
+
+test('imageSize reads the real size of PNG art', () => {
+  assert.deepEqual(imageSize(renderGuide({ width: 640, height: 360 })), { width: 640, height: 360 });
+  assert.deepEqual(imageSize(renderGuide({ width: 512, height: 256 })), { width: 512, height: 256 });
+  assert.throws(() => imageSize(Buffer.from('nope nope nope nope nope nope')), /Unrecognised/);
+});
+
+test('generate defaults to 16:9, which the API accepts (2:1 it rejects)', () => {
+  assert.equal(DEFAULT_ASPECT, '16:9');
+  assert.equal(buildRequest({ prompt: 'p' }).generationConfig.imageConfig.aspectRatio, '16:9');
+  assert.equal(buildRequest({ prompt: 'p', aspectRatio: '21:9' }).generationConfig.imageConfig.aspectRatio, '21:9');
 });
 
 test('compose places left and right words on mirrored top arcs and Now at the crossing', () => {

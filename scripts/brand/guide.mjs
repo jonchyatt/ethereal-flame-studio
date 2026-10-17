@@ -1,15 +1,15 @@
 // Writes an exact lemniscate (infinity) guide PNG: black ground, white antialiased stroke.
 // Used as a reference image for generate.mjs so the model keeps the loop's true shape.
-// Usage: node scripts/brand/guide.mjs [--out brand/guide.png] [--width 2048] [--height 1024] [--stroke 14]
+// Usage: node scripts/brand/guide.mjs [--out brand/guide.png] [--width 1920] [--height 1080] [--stroke 14]
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { lemniscatePoints } from './lemniscate.mjs';
+import { fitA, lemniscatePoints } from './lemniscate.mjs';
 import { encodePng } from './png.mjs';
 
 // Rasterise the curve: coverage = clamp(halfStroke + 0.5 - distance to polyline).
-export function renderGuide({ width = 2048, height = 1024, stroke = 14, margin = 0.06 } = {}) {
-  const a = (width / 2) * (1 - 2 * margin);
+export function renderGuide({ width = 1920, height = 1080, stroke = 14, margin = 0.06 } = {}) {
+  const a = fitA(width, height, margin);
   const pts = lemniscatePoints({ a, cx: width / 2, cy: height / 2, n: 720 });
   const half = stroke / 2;
   const pad = Math.ceil(half + 2);
@@ -34,6 +34,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const args = Object.fromEntries(process.argv.slice(2).reduce((acc, v, i, all) => (v.startsWith('--') ? [...acc, [v.slice(2), all[i + 1]]] : acc), []));
   const out = resolve(args.out ?? 'brand/guide.png');
   mkdirSync(dirname(out), { recursive: true });
-  writeFileSync(out, renderGuide({ width: +(args.width ?? 2048), height: +(args.height ?? 1024), stroke: +(args.stroke ?? 14) }));
+  writeFileSync(out, renderGuide({ width: +(args.width ?? 1920), height: +(args.height ?? 1080), stroke: +(args.stroke ?? 14) }));
   console.log('wrote', out);
 }

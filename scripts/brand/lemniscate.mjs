@@ -39,3 +39,9 @@ export function anchors({ a = 330, cx = 400, cy = 200 } = {}) {
   const leftTop = [2 * cx - rightTop[0], rightTop[1]]; // the curve is mirror-symmetric about x = cx
   return { left: leftTop, right: rightTop, crossing: [cx, cy] };
 }
+
+// Loop half-width that fits a canvas: limited by width, and by height so the loop
+// (half-height a*sqrt(2)/4) plus the lettering above it never leaves a short canvas.
+export function fitA(width, height, margin = 0.06) {
+  return Math.min((width / 2) * (1 - 2 * margin), (height * (1 - 2 * margin)) / (2 * (Math.SQRT2 / 4)) / 1.6);
+}
