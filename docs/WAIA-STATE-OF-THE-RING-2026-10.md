@@ -161,6 +161,10 @@ Goal: for each long mix, files ready to post as YouTube Shorts, Instagram Reels 
 2. An `.srt` burn-in option in `ffmpegRecut.ts`, with a test on the generated command.
 3. A short-form cut schema wrapping the recut execution record with engine, target, parent mix fingerprint, rights and the three captions.
 
+## Short-form cuts: built (PR "Shorts from peaks")
+
+`src/lib/creator/shorts/`: `peaks.ts` (energy curve, 30 to 59 s spans snapped to a pause, pending review), `captions.ts` (transcript or lyric text to SRT and ASS in the channel lettering, whole-name guard), `cut.ts` (ffmpeg 1080x1920 cut with burn-in, `cut.json` schema, three platform captions), `childPack.ts` (each Short registered as a child render pack with the parent's curation reference, so it meets the same publish gate; manual-draft only). Still open: uploading the mp4 to storage, the recut-review route for accepting spans, and reading rights and the recipe fingerprint straight from the batch item.
+
 ## Not verified here
 
 - No test, render or upload was run.
