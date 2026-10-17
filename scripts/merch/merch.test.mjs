@@ -77,3 +77,68 @@ test('products with unconfirmed artwork rights are flagged in their description'
     assert.match(r[COLUMNS.indexOf('description')], /confirm full ownership before print/);
   }
 });
+
+// --- print-ready artwork (npm run merch:print) ---
+import { readdirSync } from 'node:fs';
+import { buildAll, checkPrintFiles, productArt, INKS, MARKS } from './print-art.mjs';
+
+const printDir = join(repoRoot, 'docs/merch/print');
+const built = buildAll(catalog);
+
+test('print files: four marks in four ink sets plus the star-field disc, and a spec sheet', () => {
+  const svgs = Object.keys(built).filter((n) => n.endsWith('.svg'));
+  assert.equal(svgs.length, MARKS.length * Object.keys(INKS).length + 1);
+  assert.ok(built['SPEC.md']);
+});
+
+test('print files are outlined: no live text, no raster, no overlay, no alpha colours', () => {
+  assert.deepEqual(checkPrintFiles(built), []);
+  assert.deepEqual(checkPrintFiles({ 'bad.svg': '<svg><text>What</text></svg>' }).length, 1);
+  assert.equal(checkPrintFiles({ 'bad.svg': '<svg><image href="overlays/WAIANCircle.png"/></svg>' }).length, 1);
+});
+
+test('flat inks use exactly one colour; colour inks use ink and accent only', () => {
+  for (const mark of MARKS) {
+    for (const ink of ['flat-black', 'flat-white']) {
+      const colours = new Set([...built[`${ink}-${mark}.svg`].matchAll(/(?:fill|stroke)="(#[0-9a-f]{6})"/g)].map((m) => m[1]));
+      assert.equal(colours.size, 1, `${ink}-${mark}: ${[...colours]}`);
+    }
+    const colours = new Set([...built[`colour-on-light-${mark}.svg`].matchAll(/(?:fill|stroke)="(#[0-9a-f]{6})"/g)].map((m) => m[1]));
+    assert.deepEqual([...colours].sort(), ['#1d2233', '#a86f1f']);
+  }
+});
+
+test('lettering stays inside each mark\'s canvas (no clipped letters)', () => {
+  for (const mark of MARKS) {
+    const svg = built[`colour-on-light-${mark}.svg`];
+    const [, w, h] = svg.match(/viewBox="0 0 (\d+) (\d+)"/).map(Number);
+    const g = svg.match(/<g id="lettering">([\s\S]*?)<\/g>/)[1];
+    const nums = [...g.matchAll(/d="([^"]+)"/g)].flatMap((m) => m[1].match(/-?\d+\.?\d*/g).map(Number));
+    for (let i = 0; i < nums.length; i += 2) {
+      assert.ok(nums[i] > -1 && nums[i] < w + 1 && nums[i + 1] > -1 && nums[i + 1] < h + 1, `${mark}: (${nums[i]}, ${nums[i + 1]}) outside ${w}x${h}`);
+    }
+  }
+});
+
+test('products with unconfirmed ownership get no print file and are marked BLOCKED', () => {
+  const spiral = catalog.products.filter((p) => p.mark === 'psychedelic-spiral');
+  assert.equal(spiral.length, 3);
+  for (const p of spiral) assert.equal(productArt(catalog, p).status, 'blocked');
+  assert.equal(Object.keys(built).filter((n) => /spiral/.test(n)).length, 0);
+  assert.equal((built['SPEC.md'].match(/\| BLOCKED \|/g) || []).length, spiral.length);
+});
+
+test('every ready product points at a file that exists; hat star-field falls back to flat white', () => {
+  for (const p of catalog.products) {
+    const art = productArt(catalog, p);
+    if (art.status === 'blocked') continue;
+    for (const f of art.files) assert.ok(built[f], `${p.slug}: ${f} not built`);
+  }
+  const hat = catalog.products.find((p) => p.slug === 'psychedelic-starfield-hat');
+  assert.deepEqual(productArt(catalog, hat).files, ['flat-white-circle.svg']);
+});
+
+test('committed docs/merch/print is current', () => {
+  assert.deepEqual(readdirSync(printDir).sort(), Object.keys(built).sort());
+  for (const [name, text] of Object.entries(built)) assert.equal(readFileSync(join(printDir, name), 'utf8'), text, name);
+});
