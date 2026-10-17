@@ -9,6 +9,8 @@
     "lint": "next lint",
     "test:brand": "node --test scripts/brand/brand.test.mjs",
     "test:merch": "node --test scripts/merch/merch.test.mjs",
+    "test:backlog": "node --test scripts/backlog/refresh.test.mjs",
+    "backlog:refresh": "node scripts/backlog/refresh.mjs",
     "merch:csv": "node scripts/merch/build.mjs",
     "kill": "npx kill-port 3000 3001 3002 3003 3004 3005",
     "test:clean": "npm run kill && echo Ports cleared",
