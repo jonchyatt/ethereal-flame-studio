@@ -27,3 +27,9 @@
 - Render packs now carry optional `curation: {batchJobId, itemIndex}`; `queueCreatorPackPublishJobs` copies it into the publish job metadata (null when absent, so a pack without it still queues and is refused by the gate as before).
 - No playlist-batch code creates a render pack, so the smallest path added is `curation` accepted on `POST /api/creator/render-packs`. The route does not check the item; the gate checks it at publish time. Nothing yet creates packs automatically from approved batch items.
 - New jest: queue copies curation; end-to-end manual-draft lane through `runPublishPipeline` (release-approved item writes the manifest with curation evidence and the WAIA channel id; pending item fails with the gate reason and writes nothing). `tsc` clean; creator and playlist-batch suites pass. `publishGate.ts` unchanged. Nothing run against YouTube, OAuth, env or production databases.
+
+## 2026-10-17 digest: Brand image workflow
+
+- `scripts/brand/`: `guide.mjs` (exact lemniscate guide PNG, no dependencies), `generate.mjs` (Gemini image models, default `gemini-3-pro-image`, key from `GEMINI_API_KEY` only, logo + guide as references, text-free rule appended, recipe `.json` beside each candidate), `compose.mjs` (upright "What Am I" / "Appreciating" on the lobes' top arcs, gold "Now" at the crossing, SVG out, optional PNG via Playwright). Prompts in `brand/prompts/` (vortex ribbon, carved-wood relief, icon, shirt print); pick process in `brand/review.md`.
+- Built from the description: the jarvis reference scripts (`waia-brand-infinity.mjs`, `argus-imagine.mjs`) were not reachable from this session, so the geometry reuses the infinity curve in `generate-brand-marks.mjs`, not a port.
+- `node --test scripts/brand/brand.test.mjs`: 9 pass (geometry, PNG, layout, request building, mocked fetch). Nothing run against the Gemini API; no image has been generated or judged.
