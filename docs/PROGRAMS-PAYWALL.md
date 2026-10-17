@@ -14,3 +14,6 @@ Backlog item 1. Paid programs on whatamiappreciatingnow.com: `/programs`, `/prog
 `npx jest src/lib/entitlements`. Also run end to end on a local dev server: no cookie 402, bad signature 400, signed test webhook grants, content opens for the granted program only.
 
 Not done here: protocols Jonathan has not handed over (no entry, nothing invented); real prices; subscription grace logic beyond a 3-day window until `invoice.paid` arrives.
+
+## Advanced hypnosis sessions catalog (backlog item 3)
+`/programs/advanced-hypnosis-sessions` lists sessions; `/programs/advanced-hypnosis-sessions/<id>` shows one with its rights and provenance. Schema and validation: `src/lib/hypnosis/catalog.ts`. Entries are read from private storage at `hypnosis/catalog.json` (a JSON array handed over by Jonathan); none are in the repo. An entry missing script author, voice, music or rights basis is dropped (HB-6); `rightsVerified` is false unless set to `true`. Status reads "Not yet on sale" until the program has a price. Check: `npx jest src/lib/hypnosis`.
