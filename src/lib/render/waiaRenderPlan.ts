@@ -132,7 +132,13 @@ export const UnityRenderPlanSchema = z.object({
   height: z.union([z.literal(1080), z.literal(2160), z.literal(2048), z.literal(3072), z.literal(4096)]),
   requireVrMetadata: z.boolean(),
   stereoMode: z.enum(['mono', 'top-bottom']),
+  /** Optional patron wall render list (absolute path); its hash is recorded in the output manifest. */
+  patronsFile: z.string().min(1).max(1024).optional(),
+  patronListHash: Sha256Schema.optional(),
 }).superRefine((plan, context) => {
+  if (Boolean(plan.patronsFile) !== Boolean(plan.patronListHash)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['patronsFile'], message: 'patronsFile and patronListHash go together' });
+  }
   const expected = UNITY_OUTPUTS[plan.outputFormat];
   for (const field of ['mode', 'resolution', 'width', 'height', 'requireVrMetadata', 'stereoMode'] as const) {
     if (plan[field] !== expected[field]) {
@@ -236,6 +242,8 @@ export function buildUnityRenderPlan(input: {
   fps: 30 | 60;
   visualConfig: Record<string, unknown>;
   outputName: string;
+  patronsFile?: string;
+  patronListHash?: string;
 }): UnityRenderPlan {
   const target = PlaylistRenderTargetSchema.parse(input.target);
   const transport = resolveRenderTransport('unity', target);
@@ -267,5 +275,6 @@ export function buildUnityRenderPlan(input: {
     scene: scene.data,
     outputName,
     ...getUnityOutputSpec(input.outputFormat),
+    ...(input.patronsFile ? { patronsFile: input.patronsFile, patronListHash: input.patronListHash } : {}),
   });
 }

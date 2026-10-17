@@ -8,6 +8,7 @@ import {
   EFS_UNITY_EDITOR_VERSION,
   EFS_UNITY_PROJECT_CONTRACT_VERSION,
 } from './registry';
+import { verifyPatronSnapshotFile, type PatronRenderEntry } from '@/lib/patrons/renderList';
 import { toGitBashPath, type UnityRenderPlan } from '@/lib/render/waiaRenderPlan';
 
 const UNITY_PRESETS = ['meditation', 'ambient', 'fire_cinema', 'edm'] as const;
@@ -74,6 +75,10 @@ export type UnityArtifactReceipt = {
   spectrumFrames: number;
   spectrumBands: number;
   spectrumEnergyRange: number;
+  /** Hash of the patron wall render list the video was rendered with; null when none. */
+  patronListHash: string | null;
+  /** The frozen approved patron text, tier and consent refs that were rendered; null when none. */
+  patronSnapshot: PatronRenderEntry[] | null;
 };
 
 type SpectrumDocument = {
@@ -227,6 +232,7 @@ export async function buildUnityInvocation(input: {
     '--strict-render-settings',
     ...(runtime.capabilities.unityExecutionMode === 'headed' ? ['--headed'] : []),
     ...(plan.requireVrMetadata ? ['--strict-vr-meta'] : []),
+    ...(plan.patronsFile ? ['--patrons-file', toGitBashPath(plan.patronsFile)] : []),
   ];
   const suffix = plan.mode === 'flat' ? '.mp4' : '_vr.mp4';
   return {
@@ -388,6 +394,20 @@ export async function validateUnityArtifact(input: {
     }
   }
 
+  let patronListHash: string | null = null;
+  let patronSnapshot: PatronRenderEntry[] | null = null;
+  if (input.plan.patronsFile) {
+    const verified = await verifyPatronSnapshotFile(input.plan.patronsFile, input.plan.patronListHash!);
+    if (!verified.ok) throw new Error(`Patron snapshot rejected: ${verified.reason}`);
+    patronListHash = verified.hash;
+    patronSnapshot = verified.list.patrons;
+    const placed = /\[PatronWall\]\s+Placed\s+(\d+)\s+patrons\s+hash=([a-f0-9]{64})/i.exec(unityLog);
+    if (!placed) throw new Error('Unity log does not confirm the patron wall was placed');
+    if (placed[2].toLowerCase() !== patronListHash.toLowerCase()) {
+      throw new Error('Unity patron wall hash does not match the approved patron list');
+    }
+  }
+
   const sampleTimes = [durationSeconds * 0.25, durationSeconds * 0.75];
   const [lumaSamples, frameHashes] = await Promise.all([
     Promise.all(sampleTimes.map(async (atSeconds) => ({
@@ -420,5 +440,7 @@ export async function validateUnityArtifact(input: {
     spectrumFrames: Number(spectrum[1]),
     spectrumBands: Number(spectrum[2]),
     spectrumEnergyRange: spectrumEvidence.range,
+    patronListHash,
+    patronSnapshot,
   };
 }

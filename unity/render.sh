@@ -34,6 +34,7 @@ SKIP_RENDER=false
 HEADED=false            # true = drop -batchmode (GUI licenses Personal where batchmode cannot on pinned 2021.2.8f1)
 SKIP_SPECTRUM_BAKE=false # true = fall back to realtime GetSpectrumData (pre-fix behavior, freezes under frame-lock)
 BAKED_GAIN=""            # calibration override for AudioSpectrum.BakedGain (punch-tuning sweep)
+PATRONS_FILE=""          # optional patron wall render list (moderated JSON from src/lib/patrons)
 SAFETY_TIMEOUT=""        # override AutoRecorder's safety-abort budget (seconds) — auto-scales by resolution/frames if unset
 
 # -- Detect Unity path --
@@ -115,11 +116,13 @@ while [[ $# -gt 0 ]]; do
         --headed)    HEADED=true; shift ;;
         --no-spectrum-bake) SKIP_SPECTRUM_BAKE=true; shift ;;
         --baked-gain) BAKED_GAIN="$2"; shift 2 ;;
+        --patrons-file) PATRONS_FILE="$2"; shift 2 ;;
         --safety-timeout) SAFETY_TIMEOUT="$2"; shift 2 ;;
         --help)
             echo "Usage: ./render.sh --audio <path> --name <name> [options]"
             echo "  --audio     Audio file path (WAV/MP3/OGG) [required]"
             echo "  --name      Output filename [default: efs_render]"
+            echo "  --patrons-file  Patron wall render list JSON (optional)"
             echo "  --preset    Visual preset (meditation/edm/ambient/fire_cinema)"
             echo "  --mode      360stereo | 360mono | flat [default: 360stereo]"
             echo "  --res       Resolution [default: 4096]"
@@ -221,6 +224,11 @@ if [ "$SKIP_RENDER" = false ]; then
         echo "[Step 1/4] Safety timeout override: ${SAFETY_TIMEOUT}s"
     fi
 
+    PATRONS_ARG=""
+    if [ -n "$PATRONS_FILE" ]; then
+        PATRONS_ARG="-patronsFile $PATRONS_FILE"
+    fi
+
     RENDER_SETTINGS_ARG=""
     if [ "$STRICT_RENDER_SETTINGS" = true ]; then
         RENDER_SETTINGS_ARG="-lockRenderSettings true"
@@ -244,6 +252,7 @@ if [ "$SKIP_RENDER" = false ]; then
         $GAIN_ARG \
         $TIMEOUT_ARG \
         $RENDER_SETTINGS_ARG \
+        $PATRONS_ARG \
         -logFile "$OUTPUT_DIR/${OUTPUT_NAME}_unity.log"
 
     UNITY_EXIT=$?

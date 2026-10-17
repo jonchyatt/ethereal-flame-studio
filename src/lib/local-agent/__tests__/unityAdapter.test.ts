@@ -76,6 +76,32 @@ describe('Unity local-agent adapter', () => {
     expect(invocation.env.UNITY_PATH).toBe('/c/Program Files/Unity/Hub/Editor/2021.2.8f1/Editor/Unity.exe');
   });
 
+  test('passes the patron wall file and requires its hash', async () => {
+    const hash = 'a'.repeat(64);
+    const plan = buildUnityRenderPlan({
+      target: 'home',
+      outputFormat: '360-mono-8k',
+      fps: 30,
+      visualConfig: { skyboxPreset: 'meditation', scene: 'Example' },
+      outputName: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+      patronsFile: 'C:\\EFS\\patrons_render.json',
+      patronListHash: hash,
+    });
+    expect(plan.patronListHash).toBe(hash);
+    const invocation = await buildUnityInvocation({
+      runtime: runtime(), plan, audioPath: 'C:\\Input\\approved.wav', outputDir: tempRoot,
+    });
+    expect(invocation.args).toEqual(expect.arrayContaining(['--patrons-file', '/c/EFS/patrons_render.json']));
+    expect(() => buildUnityRenderPlan({
+      target: 'home',
+      outputFormat: '360-mono-8k',
+      fps: 30,
+      visualConfig: { skyboxPreset: 'meditation', scene: 'Example' },
+      outputName: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+      patronsFile: 'C:\\EFS\\patrons_render.json',
+    })).toThrow();
+  });
+
   test('flat invocation preserves manual metadata behavior by omitting strict mode', async () => {
     const plan = buildUnityRenderPlan({
       target: 'local-agent',
