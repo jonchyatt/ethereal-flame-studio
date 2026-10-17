@@ -7,6 +7,8 @@ import { google } from 'googleapis';
 import { getStorageAdapter } from '@/lib/storage';
 import type { CreatorPublishJobMetadata } from './jobs';
 import { getContentLibraryItemByPackId } from './store';
+import { WAIA_YOUTUBE_CHANNEL_ID } from '@/lib/playlist-batch/schema';
+import { assertAuthenticatedChannel, verifyDraftManifest, type CurationEvidence } from './publishGate';
 
 export type PublishConnectorProvider = 'youtube' | 'tiktok' | 'instagram';
 export type PublishConnectorMode = 'api' | 'manual-draft';
@@ -27,6 +29,8 @@ type ConnectorInput = {
   provider: PublishConnectorProvider;
   metadata: CreatorPublishJobMetadata;
   mediaSignedUrl: string;
+  /** Evidence from the curation gate; written into the manifest and re-verified. */
+  curation?: CurationEvidence;
 };
 
 type JsonRecord = Record<string, unknown>;
@@ -291,6 +295,8 @@ async function writeDraftManifest(input: ConnectorInput, warnings: string[] = []
       keywords: input.metadata.keywords,
       channelPresetId: input.metadata.channelPresetId || null,
     },
+    channel: input.provider === 'youtube' ? { channelId: WAIA_YOUTUBE_CHANNEL_ID } : null,
+    curation: input.curation || null,
     providerHints:
       input.provider === 'youtube'
         ? {
@@ -310,6 +316,11 @@ async function writeDraftManifest(input: ConnectorInput, warnings: string[] = []
               scheduleRequested: input.metadata.mode === 'schedule',
             },
   };
+
+  const verdict = verifyDraftManifest(payload);
+  if (!verdict.ok) {
+    throw new Error(`Publish gate refused manual-draft manifest: ${verdict.reason}`);
+  }
 
   await storage.put(manifestKey, Buffer.from(JSON.stringify(payload, null, 2)), {
     contentType: 'application/json',
@@ -367,6 +378,7 @@ async function publishYoutubeApi(input: ConnectorInput): Promise<PublishConnecto
   const warnings: string[] = [];
   const auth = await buildYoutubeAuthClient();
   const youtube = google.youtube({ version: 'v3', auth });
+  await assertAuthenticatedChannel(youtube);
   const title = truncate((input.metadata.title || '').trim() || 'Untitled', 100);
   const description = buildYoutubeDescription(input.metadata);
   const tags = buildYoutubeTags(input.metadata);
