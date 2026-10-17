@@ -26,6 +26,9 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
       <h1>{program.title}</h1>
       <p>{program.summary}</p>
       <p style={{ fontSize: 14, opacity: 0.7 }}>{program.provenance}</p>
+      {allowed && program.guided && (
+        <p><a href={`/programs/${id}/session`} style={{ color: 'inherit', fontWeight: 600 }}>Open the guided process →</a></p>
+      )}
       {allowed ? (
         content ? <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{content}</pre>
           : <p>You have access. The program words have not been handed over yet.</p>
