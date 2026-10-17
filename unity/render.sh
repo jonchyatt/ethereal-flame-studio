@@ -28,6 +28,8 @@ SCENE="Example"
 PRESET=""
 OUTPUT_DIR=""
 INJECT_VR_META=true
+STRICT_VR_META=false      # orchestrated 360 jobs fail instead of falling back to a plain MP4
+STRICT_RENDER_SETTINGS=false # orchestrated jobs keep approved mode/resolution/fps instead of preset recording overrides
 SKIP_RENDER=false
 HEADED=false            # true = drop -batchmode (GUI licenses Personal where batchmode cannot on pinned 2021.2.8f1)
 SKIP_SPECTRUM_BAKE=false # true = fall back to realtime GetSpectrumData (pre-fix behavior, freezes under frame-lock)
@@ -107,6 +109,8 @@ while [[ $# -gt 0 ]]; do
         --scene)     SCENE="$2"; shift 2 ;;
         --output)    OUTPUT_DIR="$2"; shift 2 ;;
         --no-meta)   INJECT_VR_META=false; shift ;;
+        --strict-vr-meta) STRICT_VR_META=true; shift ;;
+        --strict-render-settings) STRICT_RENDER_SETTINGS=true; shift ;;
         --skip-render) SKIP_RENDER=true; shift ;;
         --headed)    HEADED=true; shift ;;
         --no-spectrum-bake) SKIP_SPECTRUM_BAKE=true; shift ;;
@@ -124,6 +128,8 @@ while [[ $# -gt 0 ]]; do
             echo "  --scene     Unity scene name [default: Example]"
             echo "  --output    Output directory [default: project/Recordings]"
             echo "  --no-meta   Skip VR metadata injection"
+            echo "  --strict-vr-meta  Fail if required 360 metadata cannot be injected"
+            echo "  --strict-render-settings  Keep CLI mode/resolution/fps instead of preset recording overrides"
             echo "  --skip-render  Skip Unity render (just do post-processing)"
             echo "  --no-spectrum-bake  Use realtime GetSpectrumData (pre-fix, freezes reactivity under frame-lock)"
             exit 0 ;;
@@ -215,6 +221,11 @@ if [ "$SKIP_RENDER" = false ]; then
         echo "[Step 1/4] Safety timeout override: ${SAFETY_TIMEOUT}s"
     fi
 
+    RENDER_SETTINGS_ARG=""
+    if [ "$STRICT_RENDER_SETTINGS" = true ]; then
+        RENDER_SETTINGS_ARG="-lockRenderSettings true"
+    fi
+
     "$UNITY_EXE" \
         $BATCH_FLAG \
         -projectPath "$PROJECT_PATH" \
@@ -232,6 +243,7 @@ if [ "$SKIP_RENDER" = false ]; then
         $SPECTRUM_ARG \
         $GAIN_ARG \
         $TIMEOUT_ARG \
+        $RENDER_SETTINGS_ARG \
         -logFile "$OUTPUT_DIR/${OUTPUT_NAME}_unity.log"
 
     UNITY_EXIT=$?
@@ -295,8 +307,16 @@ if [ "$INJECT_VR_META" = true ] && [[ "$MODE" == 360* ]]; then
     echo "[Step 3/4] Injecting VR metadata (spatialmedia)..."
 
     if [ ! -f "$VIDEO_FILE" ]; then
+        if [ "$STRICT_VR_META" = true ]; then
+            echo "ERROR: Video file is missing under strict VR metadata mode: $VIDEO_FILE"
+            exit 1
+        fi
         echo "WARNING: Video file not found at $VIDEO_FILE — skipping metadata injection"
     elif ! python3 -m spatialmedia --help >/dev/null 2>&1; then
+        if [ "$STRICT_VR_META" = true ]; then
+            echo "ERROR: spatialmedia 2.1a1 is required for strict VR metadata"
+            exit 1
+        fi
         echo "WARNING: spatialmedia not installed (pip install from github.com/google/spatial-media) — skipping metadata injection"
         VR_VIDEO_FILE="$VIDEO_FILE"
     else
@@ -310,6 +330,10 @@ if [ "$INJECT_VR_META" = true ] && [[ "$MODE" == 360* ]]; then
         if [ $? -eq 0 ] && [ -f "$VR_VIDEO_FILE" ]; then
             echo "[Step 3/4] VR metadata injected: $VR_VIDEO_FILE"
         else
+            if [ "$STRICT_VR_META" = true ]; then
+                echo "ERROR: spatialmedia injection failed under strict VR metadata mode"
+                exit 1
+            fi
             echo "WARNING: spatialmedia injection failed"
             VR_VIDEO_FILE="$VIDEO_FILE"
         fi

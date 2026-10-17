@@ -170,5 +170,10 @@ export class LocalLeaseStore implements LeaseStore {
     }
     return rows.map(rowToLease);
   }
+
+  /** Close the database connection (primarily for isolated tests and workers). */
+  close(): void {
+    this.db.close();
+  }
 }
 

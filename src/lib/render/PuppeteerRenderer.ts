@@ -349,21 +349,11 @@ export class PuppeteerRenderer {
     // acts as a safety net to catch any stragglers (toasts, overlays, etc.)
     await this.page.addStyleTag({
       content: `
-        /* Hide everything in the Next.js root, then re-show the R3F canvas container */
-        body > div > * { visibility: hidden !important; }
-        /* The R3F canvas container (first child div that holds the <Canvas>) */
-        body > div > div:has(> canvas) {
-          visibility: visible !important;
-        }
-        body > div > div:has(> canvas) * {
-          visibility: visible !important;
-        }
-        /* Hide any remaining UI that React didn't catch */
-        button, [role="dialog"], [role="alert"] {
-          display: none !important;
-        }
+        /* Hide every DOM surface, then reveal only the WebGL capture target. */
+        body * { visibility: hidden !important; }
         /* Ensure canvas fills the entire viewport */
         canvas {
+          visibility: visible !important;
           display: block !important;
           position: fixed !important;
           top: 0 !important;

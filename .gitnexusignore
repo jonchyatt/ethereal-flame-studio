@@ -1,0 +1,5 @@
+unity/Library/
+unity/Temp/
+unity/Logs/
+output/
+blender/scripts/__pycache__/

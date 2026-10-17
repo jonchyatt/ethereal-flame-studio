@@ -11,6 +11,7 @@ import { getJobStore } from '../src/lib/jobs';
 import type { JobStore } from '../src/lib/jobs';
 import { processJob } from './process-job';
 import { runReaper } from './reaper';
+import { reconcilePlaylistBatchOutbox } from '../src/lib/playlist-batch/outbox';
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -64,6 +65,8 @@ async function main(): Promise<void> {
     if (shuttingDown || currentJobPromise) return;
 
     try {
+      // Durable Phase 3 relay: recover review-created intents after API crashes.
+      await reconcilePlaylistBatchOutbox(store);
       const job = await store.claimNextPending();
 
       if (job) {

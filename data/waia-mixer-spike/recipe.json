@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "assetId": "voice-as-a-man-thinketh",
+      "sourceUrl": "https://archive.org/download/as_a_man_thinketh_mc_librivox/asamanthinketh_0_allen.mp3",
+      "rightsBasis": "public-domain (archive.org item licenseurl=http://creativecommons.org/licenses/publicdomain/, LibriVox recording of James Allen \"As a Man Thinketh\", 1903 source text; verified via archive.org metadata API 2026-07-09)",
+      "offsetSec": 0,
+      "levelDb": 0,
+      "channelRouting": {
+        "left": 1,
+        "right": 0.2
+      }
+    },
+    {
+      "assetId": "voice-science-of-getting-rich",
+      "sourceUrl": "https://archive.org/download/science_gettingrich_1005_librivox/scienceofgettingrich_00_wattles.mp3",
+      "rightsBasis": "public-domain (archive.org item licenseurl=http://creativecommons.org/licenses/publicdomain/, LibriVox recording of Wallace Wattles \"The Science of Getting Rich\", 1910 source text; verified via archive.org metadata API 2026-07-09)",
+      "offsetSec": 5,
+      "levelDb": -2,
+      "channelRouting": {
+        "left": 0.2,
+        "right": 1
+      }
+    }
+  ],
+  "musicBed": {
+    "assetId": "bed-calm-pill-1",
+    "sourceUrl": "https://archive.org/download/CalmPills/Uplifting_Pills_-_Calm_Pill_1_-_Still_Habitat.mp3",
+    "rightsBasis": "CC0 (archive.org item \"CalmPills\" licenseurl=http://creativecommons.org/publicdomain/zero/1.0/, verified via archive.org metadata API 2026-07-09)",
+    "levelDb": -8,
+    "attribution": "Calm Pill 1 - Still Habitat, by Alaeddin Hallak (CC0 — attribution not required, credited anyway)"
+  },
+  "mixDescription": "Phase 2 mixer spike: 2 public-domain New Thought lecture voice clips (substituted for the spec-named Neville Goddard archive.org collections, which carry no explicit archive.org rights/license tag on their item pages — see karpathy log row for the deviation rationale) layered with a CC0 ambient music bed. Each voice is routed with an opposite L/R weighting (1.0/0.2 vs 0.2/1.0) so Left and Right sum genuinely different signals; the music bed is centered (equal L/R, per the locked recipe schema — musicBed has no channelRouting field).",
+  "outputPath": "C:\\Users\\jonch\\Projects\\ethereal-flame-studio\\data\\waia-mixer-spike\\output\\waia_relaunch_spike_mix.wav"
+}

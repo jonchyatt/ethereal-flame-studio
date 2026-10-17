@@ -2,8 +2,16 @@
 import { promises as fs } from 'fs';
 import os from 'os';
 import path from 'path';
-import { randomUUID } from 'crypto';
-import { spawn } from 'child_process';
+import { createHash, randomUUID } from 'crypto';
+import { spawn, type ChildProcess } from 'child_process';
+import type { UnityRenderPlan } from '../src/lib/render/waiaRenderPlan';
+import {
+  buildUnityInvocation,
+  detectLocalAgentRuntime,
+  validateUnityArtifact,
+  type DetectedAgentRuntime,
+  type UnityArtifactReceipt,
+} from '../src/lib/local-agent/unityAdapter';
 
 type Args = {
   serverUrl?: string;
@@ -16,6 +24,7 @@ type Args = {
 
 type ClaimedJob = {
   jobId: string;
+  attemptId: string;
   leaseKey: string;
   leaseToken: string;
   leaseExpiresAt: string;
@@ -23,7 +32,11 @@ type ClaimedJob = {
   dispatch: {
     jobId: string;
     audioSignedUrl: string;
+    renderEngine: string;
+    renderTarget: string;
+    inputArtifact: { storageKey: string; sizeBytes: number; sha256: string };
     renderConfig: Record<string, unknown>;
+    unityPlan?: UnityRenderPlan;
     appUrl: string;
     targetAgentId: string | null;
   };
@@ -72,18 +85,20 @@ async function authedFetch(baseUrl: string, token: string, pathname: string, ini
   return fetch(new URL(pathname, baseUrl), { ...init, headers });
 }
 
-async function registerPresence(baseUrl: string, token: string, agentId: string, label?: string): Promise<void> {
+async function registerPresence(
+  baseUrl: string,
+  token: string,
+  agentId: string,
+  capabilities: Record<string, unknown>,
+  label?: string,
+): Promise<void> {
   const res = await authedFetch(baseUrl, token, '/api/local-agent/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       agentId,
       label: label || agentId,
-      capabilities: {
-        platform: process.platform,
-        arch: process.arch,
-        hostname: os.hostname(),
-      },
+      capabilities,
     }),
   });
   const json = await res.json().catch(() => ({}));
@@ -92,18 +107,22 @@ async function registerPresence(baseUrl: string, token: string, agentId: string,
   }
 }
 
-async function heartbeatPresence(baseUrl: string, token: string, agentId: string, label?: string): Promise<void> {
+async function heartbeatPresence(
+  baseUrl: string,
+  token: string,
+  agentId: string,
+  capabilities: Record<string, unknown>,
+  label?: string,
+  signal?: AbortSignal,
+): Promise<void> {
   const res = await authedFetch(baseUrl, token, '/api/local-agent/heartbeat', {
     method: 'POST',
+    signal,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       agentId,
       label: label || agentId,
-      capabilities: {
-        platform: process.platform,
-        arch: process.arch,
-        hostname: os.hostname(),
-      },
+      capabilities,
     }),
   });
 
@@ -113,18 +132,20 @@ async function heartbeatPresence(baseUrl: string, token: string, agentId: string
   }
 }
 
-async function pollForJob(baseUrl: string, token: string, agentId: string, label?: string): Promise<ClaimedJob | null> {
+async function pollForJob(
+  baseUrl: string,
+  token: string,
+  agentId: string,
+  capabilities: Record<string, unknown>,
+  label?: string,
+): Promise<ClaimedJob | null> {
   const res = await authedFetch(baseUrl, token, '/api/local-agent/poll', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       agentId,
       label: label || agentId,
-      capabilities: {
-        platform: process.platform,
-        arch: process.arch,
-        hostname: os.hostname(),
-      },
+      capabilities,
       acceptUnassigned: true,
     }),
   });
@@ -143,19 +164,75 @@ async function downloadToFile(url: string, outPath: string): Promise<void> {
   await fs.writeFile(outPath, buf);
 }
 
-async function runLocalRender(configPath: string, appUrl: string): Promise<void> {
-  const child = spawn('npx', ['tsx', 'scripts/render-cli.ts', '--config', configPath, '--url', appUrl, '--no-server'], {
-    cwd: process.cwd(),
-    shell: true,
+async function fileIdentity(filePath: string): Promise<{ sizeBytes: number; sha256: string }> {
+  const bytes = await fs.readFile(filePath);
+  return {
+    sizeBytes: bytes.length,
+    sha256: createHash('sha256').update(bytes).digest('hex'),
+  };
+}
+
+async function terminateProcessTree(child: ChildProcess): Promise<void> {
+  if (!child.pid || child.exitCode !== null) return;
+  if (process.platform === 'win32') {
+    const killer = spawn('taskkill.exe', ['/pid', String(child.pid), '/t', '/f'], {
+      shell: false,
+      stdio: 'ignore',
+      windowsHide: true,
+    });
+    await new Promise<void>((resolve) => killer.once('close', () => resolve()));
+    return;
+  }
+  try {
+    process.kill(-child.pid, 'SIGTERM');
+  } catch {
+    child.kill('SIGTERM');
+  }
+}
+
+async function runOwnedProcess(input: {
+  executable: string;
+  args: string[];
+  cwd: string;
+  env?: NodeJS.ProcessEnv;
+  label: string;
+  signal: AbortSignal;
+}): Promise<void> {
+  const child = spawn(input.executable, input.args, {
+    cwd: input.cwd,
+    env: input.env,
+    shell: false,
     stdio: 'inherit',
+    windowsHide: true,
+    detached: process.platform !== 'win32',
   });
 
   await new Promise<void>((resolve, reject) => {
+    let aborting = false;
+    const onAbort = () => {
+      aborting = true;
+      void terminateProcessTree(child).catch(() => {});
+    };
+    input.signal.addEventListener('abort', onAbort, { once: true });
     child.on('close', (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`render-cli exited with code ${code}`));
+      input.signal.removeEventListener('abort', onAbort);
+      if (aborting) reject(new Error(`${input.label} aborted after local-agent lease loss or cancellation`));
+      else if (code === 0) resolve();
+      else reject(new Error(`${input.label} exited with code ${code}`));
     });
     child.on('error', (err) => reject(err));
+    if (input.signal.aborted) onAbort();
+  });
+}
+
+async function runPuppeteerRender(configPath: string, appUrl: string, signal: AbortSignal): Promise<void> {
+  const tsxCli = path.resolve(process.cwd(), 'node_modules/tsx/dist/cli.mjs');
+  await runOwnedProcess({
+    executable: process.execPath,
+    args: [tsxCli, 'scripts/render-cli.ts', '--config', configPath, '--url', appUrl, '--no-server'],
+    cwd: process.cwd(),
+    label: 'render-cli',
+    signal,
   });
 }
 
@@ -166,6 +243,7 @@ async function postFailure(baseUrl: string, token: string, job: ClaimedJob, agen
     body: JSON.stringify({
       agentId,
       leaseToken: job.leaseToken,
+      attemptId: job.attemptId,
       error,
     }),
   });
@@ -175,13 +253,21 @@ async function postFailure(baseUrl: string, token: string, job: ClaimedJob, agen
   }
 }
 
-async function renewJobLease(baseUrl: string, token: string, job: ClaimedJob, agentId: string): Promise<void> {
+async function renewJobLease(
+  baseUrl: string,
+  token: string,
+  job: ClaimedJob,
+  agentId: string,
+  signal?: AbortSignal,
+): Promise<void> {
   const res = await authedFetch(baseUrl, token, `/api/local-agent/jobs/${job.jobId}/renew`, {
     method: 'POST',
+    signal,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       agentId,
       leaseToken: job.leaseToken,
+      attemptId: job.attemptId,
     }),
   });
   const json = await res.json().catch(() => ({}));
@@ -226,6 +312,7 @@ async function requestUploadReservation(
     body: JSON.stringify({
       agentId,
       leaseToken: job.leaseToken,
+      attemptId: job.attemptId,
       filename: path.basename(outputPath),
       contentType: 'video/mp4',
       sizeBytes: stat.size,
@@ -278,6 +365,7 @@ async function completeMultipartUploadOnServer(
     body: JSON.stringify({
       agentId,
       leaseToken: job.leaseToken,
+      attemptId: job.attemptId,
       storageKey: reservation.storageKey,
       uploadId: reservation.uploadId,
       parts,
@@ -302,6 +390,7 @@ async function abortMultipartUploadOnServer(
     body: JSON.stringify({
       agentId,
       leaseToken: job.leaseToken,
+      attemptId: job.attemptId,
       storageKey: reservation.storageKey,
       uploadId: reservation.uploadId,
     }),
@@ -319,6 +408,8 @@ async function finalizeDirectCompletion(
   agentId: string,
   storageKey: string,
   fileSizeBytes: number,
+  fileSha256: string,
+  acceptanceReceipt?: Record<string, unknown>,
 ): Promise<void> {
   const res = await authedFetch(baseUrl, token, `/api/local-agent/jobs/${job.jobId}/complete`, {
     method: 'POST',
@@ -326,8 +417,11 @@ async function finalizeDirectCompletion(
     body: JSON.stringify({
       agentId,
       leaseToken: job.leaseToken,
+      attemptId: job.attemptId,
       storageKey,
       fileSizeBytes,
+      fileSha256,
+      ...(acceptanceReceipt ? { acceptanceReceipt } : {}),
     }),
   });
   const json = await res.json().catch(() => ({}));
@@ -336,7 +430,9 @@ async function finalizeDirectCompletion(
   }
 }
 
-function resolveAudioExt(audioUrl: string): string {
+function resolveAudioExt(storageKey: string, audioUrl: string): string {
+  const storageExt = path.extname(storageKey);
+  if (storageExt) return storageExt;
   try {
     const parsed = new URL(audioUrl);
     return path.extname(parsed.pathname) || '.mp3';
@@ -345,18 +441,38 @@ function resolveAudioExt(audioUrl: string): string {
   }
 }
 
-async function processClaimedJob(baseUrl: string, token: string, agentId: string, job: ClaimedJob, label?: string): Promise<void> {
+async function summarizeUnityFailure(logPath: string): Promise<string> {
+  try {
+    const log = await fs.readFile(logPath, 'utf8');
+    const relevant = log.split(/\r?\n/).filter((line) =>
+      /\[(?:AutoRecorder|BakedSpectrum)\]|\b(?:error|exception|failed|abort)\b/i.test(line),
+    );
+    return (relevant.length ? relevant.join('\n') : log).slice(-8000);
+  } catch {
+    return 'Unity log was not created';
+  }
+}
+
+async function processClaimedJob(
+  baseUrl: string,
+  token: string,
+  agentId: string,
+  job: ClaimedJob,
+  runtime: DetectedAgentRuntime,
+  label?: string,
+): Promise<void> {
   const tempDir = path.join(os.tmpdir(), `local-agent-${job.jobId}-${randomUUID().slice(0, 8)}`);
   await fs.mkdir(tempDir, { recursive: true });
 
-  // AbortController prevents fetch pile-up if server is unresponsive
+  // Shared stop flag for the independent presence and job-lease timers.
   const intervalAbort = new AbortController();
+  const renderAbort = new AbortController();
 
   const heartbeat = setInterval(() => {
     if (intervalAbort.signal.aborted) return;
     const timeoutCtrl = new AbortController();
     const timeout = setTimeout(() => timeoutCtrl.abort(), 15_000);
-    heartbeatPresence(baseUrl, token, agentId, label)
+    heartbeatPresence(baseUrl, token, agentId, runtime.capabilities, label, timeoutCtrl.signal)
       .catch((err) => {
         if (!intervalAbort.signal.aborted) {
           console.warn(`[Agent] Heartbeat failed for ${agentId}:`, err instanceof Error ? err.message : err);
@@ -370,34 +486,77 @@ async function processClaimedJob(baseUrl: string, token: string, agentId: string
     if (intervalAbort.signal.aborted) return;
     const timeoutCtrl = new AbortController();
     const timeout = setTimeout(() => timeoutCtrl.abort(), 15_000);
-    renewJobLease(baseUrl, token, job, agentId)
+    renewJobLease(baseUrl, token, job, agentId, timeoutCtrl.signal)
       .catch((err) => {
         if (!intervalAbort.signal.aborted) {
           console.warn(`[Agent] Lease renew failed for job ${job.jobId}:`, err instanceof Error ? err.message : err);
+          renderAbort.abort();
         }
       })
       .finally(() => clearTimeout(timeout));
   }, leaseRenewIntervalMs);
 
   try {
-    const audioPath = path.join(tempDir, `audio${resolveAudioExt(job.dispatch.audioSignedUrl)}`);
-    const outputPath = path.join(tempDir, `render-${job.jobId}.mp4`);
+    const audioPath = path.join(
+      tempDir,
+      `audio${resolveAudioExt(job.dispatch.inputArtifact.storageKey, job.dispatch.audioSignedUrl)}`,
+    );
+    let outputPath = path.join(tempDir, `render-${job.jobId}.mp4`);
     const configPath = path.join(tempDir, 'render-config.json');
+    let acceptanceReceipt: Record<string, unknown> | undefined;
 
     console.log(`[Agent] Downloading audio for job ${job.jobId}...`);
     await downloadToFile(job.dispatch.audioSignedUrl, audioPath);
+    const downloadedInput = await fileIdentity(audioPath);
+    if (
+      downloadedInput.sizeBytes !== job.dispatch.inputArtifact.sizeBytes ||
+      downloadedInput.sha256 !== job.dispatch.inputArtifact.sha256.toLowerCase()
+    ) {
+      throw new Error('Downloaded input artifact does not match the dispatched byte size and SHA-256');
+    }
 
-    const renderConfig = structuredClone(job.dispatch.renderConfig) as {
-      audio?: { path?: string };
-      output?: { path?: string };
-      [key: string]: unknown;
-    };
-    renderConfig.audio = { ...(renderConfig.audio || {}), path: audioPath };
-    renderConfig.output = { ...(renderConfig.output || {}), path: outputPath };
-    await fs.writeFile(configPath, JSON.stringify(renderConfig, null, 2));
-
-    console.log(`[Agent] Rendering job ${job.jobId} using app ${job.dispatch.appUrl}`);
-    await runLocalRender(configPath, job.dispatch.appUrl);
+    if (job.dispatch.renderEngine === 'puppeteer') {
+      const renderConfig = structuredClone(job.dispatch.renderConfig) as {
+        audio?: { path?: string };
+        output?: { path?: string };
+        [key: string]: unknown;
+      };
+      renderConfig.audio = { ...(renderConfig.audio || {}), path: audioPath };
+      renderConfig.output = { ...(renderConfig.output || {}), path: outputPath };
+      await fs.writeFile(configPath, JSON.stringify(renderConfig, null, 2));
+      console.log(`[Agent] Rendering Puppeteer job ${job.jobId} using app ${job.dispatch.appUrl}`);
+      await runPuppeteerRender(configPath, job.dispatch.appUrl, renderAbort.signal);
+    } else if (job.dispatch.renderEngine === 'unity') {
+      if (!runtime.unity || !job.dispatch.unityPlan) {
+        throw new Error('Unity job was claimed without a compatible local Unity runtime and plan');
+      }
+      const invocation = await buildUnityInvocation({
+        runtime: runtime.unity,
+        plan: job.dispatch.unityPlan,
+        audioPath,
+        outputDir: path.join(tempDir, 'unity-output'),
+      });
+      outputPath = invocation.outputPath;
+      console.log(`[Agent] Unity argv ${JSON.stringify([invocation.executable, ...invocation.args])}`);
+      try {
+        await runOwnedProcess({ ...invocation, label: 'unity/render.sh', signal: renderAbort.signal });
+      } catch (error) {
+        const unityEvidence = await summarizeUnityFailure(invocation.unityLogPath);
+        throw new Error(`${error instanceof Error ? error.message : String(error)}; Unity evidence: ${unityEvidence}`);
+      }
+      const receipt: UnityArtifactReceipt = await validateUnityArtifact({
+        runtime: runtime.unity,
+        plan: job.dispatch.unityPlan,
+        artifactPath: outputPath,
+        audioPath,
+        unityLogPath: invocation.unityLogPath,
+      });
+      acceptanceReceipt = { engine: 'unity', ...receipt };
+    } else {
+      throw new Error(`Unsupported local render engine: ${job.dispatch.renderEngine}`);
+    }
+    if (renderAbort.signal.aborted) throw new Error('Local-agent lease was lost before upload');
+    const outputIdentity = await fileIdentity(outputPath);
 
     console.log(`[Agent] Reserving upload target for job ${job.jobId}`);
     const reservation = await requestUploadReservation(baseUrl, token, job, agentId, outputPath);
@@ -412,6 +571,7 @@ async function processClaimedJob(baseUrl: string, token: string, agentId: string
       try {
         for (const part of reservation.partUrls) {
           const offset = (part.partNumber - 1) * reservation.partSizeBytes;
+          if (renderAbort.signal.aborted) throw new Error('Local-agent lease was lost during upload');
           const remaining = fileStat.size - offset;
           if (remaining <= 0) break;
           const length = Math.min(reservation.partSizeBytes, remaining);
@@ -464,9 +624,22 @@ async function processClaimedJob(baseUrl: string, token: string, agentId: string
       console.log(`[Agent] Uploading completed render for job ${job.jobId} directly to storage`);
       uploadedBytes = await uploadFileToPresignedUrl(reservation.uploadUrl, outputPath);
     }
+    if (uploadedBytes !== outputIdentity.sizeBytes) {
+      throw new Error('Uploaded byte count does not match the accepted local artifact');
+    }
 
     console.log(`[Agent] Finalizing completion for job ${job.jobId}`);
-    await finalizeDirectCompletion(baseUrl, token, job, agentId, reservation.storageKey, uploadedBytes);
+    if (renderAbort.signal.aborted) throw new Error('Local-agent lease was lost before finalization');
+    await finalizeDirectCompletion(
+      baseUrl,
+      token,
+      job,
+      agentId,
+      reservation.storageKey,
+      uploadedBytes,
+      outputIdentity.sha256,
+      acceptanceReceipt,
+    );
 
     console.log(`[Agent] Job ${job.jobId} complete`);
   } catch (err) {
@@ -501,17 +674,20 @@ async function main(): Promise<void> {
     throw new Error('Missing --server, --agent-id, or --token');
   }
 
+  const runtime = await detectLocalAgentRuntime(process.cwd());
   console.log(`[Agent] Starting local render agent "${agentId}" against ${serverUrl}`);
-  await registerPresence(serverUrl, token, agentId, args.label);
+  console.log(`[Agent] Render engines: ${JSON.stringify(runtime.capabilities.renderEngines || [])}`);
+  for (const issue of runtime.issues) console.warn(`[Agent] Capability note: ${issue}`);
+  await registerPresence(serverUrl, token, agentId, runtime.capabilities, args.label);
 
   while (true) {
     try {
-      const job = await pollForJob(serverUrl, token, agentId, args.label);
+      const job = await pollForJob(serverUrl, token, agentId, runtime.capabilities, args.label);
       if (!job) {
         await sleep(args.pollMs);
         continue;
       }
-      await processClaimedJob(serverUrl, token, agentId, job, args.label);
+      await processClaimedJob(serverUrl, token, agentId, job, runtime, args.label);
     } catch (err) {
       console.error('[Agent] Loop error:', err);
       await sleep(Math.max(args.pollMs, 5000));

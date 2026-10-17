@@ -40,6 +40,39 @@ describe('LocalJobStore', () => {
     expect(retrieved!.retryCount).toBe(0);
   });
 
+  test('create-if-absent reuses a deterministic job ID without duplicates', async () => {
+    const jobId = '5f74f460-c867-5fa0-8937-3efc32d657a1';
+    const metadata = { playlistRenderIntentId: jobId };
+    const first = await store.create('render', metadata, { jobId });
+    const replay = await store.create('render', metadata, { jobId });
+
+    expect(replay.jobId).toBe(first.jobId);
+    expect((await store.list({ type: 'render' }))).toHaveLength(1);
+    await expect(store.create('render', { different: true }, { jobId }))
+      .rejects.toThrow('Deterministic job ID collision');
+  });
+
+  test('compareAndSetResult permits one projection writer', async () => {
+    const job = await store.create('playlist', {});
+    await store.update(job.jobId, { result: { projectionVersion: 0, marker: 'before' } });
+
+    const first = await store.compareAndSetResult(
+      job.jobId,
+      0,
+      { projectionVersion: 1, marker: 'winner' },
+      { stage: 'curation-committed' },
+    );
+    const stale = await store.compareAndSetResult(
+      job.jobId,
+      0,
+      { projectionVersion: 1, marker: 'loser' },
+    );
+
+    expect(first).toBe(true);
+    expect(stale).toBe(false);
+    expect((await store.get(job.jobId))?.result).toEqual({ projectionVersion: 1, marker: 'winner' });
+  });
+
   test('updates job status, progress, and stage', async () => {
     const job = await store.create('ingest', {});
 

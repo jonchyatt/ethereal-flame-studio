@@ -9,12 +9,27 @@
  */
 
 import type { ChildProcess } from 'child_process';
+import { createHash } from 'crypto';
 import path from 'path';
 import os from 'os';
 import { promises as fs } from 'fs';
 import type { JobStore, AudioPrepJob } from '../../src/lib/jobs/types';
 import { getStorageAdapter } from '../../src/lib/storage';
 import { submitToModal } from '../../src/lib/render/modalClient';
+import { buildUnityRenderPlan } from '../../src/lib/render/waiaRenderPlan';
+
+function buildCliVisualConfig(input: Record<string, unknown>): Record<string, unknown> {
+  return {
+    ...input,
+    mode: input.mode ?? 'flame',
+    skyboxPreset: input.skyboxPreset ?? 'nebula',
+    skyboxRotationSpeed: input.skyboxRotationSpeed ?? 0,
+    waterEnabled: input.waterEnabled ?? false,
+    waterColor: input.waterColor ?? '#1a3a5c',
+    waterReflectivity: input.waterReflectivity ?? 0.5,
+    layers: input.layers ?? input.particleLayers ?? [],
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Pipeline entry point
@@ -38,6 +53,13 @@ export async function runRenderPipeline(
   job: AudioPrepJob,
   _childRef: { current: ChildProcess | null },
 ): Promise<void> {
+  const requestedEngine = (job.metadata.renderEngine as string | undefined) || 'puppeteer';
+  if (requestedEngine !== 'puppeteer' && requestedEngine !== 'unity') {
+    throw new Error(`Render engine ${requestedEngine} is unsupported`);
+  }
+  if (requestedEngine === 'unity' && process.env.WAIA_UNITY_RENDER_ENABLED !== 'true') {
+    throw new Error('Unity render dispatch is disabled by WAIA_UNITY_RENDER_ENABLED');
+  }
   const storage = getStorageAdapter();
 
   const tmpDir = path.join(os.tmpdir(), `render-${job.jobId}`);
@@ -109,7 +131,21 @@ export async function runRenderPipeline(
 
     const outputFormat = (job.metadata.outputFormat as string) || 'flat-1080p-landscape';
     const fps = (job.metadata.fps as number) || 30;
-    const visualConfig = (job.metadata.visualConfig as Record<string, unknown>) || {};
+    const visualConfig = buildCliVisualConfig(
+      (job.metadata.visualConfig as Record<string, unknown>) || {},
+    );
+    const renderTarget = (job.metadata.renderTarget as string | undefined) || 'cloud';
+    const targetAgentId = job.metadata.targetAgentId as string | undefined;
+    const unityPlan = requestedEngine === 'unity'
+      ? buildUnityRenderPlan({
+        target: renderTarget as 'cloud' | 'home' | 'local-agent',
+        targetAgentId,
+        outputFormat,
+        fps: fps as 30 | 60,
+        visualConfig,
+        outputName: job.jobId,
+      })
+      : undefined;
 
     const renderConfig = {
       version: '1.0',
@@ -120,15 +156,32 @@ export async function runRenderPipeline(
         fps,
       },
       visual: visualConfig,
+      ...(unityPlan ? { unity: unityPlan } : {}),
     };
 
-    const renderTarget = (job.metadata.renderTarget as string | undefined) || 'cloud';
-    const targetAgentId = job.metadata.targetAgentId as string | undefined;
     const callbackBase =
       process.env.NEXT_PUBLIC_APP_URL ||
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
-    if (renderTarget === 'local-agent') {
+    if (renderTarget === 'home' || renderTarget === 'local-agent') {
+      if (!localAudioPath) throw new Error('Resolved audio path is missing');
+      const inputBytes = await fs.readFile(localAudioPath);
+      const inputArtifact = {
+        storageKey: resolvedStorageKey,
+        sizeBytes: inputBytes.length,
+        sha256: createHash('sha256').update(inputBytes).digest('hex'),
+      };
+      const approvedSha256 = job.metadata.approvedInputSha256 as string | undefined;
+      const approvedSizeBytes = job.metadata.approvedInputSizeBytes as number | undefined;
+      if (requestedEngine === 'unity' && (!approvedSha256 || approvedSizeBytes === undefined)) {
+        throw new Error('Unity render requires an approved input SHA-256 and byte size');
+      }
+      if (approvedSha256 && approvedSha256.toLowerCase() !== inputArtifact.sha256) {
+        throw new Error('Resolved audio SHA-256 does not match the approved input artifact');
+      }
+      if (approvedSizeBytes !== undefined && approvedSizeBytes !== inputArtifact.sizeBytes) {
+        throw new Error('Resolved audio byte size does not match the approved input artifact');
+      }
       await store.update(job.jobId, { stage: 'awaiting-local-agent', progress: 28 });
       await store.update(job.jobId, {
         stage: 'awaiting-local-agent',
@@ -138,8 +191,12 @@ export async function runRenderPipeline(
           localAgentDispatch: {
             schemaVersion: 1,
             jobId: job.jobId,
+            renderEngine: requestedEngine,
+            renderTarget,
             audioSignedUrl: signedUrl,
+            inputArtifact,
             renderConfig,
+            ...(unityPlan ? { unityPlan } : {}),
             appUrl: (job.metadata.callbackUrl as string | undefined) || callbackBase,
             targetAgentId: targetAgentId || null,
             createdAt: new Date().toISOString(),

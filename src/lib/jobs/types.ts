@@ -39,19 +39,37 @@ export interface ListOptions {
   limit?: number;
 }
 
+export interface CreateJobOptions {
+  /** Caller-supplied deterministic ID for create-if-absent outbox dispatch. */
+  jobId?: string;
+}
+
+export interface ProjectionUpdateOptions {
+  stage?: string | null;
+  progress?: number;
+}
+
 // ---------------------------------------------------------------------------
 // JobStore interface
 // ---------------------------------------------------------------------------
 
 export interface JobStore {
   /** Create a new job and return it. */
-  create(type: AudioPrepJob['type'], metadata: Record<string, unknown>): Promise<AudioPrepJob>;
+  create(type: AudioPrepJob['type'], metadata: Record<string, unknown>, options?: CreateJobOptions): Promise<AudioPrepJob>;
 
   /** Get a job by ID. Returns undefined if not found. */
   get(jobId: string): Promise<AudioPrepJob | undefined>;
 
   /** Update specific fields on a job. Throws if job not found. */
   update(jobId: string, updates: JobUpdate): Promise<void>;
+
+  /** Atomically replace a JSON result projection when its embedded version still matches. */
+  compareAndSetResult(
+    jobId: string,
+    expectedProjectionVersion: number,
+    result: Record<string, unknown>,
+    options?: ProjectionUpdateOptions,
+  ): Promise<boolean>;
 
   /** Mark a job as complete with a result object. */
   complete(jobId: string, result: Record<string, unknown>): Promise<void>;

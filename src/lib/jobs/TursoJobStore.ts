@@ -9,7 +9,14 @@
 
 import { createClient, type Client } from '@libsql/client';
 import { randomUUID } from 'crypto';
-import type { JobStore, AudioPrepJob, JobUpdate, ListOptions } from './types';
+import type {
+  JobStore,
+  AudioPrepJob,
+  CreateJobOptions,
+  JobUpdate,
+  ListOptions,
+  ProjectionUpdateOptions,
+} from './types';
 
 const CREATE_TABLE_SQL = `
   CREATE TABLE IF NOT EXISTS audio_prep_jobs (
@@ -78,17 +85,26 @@ export class TursoJobStore implements JobStore {
   async create(
     type: AudioPrepJob['type'],
     metadata: Record<string, unknown>,
+    options?: CreateJobOptions,
   ): Promise<AudioPrepJob> {
     await this.ready();
 
     const now = new Date().toISOString();
-    const jobId = randomUUID();
+    const jobId = options?.jobId || randomUUID();
 
-    await this.client.execute({
-      sql: `INSERT INTO audio_prep_jobs (jobId, type, status, progress, stage, metadata, retryCount, createdAt, updatedAt)
+    const inserted = await this.client.execute({
+      sql: `${options?.jobId ? 'INSERT OR IGNORE' : 'INSERT'} INTO audio_prep_jobs (jobId, type, status, progress, stage, metadata, retryCount, createdAt, updatedAt)
             VALUES (?, ?, 'pending', 0, NULL, ?, 0, ?, ?)`,
       args: [jobId, type, JSON.stringify(metadata), now, now],
     });
+
+    if (inserted.rowsAffected === 0) {
+      const existing = await this.get(jobId);
+      if (!existing || existing.type !== type || JSON.stringify(existing.metadata) !== JSON.stringify(metadata)) {
+        throw new Error(`Deterministic job ID collision for ${jobId}`);
+      }
+      return existing;
+    }
 
     return {
       jobId,
@@ -154,6 +170,38 @@ export class TursoJobStore implements JobStore {
     });
 
     if (result.rowsAffected === 0) throw new Error(`Job ${jobId} not found`);
+  }
+
+  async compareAndSetResult(
+    jobId: string,
+    expectedProjectionVersion: number,
+    result: Record<string, unknown>,
+    options?: ProjectionUpdateOptions,
+  ): Promise<boolean> {
+    await this.ready();
+    if (result.projectionVersion !== expectedProjectionVersion + 1) {
+      throw new Error('CAS result must increment projectionVersion by exactly one');
+    }
+
+    const sets = ['updatedAt = ?', 'result = ?'];
+    const values: Array<string | number | null> = [new Date().toISOString(), JSON.stringify(result)];
+    if (options?.stage !== undefined) {
+      sets.push('stage = ?');
+      values.push(options.stage);
+    }
+    if (options?.progress !== undefined) {
+      sets.push('progress = ?');
+      values.push(options.progress);
+    }
+    values.push(jobId, expectedProjectionVersion);
+
+    const updated = await this.client.execute({
+      sql: `UPDATE audio_prep_jobs SET ${sets.join(', ')}
+            WHERE jobId = ?
+            AND COALESCE(CAST(json_extract(result, '$.projectionVersion') AS INTEGER), 0) = ?`,
+      args: values,
+    });
+    return updated.rowsAffected === 1;
   }
 
   async complete(jobId: string, result: Record<string, unknown>): Promise<void> {

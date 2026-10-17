@@ -75,6 +75,11 @@ public static class AutoRecorder
         string sceneName = GetArg(args, "scene", "Example");
         string presetName = GetArg(args, "preset", "");
         string spectrumFile = GetArg(args, "spectrumFile");
+        bool lockRenderSettings = string.Equals(
+            GetArg(args, "lockRenderSettings", "false"),
+            "true",
+            StringComparison.OrdinalIgnoreCase
+        );
 
         // Baked per-frame band table (fixes reactivity freezing after audio's
         // real-time playback ends but frame-locked capture keeps going).
@@ -112,7 +117,7 @@ public static class AutoRecorder
         {
             Debug.Log($"[AutoRecorder] Applying preset: {presetName}");
             var preset = SceneConfigurator.ApplyPreset(presetName);
-            if (preset != null && preset.recording != null)
+            if (preset != null && preset.recording != null && !lockRenderSettings)
             {
                 // Override recording settings from preset
                 mode = preset.recording.mode ?? mode;
@@ -121,6 +126,15 @@ public static class AutoRecorder
                 stereoSep = preset.recording.stereo_separation > 0 ? preset.recording.stereo_separation : stereoSep;
                 Debug.Log($"[AutoRecorder] Preset overrides — mode: {mode}, res: {resolution}, fps: {framerate}");
             }
+            else if (lockRenderSettings)
+            {
+                Debug.Log($"[AutoRecorder] Approved render settings locked: mode={mode}, res={resolution}, fps={framerate}");
+            }
+        }
+
+        if (string.IsNullOrEmpty(GetArg(args, "mapSize")))
+        {
+            mapSize = resolution;
         }
 
         if (audioDuration <= 0)
