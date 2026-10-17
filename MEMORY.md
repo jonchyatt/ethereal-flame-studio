@@ -33,3 +33,9 @@
 - `scripts/brand/`: `guide.mjs` (exact lemniscate guide PNG, no dependencies), `generate.mjs` (Gemini image models, default `gemini-3-pro-image`, key from `GEMINI_API_KEY` only, logo + guide as references, text-free rule appended, recipe `.json` beside each candidate), `compose.mjs` (upright "What Am I" / "Appreciating" on the lobes' top arcs, gold "Now" at the crossing, SVG out, optional PNG via Playwright). Prompts in `brand/prompts/` (vortex ribbon, carved-wood relief, icon, shirt print); pick process in `brand/review.md`.
 - Built from the description: the jarvis reference scripts (`waia-brand-infinity.mjs`, `argus-imagine.mjs`) were not reachable from this session, so the geometry reuses the infinity curve in `generate-brand-marks.mjs`, not a port.
 - `node --test scripts/brand/brand.test.mjs`: 9 pass (geometry, PNG, layout, request building, mocked fetch). Nothing run against the Gemini API; no image has been generated or judged.
+
+## 2026-10-17 digest: Land owned RB draft packs (from t_b0e55f67)
+
+- Cherry-picked the one commit on `t_b0e55f67` onto master: three owned Reset Biology draft packs (`waia-owned-rb-food-peace-v1`, `-hunger-noticing-v1`, `-evening-rest-v1`) plus `scripts/check-waia-three-owned-rb-packs.mjs`. Docs and a check script only; no runtime code touched.
+- Gate review: all three are `private-draft-only`, `publication.blocked: true`, `connectorMode: manual-draft`, no upload id, URL or schedule, rights state `HOLD-MEDIA`, no third-party audio, and no credentials or channel id. They cannot reach upload without the curation gate.
+- The check script passes every structural rule here but fails the file-readable checks, because the source masters and mp3s live on Jonathan's machine (same local-path pattern as the pilot pack). Run it there.
