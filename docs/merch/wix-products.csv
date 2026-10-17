@@ -1,0 +1,45 @@
+handleId,fieldType,name,description,productImageUrl,collection,sku,ribbon,price,surcharge,visible,discountMode,discountValue,inventory,weight,cost,productOptionName1,productOptionType1,productOptionDescription1
+circle-shirt,Product,"What Am I Appreciating Now T-shirt, Circle","The full name set on a circle so Now closes back into What. Mark and layout drawn in this repository. Print-on-demand through the store; image is an illustrative mockup, not a product photo.",https://www.whatamiappreciatingnow.com/brand/mockups/circle-shirt.png,What Am I Appreciating Now,CIRCLE-SHIRT,,,,FALSE,,,InStock,,,Size,DROP_DOWN,S;M;L;XL;2XL
+circle-shirt,Variant,,,,,CIRCLE-SHIRT-S,,,,FALSE,,,InStock,,,Size,,S
+circle-shirt,Variant,,,,,CIRCLE-SHIRT-M,,,,FALSE,,,InStock,,,Size,,M
+circle-shirt,Variant,,,,,CIRCLE-SHIRT-L,,,,FALSE,,,InStock,,,Size,,L
+circle-shirt,Variant,,,,,CIRCLE-SHIRT-XL,,,,FALSE,,,InStock,,,Size,,XL
+circle-shirt,Variant,,,,,CIRCLE-SHIRT-2XL,,,,FALSE,,,InStock,,,Size,,2XL
+infinity-shirt,Product,"What Am I Appreciating Now T-shirt, Infinity","The name running once around the infinity loop of desire, passion, achievement, peace, contrast and new desire. Mark and layout drawn in this repository. Print-on-demand through the store; image is an illustrative mockup, not a product photo.",https://www.whatamiappreciatingnow.com/brand/mockups/infinity-shirt.png,What Am I Appreciating Now,INFINITY-SHIRT,,,,FALSE,,,InStock,,,Size,DROP_DOWN,S;M;L;XL;2XL
+infinity-shirt,Variant,,,,,INFINITY-SHIRT-S,,,,FALSE,,,InStock,,,Size,,S
+infinity-shirt,Variant,,,,,INFINITY-SHIRT-M,,,,FALSE,,,InStock,,,Size,,M
+infinity-shirt,Variant,,,,,INFINITY-SHIRT-L,,,,FALSE,,,InStock,,,Size,,L
+infinity-shirt,Variant,,,,,INFINITY-SHIRT-XL,,,,FALSE,,,InStock,,,Size,,XL
+infinity-shirt,Variant,,,,,INFINITY-SHIRT-2XL,,,,FALSE,,,InStock,,,Size,,2XL
+loop-shirt,Product,"What Am I Appreciating Now T-shirt, Loop","The text ring around an arrow that closes on itself. Mark and layout drawn in this repository. Print-on-demand through the store; image is an illustrative mockup, not a product photo.",https://www.whatamiappreciatingnow.com/brand/mockups/loop-shirt.png,What Am I Appreciating Now,LOOP-SHIRT,,,,FALSE,,,InStock,,,Size,DROP_DOWN,S;M;L;XL;2XL
+loop-shirt,Variant,,,,,LOOP-SHIRT-S,,,,FALSE,,,InStock,,,Size,,S
+loop-shirt,Variant,,,,,LOOP-SHIRT-M,,,,FALSE,,,InStock,,,Size,,M
+loop-shirt,Variant,,,,,LOOP-SHIRT-L,,,,FALSE,,,InStock,,,Size,,L
+loop-shirt,Variant,,,,,LOOP-SHIRT-XL,,,,FALSE,,,InStock,,,Size,,XL
+loop-shirt,Variant,,,,,LOOP-SHIRT-2XL,,,,FALSE,,,InStock,,,Size,,2XL
+wordmark-shirt,Product,"What Am I Appreciating Now T-shirt, Wordmark","The name on one line, with Now in the accent colour and a line returning from Now to What. Mark and layout drawn in this repository. Print-on-demand through the store; image is an illustrative mockup, not a product photo.",https://www.whatamiappreciatingnow.com/brand/mockups/wordmark-shirt.png,What Am I Appreciating Now,WORDMARK-SHIRT,,,,FALSE,,,InStock,,,Size,DROP_DOWN,S;M;L;XL;2XL
+wordmark-shirt,Variant,,,,,WORDMARK-SHIRT-S,,,,FALSE,,,InStock,,,Size,,S
+wordmark-shirt,Variant,,,,,WORDMARK-SHIRT-M,,,,FALSE,,,InStock,,,Size,,M
+wordmark-shirt,Variant,,,,,WORDMARK-SHIRT-L,,,,FALSE,,,InStock,,,Size,,L
+wordmark-shirt,Variant,,,,,WORDMARK-SHIRT-XL,,,,FALSE,,,InStock,,,Size,,XL
+wordmark-shirt,Variant,,,,,WORDMARK-SHIRT-2XL,,,,FALSE,,,InStock,,,Size,,2XL
+psychedelic-spiral-shirt,Product,"What Am I Appreciating Now T-shirt, Psychedelic Spiral","The studio's spiral artwork behind the mark. Spiral artwork is an existing overlay in this repository; Jonathan must confirm full ownership before print. Print-on-demand through the store; image is an illustrative mockup, not a product photo.",https://www.whatamiappreciatingnow.com/brand/mockups/psychedelic-spiral-shirt.png,What Am I Appreciating Now,PSYCHEDELIC-SPIRAL-SHIRT,,,,FALSE,,,InStock,,,Size,DROP_DOWN,S;M;L;XL;2XL
+psychedelic-spiral-shirt,Variant,,,,,PSYCHEDELIC-SPIRAL-SHIRT-S,,,,FALSE,,,InStock,,,Size,,S
+psychedelic-spiral-shirt,Variant,,,,,PSYCHEDELIC-SPIRAL-SHIRT-M,,,,FALSE,,,InStock,,,Size,,M
+psychedelic-spiral-shirt,Variant,,,,,PSYCHEDELIC-SPIRAL-SHIRT-L,,,,FALSE,,,InStock,,,Size,,L
+psychedelic-spiral-shirt,Variant,,,,,PSYCHEDELIC-SPIRAL-SHIRT-XL,,,,FALSE,,,InStock,,,Size,,XL
+psychedelic-spiral-shirt,Variant,,,,,PSYCHEDELIC-SPIRAL-SHIRT-2XL,,,,FALSE,,,InStock,,,Size,,2XL
+psychedelic-starfield-shirt,Product,"What Am I Appreciating Now T-shirt, Psychedelic Starfield","The infinity loop over colours echoing the studio's star-field presets. Mark and layout drawn in this repository. Print-on-demand through the store; image is an illustrative mockup, not a product photo.",https://www.whatamiappreciatingnow.com/brand/mockups/psychedelic-starfield-shirt.png,What Am I Appreciating Now,PSYCHEDELIC-STARFIELD-SHIRT,,,,FALSE,,,InStock,,,Size,DROP_DOWN,S;M;L;XL;2XL
+psychedelic-starfield-shirt,Variant,,,,,PSYCHEDELIC-STARFIELD-SHIRT-S,,,,FALSE,,,InStock,,,Size,,S
+psychedelic-starfield-shirt,Variant,,,,,PSYCHEDELIC-STARFIELD-SHIRT-M,,,,FALSE,,,InStock,,,Size,,M
+psychedelic-starfield-shirt,Variant,,,,,PSYCHEDELIC-STARFIELD-SHIRT-L,,,,FALSE,,,InStock,,,Size,,L
+psychedelic-starfield-shirt,Variant,,,,,PSYCHEDELIC-STARFIELD-SHIRT-XL,,,,FALSE,,,InStock,,,Size,,XL
+psychedelic-starfield-shirt,Variant,,,,,PSYCHEDELIC-STARFIELD-SHIRT-2XL,,,,FALSE,,,InStock,,,Size,,2XL
+psychedelic-spiral-hat,Product,"What Am I Appreciating Now Hat, Psychedelic Spiral","The studio's spiral artwork behind the mark. Spiral artwork is an existing overlay in this repository; Jonathan must confirm full ownership before print. Print-on-demand through the store; image is an illustrative mockup, not a product photo.",https://www.whatamiappreciatingnow.com/brand/mockups/psychedelic-spiral-hat.png,What Am I Appreciating Now,PSYCHEDELIC-SPIRAL-HAT,,,,FALSE,,,InStock,,,,,
+psychedelic-starfield-hat,Product,"What Am I Appreciating Now Hat, Psychedelic Starfield","The infinity loop over colours echoing the studio's star-field presets. Mark and layout drawn in this repository. Print-on-demand through the store; image is an illustrative mockup, not a product photo.",https://www.whatamiappreciatingnow.com/brand/mockups/psychedelic-starfield-hat.png,What Am I Appreciating Now,PSYCHEDELIC-STARFIELD-HAT,,,,FALSE,,,InStock,,,,,
+circle-mug,Product,"What Am I Appreciating Now Mug, Circle","The full name set on a circle so Now closes back into What. Mark and layout drawn in this repository. Print-on-demand through the store; image is an illustrative mockup, not a product photo.",https://www.whatamiappreciatingnow.com/brand/mockups/circle-mug.png,What Am I Appreciating Now,CIRCLE-MUG,,,,FALSE,,,InStock,,,,,
+infinity-mug,Product,"What Am I Appreciating Now Mug, Infinity","The name running once around the infinity loop of desire, passion, achievement, peace, contrast and new desire. Mark and layout drawn in this repository. Print-on-demand through the store; image is an illustrative mockup, not a product photo.",https://www.whatamiappreciatingnow.com/brand/mockups/infinity-mug.png,What Am I Appreciating Now,INFINITY-MUG,,,,FALSE,,,InStock,,,,,
+loop-mug,Product,"What Am I Appreciating Now Mug, Loop","The text ring around an arrow that closes on itself. Mark and layout drawn in this repository. Print-on-demand through the store; image is an illustrative mockup, not a product photo.",https://www.whatamiappreciatingnow.com/brand/mockups/loop-mug.png,What Am I Appreciating Now,LOOP-MUG,,,,FALSE,,,InStock,,,,,
+wordmark-mug,Product,"What Am I Appreciating Now Mug, Wordmark","The name on one line, with Now in the accent colour and a line returning from Now to What. Mark and layout drawn in this repository. Print-on-demand through the store; image is an illustrative mockup, not a product photo.",https://www.whatamiappreciatingnow.com/brand/mockups/wordmark-mug.png,What Am I Appreciating Now,WORDMARK-MUG,,,,FALSE,,,InStock,,,,,
+psychedelic-spiral-mug,Product,"What Am I Appreciating Now Mug, Psychedelic Spiral","The studio's spiral artwork behind the mark. Spiral artwork is an existing overlay in this repository; Jonathan must confirm full ownership before print. Print-on-demand through the store; image is an illustrative mockup, not a product photo.",https://www.whatamiappreciatingnow.com/brand/mockups/psychedelic-spiral-mug.png,What Am I Appreciating Now,PSYCHEDELIC-SPIRAL-MUG,,,,FALSE,,,InStock,,,,,
+psychedelic-starfield-mug,Product,"What Am I Appreciating Now Mug, Psychedelic Starfield","The infinity loop over colours echoing the studio's star-field presets. Mark and layout drawn in this repository. Print-on-demand through the store; image is an illustrative mockup, not a product photo.",https://www.whatamiappreciatingnow.com/brand/mockups/psychedelic-starfield-mug.png,What Am I Appreciating Now,PSYCHEDELIC-STARFIELD-MUG,,,,FALSE,,,InStock,,,,,
