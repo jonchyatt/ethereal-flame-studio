@@ -56,3 +56,14 @@ Kept **outside this public repo** and passed by path (the code refuses paths ins
 
 - Automated: `npx jest src/lib/patrons src/lib/local-agent` covers the schema, moderation, hashing, card HTML and the render contract.
 - Unity has no test assembly and was not run here. Manual check: open the project and run **Tools > EFS > Check Patron Wall Layout** (or batch `-executeMethod PatronWallSelfCheck.Run`), then render a short clip with `--patrons-file` and look behind the camera for the names and the `[PatronWall] Placed` log line.
+
+## Patron intake and signup (backlog item 10)
+
+Public pages: `/patrons/join` (tier, name or alias, one message on Ethereal only, an exact preview, consent and 18+ checkboxes) and `/patrons/remove` (removal by the patron's own code). No payment is taken and no contact detail is collected; the tiers are the proposals above with no price (`priceCents: null`, "not yet on sale"; `src/lib/patrons/tiers.ts`). Taking money is red 1 and stays Jonathan's click.
+
+- **Storage** (storage adapter, private bucket or local storage, never the repo): `patrons/consent/<consentRef>.json` holds the exact consent wording and version, the text shown, and the time; `patrons/intake/<consentRef>.json` holds the submission and its status. The consent record is written first.
+- **consentRef** is `consent_` plus 24 random hex characters. It is shown once to the patron after signup; it is their only handle for removal.
+- **Moderation at the form**: the same URL and blocklist rules as the render gate, said plainly to the patron; over-long text is refused, not clipped. A honeypot field and a per-address limit slow bots.
+- **Curation (operator, `Authorization: Bearer $WAIA_OPERATOR_SECRET`)**: `GET /api/patrons/intake` lists submissions; `PATCH` with `{consentRef, decision: approve|reject|withdraw}` decides (approve re-runs moderation and refuses if removal was requested); `GET /api/patrons/intake?format=patrons` returns the `patrons.json` content (approved, no removal request) to save outside the repo and pass to `writePatronRenderList`.
+- **Removal**: `POST /api/patrons/removal {consentRef}` flags the record; the next export omits it. The answer is identical whether or not the code exists.
+- Checks: `npx jest src/lib/patrons`.
