@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600" role="img" aria-labelledby="t">
+<title id="t">What Am I Appreciating Now</title>
+<circle cx="300" cy="300" r="257" fill="none" stroke="#f7f3e633" stroke-width="2"/>
+<circle cx="300" cy="300" r="153" fill="none" stroke="#f7f3e633" stroke-width="2"/>
+<defs><path id="p" d="M 300 95 A 205 205 0 1 1 299.99 95"/></defs>
+<text font-family="'Iowan Old Style','Sitka Text',Georgia,'Times New Roman',serif" font-size="50" fill="#f7f3e6" letter-spacing="2"><textPath href="#p" startOffset="0" textLength="1243.0" lengthAdjust="spacing">What Am I Appreciating <tspan fill="#e6bd77" font-style="italic">Now</tspan></textPath></text>
+<circle cx="300" cy="300" r="14" fill="#e6bd77"/>
+</svg>
