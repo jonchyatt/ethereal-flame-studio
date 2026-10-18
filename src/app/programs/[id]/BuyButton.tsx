@@ -15,10 +15,10 @@ export function BuyButton({ programId, kind }: { programId: string; kind: 'subsc
   }
   return (
     <div>
-      <button onClick={go} style={{ padding: '10px 20px', fontSize: 16, borderRadius: 8, cursor: 'pointer' }}>
+      <button onClick={go} style={{ padding: '12px 24px', fontSize: 16, borderRadius: 8, cursor: 'pointer' }}>
         {kind === 'subscription' ? 'Subscribe (test mode)' : 'Buy (test mode)'}
       </button>
-      {msg && <p role="status">{msg}</p>}
+      <p role="status">{msg}</p>
     </div>
   );
 }

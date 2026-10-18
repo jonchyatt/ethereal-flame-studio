@@ -41,12 +41,20 @@ def get_model() -> WhisperModel:
     return _model
 
 
+class TranscriptSegment(BaseModel):
+    """One timed line of the transcript."""
+    start: float
+    end: float
+    text: str
+
+
 class TranscriptionResult(BaseModel):
     """Response model for transcription results."""
     text: str
     language: str
     duration_seconds: float
     segments_count: int
+    segments: list[TranscriptSegment] = []
 
 
 class TranscriptionRequest(BaseModel):
@@ -96,7 +104,11 @@ async def transcribe_file(file: UploadFile = File(...)):
             text=full_text,
             language=info.language,
             duration_seconds=info.duration,
-            segments_count=len(all_segments)
+            segments_count=len(all_segments),
+            segments=[
+                TranscriptSegment(start=seg.start, end=seg.end, text=seg.text.strip())
+                for seg in all_segments
+            ],
         )
 
     except Exception as e:
@@ -133,7 +145,11 @@ async def transcribe_path(request: TranscriptionRequest):
             text=full_text,
             language=info.language,
             duration_seconds=info.duration,
-            segments_count=len(all_segments)
+            segments_count=len(all_segments),
+            segments=[
+                TranscriptSegment(start=seg.start, end=seg.end, text=seg.text.strip())
+                for seg in all_segments
+            ],
         )
 
     except Exception as e:
