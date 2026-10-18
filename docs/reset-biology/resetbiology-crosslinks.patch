@@ -1,0 +1,11 @@
+diff --git a/src/components/Navigation/Footer.tsx b/src/components/Navigation/Footer.tsx
+--- a/src/components/Navigation/Footer.tsx
++++ b/src/components/Navigation/Footer.tsx
+@@ -40,6 +40,7 @@ export function Footer() {
+               <li><Link href="/process" className="transition-colors hover:text-primary-300">How it works</Link></li>
+               <li><Link href="/contact" className="transition-colors hover:text-primary-300">Contact</Link></li>
+               <li><Link href="/portal" className="transition-colors hover:text-primary-300">Portal</Link></li>
++              <li><a href="https://whatamiappreciatingnow.com/" rel="noopener" className="transition-colors hover:text-primary-300">What Am I Appreciating Now</a></li>
+             </ul>
+           </nav>
+           <div>

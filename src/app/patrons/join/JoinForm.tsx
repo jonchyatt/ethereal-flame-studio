@@ -41,7 +41,7 @@ export default function JoinForm({ tiers }: { tiers: Tier[] }) {
 
   if (done) {
     return (
-      <section style={{ marginTop: 24, padding: 20, border: '1px solid #333', borderRadius: 12 }}>
+      <section role="status" style={{ marginTop: 24, padding: 20, border: '1px solid #333', borderRadius: 12 }}>
         <h2>Thank you</h2>
         <p>Your name is waiting for a person to read it. Nothing appears until it is approved.</p>
         <p>Keep this code. It is the only way to ask for removal later, and we store no email for you:</p>
@@ -50,7 +50,7 @@ export default function JoinForm({ tiers }: { tiers: Tier[] }) {
     );
   }
 
-  const field = { display: 'block', width: '100%', padding: 10, margin: '6px 0 16px', background: '#14142a', color: '#eee', border: '1px solid #333', borderRadius: 8 } as const;
+  const field = { display: 'block', width: '100%', padding: 10, margin: '6px 0 16px', background: '#14142a', color: '#eee', border: '1px solid #8c8c9e', borderRadius: 8 } as const;
   return (
     <form onSubmit={submit} style={{ marginTop: 24 }}>
       <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
@@ -85,7 +85,7 @@ export default function JoinForm({ tiers }: { tiers: Tier[] }) {
       </label>
       <p style={{ fontSize: 14, opacity: 0.7 }}>Not allowed: impersonating a person or brand, links, and private details such as addresses, phone numbers, emails or health information.</p>
       {errors.length > 0 && <ul role="alert" style={{ color: '#ff9a9a' }}>{errors.map((m) => <li key={m}>{m}</li>)}</ul>}
-      <button type="submit" disabled={busy || !consent || !adult || !displayName.trim()} style={{ padding: '12px 24px', borderRadius: 8, border: 'none', background: '#c9b3ff', color: '#0b0b14', fontSize: 16 }}>
+      <button type="submit" disabled={busy || !consent || !adult || !displayName.trim()} style={{ padding: '12px 24px', borderRadius: 8, border: 'none', background: '#c9b3ff', color: '#0b0b14', fontSize: 16, opacity: busy || !consent || !adult || !displayName.trim() ? 0.5 : 1, cursor: busy || !consent || !adult || !displayName.trim() ? 'not-allowed' : 'pointer' }}>
         {busy ? 'Sending…' : 'Send for approval'}
       </button>
       <p style={{ fontSize: 14, marginTop: 24 }}>Already on the wall and want out? <a href="/patrons/remove" style={{ color: 'inherit' }}>Ask for removal</a>.</p>
