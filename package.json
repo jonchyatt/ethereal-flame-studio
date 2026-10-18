@@ -17,6 +17,7 @@
     "worker": "tsx scripts/start-worker.ts",
     "worker:render": "tsx scripts/start-worker.ts --render",
     "worker:transcribe": "tsx scripts/start-worker.ts --transcribe",
+    "transcripts:write": "tsx scripts/write-asset-transcripts.ts",
     "render:local": "tsx scripts/render-cli.ts"
   },
   "dependencies": {
