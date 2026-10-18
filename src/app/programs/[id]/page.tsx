@@ -9,6 +9,13 @@ import { CounterBeacon } from '@/components/CounterBeacon';
 
 export const dynamic = 'force-dynamic';
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const program = getProgram((await params).id);
+  return program
+    ? { title: `${program.title} · What Am I Appreciating Now`, description: program.summary }
+    : { title: 'Program not found · What Am I Appreciating Now' };
+}
+
 export default async function ProgramPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const program = getProgram(id);
