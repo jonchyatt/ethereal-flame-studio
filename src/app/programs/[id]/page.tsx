@@ -5,6 +5,7 @@ import { loadProgramContent } from '@/lib/entitlements/content';
 import { hasAccess, loadRecord } from '@/lib/entitlements/model';
 import { CUSTOMER_COOKIE, verifyCustomerCookie } from '@/lib/entitlements/session';
 import { BuyButton } from './BuyButton';
+import { CounterBeacon } from '@/components/CounterBeacon';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
 
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
+      <CounterBeacon page="program" slug={program.id} />
       <p><a href="/programs" style={{ color: 'inherit' }}>← Programs</a></p>
       <h1>{program.title}</h1>
       <p>{program.summary}</p>
