@@ -79,6 +79,24 @@ export function verifyWebhook(
   });
 }
 
+/** Opens Stripe's hosted billing portal (cancel, update card, invoices) for a test-mode customer. */
+export async function createPortalSession(
+  providerCustomerId: string,
+  returnUrl: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<{ url: string }> {
+  const key = testSecretKey();
+  const res = await fetchImpl('https://api.stripe.com/v1/billing_portal/sessions', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ customer: providerCustomerId, return_url: returnUrl }),
+  });
+  const json = (await res.json()) as { url?: string; livemode?: boolean; error?: { message?: string } };
+  if (!res.ok || !json.url) throw new Error(`Stripe portal failed: ${json.error?.message ?? res.status}`);
+  if (json.livemode) throw new Error('Stripe returned a live-mode session; refusing');
+  return { url: json.url };
+}
+
 export interface StripeEvent {
   id: string;
   type: string;
@@ -87,7 +105,9 @@ export interface StripeEvent {
 }
 
 export type EntitlementAction =
-  | { op: 'grant'; customerId: string; programId: string; expiresAt: string | null; providerRef: string | null }
+  | { op: 'grant'; customerId: string; programId: string; expiresAt: string | null; providerRef: string | null; providerCustomerId?: string | null; neverShorten?: boolean }
+  | { op: 'past_due'; customerId: string; programId: string }
+  | { op: 'cancel_flag'; customerId: string; programId: string; cancel: boolean }
   | { op: 'revoke'; customerId: string; programId: string }
   | { op: 'ignore'; reason: string };
 
@@ -103,13 +123,26 @@ export function actionForEvent(ev: StripeEvent): EntitlementAction {
       if (!programId || !customerId) return { op: 'ignore', reason: 'missing metadata' };
       // Subscriptions get their period end from invoice.paid; until then a short grace window.
       const expiresAt = o.mode === 'subscription' ? new Date(Date.now() + 3 * 86400_000).toISOString() : null;
-      return { op: 'grant', customerId, programId, expiresAt, providerRef: o.subscription ?? o.payment_intent ?? o.id ?? null };
+      return { op: 'grant', customerId, programId, expiresAt, providerRef: o.subscription ?? o.payment_intent ?? o.id ?? null, providerCustomerId: typeof o.customer === 'string' ? o.customer : null, neverShorten: true };
     }
     case 'invoice.paid': {
       const m = o.subscription_details?.metadata ?? o.lines?.data?.[0]?.metadata ?? {};
       const end = o.lines?.data?.[0]?.period?.end;
       if (!m.programId || !m.customerId || !end) return { op: 'ignore', reason: 'missing metadata' };
-      return { op: 'grant', customerId: m.customerId, programId: m.programId, expiresAt: new Date(end * 1000).toISOString(), providerRef: o.subscription ?? null };
+      return { op: 'grant', customerId: m.customerId, programId: m.programId, expiresAt: new Date(end * 1000).toISOString(), providerRef: o.subscription ?? null, providerCustomerId: typeof o.customer === 'string' ? o.customer : null };
+    }
+    case 'invoice.payment_failed': {
+      const m = o.subscription_details?.metadata ?? o.lines?.data?.[0]?.metadata ?? {};
+      if (!m.programId || !m.customerId) return { op: 'ignore', reason: 'missing metadata' };
+      return { op: 'past_due', customerId: m.customerId, programId: m.programId };
+    }
+    case 'customer.subscription.updated': {
+      const m = o.metadata ?? {};
+      if (!m.programId || !m.customerId) return { op: 'ignore', reason: 'missing metadata' };
+      if (o.status === 'canceled' || o.status === 'unpaid' || o.status === 'incomplete_expired') {
+        return { op: 'revoke', customerId: m.customerId, programId: m.programId };
+      }
+      return { op: 'cancel_flag', customerId: m.customerId, programId: m.programId, cancel: o.cancel_at_period_end === true };
     }
     case 'customer.subscription.deleted': {
       const m = o.metadata ?? {};
