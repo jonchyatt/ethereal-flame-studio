@@ -19,6 +19,31 @@ export interface TranscriptionResult {
   language: string;
   durationSeconds: number;
   segmentsCount: number;
+  /** Timed lines; empty when talking to an older service that returns text only. */
+  segments: Array<{ startSec: number; endSec: number; text: string }>;
+}
+
+function parseResult(result: any): TranscriptionResult {
+  return {
+    text: result.text,
+    language: result.language,
+    durationSeconds: result.duration_seconds,
+    segmentsCount: result.segments_count,
+    segments: Array.isArray(result.segments)
+      ? result.segments.map((s: any) => ({ startSec: Number(s.start), endSec: Number(s.end), text: String(s.text ?? '') }))
+      : [],
+  };
+}
+
+/** Uploads bytes already in memory (e.g. read from the storage adapter) to the Whisper service. */
+export async function transcribeBuffer(data: Buffer, filename: string): Promise<TranscriptionResult> {
+  const form = new globalThis.FormData();
+  form.append('file', new Blob([new Uint8Array(data)]), filename);
+  const response = await fetch(`${WHISPER_URL}/transcribe`, { method: 'POST', body: form });
+  if (!response.ok) {
+    throw new Error(`Transcription failed: ${response.status} - ${await response.text()}`);
+  }
+  return parseResult(await response.json());
 }
 
 /**
@@ -60,12 +85,7 @@ export async function transcribeFile(filePath: string): Promise<TranscriptionRes
 
   const result = await response.json();
 
-  return {
-    text: result.text,
-    language: result.language,
-    durationSeconds: result.duration_seconds,
-    segmentsCount: result.segments_count,
-  };
+  return parseResult(result);
 }
 
 /**
@@ -90,12 +110,7 @@ export async function transcribePath(audioPath: string): Promise<TranscriptionRe
 
   const result = await response.json();
 
-  return {
-    text: result.text,
-    language: result.language,
-    durationSeconds: result.duration_seconds,
-    segmentsCount: result.segments_count,
-  };
+  return parseResult(result);
 }
 
 /**

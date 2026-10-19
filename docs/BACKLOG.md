@@ -25,6 +25,28 @@ Not verified here: whether the jarvis repo files named below say what the notes 
 | #14, #15 | Three owned Reset Biology draft packs; note that `t_3dc0160f` has nothing left |
 | #16 | Shorts: 9:16 cuts at audio peaks, burned-in captions, registered as gated child packs |
 
+### Shipped from the first queue (2026-10-17, PRs #19 to #33)
+
+Merged on master: #19, #22, #23, #24, #25, #26, #28. Open and ready for Jonathan's squash-merge (except #29, still a draft): #21, #29, #30, #31, #32, #33.
+
+| Queue item | PR | State |
+|---|---|---|
+| 1 Programs paywall and entitlements (test mode) | #19 | merged |
+| 2 Yale inversion guided process | #33 | open; steps live in private storage, not the repo |
+| 3 Advanced hypnosis sessions catalog | #31 | open (replaces #20) |
+| 4 Custom session order flow | #21 | open; intake stays closed until `CUSTOM_ORDERS_OPEN=1` |
+| 5 Merchandise catalog and Wix CSV | #22 | merged |
+| 8 Approval queue screen | #23 | merged |
+| 9 Analytics read-back and ranking | #24 | merged; never run against YouTube |
+| 10 Patron intake and tier signup | #25 | merged |
+| 11 Health affiliate shelf | #26 | merged; ships empty |
+| 12 Reset Biology cross-links | #30 | open (replaces #27) |
+| 13 Short-form caption packs | #28 | merged |
+| 14 Thumbnail options and scoring | #29 | open, draft; real-render run still on the PC |
+| 16 Green test suite | #32 | open |
+
+Still PC-only: **6** Episode 1 end to end, **7** first ten episodes render queue, **15** Phase 4d Unity 28 s proof and `.ulf` licence smoke test. They need a render session on Jonathan's PC (Codex, stdin closed, max effort), so no cloud thread picks them up.
+
 ## 2. Reclassification: everything treated as blocked, red, or waiting on Jonathan
 
 | # | Item as it was treated | Verdict | Which red, or why green | Do now |
@@ -60,28 +82,43 @@ Not verified here: whether the jarvis repo files named below say what the notes 
 
 ## 3. Queued threads (ordered by revenue; each is one bounded task, one PR)
 
-Lane key: **cloud** = thread in this repo; **PC** = heavy or credentialed work Codex runs on Jonathan's machine, stdin closed, max effort, with a thread planning and verifying.
+Every brief below builds in a cloud container from master, touches new files or its own area, and does not depend on any open PR. If a brief needs something an open PR adds, it says so and builds its own fixture instead. Live money, public posting and logins stay red as in section 4. "Not yet on sale" stays on every public page until Jonathan flips it. Priced items use the single price config, never numbers in page code.
 
-1. **Programs paywall and entitlements (store, programs).** Build the entitlement model and gated content route for subscription and one-time programs, with a payment adapter in test mode only; free Reset Biology tools stay unpaywalled. Cloud. Live mode is R1.
-2. **Yale inversion protocol guided process (programs).** Read `docs/reset-biology/sources/yale-attachment-protocol-doc.txt`, `data/pathways-corpus-content-distilled/mental-mastery-script-doctrine.md` and `tools/mental-mastery-workshop/` in the jarvis repo and build the guided-process page and session player behind the entitlement; never rewrite the protocol. Needs the three jarvis paths brought in. Cloud.
-3. **Advanced hypnosis sessions catalog (programs).** Catalog schema and listing pages for the advanced sessions, each with a rights/provenance note and "not yet on sale"; content comes from what Jonathan has handed over, never invented. Cloud.
-4. **Custom session order flow (store).** Replace the "coming soon" intake with a request queue stored outside the repo, an operator view, and a quote status; no payment taken. Cloud.
-5. **Merchandise catalog and print-on-demand feed (merchandise).** Product schema for shirts, hats and mugs carrying the infinity-loop marks, mockups for each, and a Wix-import-ready CSV. Cloud; Jonathan's own Wix login does the import (R5 if anyone else holds it).
-6. **Episode 1 end to end, manual-draft (channel).** Take the owned pilot through mix, render, thumbnail, pack contents and the gate to a folder of files ready to post; the receipt is someone actually running it. PC for the render, cloud thread to verify.
-7. **First ten episodes render queue (channel).** Turn the launch slate into ten batch items with recipes, provenance and render packs, each waiting only at the approval gate; narration source chosen by building both a LibriVox and an AI-voice variant. PC + cloud.
-8. **Approval queue screen (channel).** A single page listing pending items with source rights, recipe fingerprint, preview and approve/reject, fail-closed, so the gate stops being the slow step. Cloud.
-9. **Analytics read-back and next-slate loop (analytics).** Reader for channel-scoped YouTube analytics and a ranking of what to make next from watch time and retention; first run local once OAuth read scope exists. Cloud + PC.
-10. **Patron intake and tier signup page (patron wall).** Public form that collects display name, message and explicit display consent, writes the opaque `consentRef` outside the repo, and feeds the moderation gate; tiers from `docs/PATRON-WALL.md` as proposals. Cloud. Taking money is R1.
-11. **Health affiliate shelf (store).** Section with disclosed affiliate items from Jonathan's list, FTC-style disclosure, outbound links only, each with a provenance note. Cloud.
-12. **Reset Biology cross-links (site).** Plain outbound links from this site to resetbiology.com, and the reverse link copy for that site (written here, placed there); no money taken on the other site. Cloud.
-13. **Short-form caption pack per platform (channel).** Per-platform caption text and file naming for each Short from #16, rights basis carried onto every cut, output folder ready to post. Cloud.
-14. **Thumbnail planner verification and frame scoring (channel).** Run the planner on a real render, record the receipt, replace even spacing with scored frames, check titles against the HB-8 soul rules. PC + cloud.
-15. **Phase 4d Unity 28 s proof and licence smoke test.** Headed Unity run on the PC, new receipt replacing the looped capture, plus the `.ulf` Linux licence attempt; the exact error becomes the receipt if it fails. PC.
-16. **Make master's test suite green.** Fix or isolate the three failing suites so every later PR has a clean baseline. Cloud.
+Lane key: **cloud** = thread in this repo. **PC** = heavy or credentialed work for Codex on Jonathan's machine.
 
-**First to start: Programs paywall and entitlements.** Greens that do not depend on it and can run beside it later: 16, 8, 13, 12.
+1. **Subscription lifecycle in test mode (programs).** Extend the entitlement model from #19 with renewal, cancellation, payment-failed grace period and a customer self-service "manage my access" page, all against Stripe test mode and fixtures. Lapsed access closes fail-closed. Cloud.
+2. **Three sales pages per program, built as previews (programs).** For the hypnosis sessions and the Yale inversion protocol, build three alternative sales-page layouts and copy at `/programs/<id>/preview/a|b|c`, noindex, each leading with the loop of desire, passion, achievement, peace, contrast, new desire. Jonathan picks; never invent protocol content. Cloud.
+3. **Price ladder config and comparison preview (store).** One config file holding every price (blank until set), with a preview page showing the $5/$10/$20/$35 proposal and two alternatives side by side, rendered with "not yet on sale". Prices are read by the store, programs and patron pages from this file only. Cloud.
+4. **Merchandise pages on the site (merchandise).** Browse and product pages generated from `scripts/merch/catalog.json`, mockups, size/colour options and a "notify me" button that only counts (no email stored). Buying routes to the Wix store later; no prices. Cloud.
+5. **Print-ready artwork exports (merchandise).** The open items from #22: outlined SVGs, flat one-colour and dark-garment variants of the infinity-loop marks, a print-spec sheet per product, and a check that no spiral overlay without confirmed ownership is used. Cloud.
+6. **Custom hypnosis and VR session brief builder (store).** A structured questionnaire (goal, length, voice, music, VR scene, safety notes) that feeds the #21 request queue as a brief the operator can quote from, plus a quote calculator reading the price config. No payment. Builds against the model on master by adding fields in new files; rebase only if #21 has merged. Cloud.
+7. **Episode links and click counts (channel to site).** Description and end-screen templates for each episode and Short that link to the site, plus a small redirect route that counts clicks per episode with no personal data, so the analytics loop can see which episodes send people to the store. Cloud.
+8. **Public patron wall page and tier benefits (patron wall).** A `/patrons` page that renders the frozen approved snapshot, plus the tier ladder from `docs/PATRON-WALL.md` with benefits listed as proposals and "not yet on sale". Empty state when no one is approved. Cloud.
+9. **Site conversion counters (analytics).** Privacy-first counters (no cookies, no IDs) for views of store, program and merch pages and "notify me" taps, stored outside the repo, feeding a weekly summary the next-slate ranking can read. Cloud.
+10. **Transcript writer for pack contents (channel).** Use the repo's whisper-service adapter to write `assets/<assetId>/transcript.json`, so #17's captions and chapters stop reading `awaiting-transcript`. Fixture audio only in tests; real runs are local. Cloud.
+11. **Gift and bundle catalog (store).** Bundles of sessions plus merchandise and gift-this-to-someone flow as a schema and listing page with "not yet on sale"; pricing from the config. Cloud.
+12. **Store and programs accessibility and speed pass (site).** Run Chromium (installed in the container) over every public page, fix contrast, focus order, alt text and image weight, and record a before/after receipt. No design changes beyond fixes. Cloud.
+13. **Reset Biology reverse-link kit (site).** Footer snippet, About copy and a one-page "from Reset Biology" landing here, ready to hand over; applying it on resetbiology.com stays on its approval card. Builds from master; skips the #30 edit and adds only new files. Cloud.
+14. **Weekly backlog refresher (meta).** A script that reads merged PRs and `approvals/` and rewrites the "what shipped" and "waiting on Jonathan" tables of this file, so the weekly note stops being hand-written. Cloud.
+15. **Hypnosis and Yale session audio preview player (programs).** A gated audio player shell (buffering, resume, sleep timer) that plays from private storage URLs, with a fixture track. The audio itself is whatever Jonathan hands over. Cloud.
 
-## 4. What is believed red, and why
+**First to start: 1, then 2 and 3** (they unlock the money pages). 7 and 9 together close the loop from channel to site to ranking.
+
+## 4. Waiting on Jonathan (approval cards)
+
+On master in `approvals/`, all `WAITING_ON_JON`:
+
+- `2026-10-17-publish-first-episode.md` (red 3): post the first episode and Shorts.
+- `2026-10-17-live-payments-or-unity-seat.md` (red 1): live payments or a paid Unity seat.
+- `2026-10-17-sign-clip-licences.md` (red 2): sign a clip or recording licence.
+- `2026-10-17-health-affiliate-programs.md` (red 2): your health list and an affiliate sign-up.
+- `2026-10-17-wix-google-login-handover.md` (red 5): hand a Wix or Google login to a tool or person.
+- `2026-10-17-analytics-weights.md` (second look): starting scoring weights for the next-slate ranking.
+- `2026-10-17-patron-consent-wording.md` (second look): patron consent wording and the 18+ rule.
+
+Inside open PRs, not on master yet: the Reset Biology footer link card (`approvals/2026-10-17-reset-biology-footer-link.md`, red 3, in #30) and the Yale naming and consent-wording card (in #33).
+
+## 5. What is believed red, and why
 
 - Uploads and posting (R3). Everything else up to the file on disk is green.
 - Live-mode payments and any paid Unity seat or cloud billing (R1).

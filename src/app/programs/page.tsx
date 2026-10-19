@@ -1,4 +1,5 @@
 import { PROGRAMS } from '@/lib/entitlements/catalog';
+import { CounterBeacon } from '@/components/CounterBeacon';
 
 export const metadata = {
   title: 'Programs · What Am I Appreciating Now',
@@ -8,6 +9,7 @@ export const metadata = {
 export default function ProgramsPage() {
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
+      <CounterBeacon page="programs" />
       <h1>Programs</h1>
       <p>What Am I Appreciating Now programs. Nothing here is on sale yet; checkout is in test mode.</p>
       {PROGRAMS.map((p) => (
@@ -18,6 +20,7 @@ export default function ProgramsPage() {
           <p style={{ fontSize: 14, opacity: 0.7 }}>{p.provenance}</p>
         </section>
       ))}
+      <p style={{ fontSize: 14, opacity: 0.7 }}><a href="/programs/manage" style={{ color: 'inherit' }}>Manage my access</a></p>
       <p style={{ fontSize: 14, opacity: 0.7 }}>The free Reset Biology tools stay free.</p>
     </main>
   );
