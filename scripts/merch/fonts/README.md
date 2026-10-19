@@ -1,0 +1,1 @@
+Liberation Serif (Regular, Italic), copyright Red Hat, Inc., licensed under the SIL Open Font License 1.1 (https://openfontlicense.org). Vendored so `npm run merch:print` outlines lettering the same way on every machine. Outlined artwork made from it may be printed and sold.
