@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { frontDoorRewrite } from '@/lib/waia/front-door';
 
 /**
  * Middleware for subdomain routing and API authentication
  *
  * Subdomain routing:
  * - jarvis.whatamiappreciatingnow.com → serves /jarvis content at /
- * - www.whatamiappreciatingnow.com → serves main flame visualizer
+ * - www.whatamiappreciatingnow.com → serves main flame visualizer, unless
+ *   WAIA_WWW_FRONT_DOOR=on (default off), which gives www the same front door
+ *   and /store as the bare apex. /preview/front-door shows it privately.
  * - whatamiappreciatingnow.com (bare apex, no www) → serves the WAIA front-door
  *   page (public/waia-front-door.html). This is the Phase 0 relaunch surface —
  *   see jarvis repo data/waia-curation-pipeline/MASTER-GOAL-SPEC.md. Only fires
@@ -112,16 +115,14 @@ export function middleware(request: NextRequest) {
     // Allow static assets and other paths
   }
 
-  // Bare apex only (no www./jarvis./studio./other subdomain): serve the WAIA
-  // front-door page instead of the main flame visualizer. www. and studio.
-  // are untouched and keep serving the existing app exactly as today.
-  const isBareApex = hostname === 'whatamiappreciatingnow.com';
-  if (isBareApex && pathname === '/') {
-    return NextResponse.rewrite(new URL('/waia-front-door.html', request.url));
-  }
-  // Store page (placeholders only, nothing on sale): /store on the bare apex.
-  if (isBareApex && pathname === '/store') {
-    return NextResponse.rewrite(new URL('/waia-store.html', request.url));
+  // Front door and store page: always on the bare apex, on www only when
+  // WAIA_WWW_FRONT_DOOR=on (see src/lib/waia/front-door.ts). www/preview/front-door
+  // shows the front door privately (noindex) whatever the flag says.
+  const frontDoor = frontDoorRewrite(hostname, pathname);
+  if (frontDoor) {
+    const res = NextResponse.rewrite(new URL(frontDoor.page, request.url));
+    if (frontDoor.noindex) res.headers.set('X-Robots-Tag', 'noindex, nofollow');
+    return res;
   }
 
   // Main domain: redirect /jarvis → /jarvis/app (old voice orb is dead end)
