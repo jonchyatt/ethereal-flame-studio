@@ -23,7 +23,8 @@ export default async function PatronsPage() {
   return (
     <main style={shell}>
       <h1>Patron wall</h1>
-      <p>Turn away from the orb in a What Am I Appreciating Now scene and you find the people who made it possible. Here they are.</p>
+      {/* Copy v2 (Voss/NEPQ, 2026-10-19): NEPQ situation question opens on the reader, then the fact. v1: docs/COPY-V2-VOSS-NEPQ-2026-10-19.md */}
+      <p>Has a scene ever given you a quiet minute you did not expect? Turn away from the orb in a What Am I Appreciating Now scene and you find the people who made it possible. Here they are.</p>
       {wall.patrons.length === 0 ? (
         <p style={{ opacity: 0.8 }}>The wall is empty for now. The first names appear here once they have been read and approved by a person.</p>
       ) : (
@@ -46,6 +47,8 @@ export default async function PatronsPage() {
           <p style={{ fontSize: 14, opacity: 0.7, margin: 0 }}>Proposal · Not yet on sale</p>
         </section>
       ))}
+      {/* Technique: Voss no-oriented question before the link, so "no" stays a safe answer. */}
+      <p>Would you be opposed to seeing your own name behind the orb?</p>
       <p><a href="/patrons/join" style={{ color: '#c9b3ff' }}>Add your name</a> · <a href="/patrons/remove" style={{ color: '#c9b3ff' }}>Remove my name</a></p>
     </main>
   );

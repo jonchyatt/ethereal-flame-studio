@@ -28,21 +28,24 @@ export const BUNDLES: readonly Bundle[] = [
   {
     id: 'deeper-sessions-gift',
     title: 'Deeper sessions, with a session made for one person',
-    summary: 'The advanced hypnosis sessions paired with a custom hypnosis or VR session, quoted through the custom order flow: desire, passion, achievement, peace, contrast, new desire, and Now bringing it back around.',
+    // Copy v2 (Voss/NEPQ, 2026-10-19): Voss label on the person being given to, then the facts. v1 in docs/COPY-V2-VOSS-NEPQ-2026-10-19.md
+    summary: 'It seems like the person you have in mind wants more than another playlist. The advanced hypnosis sessions, paired with one custom hypnosis or VR session made for them and quoted through the custom order flow: desire, passion, achievement, peace, contrast, new desire, and Now bringing it back around.',
     items: [{ type: 'program', id: 'advanced-hypnosis-sessions' }, { type: 'custom-session' }],
     giftable: true,
   },
   {
     id: 'yale-guided-process-gift',
     title: 'The Yale guided process, with a session made for one person',
-    summary: 'The guided Yale inversion process paired with a custom session, where Now closes back into What.',
+    // Copy v2: Voss label, then the facts.
+    summary: 'It sounds like they keep circling back to the same contrast. The guided inversion process paired with a custom session made for them, where Now closes back into What.',
     items: [{ type: 'program', id: 'yale-inversion-protocol' }, { type: 'custom-session' }],
     giftable: true,
   },
   {
     id: 'sessions-and-process-gift',
     title: 'The deeper sessions and the Yale guided process',
-    summary: 'Both paid programs together, for someone ready to go further than the free collection.',
+    // Copy v2: Voss no-oriented question as the close.
+    summary: 'Both paid programs together, for someone ready to go further than the free collection. Would it be a bad idea to give them the whole circle at once?',
     items: [{ type: 'program', id: 'advanced-hypnosis-sessions' }, { type: 'program', id: 'yale-inversion-protocol' }],
     giftable: true,
   },

@@ -14,6 +14,11 @@ export async function generateMetadata({ params }: { params: Params }) {
   };
 }
 
+// Preview-only note for Jonathan's pick: which sales technique a block uses. Never on a live page.
+function Technique({ note }: { note?: string }) {
+  return note ? <p style={{ fontSize: 12, opacity: 0.55, fontStyle: 'italic' }}>Technique: {note}</p> : null;
+}
+
 const wrap = { maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' } as const;
 
 export default async function SalesPagePreview({ params }: { params: Params }) {
@@ -40,13 +45,16 @@ export default async function SalesPagePreview({ params }: { params: Params }) {
           <li style={{ borderRadius: 999, padding: '4px 12px', background: '#eee', color: '#0b0b14' }}>Now</li>
         </ol>
         {page.loopSection.body.map((t, i) => <p key={i}>{t}</p>)}
+        <Technique note={page.loopSection.technique} />
       </section>
       <h1>{page.headline}</h1>
+      <Technique note={page.headlineTechnique} />
       <p style={{ opacity: 0.8 }}>{page.displayName}</p>
       {page.sections.map((s) => (
         <section key={s.heading}>
           <h2>{s.heading}</h2>
           {s.body.map((t, i) => <p key={i}>{t}</p>)}
+          <Technique note={s.technique} />
         </section>
       ))}
       <p role="status" style={{ marginTop: 32, padding: 12, border: '1px solid #555', borderRadius: 8 }}>{page.ctaNote}</p>
