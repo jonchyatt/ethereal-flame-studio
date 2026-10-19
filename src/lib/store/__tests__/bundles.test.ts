@@ -3,6 +3,7 @@ import path from 'path';
 import {
   BUNDLES, validateBundles, getBundle, bundlePriceCents, isOnSale, createGiftDraft, hashGiftCode, newGiftCode, itemLabel, Bundle,
 } from '../bundles';
+import { BUNDLE_PRICES } from '@/lib/prices/config';
 
 const root = path.resolve(__dirname, '../../../..');
 const NOW = new Date('2026-10-17T12:00:00Z');
@@ -15,13 +16,12 @@ describe('store: gift and bundle catalog', () => {
   });
 
   it('every bundle is not yet on sale and prices come only from the price file', () => {
-    const file = JSON.parse(fs.readFileSync(path.join(__dirname, '../bundle-prices.json'), 'utf8'));
     for (const b of BUNDLES) {
-      expect(Object.keys(file.bundles)).toContain(b.id);
+      expect(Object.keys(BUNDLE_PRICES)).toContain(b.id);
       expect(bundlePriceCents(b.id)).toBeNull();
       expect(isOnSale(b.id, { BUNDLES_OPEN: '1' })).toBe(false);
     }
-    expect(Object.keys(file.bundles).sort()).toEqual(BUNDLES.map((b) => b.id).sort());
+    expect(Object.keys(BUNDLE_PRICES).sort()).toEqual(BUNDLES.map((b) => b.id).sort());
   });
 
   it('needs both a price and the switch to count as on sale', () => {

@@ -4,13 +4,13 @@
  * A bundle groups things that already exist in the paid catalog (programs), the
  * merchandise feed (print-on-demand through the Wix store) and the custom session
  * order flow. Bundles never hold prices or program words: prices come from
- * bundle-prices.json (null = not yet on sale), words live in private storage.
+ * src/lib/prices/config.ts (null = not yet on sale), words live in private storage.
  * Nothing here takes money. Going on sale is Jonathan's click.
  */
 import { createHash, randomInt } from 'crypto';
 import { getProgram, isFreeTool } from '@/lib/entitlements/catalog';
 import merch from '../../../scripts/merch/catalog.json';
-import prices from './bundle-prices.json';
+import { BUNDLE_PRICES, priceFor } from '@/lib/prices/config';
 
 export type BundleItem =
   | { type: 'program'; id: string }
@@ -93,8 +93,7 @@ export function getBundle(id: string): Bundle | null {
 }
 
 export function bundlePriceCents(id: string): number | null {
-  const v = (prices.bundles as Record<string, number | null>)[id];
-  return typeof v === 'number' && Number.isInteger(v) && v > 0 ? v : null;
+  return priceFor(id, BUNDLE_PRICES);
 }
 
 /** On sale only with a price set and Jonathan's switch on; otherwise every page says "not yet on sale". */
