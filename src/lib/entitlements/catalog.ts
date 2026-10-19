@@ -11,6 +11,8 @@
  * `programs/<id>.md` (see content.ts) and are handed over by Jonathan.
  */
 
+import { priceFor } from '../prices/config';
+
 export type ProgramKind = 'subscription' | 'one_time';
 
 export interface Program {
@@ -22,6 +24,8 @@ export interface Program {
   testPriceCents: number;
   /** Where the words, voice and music come from; shown before anything can sell. */
   provenance: string;
+  /** Has a step-by-step session in private storage (`programs/<id>.session.json`) played at /programs/<id>/session. */
+  guided?: boolean;
 }
 
 export const FREE_TOOLS = ['peptide-tracker', 'self-help'] as const;
@@ -32,7 +36,7 @@ export const PROGRAMS: readonly Program[] = [
     title: 'Advanced hypnosis sessions',
     kind: 'subscription',
     summary: 'Deeper sessions for people who want to go further than the free collection.',
-    priceCents: null,
+    priceCents: priceFor('program:advanced-hypnosis-sessions'),
     testPriceCents: 500,
     provenance: 'Script author, voice and music are recorded for every session before it can go on sale.',
   },
@@ -41,8 +45,9 @@ export const PROGRAMS: readonly Program[] = [
     title: 'Yale inversion protocol: guided process',
     kind: 'one_time',
     summary: 'A guided process built from the protocol Jonathan has handed over.',
-    priceCents: null,
+    priceCents: priceFor('program:yale-inversion-protocol'),
     testPriceCents: 1000,
+    guided: true,
     provenance: 'Source: the Yale attachment protocol document and mental-mastery script doctrine in the jarvis repo. Read, never rewritten.',
   },
 ];
