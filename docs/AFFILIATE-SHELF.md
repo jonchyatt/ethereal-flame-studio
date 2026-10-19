@@ -1,5 +1,7 @@
 # Health affiliate shelf
 
+> Superseded for new work by the unified item layout: see `docs/store/ITEM-LAYOUT.md`, `/store/shelf` and `/store/intake`. This older static section stays until the apex store moves over.
+
 Section `#shelf` on the store page (`public/waia-store.html`), data and renderer in `public/waia-affiliate-shelf.js`.
 
 **State today:** the shelf ships empty and says "The shelf is being stocked". Jonathan's list of items has not been handed over, and no affiliate programme has approved him, so there is nothing true to list. Nothing is invented.
