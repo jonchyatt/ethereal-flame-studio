@@ -49,7 +49,8 @@ for (const page of STATIC_PAGES) {
 
 test('front door: decorative letter strings and arrows are hidden from screen readers', () => {
   const html = read('public/waia-front-door.html');
-  assert.match(html, /aria-hidden="true">WAIANWAIANWAIAN</);
+  assert.match(html, /aria-hidden="true">What Am I Appreciating Now</);
+  assert.doesNotMatch(html, /WAIAN/);
   assert.match(html, /aria-hidden="true">↓ enter the collection ↓</);
   assert.match(html, /<footer aria-hidden="true">/);
 });
