@@ -271,11 +271,13 @@ export class PuppeteerRenderer {
       }
     };
 
-    console.log(`[PuppeteerRenderer] Navigating to ${this.config.appUrl}...`);
+    // The visualizer lives at /studio; "/" is the public front door.
+    const studioUrl = new URL('/studio', this.config.appUrl!).toString();
+    console.log(`[PuppeteerRenderer] Navigating to ${studioUrl}...`);
 
     // Navigate to app
     // Use networkidle2 instead of networkidle0 because dev mode keeps HMR WebSocket open
-    await this.page.goto(this.config.appUrl!, {
+    await this.page.goto(studioUrl, {
       waitUntil: 'networkidle2',
       timeout: 60000,
     });

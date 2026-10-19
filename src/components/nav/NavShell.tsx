@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const NAV_ITEMS = [
-  { href: '/', label: 'Studio', icon: 'flame' },
+  { href: '/studio', label: 'Studio', icon: 'flame' },
   { href: '/create', label: 'Create', icon: 'video' },
   { href: '/creator', label: 'Creator', icon: 'library' },
   { href: '/batch', label: 'Batch', icon: 'layers' },
@@ -64,7 +64,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <nav className="fixed top-0 left-0 right-0 z-50 h-12 bg-zinc-950/90 backdrop-blur-md border-b border-white/8">
         <div className="h-full max-w-7xl mx-auto px-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-white/90 hover:text-white transition-colors">
+          <Link href="/studio" className="flex items-center gap-2 text-white/90 hover:text-white transition-colors">
             <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
             </svg>

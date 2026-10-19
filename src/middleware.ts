@@ -7,16 +7,9 @@ import { frontDoorRewrite } from '@/lib/waia/front-door';
  *
  * Subdomain routing:
  * - jarvis.whatamiappreciatingnow.com → serves /jarvis content at /
- * - www.whatamiappreciatingnow.com → serves main flame visualizer, unless
- *   WAIA_WWW_FRONT_DOOR=on (default off), which gives www the same front door
- *   and /store as the bare apex. /preview/front-door shows it privately.
- * - whatamiappreciatingnow.com (bare apex, no www) → serves the WAIA front-door
- *   page (public/waia-front-door.html). This is the Phase 0 relaunch surface —
- *   see jarvis repo data/waia-curation-pipeline/MASTER-GOAL-SPEC.md. Only fires
- *   if a request actually reaches this app with the bare-apex Host header —
- *   today the apex has a Vercel-dashboard-level redirect to www that happens
- *   before middleware runs, so this branch is a no-op until that redirect is
- *   removed (Jon-gated, one-time Vercel domain setting change).
+ * - every other host (www, bare apex, previews, localhost) → "/" serves the
+ *   front door (public/waia-front-door.html) and "/store" the store page
+ *   (public/waia-store.html). The flame visualizer lives at /studio.
  *
  * API Authentication:
  * - /api/jarvis/* routes require X-Jarvis-Secret header
@@ -115,9 +108,7 @@ export function middleware(request: NextRequest) {
     // Allow static assets and other paths
   }
 
-  // Front door and store page: always on the bare apex, on www only when
-  // WAIA_WWW_FRONT_DOOR=on (see src/lib/waia/front-door.ts). www/preview/front-door
-  // shows the front door privately (noindex) whatever the flag says.
+  // Front door at "/" and store page at "/store" (src/lib/waia/front-door.ts).
   const frontDoor = frontDoorRewrite(hostname, pathname);
   if (frontDoor) {
     const res = NextResponse.rewrite(new URL(frontDoor.page, request.url));

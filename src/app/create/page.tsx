@@ -360,7 +360,7 @@ export default function CreatePage() {
               <h3 className="text-sm font-medium text-white">WebGL Render</h3>
               <p className="text-xs text-zinc-400">
                 Uses the Three.js engine from the Studio canvas. Design your look in the{' '}
-                <a href="/" className="text-blue-400 hover:text-blue-300 underline">Studio designer</a>,
+                <a href="/studio" className="text-blue-400 hover:text-blue-300 underline">Studio designer</a>,
                 then come back here to render.
               </p>
 
