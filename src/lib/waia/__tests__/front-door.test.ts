@@ -22,3 +22,15 @@ describe('frontDoorRewrite', () => {
     expect(frontDoorRewrite('jarvis.whatamiappreciatingnow.com', '/store')).toBeNull();
   });
 });
+
+describe('about and contact', () => {
+  const fs = require('fs') as typeof import('fs');
+  const path = require('path') as typeof import('path');
+  const root = path.resolve(__dirname, '../../../..');
+  it('the front door and the store link to /about, and the page exists', () => {
+    for (const f of ['public/waia-front-door.html', 'public/waia-store.html']) {
+      expect(fs.readFileSync(path.join(root, f), 'utf8')).toContain('href="/about"');
+    }
+    expect(fs.existsSync(path.join(root, 'src/app/about/page.tsx'))).toBe(true);
+  });
+});

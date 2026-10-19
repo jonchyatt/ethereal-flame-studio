@@ -23,7 +23,8 @@ export function LegalLinks() {
         ))}
       </p>
       <p>
-        Operated by {OPERATOR.name} · <a href={`mailto:${OPERATOR.contact}`} style={{ color: 'inherit' }}>{OPERATOR.contact}</a>
+        Operated by {OPERATOR.name} · <a href={`mailto:${OPERATOR.contact}`} style={{ color: 'inherit' }}>{OPERATOR.contact}</a> ·{' '}
+        <a href="/about" style={{ color: 'inherit' }}>About</a>
       </p>
     </footer>
   );
