@@ -1,3 +1,4 @@
+import { ComingSoon } from '@/components/ComingSoon';
 import { BUNDLES, bundlePriceCents, isOnSale, itemLabel } from '@/lib/store/bundles';
 
 export const metadata = {
@@ -19,9 +20,12 @@ export default function BundlesPage() {
             <p>{b.summary}</p>
             <ul>{b.items.map((i, n) => <li key={n}>{itemLabel(i)}</li>)}</ul>
             <p style={{ fontSize: 14, opacity: 0.7 }}>
-              {b.giftable ? 'Can be given as a gift · ' : ''}
-              {isOnSale(b.id) && cents !== null ? `${(cents / 100).toFixed(2)} USD` : 'Not yet on sale'}
+              {b.giftable ? 'Can be given as a gift' : ''}
+              {isOnSale(b.id) && cents !== null ? `${b.giftable ? ' · ' : ''}${(cents / 100).toFixed(2)} USD` : ''}
             </p>
+            {!(isOnSale(b.id) && cents !== null) && (
+              <ComingSoon id={`${b.id}-soon`} item={b.title} question="Who would you want to give this to first?" />
+            )}
           </section>
         );
       })}

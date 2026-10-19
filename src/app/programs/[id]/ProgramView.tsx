@@ -9,6 +9,7 @@ import { paymentsLive } from '@/lib/entitlements/stripe';
 import { LegalLinks, SAFETY_NOTE } from '@/app/legal/LegalLinks';
 import { AudioPlayer } from './AudioPlayer';
 import { BuyButton } from './BuyButton';
+import { ComingSoon } from '@/components/ComingSoon';
 import { CounterBeacon } from '@/components/CounterBeacon';
 
 /**
@@ -16,6 +17,11 @@ import { CounterBeacon } from '@/components/CounterBeacon';
  * Shared by /programs/[id] and the static /programs/advanced-hypnosis-sessions page, which
  * would otherwise shadow the dynamic route and drop all of this. `children` render last.
  */
+const COMING_SOON_QUESTION: Record<string, string> = {
+  'advanced-hypnosis-sessions': 'What would you want the first session to help with?',
+  'yale-inversion-protocol': 'What would you want this process to help you turn around first?',
+};
+
 export async function ProgramView({ id, children }: { id: string; children?: React.ReactNode }) {
   const program = getProgram(id);
   if (!program) notFound();
@@ -47,7 +53,10 @@ export async function ProgramView({ id, children }: { id: string; children?: Rea
         content ? <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{content}</pre>
           : <p>You have access. The program words have not been handed over yet.</p>
       ) : (
-        <BuyButton programId={program.id} kind={program.kind} live={paymentsLive()} />
+        // The payment switch decides: off (today) shows the pre-launch state, on shows checkout.
+        paymentsLive()
+          ? <BuyButton programId={program.id} kind={program.kind} live />
+          : <ComingSoon id={`${program.id}-soon`} item={program.title} question={COMING_SOON_QUESTION[program.id]} />
       )}
       {children}
       <LegalLinks />
