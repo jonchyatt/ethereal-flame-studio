@@ -29,6 +29,18 @@ export const PRICES: Readonly<Record<PriceKey, number | null>> = {
   'program:yale-inversion-protocol': null,
 };
 
+/**
+ * Bundle and gift prices (backlog item 11). Kept apart from PRICES because the ladder
+ * options in ./options.ts propose program and patron prices only; bundles have none
+ * proposed, so they stay blank until Jonathan sets them. Keyed by bundle id.
+ */
+export const BUNDLE_PRICES: Readonly<Record<string, number | null>> = {
+  'deeper-sessions-gift': null,
+  'yale-guided-process-gift': null,
+  'loop-worn-and-held': null,
+  'custom-session-gift': null,
+};
+
 /** Cents for a key, or null when blank, unknown, or not a positive whole number. */
 export function priceFor(key: string, prices: Readonly<Record<string, number | null>> = PRICES): number | null {
   const v = prices[key];
