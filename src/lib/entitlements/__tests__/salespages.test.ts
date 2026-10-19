@@ -5,7 +5,7 @@ const text = (p: (typeof SALES_PAGES)[number]) =>
   [p.displayName, p.headline, p.ctaNote, ...p.loopSection.body, ...p.sections.flatMap((s) => [s.heading, ...s.body])].join('\n');
 
 describe('sales page previews', () => {
-  it('has exactly three variants for every paid program', () => {
+  it('has exactly four variants for every paid program', () => {
     for (const prog of PROGRAMS) {
       expect(SALES_PAGES.filter((p) => p.programId === prog.id).map((p) => p.variant).sort()).toEqual([...VARIANT_IDS]);
     }
@@ -47,9 +47,21 @@ describe('sales page previews', () => {
     for (const p of SALES_PAGES) expect(text(p)).toMatch(/stop (at )?any ?time/i);
   });
 
+  it('variant D uses the house sales voice: a label, a question opener, a no-oriented close, a technique per block', () => {
+    for (const p of SALES_PAGES.filter((x) => x.variant === 'd')) {
+      expect(text(p)).toMatch(/\bit (seems|sounds) like\b/i);
+      expect(p.headline).toMatch(/\?$/);
+      const close = p.sections[p.sections.length - 1].body.join(' ');
+      expect(close).toMatch(/would (you be opposed|it be a bad idea)/i);
+      expect(text(p)).not.toMatch(/would it be useful/i);
+      expect(p.headlineTechnique).toBeTruthy();
+      for (const s of [p.loopSection, ...p.sections]) expect(s.technique).toBeTruthy();
+    }
+  });
+
   it('refuses unknown programs and variants', () => {
     expect(getSalesPage('peptide-tracker', 'a')).toBeNull();
-    expect(getSalesPage('advanced-hypnosis-sessions', 'd')).toBeNull();
+    expect(getSalesPage('advanced-hypnosis-sessions', 'e')).toBeNull();
     expect(getSalesPage('advanced-hypnosis-sessions', 'a')).not.toBeNull();
   });
 });

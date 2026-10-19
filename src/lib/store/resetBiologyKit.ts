@@ -24,9 +24,12 @@ export const LANDING = {
   intro:
     `${SITE_NAME} is the loop of desire, passion, achievement, peace, contrast and new desire, ` +
     `and "Now" brings it back around. Come to the centre, or move on to what you want next.`,
+  // Copy v2 (Voss/NEPQ, 2026-10-19): Voss label on why they clicked, accusation audit on the
+  // free tools, NEPQ situation question before the links. v1 in docs/COPY-V2-VOSS-NEPQ-2026-10-19.md
   paragraphs: [
-    'Reset Biology and its free tools stay exactly where they are, and stay free.',
-    'Here you will find guided hypnosis sessions, appreciation sessions and visual meditations. Nothing here is on sale yet.',
+    'It seems like you came over from Reset Biology looking for something beyond the tools.',
+    'You might be wondering whether the free tools are about to cost something. They are not: Reset Biology and its free tools stay exactly where they are, and stay free.',
+    'Here you will find guided hypnosis sessions, appreciation sessions and visual meditations. Nothing here is on sale yet. Where would you like to start?',
   ],
   links: [
     { label: 'See the programs', href: '/programs' },
