@@ -52,7 +52,7 @@ describe('store: gift and bundle catalog', () => {
     for (const b of BUNDLES) expect(`${b.title} ${b.summary} ${b.items.map(itemLabel).join(' ')}`).not.toMatch(/\bWAIA\b/);
     const page = fs.readFileSync(path.join(root, 'src/app/store/bundles/page.tsx'), 'utf8');
     expect(page).not.toMatch(/\bWAIA\b/);
-    expect(page).toContain('Not yet on sale');
+    expect(page).toContain('<ComingSoon'); // pre-launch state: disabled button + one question
     expect(page).not.toMatch(/<form|<button|<input/);
   });
 

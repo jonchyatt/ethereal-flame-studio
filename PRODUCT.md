@@ -28,7 +28,7 @@ It has no fixed beginning or end. The visual language should feel contemplative,
 
 ## Voice and boundaries
 
-- Curator voice, not Jon narration.
+- Curator voice, not Jon narration. Amended 2026-10-19 by Jonathan's direction: guided practices may be voiced in his own cloned voice ("I am very tempted to take all of the content and turn it over into my voice"); no vlog framing still applies.
 - No vlog drift, engagement bait, Crit Fail tone, fake spiritual claims, or invented performance numbers.
 - Third-party source rights and transformation evidence stay visible to the operator without becoming audience-facing theater.
 - Public actions, OAuth changes, vendor commitments, purchases, and publish sends remain explicit approval gates.

@@ -15,7 +15,7 @@ export default async function HypnosisSessionPage({ params }: { params: Promise<
       <h1>{s.title}</h1>
       <p>{s.summary}</p>
       <p style={{ fontSize: 14, opacity: 0.7 }}>
-        {s.durationMinutes ? `${s.durationMinutes} min · ` : ''}{onSale() ? 'Included with the subscription' : 'Not yet on sale'}
+        {s.durationMinutes ? `${s.durationMinutes} min · ` : ''}{onSale() ? 'Included with the subscription' : 'Coming soon'}
       </p>
       <h2>Rights and provenance</h2>
       <ul style={{ fontSize: 14, opacity: 0.85 }}>
