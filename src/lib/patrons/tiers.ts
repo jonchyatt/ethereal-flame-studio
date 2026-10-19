@@ -1,3 +1,4 @@
+import { priceFor } from '../prices/config';
 import type { PatronTier } from './schema';
 
 /**
@@ -14,10 +15,10 @@ export interface TierInfo {
 }
 
 export const TIERS: readonly TierInfo[] = [
-  { tier: 'plain', label: 'Plain', letters: 'Soft white letters, steady.', allowsMessage: false, priceCents: null },
-  { tier: 'glowing', label: 'Glowing', letters: 'Gentle glow, slow breathing, soft halo.', allowsMessage: false, priceCents: null },
-  { tier: 'sparkly', label: 'Sparkly', letters: 'Restrained warm-gold sparkle.', allowsMessage: false, priceCents: null },
-  { tier: 'ethereal', label: 'Ethereal', letters: 'Larger letters, slow hue drift, halo, gentle float, plus one moderated message.', allowsMessage: true, priceCents: null },
+  { tier: 'plain', label: 'Plain', letters: 'Soft white letters, steady.', allowsMessage: false, priceCents: priceFor('patron:plain') },
+  { tier: 'glowing', label: 'Glowing', letters: 'Gentle glow, slow breathing, soft halo.', allowsMessage: false, priceCents: priceFor('patron:glowing') },
+  { tier: 'sparkly', label: 'Sparkly', letters: 'Restrained warm-gold sparkle.', allowsMessage: false, priceCents: priceFor('patron:sparkly') },
+  { tier: 'ethereal', label: 'Ethereal', letters: 'Larger letters, slow hue drift, halo, gentle float, plus one moderated message.', allowsMessage: true, priceCents: priceFor('patron:ethereal') },
 ];
 
 export function tierInfo(tier: PatronTier): TierInfo {

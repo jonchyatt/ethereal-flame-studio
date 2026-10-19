@@ -9,9 +9,9 @@ jest.mock('@/lib/storage', () => ({
 }));
 
 import { FREE_TOOLS, PROGRAMS, getProgram } from '../catalog';
-import { grantAccess, hasAccess, loadRecord, revokeAccess } from '../model';
+import { GRACE_DAYS, grantAccess, hasAccess, loadRecord, markPastDue, revokeAccess, setCancelAtPeriodEnd, summarizeAccess } from '../model';
 import { newCustomerId, signCustomerId, verifyCustomerCookie } from '../session';
-import { actionForEvent, createCheckoutSession, testSecretKey, verifyWebhook } from '../stripe';
+import { actionForEvent, createCheckoutSession, createPortalSession, testSecretKey, verifyWebhook } from '../stripe';
 
 const cus = 'cus_' + 'a'.repeat(32);
 beforeEach(() => { files.clear(); process.env.ENTITLEMENT_COOKIE_SECRET = 'x'.repeat(32); });
@@ -110,5 +110,96 @@ describe('stripe adapter', () => {
       .toEqual({ op: 'revoke', customerId: cus, programId: 'advanced-hypnosis-sessions' });
     const inv = actionForEvent({ id: 'e', type: 'invoice.paid', data: { object: { subscription: 'sub_1', lines: { data: [{ period: { end: 1_900_000_000 }, metadata: { programId: 'advanced-hypnosis-sessions', customerId: cus } }] } } } });
     expect(inv).toMatchObject({ op: 'grant', expiresAt: new Date(1_900_000_000_000).toISOString() });
+  });
+});
+
+describe('subscription lifecycle', () => {
+  const id = 'advanced-hypnosis-sessions';
+  const end = '2026-11-01T00:00:00.000Z';
+  const day = 86400_000;
+  const status = async (now: string) => summarizeAccess(await loadRecord(cus), new Date(now))[0].status;
+
+  it('renewal extends access and cancellation runs to period end then closes', async () => {
+    await grantAccess({ customerId: cus, programId: id, expiresAt: end });
+    expect(await status('2026-10-20')).toBe('active');
+    await setCancelAtPeriodEnd(cus, id, true);
+    expect(await status('2026-10-20')).toBe('cancelling');
+    expect(hasAccess(await loadRecord(cus), id, new Date('2026-10-31'))).toBe(true);
+    expect(hasAccess(await loadRecord(cus), id, new Date('2026-11-02'))).toBe(false);
+    expect(await status('2026-11-02')).toBe('lapsed');
+    await setCancelAtPeriodEnd(cus, id, false);
+    expect(await status('2026-10-20')).toBe('active');
+  });
+
+  it('failed payment keeps access for the grace window, then fails closed', async () => {
+    await grantAccess({ customerId: cus, programId: id, expiresAt: end });
+    const failedAt = new Date('2026-11-01T01:00:00.000Z');
+    await markPastDue(cus, id, { now: failedAt });
+    const rec = await loadRecord(cus);
+    expect(hasAccess(rec, id, new Date(failedAt.getTime() + (GRACE_DAYS - 1) * day))).toBe(true);
+    expect(summarizeAccess(rec, new Date(failedAt.getTime() + day))[0].status).toBe('grace');
+    expect(hasAccess(rec, id, new Date(failedAt.getTime() + (GRACE_DAYS + 1) * day))).toBe(false);
+  });
+
+  it('a second failure does not stretch the grace window; a paid invoice ends it', async () => {
+    await grantAccess({ customerId: cus, programId: id, expiresAt: end });
+    await markPastDue(cus, id, { now: new Date('2026-11-01T01:00:00.000Z') });
+    await markPastDue(cus, id, { now: new Date('2026-11-05T00:00:00.000Z') });
+    expect(hasAccess(await loadRecord(cus), id, new Date('2026-11-10'))).toBe(false);
+    await grantAccess({ customerId: cus, programId: id, expiresAt: '2026-12-01T00:00:00.000Z' });
+    const g = (await loadRecord(cus)).grants[0];
+    expect(g.pastDueAt).toBeNull();
+    expect(await status('2026-11-10')).toBe('active');
+  });
+
+  it('past-due marking is idempotent per event and never opens a revoked or missing grant', async () => {
+    await markPastDue(cus, id); // no grant: nothing opens
+    expect(hasAccess(await loadRecord(cus), id)).toBe(false);
+    await grantAccess({ customerId: cus, programId: id, expiresAt: end });
+    await revokeAccess(cus, id);
+    await markPastDue(cus, id, { now: new Date('2026-10-30') });
+    expect(hasAccess(await loadRecord(cus), id, new Date('2026-10-31'))).toBe(false);
+    expect(await status('2026-10-31')).toBe('revoked');
+  });
+
+  it('checkout window does not undo a later period end that arrived first', async () => {
+    await grantAccess({ customerId: cus, programId: id, expiresAt: '2026-12-01T00:00:00.000Z' });
+    await grantAccess({ customerId: cus, programId: id, expiresAt: '2026-10-20T00:00:00.000Z', neverShorten: true, providerCustomerId: 'cus_stripe1' });
+    const rec = await loadRecord(cus);
+    expect(rec.grants[0].expiresAt).toBe('2026-12-01T00:00:00.000Z');
+    expect(rec.providerCustomerId).toBe('cus_stripe1');
+  });
+
+  it('old stored records without lifecycle fields still load', async () => {
+    files.set(`entitlements/${cus}.json`, Buffer.from(JSON.stringify({
+      customerId: cus, processedEvents: [],
+      grants: [{ programId: id, kind: 'subscription', expiresAt: end, revokedAt: null, providerRef: null, grantedAt: '2026-10-01T00:00:00.000Z' }],
+    })));
+    expect(hasAccess(await loadRecord(cus), id, new Date('2026-10-20'))).toBe(true);
+  });
+
+  it('maps lifecycle events to actions', () => {
+    const meta = { programId: id, customerId: cus };
+    const ev = (type: string, object: object, extra = {}) => ({ id: 'e', type, data: { object }, ...extra });
+    expect(actionForEvent(ev('invoice.payment_failed', { subscription_details: { metadata: meta } })))
+      .toEqual({ op: 'past_due', customerId: cus, programId: id });
+    expect(actionForEvent(ev('customer.subscription.updated', { status: 'active', cancel_at_period_end: true, metadata: meta })))
+      .toEqual({ op: 'cancel_flag', customerId: cus, programId: id, cancel: true });
+    expect(actionForEvent(ev('customer.subscription.updated', { status: 'active', cancel_at_period_end: false, metadata: meta })))
+      .toMatchObject({ op: 'cancel_flag', cancel: false });
+    expect(actionForEvent(ev('customer.subscription.updated', { status: 'unpaid', metadata: meta })).op).toBe('revoke');
+    expect(actionForEvent(ev('customer.subscription.updated', { status: 'active' })).op).toBe('ignore');
+    expect(actionForEvent(ev('invoice.payment_failed', { subscription_details: { metadata: meta } }, { livemode: true })).op).toBe('ignore');
+    expect(actionForEvent(ev('invoice.paid', { customer: 'cus_s', subscription: 's', lines: { data: [{ period: { end: 1_900_000_000 }, metadata: meta }] } })))
+      .toMatchObject({ op: 'grant', providerCustomerId: 'cus_s' });
+  });
+
+  it('portal session is test-only', async () => {
+    delete process.env.STRIPE_TEST_SECRET_KEY;
+    await expect(createPortalSession('cus_s', 'https://r')).rejects.toThrow(/not set/);
+    process.env.STRIPE_TEST_SECRET_KEY = 'sk_test_abc';
+    const mk = (livemode: boolean) => (async () => ({ ok: true, json: async () => ({ url: 'https://billing.stripe.com/p', livemode }) })) as unknown as typeof fetch;
+    await expect(createPortalSession('cus_s', 'https://r', mk(false))).resolves.toEqual({ url: 'https://billing.stripe.com/p' });
+    await expect(createPortalSession('cus_s', 'https://r', mk(true))).rejects.toThrow(/live-mode/);
   });
 });
