@@ -15,7 +15,7 @@ export default function ProgramsPage() {
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
       <CounterBeacon page="programs" />
       <h1>Programs</h1>
-      <p>What Am I Appreciating Now programs.{live ? '' : ' Nothing here is on sale yet; checkout is in test mode.'}</p>
+      <p>What Am I Appreciating Now programs.{live ? '' : ' Nothing here is on sale yet.'}</p>
       {PROGRAMS.map((p) => (
         <section key={p.id} style={{ margin: '24px 0', padding: 20, border: '1px solid #333', borderRadius: 12 }}>
           <h2><a href={`/programs/${p.id}`} style={{ color: 'inherit' }}>{p.title}</a></h2>
