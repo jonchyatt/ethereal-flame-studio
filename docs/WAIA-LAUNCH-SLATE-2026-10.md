@@ -35,7 +35,7 @@ Every row needs: a rights basis, the transformation required before it can be us
 
 **The rights problem, plainly.** Someone else owns almost every such clip, and often the speaker owns a separate right in the speech. Taking a clip from another channel does not make it ours. A clip is usable only on one of these bases, and the clip's record must state which:
 
-1. **Written permission or license** from the rights holder. The cleanest basis. Keep the message or contract reference.
+1. **Not used: written permission or licence.** We sign no releases (`docs/WAIA-RIGHTS.md`). A clip that would need one goes to the re-record pile and Jonathan re-records it in his own voice.
 2. **A free license on the source video** (for example a YouTube video marked Creative Commons attribution). Caveat: the uploader may not own what the video contains, so check what is in it, and keep the attribution the license requires.
 3. **Public domain** (for example a pre-1964 recording verified under the Neville rule, or old government material). Needs the evidence for the date or status.
 4. **Fair use / quotation** for commentary or criticism. This is a judgment case by case, not a status. Risks: Content ID claims, takedowns and strikes can come regardless of how the argument would end. YouTube's reused-content rules are also separate from copyright and can limit monetization. I would not rely on this basis for a launch slate without Jonathan's decision.
@@ -49,7 +49,7 @@ A clip with none of these recorded is not usable. Rights are checked per clip, n
 - `speaker`
 - `startTime`, `endTime`, `durationSeconds`
 - `quoteText` (exact words), `transcriptSource`
-- `rightsBasis` (one of: `licensed`, `free-license`, `public-domain`, `fair-use-claim`)
+- `rightsBasis` (one of: `free-license`, `public-domain`; anything else goes to the re-record pile)
 - `rightsEvidence` (permission reference, license URL, date evidence, or the written fair-use reasoning)
 - `rightsVerifiedAt`, `rightsVerifiedBy`
 - `attributionRequired` and `attributionText`
