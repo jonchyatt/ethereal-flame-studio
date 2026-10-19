@@ -112,7 +112,6 @@ On master in `approvals/`, all `WAITING_ON_JON`:
 - `2026-10-17-sign-clip-licences.md` (red 2): sign a clip or recording licence.
 - `2026-10-17-health-affiliate-programs.md` (red 2): your health list and an affiliate sign-up.
 - `2026-10-17-wix-google-login-handover.md` (red 5): hand a Wix or Google login to a tool or person.
-- `2026-10-17-analytics-weights.md` (second look): starting scoring weights for the next-slate ranking.
 - `2026-10-17-patron-consent-wording.md` (second look): patron consent wording and the 18+ rule.
 
 Inside open PRs, not on master yet: the Reset Biology footer link card (`approvals/2026-10-17-reset-biology-footer-link.md`, red 3, in #30) and the Yale naming and consent-wording card (in #33).
