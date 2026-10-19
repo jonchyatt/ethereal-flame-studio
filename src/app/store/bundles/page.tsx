@@ -2,7 +2,7 @@ import { BUNDLES, bundlePriceCents, isOnSale, itemLabel } from '@/lib/store/bund
 
 export const metadata = {
   title: 'Gifts and bundles · What Am I Appreciating Now',
-  description: 'Sessions, guided processes and merchandise bundled to give or keep. Nothing here is on sale yet.',
+  description: 'Sessions and guided processes bundled to give or keep. Nothing here is on sale yet.',
 };
 
 export default function BundlesPage() {
@@ -25,7 +25,7 @@ export default function BundlesPage() {
         );
       })}
       <h2>How giving will work</h2>
-      <p>Choose a bundle, add a short note and an optional delivery date. You receive a one-time gift code to pass on; we keep only a scrambled copy of it, and no email address or postal address is stored. Merchandise is chosen and shipped through the store when the recipient redeems the code.</p>
+      <p>Choose a bundle, add a short note and an optional delivery date. You receive a one-time gift code to pass on; we keep only a scrambled copy of it, and no email address or postal address is stored.</p>
       <p style={{ fontSize: 14, opacity: 0.7 }}>The free Reset Biology tools stay free.</p>
     </main>
   );

@@ -1,20 +1,18 @@
 /**
  * Gift and bundle catalog for whatamiappreciatingnow.com (backlog: gift and bundle catalog).
  *
- * A bundle groups things that already exist in the paid catalog (programs), the
- * merchandise feed (print-on-demand through the Wix store) and the custom session
- * order flow. Bundles never hold prices or program words: prices come from
+ * A bundle groups things that already exist in the paid catalog (programs) and
+ * the custom session order flow. Merchandise is not bundled (Jonathan declined the
+ * existing designs). Bundles never hold prices or program words: prices come from
  * src/lib/prices/config.ts (null = not yet on sale), words live in private storage.
  * Nothing here takes money. Going on sale is Jonathan's click.
  */
 import { createHash, randomInt } from 'crypto';
 import { getProgram, isFreeTool } from '@/lib/entitlements/catalog';
-import merch from '../../../scripts/merch/catalog.json';
 import { BUNDLE_PRICES, priceFor } from '@/lib/prices/config';
 
 export type BundleItem =
   | { type: 'program'; id: string }
-  | { type: 'merch'; slug: string }
   | { type: 'custom-session' };
 
 export interface Bundle {
@@ -29,36 +27,26 @@ export interface Bundle {
 export const BUNDLES: readonly Bundle[] = [
   {
     id: 'deeper-sessions-gift',
-    title: 'Deeper sessions, with a mug to hold the Now',
-    summary: 'The advanced hypnosis sessions with the infinity-loop mug: desire, passion, achievement, peace, contrast, new desire, and a cup in the hand while it comes back around.',
-    items: [{ type: 'program', id: 'advanced-hypnosis-sessions' }, { type: 'merch', slug: 'psychedelic-starfield-mug' }],
+    title: 'Deeper sessions, with a session made for one person',
+    summary: 'The advanced hypnosis sessions paired with a custom hypnosis or VR session, quoted through the custom order flow: desire, passion, achievement, peace, contrast, new desire, and Now bringing it back around.',
+    items: [{ type: 'program', id: 'advanced-hypnosis-sessions' }, { type: 'custom-session' }],
     giftable: true,
   },
   {
     id: 'yale-guided-process-gift',
-    title: 'The Yale guided process, with the circle mug',
-    summary: 'The guided Yale inversion process paired with the circle mug, where Now closes back into What.',
-    items: [{ type: 'program', id: 'yale-inversion-protocol' }, { type: 'merch', slug: 'circle-mug' }],
+    title: 'The Yale guided process, with a session made for one person',
+    summary: 'The guided Yale inversion process paired with a custom session, where Now closes back into What.',
+    items: [{ type: 'program', id: 'yale-inversion-protocol' }, { type: 'custom-session' }],
     giftable: true,
   },
   {
-    id: 'loop-worn-and-held',
-    title: 'The loop, worn and held',
-    summary: 'The infinity-loop T-shirt and mug together, for someone who already lives in the loop.',
-    items: [{ type: 'merch', slug: 'infinity-shirt' }, { type: 'merch', slug: 'infinity-mug' }],
-    giftable: true,
-  },
-  {
-    id: 'custom-session-gift',
-    title: 'A custom session, with the wordmark mug',
-    summary: 'A custom hypnosis or VR session made for one person, quoted through the custom order flow, with the wordmark mug.',
-    items: [{ type: 'custom-session' }, { type: 'merch', slug: 'wordmark-mug' }],
+    id: 'sessions-and-process-gift',
+    title: 'The deeper sessions and the Yale guided process',
+    summary: 'Both paid programs together, for someone ready to go further than the free collection.',
+    items: [{ type: 'program', id: 'advanced-hypnosis-sessions' }, { type: 'program', id: 'yale-inversion-protocol' }],
     giftable: true,
   },
 ];
-
-type MerchProduct = { slug: string; rights: string };
-const merchProducts = merch.products as MerchProduct[];
 
 export function validateBundles(bundles: readonly Bundle[] = BUNDLES): string[] {
   const errors: string[] = [];
@@ -71,16 +59,12 @@ export function validateBundles(bundles: readonly Bundle[] = BUNDLES): string[] 
     if (b.items.length < 2) errors.push(`${b.id}: a bundle needs at least two items`);
     const seen = new Set<string>();
     for (const item of b.items) {
-      const key = item.type === 'program' ? `p:${item.id}` : item.type === 'merch' ? `m:${item.slug}` : 'c';
+      const key = item.type === 'program' ? `p:${item.id}` : 'c';
       if (seen.has(key)) errors.push(`${b.id}: repeated item ${key}`);
       seen.add(key);
       if (item.type === 'program') {
         if (isFreeTool(item.id)) errors.push(`${b.id}: free tool ${item.id} is never sold`);
         else if (!getProgram(item.id)) errors.push(`${b.id}: unknown program ${item.id}`);
-      } else if (item.type === 'merch') {
-        const p = merchProducts.find((m) => m.slug === item.slug);
-        if (!p) errors.push(`${b.id}: unknown merchandise ${item.slug}`);
-        else if (p.rights !== 'repo-drawn') errors.push(`${b.id}: ${item.slug} has unconfirmed artwork rights`);
       }
     }
     if ((b.items.filter((i) => i.type === 'custom-session').length) > 1) errors.push(`${b.id}: one custom session per bundle`);
@@ -103,7 +87,6 @@ export function isOnSale(id: string, env: Record<string, string | undefined> = p
 
 export function itemLabel(item: BundleItem): string {
   if (item.type === 'program') return getProgram(item.id)?.title ?? item.id;
-  if (item.type === 'merch') return merchProducts.find((m) => m.slug === item.slug) ? item.slug.split('-').map((w) => w[0].toUpperCase() + w.slice(1)).join(' ') : item.slug;
   return 'Custom session (quoted through the custom order flow)';
 }
 
