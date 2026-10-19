@@ -68,7 +68,6 @@ Open:
 <!-- refresh:waiting:start -->
 | Card | Needs | Words to type |
 |---|---|---|
-| `approvals/2026-10-17-analytics-weights.md` Approve the starting scoring weights for the next-slate ranking | second look | approve analytics weights |
 | `approvals/2026-10-17-health-affiliate-programs.md` Health shelf needs your list and an affiliate sign-up | red 2 | affiliate list sent |
 | `approvals/2026-10-17-live-payments-or-unity-seat.md` Turn on live payments or buy a paid Unity seat | red 1 | approve spend: payments live |
 | `approvals/2026-10-17-patron-consent-wording.md` Approve the patron consent wording and 18+ rule | second look | approve patron consent wording |
