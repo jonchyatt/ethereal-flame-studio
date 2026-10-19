@@ -1,0 +1,13 @@
+User-agent: *
+Disallow: /operator
+Disallow: /approval-queue
+Disallow: /creator
+Disallow: /pipeline
+Disallow: /local-agents
+Disallow: /store/intake
+Disallow: /store/prices/preview
+Disallow: /jarvis
+Disallow: /api/
+Disallow: /preview/
+
+Sitemap: https://www.whatamiappreciatingnow.com/sitemap.xml

@@ -32,5 +32,20 @@ describe('about and contact', () => {
       expect(fs.readFileSync(path.join(root, f), 'utf8')).toContain('href="/about"');
     }
     expect(fs.existsSync(path.join(root, 'src/app/about/page.tsx'))).toBe(true);
+    expect(fs.existsSync(path.join(root, 'src/app/support/page.tsx'))).toBe(true);
+  });
+});
+
+describe('robots.txt and sitemap', () => {
+  const fs = require('fs') as typeof import('fs');
+  const path = require('path') as typeof import('path');
+  const root = path.resolve(__dirname, '../../../..');
+  it('robots keeps operator pages out and points at the sitemap; the sitemap lists only public pages', () => {
+    const robots = fs.readFileSync(path.join(root, 'public/robots.txt'), 'utf8');
+    for (const p of ['/operator', '/pipeline', '/store/intake', '/store/prices/preview', '/jarvis']) expect(robots).toContain(`Disallow: ${p}`);
+    expect(robots).toContain('Sitemap: https://www.whatamiappreciatingnow.com/sitemap.xml');
+    const sitemap = fs.readFileSync(path.join(root, 'public/sitemap.xml'), 'utf8');
+    expect(sitemap).toContain('<loc>https://www.whatamiappreciatingnow.com/</loc>');
+    expect(sitemap).not.toMatch(/operator|pipeline|intake|preview|jarvis|studio/);
   });
 });
