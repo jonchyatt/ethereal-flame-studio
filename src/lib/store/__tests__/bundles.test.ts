@@ -30,18 +30,22 @@ describe('store: gift and bundle catalog', () => {
     expect(isOnSale('deeper-sessions-gift', {})).toBe(false);
   });
 
-  it('refuses unknown programs, free tools, unknown or unconfirmed merchandise, thin and repeated bundles', () => {
-    const base: Bundle = { id: 'x', title: 'T', summary: 'S', giftable: true, items: [{ type: 'custom-session' }, { type: 'merch', slug: 'circle-mug' }] };
+  it('refuses unknown programs, free tools, thin and repeated bundles', () => {
+    const base: Bundle = { id: 'x', title: 'T', summary: 'S', giftable: true, items: [{ type: 'custom-session' }, { type: 'program', id: 'yale-inversion-protocol' }] };
     expect(validateBundles([base])).toEqual([]);
     const bad = (items: Bundle['items']) => validateBundles([{ ...base, items }]).join('|');
     expect(bad([{ type: 'program', id: 'nope' }, { type: 'custom-session' }])).toMatch(/unknown program/);
     expect(bad([{ type: 'program', id: 'peptide-tracker' }, { type: 'custom-session' }])).toMatch(/free tool/);
-    expect(bad([{ type: 'merch', slug: 'ghost' }, { type: 'custom-session' }])).toMatch(/unknown merchandise/);
-    expect(bad([{ type: 'merch', slug: 'psychedelic-spiral-mug' }, { type: 'custom-session' }])).toMatch(/unconfirmed artwork/);
     expect(bad([{ type: 'custom-session' }])).toMatch(/at least two/);
-    expect(bad([{ type: 'merch', slug: 'circle-mug' }, { type: 'merch', slug: 'circle-mug' }])).toMatch(/repeated/);
+    expect(bad([{ type: 'program', id: 'yale-inversion-protocol' }, { type: 'program', id: 'yale-inversion-protocol' }])).toMatch(/repeated/);
     expect(validateBundles([base, base]).join('|')).toMatch(/duplicate bundle id/);
     expect(validateBundles([{ ...base, summary: 'WAIA gift' }]).join('|')).toMatch(/short name/);
+  });
+
+  it('names no merchandise anywhere in bundles', () => {
+    const page = fs.readFileSync(path.join(root, 'src/app/store/bundles/page.tsx'), 'utf8');
+    const text = `${JSON.stringify(BUNDLES)} ${page}`;
+    expect(text).not.toMatch(/merch|mugs?|t-?shirt|hats?|wordmark/i);
   });
 
   it('uses the whole name and never the short one in anything a person reads', () => {
@@ -59,7 +63,7 @@ describe('store: gift and bundle catalog', () => {
 });
 
 describe('store: gift drafts', () => {
-  const ok = { bundleId: 'loop-worn-and-held', recipientName: ' Sam ', message: 'For the loop.', deliverOn: '2026-12-25' };
+  const ok = { bundleId: 'sessions-and-process-gift', recipientName: ' Sam ', message: 'For the loop.', deliverOn: '2026-12-25' };
 
   it('makes a draft with a one-time code and stores only its hash', () => {
     const r = createGiftDraft(ok, NOW, fixedRand);
@@ -102,7 +106,7 @@ describe('store: gift drafts', () => {
   });
 
   it('exposes getBundle', () => {
-    expect(getBundle('loop-worn-and-held')?.items).toHaveLength(2);
+    expect(getBundle('sessions-and-process-gift')?.items).toHaveLength(2);
     expect(getBundle('nope')).toBeNull();
   });
 });
