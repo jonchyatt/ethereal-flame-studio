@@ -446,7 +446,7 @@ export default function PlaylistBatchesPage() {
             </div>
           </div>
           <nav aria-label="Studio links" className="flex gap-4 text-sm text-[#e6e2d3]/65">
-            <Link href="/" className="min-h-10 py-2 hover:text-[#cf9d4f]">Preview</Link>
+            <Link href="/studio" className="min-h-10 py-2 hover:text-[#cf9d4f]">Preview</Link>
             <Link href="/batch" className="min-h-10 py-2 hover:text-[#cf9d4f]">Legacy tools</Link>
           </nav>
         </div>

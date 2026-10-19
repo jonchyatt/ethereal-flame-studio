@@ -6,7 +6,7 @@
  * name). No secret configured → the pages answer 404, except in local dev.
  * Runs in middleware (edge), so no Node crypto here.
  */
-const OPERATOR_PREFIXES = ['/operator', '/approval-queue', '/creator', '/pipeline', '/local-agents', '/store/intake'];
+const OPERATOR_PREFIXES = ['/operator', '/approval-queue', '/creator', '/pipeline', '/local-agents', '/store/intake', '/store/prices/preview'];
 
 export type OperatorPageDecision = 'allow' | 'not-found' | 'challenge';
 

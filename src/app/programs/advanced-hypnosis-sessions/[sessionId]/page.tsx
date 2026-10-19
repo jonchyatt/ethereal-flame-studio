@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { HYPNOSIS_PROGRAM_ID, getSession, onSale } from '@/lib/hypnosis/catalog';
+import { LegalLinks, SAFETY_NOTE } from '@/app/legal/LegalLinks';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +24,8 @@ export default async function HypnosisSessionPage({ params }: { params: Promise<
         <li>Music: {p.music}</li>
         <li>Rights basis: {p.rightsBasis} ({p.rightsVerified ? 'checked' : 'not yet checked'})</li>
       </ul>
+      <p style={{ fontSize: 14, opacity: 0.85 }}><strong>Safety:</strong> {SAFETY_NOTE}</p>
+      <LegalLinks />
     </main>
   );
 }

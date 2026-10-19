@@ -1,13 +1,16 @@
 /**
  * Who operates the store, shown on every legal page and under every program.
- * No business entity is recorded in this repo, so this is a marked placeholder
- * (docs/GO-LIVE.md, prerequisite 1). Fill in the real entity and a contact
- * address before going live; never guess one.
+ * Hyatt Studio is Jonathan's Payhip/Stripe trade name (chosen 2026-10-19 for
+ * the Entity store); change it here if a different entity runs this site.
  */
 export const OPERATOR = {
-  name: '[OPERATOR ENTITY NOT YET RECORDED: Jonathan fills this in before live payments]',
-  contact: '[CONTACT EMAIL NOT YET RECORDED]',
+  name: 'Hyatt Studio',
+  contact: 'jonchyatt@gmail.com',
 };
+
+/** Shown in the Terms and on every program page. */
+export const SAFETY_NOTE =
+  'Sessions are for relaxation and personal reflection. They are not medical or psychological treatment and do not replace a clinician. Do not listen while driving, operating machinery, or anywhere you need to stay alert. You must be 18 or over to buy.';
 
 export const LEGAL_DOCS = [
   { slug: 'terms', title: 'Terms of sale' },
@@ -23,7 +26,10 @@ export function LegalLinks() {
           <span key={d.slug}>{i > 0 && ' · '}<a href={`/legal/${d.slug}`} style={{ color: 'inherit' }}>{d.title}</a></span>
         ))}
       </p>
-      <p>What Am I Appreciating Now is operated by {OPERATOR.name}.</p>
+      <p>
+        Operated by {OPERATOR.name} · <a href={`mailto:${OPERATOR.contact}`} style={{ color: 'inherit' }}>{OPERATOR.contact}</a> ·{' '}
+        <a href="/about" style={{ color: 'inherit' }}>About</a> · <a href="/support" style={{ color: 'inherit' }}>Support</a>
+      </p>
     </footer>
   );
 }

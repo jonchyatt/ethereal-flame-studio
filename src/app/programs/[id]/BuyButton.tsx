@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 
-export function BuyButton({ programId, kind, live = false }: { programId: string; kind: 'subscription' | 'one_time'; live?: boolean }) {
+// `live` is still passed by callers; the label no longer changes with it (no "test mode" text for buyers).
+export function BuyButton({ programId, kind }: { programId: string; kind: 'subscription' | 'one_time'; live?: boolean }) {
   const [msg, setMsg] = useState('');
   async function go() {
     setMsg('');
@@ -16,7 +17,7 @@ export function BuyButton({ programId, kind, live = false }: { programId: string
   return (
     <div>
       <button onClick={go} style={{ padding: '12px 24px', fontSize: 16, borderRadius: 8, cursor: 'pointer' }}>
-        {kind === 'subscription' ? 'Subscribe' : 'Buy'}{live ? '' : ' (test mode)'}
+        {kind === 'subscription' ? 'Subscribe' : 'Buy'}
       </button>
       <p role="status">{msg}</p>
     </div>

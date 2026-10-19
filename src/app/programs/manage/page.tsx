@@ -36,7 +36,7 @@ export default async function ManagePage() {
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
       <p><a href="/programs" style={{ color: 'inherit' }}>← Programs</a></p>
       <h1>Manage my access</h1>
-      <p style={{ fontSize: 14, opacity: 0.7 }}>Test mode. This browser is how we know it is you; no account or email is kept here.</p>
+      <p style={{ fontSize: 14, opacity: 0.7 }}>This browser is how we know it is you; no account or email is kept here.</p>
       {items.length === 0 ? (
         <p>No programs found on this browser. If you bought from another device, open this page there.</p>
       ) : (

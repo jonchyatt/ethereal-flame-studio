@@ -48,7 +48,7 @@ export const PROGRAMS: readonly Program[] = [
     priceCents: priceFor('program:yale-inversion-protocol'),
     testPriceCents: 1000,
     guided: true,
-    provenance: 'Source: the Yale attachment protocol document and mental-mastery script doctrine in the jarvis repo. Read, never rewritten.',
+    provenance: "Source: the Yale attachment protocol document and Jonathan's mental-mastery script doctrine. Read, never rewritten.",
   },
 ];
 

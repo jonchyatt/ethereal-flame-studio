@@ -14,7 +14,7 @@ export function PortalButton() {
   return (
     <div>
       <button onClick={go} style={{ padding: '10px 20px', fontSize: 16, borderRadius: 8, cursor: 'pointer' }}>
-        Cancel, update card or see invoices (test mode)
+        Cancel, update card or see invoices
       </button>
       {msg && <p role="status">{msg}</p>}
     </div>

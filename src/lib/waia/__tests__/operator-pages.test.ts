@@ -2,7 +2,7 @@ import { operatorPageDecision } from '../operator-pages';
 
 const WWW = 'www.whatamiappreciatingnow.com';
 const basic = (pw: string) => `Basic ${Buffer.from(`jon:${pw}`).toString('base64')}`;
-const PAGES = ['/operator/custom-orders', '/approval-queue', '/creator', '/creator/library', '/pipeline', '/local-agents', '/store/intake', '/jarvis', '/jarvis/app'];
+const PAGES = ['/operator/custom-orders', '/approval-queue', '/creator', '/creator/library', '/pipeline', '/local-agents', '/store/intake', '/store/prices/preview', '/jarvis', '/jarvis/app'];
 
 describe('operatorPageDecision', () => {
   it('answers 404 for every operator page when no key is configured (production)', () => {

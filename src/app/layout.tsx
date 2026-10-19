@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Ethereal Flame Studio',
+  title: 'What Am I Appreciating Now',
   description: 'Phone to published video - 360° VR visual meditation creator',
 };
 

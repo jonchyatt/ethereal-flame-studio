@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { LEGAL_DOCS, LegalLinks, OPERATOR } from '../LegalLinks';
+import { LEGAL_DOCS, LegalLinks, OPERATOR, SAFETY_NOTE } from '../LegalLinks';
 
 /**
  * Terms, privacy and refunds for the store. Every statement describes what the
@@ -9,7 +9,7 @@ import { LEGAL_DOCS, LegalLinks, OPERATOR } from '../LegalLinks';
 
 type Doc = (typeof LEGAL_DOCS)[number]['slug'];
 
-const UPDATED = '2026-10-18';
+const UPDATED = '2026-10-19';
 
 const BODY: Record<Doc, { h: string; p: string[] }[]> = {
   terms: [
@@ -19,11 +19,11 @@ const BODY: Record<Doc, { h: string; p: string[] }[]> = {
       'Prices are shown in US dollars before you pay. Payment is taken by Stripe on its own checkout page.',
     ] },
     { h: 'How access works', p: [
-      'There is no account. When you buy, this browser gets a private cookie that holds an anonymous customer number, and your access is tied to it. If you clear cookies or change device, contact us with your Stripe receipt and we will restore access by hand.',
+      `There is no account. When you buy, this browser gets a private cookie that holds an anonymous customer number, and your access is tied to it. If you clear cookies or change device, email ${OPERATOR.contact} with your Stripe receipt (see /support) and we will restore access by hand.`,
       'A subscription renews monthly until you cancel. A one-time purchase does not expire.',
     ] },
     { h: 'Health and safety', p: [
-      'Sessions are for relaxation and personal reflection. They are not medical or psychological treatment and do not replace a clinician. Do not listen while driving, operating machinery, or anywhere you need to stay alert. You must be 18 or over to buy.',
+      SAFETY_NOTE,
     ] },
     { h: 'Use of the content', p: [
       'Your purchase is a personal licence to listen and use the program. Please do not copy, resell or redistribute it.',
