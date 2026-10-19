@@ -42,3 +42,16 @@ describe('manual-draft path (no credentials)', () => {
     expect(put).not.toHaveBeenCalled();
   });
 });
+
+describe('review-first privacy (never public)', () => {
+  it('maps every configured value to private or unlisted', () => {
+    const { resolveYoutubePrivacy } = require('../publishConnectors');
+    expect(resolveYoutubePrivacy('public')).toBe('private');
+    expect(resolveYoutubePrivacy(undefined)).toBe('private');
+    expect(resolveYoutubePrivacy('Unlisted')).toBe('unlisted');
+  });
+  it('pins TikTok to SELF_ONLY', () => {
+    const { TIKTOK_REVIEW_PRIVACY_LEVEL } = require('../publishConnectors');
+    expect(TIKTOK_REVIEW_PRIVACY_LEVEL).toBe('SELF_ONLY');
+  });
+});
