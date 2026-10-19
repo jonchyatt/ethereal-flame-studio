@@ -5,6 +5,8 @@ import { loadProgramContent } from '@/lib/entitlements/content';
 import { hasAccess, loadRecord } from '@/lib/entitlements/model';
 import { CUSTOMER_COOKIE, verifyCustomerCookie } from '@/lib/entitlements/session';
 import { loadAudioManifest } from '@/lib/entitlements/audio';
+import { paymentsLive } from '@/lib/entitlements/stripe';
+import { LegalLinks } from '@/app/legal/LegalLinks';
 import { AudioPlayer } from './AudioPlayer';
 import { BuyButton } from './BuyButton';
 import { CounterBeacon } from '@/components/CounterBeacon';
@@ -44,9 +46,10 @@ export async function ProgramView({ id, children }: { id: string; children?: Rea
         content ? <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{content}</pre>
           : <p>You have access. The program words have not been handed over yet.</p>
       ) : (
-        <BuyButton programId={program.id} kind={program.kind} />
+        <BuyButton programId={program.id} kind={program.kind} live={paymentsLive()} />
       )}
       {children}
+      <LegalLinks />
     </main>
   );
 }

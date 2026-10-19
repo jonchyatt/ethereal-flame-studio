@@ -2,12 +2,19 @@ import { createHmac, timingSafeEqual } from 'crypto';
 import type { Program } from './catalog';
 
 /**
- * Payment adapter, TEST MODE ONLY. Live payments move money (red 1) and are
- * Jonathan's click, so a live key is refused here, not warned about. No SDK:
- * two REST calls and a signature check.
+ * Payment adapter. Test mode unless WAIA_PAYMENTS_LIVE=on (docs/GO-LIVE.md):
+ * that one env var is the switch between test and live, and flipping it moves
+ * money (red 1), so it is Jonathan's click. Each mode reads only its own keys
+ * and refuses the other mode's keys, sessions and webhook events. No SDK: two
+ * REST calls and a signature check.
  */
 
 export class PaymentsNotConfigured extends Error {}
+
+/** The one test/live switch. Anything but "on" (including unset) is test mode. */
+export function paymentsLive(flag: string | undefined = process.env.WAIA_PAYMENTS_LIVE): boolean {
+  return (flag ?? '').trim().toLowerCase() === 'on';
+}
 
 export function testSecretKey(): string {
   const k = process.env.STRIPE_TEST_SECRET_KEY;
@@ -16,6 +23,34 @@ export function testSecretKey(): string {
     throw new PaymentsNotConfigured('Only Stripe test-mode keys are accepted; live mode is not enabled');
   }
   return k;
+}
+
+function liveSecretKey(): string {
+  const k = process.env.STRIPE_LIVE_SECRET_KEY;
+  if (!k) throw new PaymentsNotConfigured('STRIPE_LIVE_SECRET_KEY is not set; live checkout is off');
+  if (!k.startsWith('sk_live_') && !k.startsWith('rk_live_')) {
+    throw new PaymentsNotConfigured('WAIA_PAYMENTS_LIVE=on needs a live-mode key in STRIPE_LIVE_SECRET_KEY');
+  }
+  return k;
+}
+
+/** The key for the current mode. Test mode never reads STRIPE_LIVE_SECRET_KEY. */
+export function secretKey(): string {
+  return paymentsLive() ? liveSecretKey() : testSecretKey();
+}
+
+/** What checkout charges: the set price; in test mode an unpriced program falls back to its test price. Live never sells unpriced. */
+export function chargeCents(program: Program): number {
+  if (program.priceCents !== null) return program.priceCents;
+  if (paymentsLive()) throw new PaymentsNotConfigured(`${program.id} has no price set; not on sale`);
+  return program.testPriceCents;
+}
+
+function refuseWrongMode(livemode: boolean | undefined): void {
+  const live = paymentsLive();
+  if (Boolean(livemode) !== live) {
+    throw new Error(`Stripe returned a ${livemode ? 'live-mode' : 'test-mode'} session while ${live ? 'live' : 'test'} mode is set; refusing`);
+  }
 }
 
 export interface CheckoutArgs {
@@ -29,8 +64,9 @@ export async function createCheckoutSession(
   args: CheckoutArgs,
   fetchImpl: typeof fetch = fetch,
 ): Promise<{ id: string; url: string }> {
-  const key = testSecretKey();
+  const key = secretKey();
   const { program } = args;
+  const cents = chargeCents(program);
   const body = new URLSearchParams({
     mode: program.kind === 'subscription' ? 'subscription' : 'payment',
     success_url: args.successUrl,
@@ -39,7 +75,7 @@ export async function createCheckoutSession(
     'metadata[programId]': program.id,
     'line_items[0][quantity]': '1',
     'line_items[0][price_data][currency]': 'usd',
-    'line_items[0][price_data][unit_amount]': String(program.testPriceCents),
+    'line_items[0][price_data][unit_amount]': String(cents),
     'line_items[0][price_data][product_data][name]': program.title,
   });
   if (program.kind === 'subscription') {
@@ -54,7 +90,7 @@ export async function createCheckoutSession(
   });
   const json = (await res.json()) as { id?: string; url?: string; livemode?: boolean; error?: { message?: string } };
   if (!res.ok || !json.id || !json.url) throw new Error(`Stripe checkout failed: ${json.error?.message ?? res.status}`);
-  if (json.livemode) throw new Error('Stripe returned a live-mode session; refusing');
+  refuseWrongMode(json.livemode);
   return { id: json.id, url: json.url };
 }
 
@@ -62,7 +98,7 @@ export async function createCheckoutSession(
 export function verifyWebhook(
   payload: string,
   header: string | null,
-  secret: string | undefined = process.env.STRIPE_TEST_WEBHOOK_SECRET,
+  secret: string | undefined = paymentsLive() ? process.env.STRIPE_LIVE_WEBHOOK_SECRET : process.env.STRIPE_TEST_WEBHOOK_SECRET,
   toleranceSec = 300,
   nowSec = Math.floor(Date.now() / 1000),
 ): boolean {
@@ -79,13 +115,13 @@ export function verifyWebhook(
   });
 }
 
-/** Opens Stripe's hosted billing portal (cancel, update card, invoices) for a test-mode customer. */
+/** Opens Stripe's hosted billing portal (cancel, update card, invoices) for a customer in the current mode. */
 export async function createPortalSession(
   providerCustomerId: string,
   returnUrl: string,
   fetchImpl: typeof fetch = fetch,
 ): Promise<{ url: string }> {
-  const key = testSecretKey();
+  const key = secretKey();
   const res = await fetchImpl('https://api.stripe.com/v1/billing_portal/sessions', {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -93,7 +129,7 @@ export async function createPortalSession(
   });
   const json = (await res.json()) as { url?: string; livemode?: boolean; error?: { message?: string } };
   if (!res.ok || !json.url) throw new Error(`Stripe portal failed: ${json.error?.message ?? res.status}`);
-  if (json.livemode) throw new Error('Stripe returned a live-mode session; refusing');
+  refuseWrongMode(json.livemode);
   return { url: json.url };
 }
 
@@ -113,7 +149,7 @@ export type EntitlementAction =
 
 /** Pure mapping from a Stripe event to what the entitlement store should do. */
 export function actionForEvent(ev: StripeEvent): EntitlementAction {
-  if (ev.livemode) return { op: 'ignore', reason: 'live-mode event refused' };
+  if (Boolean(ev.livemode) !== paymentsLive()) return { op: 'ignore', reason: `${ev.livemode ? 'live' : 'test'}-mode event refused` };
   const o = ev.data.object;
   switch (ev.type) {
     case 'checkout.session.completed': {

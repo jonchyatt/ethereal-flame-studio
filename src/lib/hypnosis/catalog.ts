@@ -1,4 +1,5 @@
 import { getProgram } from '@/lib/entitlements/catalog';
+import { paymentsLive } from '@/lib/entitlements/stripe';
 import { getStorageAdapter } from '@/lib/storage';
 
 /**
@@ -8,7 +9,8 @@ import { getStorageAdapter } from '@/lib/storage';
  * and live in private storage at `hypnosis/catalog.json`; none are invented
  * here, so until that file exists the listing is honestly empty. Every entry
  * must carry its rights basis and provenance (HB-6) or it is dropped. An entry
- * is never "on sale" on its own: sale state comes from the program price.
+ * is never "on sale" on its own: sale state is the program price plus the live
+ * payments switch (WAIA_PAYMENTS_LIVE, docs/GO-LIVE.md).
  */
 
 export const HYPNOSIS_PROGRAM_ID = 'advanced-hypnosis-sessions';
@@ -85,5 +87,5 @@ export async function getSession(id: string): Promise<HypnosisSession | null> {
 
 /** On sale only when the parent program has a price; today it never does. */
 export function onSale(): boolean {
-  return getProgram(HYPNOSIS_PROGRAM_ID)?.priceCents != null;
+  return getProgram(HYPNOSIS_PROGRAM_ID)?.priceCents != null && paymentsLive();
 }
