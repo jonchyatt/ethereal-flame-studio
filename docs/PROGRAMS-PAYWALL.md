@@ -51,3 +51,14 @@ Not done here: taking payment for an accepted quote; emailing customers (the ope
 
 ## Price config (backlog item 3)
 Every price lives in `src/lib/prices/config.ts` (`PRICES`, cents, `null` = not yet on sale). `catalog.ts` and `patrons/tiers.ts` read it through `priceFor`; no page holds a number. Options A, B and C in `src/lib/prices/options.ts` are proposals shown side by side at `/store/prices/preview` (noindex); checkout never reads them. The choice is on `approvals/2026-10-17-price-ladder.md`. Check: `npx jest src/lib/prices`.
+
+## Audio player (backlog item 15)
+A gated audio player on `/programs/<id>`, shown only to customers with access and only when a manifest exists. The audio itself is whatever Jonathan hands over; nothing is invented or stored in the repo.
+
+- **Storage (private)**: `programs/<id>/audio.json` = `{ "tracks": [{ "id", "title", "file", "contentType" }] }` and the bytes at `programs/<id>/audio/<file>`. `contentType` is audio/mpeg, audio/mp4, audio/ogg or audio/wav. A manifest with a path in `file` or bad JSON shows nothing.
+- **Route**: `GET /api/programs/<id>/audio/<track>` checks the signed cookie and the entitlement on every request (402 otherwise, fail-closed), answers `Range` requests (206/416) so seeking works, and sends `Cache-Control: private, no-store`. No storage URL ever reaches the browser. The file is read whole per request, fine for session-length audio; move to a ranged storage read if files get very large.
+- **Player**: play/pause, seek, buffering message, resume where you left off (per program, kept in the browser only, skips the first 5 s and last 10 s), sleep timer of 10 to 60 minutes with a 20 s fade then pause.
+- **Fixture**: `npx tsx scripts/programs/seed-fixture-audio.ts [programId]` writes a 3 s quiet tone and manifest into local storage for a preview. Local only; never run against production storage.
+
+Check: `npx jest src/lib/entitlements`. Also run on a local dev server with Chromium: no cookie 402; granted cookie 200 and 206 ranges; page shows the player only when granted; play advances time, pause stores the resume point, the timer opens.
+Not done here: real recordings; download protection beyond not exposing a URL (a paying listener can still record playback); offline/background-play controls.
