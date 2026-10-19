@@ -1,5 +1,7 @@
 # Merchandise catalog and print-on-demand feed
 
+**Status 2026-10-19:** Jonathan declined every existing design. The print files, mockups and `wix-products.csv` below are retired and must not be printed, imported or shown. New work follows `DESIGN-STANDARD.md` and is gated by `npm run merch:intake`; tool options are in `DESIGN-TOOLS.md`. A product is public only once it has an `approvedDesigns` entry in the catalog; until then `/merch` returns 404 and the store page has no merchandise section.
+
 Psychedelic T-shirts, hats and mugs carrying the What Am I Appreciating Now marks (see `docs/BRAND-MARK.md`).
 
 - Catalog: `scripts/merch/catalog.json` (14 products, each with a mark, a rights basis and a mockup in `public/brand/mockups/`).

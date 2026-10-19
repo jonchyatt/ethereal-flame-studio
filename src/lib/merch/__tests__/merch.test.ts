@@ -1,8 +1,16 @@
 import type { StorageAdapter } from '@/lib/storage';
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
-import { getMerch, listMerch } from '../catalog';
+import { listMerch } from '../catalog';
 import { readCounts, recordTap } from '../notify';
+
+// Nothing is public until a design is approved, so the tap tests use stand-in approved products.
+const fake: Record<string, { slug: string; sizes: string[] }> = {
+  'circle-shirt': { slug: 'circle-shirt', sizes: ['S', 'M', 'L', 'XL', '2XL'] },
+  'circle-mug': { slug: 'circle-mug', sizes: [] },
+};
+jest.mock('../catalog', () => ({
+  ...jest.requireActual('../catalog'),
+  getMerch: (slug: string) => fake[slug],
+}));
 
 function memoryStorage(): StorageAdapter & { files: Map<string, Buffer> } {
   const files = new Map<string, Buffer>();
@@ -14,18 +22,9 @@ function memoryStorage(): StorageAdapter & { files: Map<string, Buffer> } {
   } as unknown as StorageAdapter & { files: Map<string, Buffer> };
 }
 
-test('lists only repo-drawn products, each with a mockup on disk and no price', () => {
-  const items = listMerch();
-  expect(items.length).toBeGreaterThan(0);
-  expect(items.find((p) => p.slug.startsWith('psychedelic-spiral'))).toBeUndefined();
-  for (const p of items) {
-    expect(existsSync(join(process.cwd(), 'public', p.image))).toBe(true);
-    expect(JSON.stringify(p)).not.toMatch(/price|\$\d|WAIA/);
-    expect(p.name).toMatch(/^What Am I Appreciating Now /);
-  }
-  expect(getMerch('circle-shirt')?.sizes).toEqual(['S', 'M', 'L', 'XL', '2XL']);
-  expect(getMerch('circle-mug')?.sizes).toEqual([]);
-  expect(getMerch('nope')).toBeUndefined();
+test('lists nothing until a design is approved: the declined mockups never appear', () => {
+  expect(listMerch()).toEqual([]);
+  expect(jest.requireActual('../catalog').getMerch('circle-shirt')).toBeUndefined();
 });
 
 test('a tap adds to the product and size counts and stores nothing else', async () => {
