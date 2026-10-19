@@ -27,7 +27,9 @@ describe('store: Support the channel', () => {
     expect(form).toContain('action="#custom-work"');
     expect(section).not.toMatch(/type="(email|tel|password)"|name="(name|email|phone)"/i);
     const js = fs.readFileSync(path.join(root, 'public/waia-store-support.js'), 'utf8');
-    expect(js).not.toMatch(/fetch\(|XMLHttpRequest|localStorage|sessionStorage|cookie|sendBeacon/);
+    expect(js).not.toMatch(/XMLHttpRequest|localStorage|sessionStorage|cookie|sendBeacon/);
+    // The only network call is the custom-order intake, which takes no payment.
+    expect([...js.matchAll(/fetch\(\s*'([^']+)'/g)].map((m) => m[1])).toEqual(['/api/custom-orders']);
   });
 
   it('never shortens the channel name in the section', () => {
@@ -37,7 +39,7 @@ describe('store: Support the channel', () => {
 
   it('echoes a valid request and says coming soon', () => {
     expect(buildEcho({ kind: 'vr', details: '  a quiet forest  ' })).toEqual({
-      ok: true, kind: 'Custom VR session', details: 'a quiet forest',
+      ok: true, kind: 'Custom VR session', details: 'a quiet forest', contact: '',
     });
     expect(fs.readFileSync(path.join(root, "public/waia-store-support.js"), "utf8")).toMatch(/Coming soon/);
   });

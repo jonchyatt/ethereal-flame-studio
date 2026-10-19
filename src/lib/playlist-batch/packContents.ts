@@ -115,11 +115,17 @@ export function packContentsPrefix(packId: string): string {
   return `${PACK_CONTENTS_PREFIX}/${packId}/`;
 }
 
-/** Writes the files under creator/pack-contents/<packId>/; an existing contents.json means it is already done. */
+/** Writes the files under creator/pack-contents/<packId>/; an existing contents.json means it is already done unless it still awaits the transcript. */
 export async function writePackContents(packId: string, files: PackContentsFiles): Promise<{ written: boolean; keys: string[] }> {
   const storage = getStorageAdapter();
   const prefix = packContentsPrefix(packId);
-  if (await storage.get(`${prefix}contents.json`)) return { written: false, keys: [] };
+  const existing = await storage.get(`${prefix}contents.json`);
+  if (existing) {
+    // A folder written before the transcript existed is completed once, when captions can now be written.
+    let waiting = false;
+    try { waiting = JSON.parse(existing.toString('utf8'))?.captions?.status === 'awaiting-transcript'; } catch { /* treated as done */ }
+    if (!(waiting && 'captions.srt' in files)) return { written: false, keys: [] };
+  }
   const keys: string[] = [];
   for (const [name, body] of Object.entries(files)) {
     if (name === 'contents.json') continue;

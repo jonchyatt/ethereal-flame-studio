@@ -81,6 +81,7 @@
   section > p { color: var(--ink-dim); max-width: 60ch; }
   .grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); margin-top: 1.5rem; }
   .card { background: var(--ground-raised); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 40px -16px var(--indigo-glow); }
+  .card picture { display: block; }
   .card img { width: 100%; height: auto; display: block; background: #e9e6dd; }
   .card-body { padding: 1rem 1.1rem 1.2rem; display: flex; flex-direction: column; gap: 0.35rem; }
   .card h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 1.2rem; color: var(--ink-bright); }
@@ -96,7 +97,7 @@
   .tiers .tag { font-family: var(--mono); }
   .intake { background: var(--ground-raised); border-radius: 14px; padding: 1.25rem; margin-top: 1.5rem; max-width: 640px; box-shadow: 0 0 40px -16px var(--indigo-glow); }
   .intake label { display: block; margin-top: 0.9rem; color: var(--ink-bright); }
-  .intake select, .intake textarea { width: 100%; margin-top: 0.3rem; background: var(--ground-deep); color: var(--ink); border: 1px solid #ffffff24; border-radius: 8px; padding: 0.6rem; font: inherit; }
+  .intake select, .intake textarea { width: 100%; margin-top: 0.3rem; background: var(--ground-deep); color: var(--ink); border: 1px solid #8b8878; border-radius: 8px; padding: 0.6rem; font: inherit; }
   .intake select:focus-visible, .intake textarea:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; }
   .intake button { margin-top: 1rem; background: var(--gold); color: var(--ground-deep); border: 0; border-radius: 999px; padding: 0.6rem 1.4rem; font: inherit; cursor: pointer; }
   .intake .echo { margin-top: 1rem; border-top: 1px solid #ffffff14; padding-top: 0.8rem; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -104,11 +105,11 @@
   .fine { font-size: 0.82rem; color: var(--ink-dim); }
 </style>
 </head>
-<body>
+<body data-waia-page="store">
 <div class="starfield" aria-hidden="true"></div>
 <main>
   <header>
-    <img src="/brand/what-am-i-appreciating-now-circle-dark.svg" alt="What Am I Appreciating Now, set on a circle so Now closes back into What" />
+    <img src="/brand/what-am-i-appreciating-now-circle-dark.svg" width="140" height="140" alt="What Am I Appreciating Now, set on a circle so Now closes back into What" />
     <div class="loop-label">The Store</div>
     <h1>What Am I Appreciating Now</h1>
     <p>Programs, custom sessions and merchandise. Nothing here is on sale yet: no prices, no cart, no payment. Every item shows where its words, voices, images and music come from.</p>
@@ -183,7 +184,7 @@
     <p>T-shirts, hats and mugs carrying the marks, with psychedelic variants on the studio's own backgrounds. Images are mockups.</p>
     <div class="grid">
       <article class="card">
-        <img src="/public/brand/mockups/circle-shirt.png" alt="T-shirt with the circular What Am I Appreciating Now mark" loading="lazy" width="500" height="500">
+        <picture><source type="image/webp" srcset="/brand/mockups/web/circle-shirt.webp"><img src="/brand/mockups/circle-shirt.png" alt="T-shirt with the circular What Am I Appreciating Now mark" loading="lazy" decoding="async" width="640" height="640"></picture>
         <div class="card-body">
           <span class="state">Not yet on sale</span>
           <h3>T-shirt, circular mark</h3>
@@ -193,7 +194,7 @@
         </div>
       </article>
       <article class="card">
-        <img src="/public/brand/mockups/infinity-shirt.png" alt="T-shirt with the infinity-loop mark" loading="lazy" width="500" height="500">
+        <picture><source type="image/webp" srcset="/brand/mockups/web/infinity-shirt.webp"><img src="/brand/mockups/infinity-shirt.png" alt="T-shirt with the infinity-loop mark" loading="lazy" decoding="async" width="640" height="640"></picture>
         <div class="card-body">
           <span class="state">Not yet on sale</span>
           <h3>T-shirt, infinity loop</h3>
@@ -203,7 +204,7 @@
         </div>
       </article>
       <article class="card">
-        <img src="/public/brand/mockups/circle-mug.png" alt="Mug with the circular mark" loading="lazy" width="500" height="500">
+        <picture><source type="image/webp" srcset="/brand/mockups/web/circle-mug.webp"><img src="/brand/mockups/circle-mug.png" alt="Mug with the circular mark" loading="lazy" decoding="async" width="640" height="640"></picture>
         <div class="card-body">
           <span class="state">Not yet on sale</span>
           <h3>Mug, circular mark</h3>
@@ -213,7 +214,7 @@
         </div>
       </article>
       <article class="card">
-        <img src="/public/brand/mockups/wordmark-mug.png" alt="Mug with the wordmark" loading="lazy" width="500" height="500">
+        <picture><source type="image/webp" srcset="/brand/mockups/web/wordmark-mug.webp"><img src="/brand/mockups/wordmark-mug.png" alt="Mug with the wordmark" loading="lazy" decoding="async" width="640" height="640"></picture>
         <div class="card-body">
           <span class="state">Not yet on sale</span>
           <h3>Mug, wordmark</h3>
@@ -223,7 +224,7 @@
         </div>
       </article>
       <article class="card">
-        <img src="/public/brand/mockups/loop-shirt.png" alt="T-shirt with the circular loop mark" loading="lazy" width="500" height="500">
+        <picture><source type="image/webp" srcset="/brand/mockups/web/loop-shirt.webp"><img src="/brand/mockups/loop-shirt.png" alt="T-shirt with the circular loop mark" loading="lazy" decoding="async" width="640" height="640"></picture>
         <div class="card-body">
           <span class="state">Not yet on sale</span>
           <h3>T-shirt, circular loop</h3>
@@ -233,7 +234,7 @@
         </div>
       </article>
       <article class="card">
-        <img src="/public/brand/mockups/psychedelic-spiral-shirt.png" alt="Psychedelic spiral T-shirt" loading="lazy" width="500" height="500">
+        <picture><source type="image/webp" srcset="/brand/mockups/web/psychedelic-spiral-shirt.webp"><img src="/brand/mockups/psychedelic-spiral-shirt.png" alt="Psychedelic spiral T-shirt" loading="lazy" decoding="async" width="640" height="640"></picture>
         <div class="card-body">
           <span class="state">Not yet on sale</span>
           <h3>Psychedelic T-shirt, spiral</h3>
@@ -243,7 +244,7 @@
         </div>
       </article>
       <article class="card">
-        <img src="/public/brand/mockups/psychedelic-spiral-hat.png" alt="Psychedelic spiral hat" loading="lazy" width="500" height="500">
+        <picture><source type="image/webp" srcset="/brand/mockups/web/psychedelic-spiral-hat.webp"><img src="/brand/mockups/psychedelic-spiral-hat.png" alt="Psychedelic spiral hat" loading="lazy" decoding="async" width="640" height="640"></picture>
         <div class="card-body">
           <span class="state">Not yet on sale</span>
           <h3>Psychedelic hat, spiral</h3>
@@ -253,7 +254,7 @@
         </div>
       </article>
       <article class="card">
-        <img src="/public/brand/mockups/psychedelic-spiral-mug.png" alt="Psychedelic spiral mug" loading="lazy" width="500" height="500">
+        <picture><source type="image/webp" srcset="/brand/mockups/web/psychedelic-spiral-mug.webp"><img src="/brand/mockups/psychedelic-spiral-mug.png" alt="Psychedelic spiral mug" loading="lazy" decoding="async" width="640" height="640"></picture>
         <div class="card-body">
           <span class="state">Not yet on sale</span>
           <h3>Psychedelic mug, spiral</h3>
@@ -263,7 +264,7 @@
         </div>
       </article>
       <article class="card">
-        <img src="/public/brand/mockups/psychedelic-starfield-shirt.png" alt="Psychedelic star-field T-shirt" loading="lazy" width="500" height="500">
+        <picture><source type="image/webp" srcset="/brand/mockups/web/psychedelic-starfield-shirt.webp"><img src="/brand/mockups/psychedelic-starfield-shirt.png" alt="Psychedelic star-field T-shirt" loading="lazy" decoding="async" width="640" height="640"></picture>
         <div class="card-body">
           <span class="state">Not yet on sale</span>
           <h3>Psychedelic T-shirt, star-field</h3>
@@ -273,7 +274,7 @@
         </div>
       </article>
       <article class="card">
-        <img src="/public/brand/mockups/psychedelic-starfield-hat.png" alt="Psychedelic star-field hat" loading="lazy" width="500" height="500">
+        <picture><source type="image/webp" srcset="/brand/mockups/web/psychedelic-starfield-hat.webp"><img src="/brand/mockups/psychedelic-starfield-hat.png" alt="Psychedelic star-field hat" loading="lazy" decoding="async" width="640" height="640"></picture>
         <div class="card-body">
           <span class="state">Not yet on sale</span>
           <h3>Psychedelic hat, star-field</h3>
@@ -283,7 +284,7 @@
         </div>
       </article>
       <article class="card">
-        <img src="/public/brand/mockups/psychedelic-starfield-mug.png" alt="Psychedelic star-field mug" loading="lazy" width="500" height="500">
+        <picture><source type="image/webp" srcset="/brand/mockups/web/psychedelic-starfield-mug.webp"><img src="/brand/mockups/psychedelic-starfield-mug.png" alt="Psychedelic star-field mug" loading="lazy" decoding="async" width="640" height="640"></picture>
         <div class="card-body">
           <span class="state">Not yet on sale</span>
           <h3>Psychedelic mug, star-field</h3>
@@ -293,7 +294,7 @@
         </div>
       </article>
       <article class="card">
-        <img src="/public/brand/mockups/wordmark-shirt.png" alt="T-shirt with the wordmark" loading="lazy" width="500" height="500">
+        <picture><source type="image/webp" srcset="/brand/mockups/web/wordmark-shirt.webp"><img src="/brand/mockups/wordmark-shirt.png" alt="T-shirt with the wordmark" loading="lazy" decoding="async" width="640" height="640"></picture>
         <div class="card-body">
           <span class="state">Not yet on sale</span>
           <h3>T-shirt, wordmark</h3>
@@ -303,6 +304,13 @@
         </div>
       </article>
     </div>
+  </section>
+
+  <section id="free-tools">
+    <h2>Free tools from Reset Biology</h2>
+    <p>Reset Biology offers a peptide tracker and self-help tools that are free and stay free. It takes no money, and nothing on it is sold from this page.</p>
+    <p><a href="https://resetbiology.com/" rel="noopener" data-crosslink="reset-biology">Visit Reset Biology</a> &middot; <a href="https://resetbiology.com/education" rel="noopener" data-crosslink="reset-biology-education">Reset Biology education</a></p>
+    <p class="fine">These are plain outbound links to a separate site. What Am I Appreciating Now earns nothing from them.</p>
   </section>
 
   <section id="shelf">
@@ -352,7 +360,7 @@
     <p class="fine">Names are optional aliases. Every name is shown to the supporter and approved with their consent before it appears anywhere public.</p>
 
     <h2 id="custom-work" style="margin-top:2.5rem">Ask for custom work</h2>
-    <p>Tell What Am I Appreciating Now what you would like: a custom hypnosis session or a custom VR session. This form is a preview. It shows your request back to you and nothing more.</p>
+    <p>Tell What Am I Appreciating Now what you would like: a custom hypnosis session or a custom VR session. Your request is read by a person, who replies with a quote. Nothing is charged: you decide whether to accept the quote.</p>
     <form class="intake" id="intake-form" action="#custom-work" method="get" novalidate>
       <label for="intake-kind">Which kind of session?
         <select id="intake-kind" name="kind">
@@ -363,10 +371,14 @@
       <label for="intake-details">What would you like it to hold?
         <textarea id="intake-details" name="details" rows="5" maxlength="1000"></textarea>
       </label>
-      <p class="fine">Please leave out your name, email and anything private. Nothing you type is saved or sent.</p>
-      <button type="submit">Show my request</button>
+      <label for="intake-contact">How can we reach you? (optional)
+        <input id="intake-contact" name="contact" type="text" maxlength="200" autocomplete="off">
+      </label>
+      <div style="position:absolute;left:-9999px" aria-hidden="true"><label>Leave this empty <input name="website" type="text" tabindex="-1" autocomplete="off"></label></div>
+      <p class="fine">Leave out anything private you would not want read. Contact details are kept privately, are never shown on the site, and you can skip them and use your reference to check back.</p>
+      <button type="submit">Send my request</button>
       <div class="echo" id="intake-echo" role="status" aria-live="polite" hidden></div>
-      <noscript><p class="fine">This preview needs JavaScript to show your request back. Coming soon.</p></noscript>
+      <noscript><p class="fine">Sending a request needs JavaScript.</p></noscript>
     </form>
   </section>
 
@@ -374,6 +386,7 @@
 </main>
 <footer><a href="/">Back to What Am I Appreciating Now</a></footer>
 <script src="/waia-store-support.js"></script>
+<script src="/waia-counters.js"></script>
 <script src="/waia-affiliate-shelf.js"></script>
 </body>
 </html>

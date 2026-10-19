@@ -22,6 +22,8 @@ export interface Program {
   testPriceCents: number;
   /** Where the words, voice and music come from; shown before anything can sell. */
   provenance: string;
+  /** Has a step-by-step session in private storage (`programs/<id>.session.json`) played at /programs/<id>/session. */
+  guided?: boolean;
 }
 
 export const FREE_TOOLS = ['peptide-tracker', 'self-help'] as const;
@@ -43,6 +45,7 @@ export const PROGRAMS: readonly Program[] = [
     summary: 'A guided process built from the protocol Jonathan has handed over.',
     priceCents: null,
     testPriceCents: 1000,
+    guided: true,
     provenance: 'Source: the Yale attachment protocol document and mental-mastery script doctrine in the jarvis repo. Read, never rewritten.',
   },
 ];
