@@ -35,6 +35,17 @@ type ConnectorInput = {
 
 type JsonRecord = Record<string, unknown>;
 
+/**
+ * Review-first publishing (Jonathan's ruling 2026-10-19): nothing is ever uploaded public.
+ * Uploads land PRIVATE (or unlisted if configured), Jonathan reviews on YouTube, then schedules.
+ */
+export function resolveYoutubePrivacy(configured: string | undefined): 'private' | 'unlisted' {
+  return (configured || '').trim().toLowerCase() === 'unlisted' ? 'unlisted' : 'private';
+}
+
+/** TikTok: SELF_ONLY is the review state; any other configured level is ignored. */
+export const TIKTOK_REVIEW_PRIVACY_LEVEL = 'SELF_ONLY';
+
 function parseBool(value: string | undefined, defaultValue = false): boolean {
   if (value == null || value === '') return defaultValue;
   return ['1', 'true', 'yes', 'on'].includes(value.trim().toLowerCase());
@@ -301,7 +312,7 @@ async function writeDraftManifest(input: ConnectorInput, warnings: string[] = []
       input.provider === 'youtube'
         ? {
             categoryId: process.env.YOUTUBE_PUBLISH_DEFAULT_CATEGORY_ID || '10',
-            privacyStatus: process.env.YOUTUBE_PUBLISH_DEFAULT_PRIVACY || 'private',
+            privacyStatus: resolveYoutubePrivacy(process.env.YOUTUBE_PUBLISH_DEFAULT_PRIVACY),
             madeForKids: parseBool(process.env.YOUTUBE_PUBLISH_MADE_FOR_KIDS, false),
             playlistIds: youtubePlaylistIdsForPlatform(input.metadata.platform),
           }
@@ -311,7 +322,7 @@ async function writeDraftManifest(input: ConnectorInput, warnings: string[] = []
               publishLater: input.metadata.mode === 'schedule',
             }
           : {
-              postPrivacy: process.env.TIKTOK_PUBLISH_PRIVACY_LEVEL || 'PUBLIC_TO_EVERYONE',
+              postPrivacy: TIKTOK_REVIEW_PRIVACY_LEVEL,
               allowComment: !parseBool(process.env.TIKTOK_PUBLISH_DISABLE_COMMENT, false),
               scheduleRequested: input.metadata.mode === 'schedule',
             },
@@ -384,10 +395,8 @@ async function publishYoutubeApi(input: ConnectorInput): Promise<PublishConnecto
   const tags = buildYoutubeTags(input.metadata);
   const requestedSchedule = coerceDateTime(input.metadata.scheduledFor || null);
   const scheduleMode = input.metadata.mode === 'schedule' && !!requestedSchedule;
-  const privacyDefault = (process.env.YOUTUBE_PUBLISH_DEFAULT_PRIVACY || 'private').toLowerCase();
-  const privacyStatus = scheduleMode
-    ? 'private'
-    : (['private', 'unlisted', 'public'].includes(privacyDefault) ? privacyDefault : 'private');
+  // Scheduled uploads stay private until publishAt; every other upload is private/unlisted for review.
+  const privacyStatus = scheduleMode ? 'private' : resolveYoutubePrivacy(process.env.YOUTUBE_PUBLISH_DEFAULT_PRIVACY);
 
   if (input.metadata.mode === 'schedule' && !requestedSchedule) {
     warnings.push('Scheduled publish requested without a valid scheduledFor datetime; uploaded as draft/private.');
@@ -495,9 +504,7 @@ async function publishTiktokApi(input: ConnectorInput): Promise<PublishConnector
     warnings.push('Scheduled publish requested without a valid scheduledFor datetime; attempting immediate draft/post init.');
   }
 
-  const privacyLevel =
-    process.env.TIKTOK_PUBLISH_PRIVACY_LEVEL ||
-    (input.metadata.mode === 'draft' ? 'SELF_ONLY' : 'PUBLIC_TO_EVERYONE');
+  const privacyLevel = TIKTOK_REVIEW_PRIVACY_LEVEL;
 
   const body: JsonRecord = {
     post_info: {
@@ -601,6 +608,13 @@ async function pollInstagramContainer(
 async function publishInstagramApi(input: ConnectorInput): Promise<PublishConnectorResult> {
   if (!hasInstagramApiCreds()) {
     return writeDraftManifest(input, ['Instagram Graph token/user id missing; using manual draft manifest.']);
+  }
+
+  // Instagram Graph has no private upload state, so the review-first rule keeps it on manual drafts.
+  if (!parseBool(process.env.INSTAGRAM_GRAPH_ALLOW_DIRECT_PUBLISH, false)) {
+    return writeDraftManifest(input, [
+      'Instagram has no private upload state; wrote a manual draft for review. Post or schedule it by hand.',
+    ]);
   }
 
   const accessToken = process.env.INSTAGRAM_GRAPH_ACCESS_TOKEN!;

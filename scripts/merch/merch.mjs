@@ -2,6 +2,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { checkFile } from './print-intake.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const repoRoot = join(here, '..', '..');
@@ -34,6 +35,16 @@ export function validate(catalog, root = repoRoot) {
     if (!catalog.rights[p.rights]) errors.push(`${p.slug}: missing rights basis`);
     if (!existsSync(join(root, 'public', 'brand', 'mockups', `${p.slug}.png`))) errors.push(`${p.slug}: mockup missing`);
     if (/\bWAIA\b/.test(productName(catalog, p) + productDescription(catalog, p))) errors.push(`${p.slug}: short name in text`);
+  }
+  // A design is public only if its file passes the print-spec intake (docs/merch/DESIGN-STANDARD.md).
+  for (const [slug, d] of Object.entries(catalog.approvedDesigns ?? {})) {
+    const p = catalog.products.find((x) => x.slug === slug);
+    if (!p) { errors.push(`approved design for unknown product ${slug}`); continue; }
+    if (!d.design || !existsSync(join(root, d.design))) { errors.push(`${slug}: approved design file missing`); continue; }
+    if (!d.preview || !existsSync(join(root, 'public', d.preview))) errors.push(`${slug}: approved preview missing`);
+    if (!d.approvedOn) errors.push(`${slug}: approvedOn date missing`);
+    const r = checkFile(p.kind, join(root, d.design));
+    if (!r.ok) errors.push(`${slug}: design fails print intake: ${r.errors.join('; ')}`);
   }
   for (const [k, m] of Object.entries(catalog.marks)) {
     if (!existsSync(join(root, 'public', m.file))) errors.push(`mark ${k}: ${m.file} missing`);

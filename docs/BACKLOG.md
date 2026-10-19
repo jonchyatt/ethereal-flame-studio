@@ -108,11 +108,9 @@ Lane key: **cloud** = thread in this repo. **PC** = heavy or credentialed work f
 
 On master in `approvals/`, all `WAITING_ON_JON`:
 
-- `2026-10-17-publish-first-episode.md` (red 3): post the first episode and Shorts.
-- `2026-10-17-live-payments-or-unity-seat.md` (red 1): live payments or a paid Unity seat.
+- Retired 2026-10-19 (rulings in `docs/PUBLISH-REVIEW-FIRST.md`): the publish-publicly card and the live-payments-or-Unity-seat card.
 - `2026-10-17-health-affiliate-programs.md` (red 2): your health list and an affiliate sign-up.
 - `2026-10-17-wix-google-login-handover.md` (red 5): hand a Wix or Google login to a tool or person.
-- `2026-10-17-analytics-weights.md` (second look): starting scoring weights for the next-slate ranking.
 - `2026-10-17-patron-consent-wording.md` (second look): patron consent wording and the 18+ rule.
 
 Inside open PRs, not on master yet: the Reset Biology footer link card (`approvals/2026-10-17-reset-biology-footer-link.md`, red 3, in #30) and the Yale naming and consent-wording card (in #33).
@@ -123,3 +121,33 @@ Inside open PRs, not on master yet: the Reset Biology footer link card (`approva
 - Live-mode payments and any paid Unity seat or cloud billing (R1).
 - Handing a Wix, Google or hosting login to a tool or person other than Jonathan (R5).
 - Nothing in this list is waiting on a question; each has a named next step above.
+
+## 6. Third queue (written 2026-10-19 from Jonathan's approval-wall brief)
+
+Rules that shape every item (Jonathan, 2026-10-17 to 2026-10-19). **A** Could I have known it: search the repo, the doctrine files and his prior answers before any card; logins, free credits, free API sign-ups and naming the operator are green. **B** Sourced: every plan, metric, weight or creative choice names its mentor or source; no source means not ready, and not a card. **C** One decision per card, comparable options only. **D** Never "publish publicly": upload private or unlisted, he reviews on phone and desktop, then it is scheduled. **E** No spend when an owned free lane exists (22 owned voice profiles, family voices, free AI music repos, his GPUs). **F** Quality first: build locally, make it excellent, then show it.
+
+Standing rulings from the same brief: existing merch designs are never put on product or imported; the store stays in Stripe test mode until he says; Unity runs on his Windows GPUs through a local thread, no paid seat; mentor material (Kallaway, Shane Hummus replays, Earn With Content) is studied and cited, and he is bringing more.
+
+Not verified here: the doctrine files named in memory (`data/content/doctrine/*.md`, `data/waia-curation-pipeline/store/CANDIDATE-PILE.md`) are not in the jarvis repo as cloned from this session (default branch, checked 2026-10-19). Threads that need them must say the path is missing and stop, not substitute.
+
+### In progress (threads already running)
+
+| Thread | What it builds | Source rule |
+|---|---|---|
+| One store layout and affiliate intake | One item layout for every store item, plus an affiliate intake that records each candidate with its source and disclosure | B, C |
+| Mentor-grounded analytics weights | Replaces the blank weights card with weights that each cite a mentor or doctrine passage | B |
+| Merch design standard and print intake | A design standard, a print-spec intake and a recommended design-tool list; no existing design goes on product | E, F |
+| Private upload, review, then schedule | Shipped as #52: upload private or unlisted, Jonathan reviews, then schedule | D |
+| Rights pile instead of licences | A pile of re-record candidates with rights basis, replacing signed clip licences | A, E |
+
+### Queued after them (one bounded task, one PR each; each branches from master)
+
+1. **Affiliate shelf fill from intake.** Render accepted intake entries onto the existing shelf with the disclosure line, empty when none are accepted. Starts when the intake PR merges.
+2. **Weekly analytics digest.** A script that applies the sourced weights to the click and counter data and writes a plain-English weekly note for the next-slate ranking. Starts when the weights PR merges.
+3. **Design standard checker.** Validates every file in the merch catalog against the design standard and print-spec intake and lists failures, so nothing unfinished reaches a product. Starts when the standard merges.
+4. **Review queue screen.** On the operator screen, list private or unlisted uploads waiting for Jonathan's review and the schedule slot for each. Starts after #52.
+5. **Rights pile coverage report.** For each launch-slate episode, show whether it has a source asset, a rights basis and a re-record candidate, and what is missing. Starts when the rights pile merges.
+
+### Front door on www
+
+www.whatamiappreciatingnow.com still showed the visualizer because the swap only ran on the bare domain. It is now behind `WAIA_WWW_FRONT_DOOR` (default off, set in Vercel by Jonathan), with a private `/preview/front-door` on www. Flipping the public homepage is one card: `approvals/2026-10-19-www-front-door.md`.

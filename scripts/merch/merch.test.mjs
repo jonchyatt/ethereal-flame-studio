@@ -17,10 +17,16 @@ test('covers shirts, hats and mugs, each slug unique', () => {
   assert.equal(new Set(catalog.products.map((p) => p.slug)).size, catalog.products.length);
 });
 
-test('every product is on the store page as a mockup', () => {
+test('declined mockups and the unfinished merchandise section are off the public store page', () => {
   const html = readFileSync(join(repoRoot, 'public/waia-store.html'), 'utf8');
-  const onPage = catalog.products.filter((p) => html.includes(`mockups/${p.slug}.png`));
-  assert.ok(onPage.length >= 12, `store page shows ${onPage.length}`);
+  assert.doesNotMatch(html, /brand\/mockups\//);
+  assert.doesNotMatch(html, /id="merchandise"/);
+});
+
+test('no product is public without an approved design that passes print intake', () => {
+  assert.deepEqual(catalog.approvedDesigns, {});
+  const bad = { ...catalog, approvedDesigns: { 'circle-shirt': { design: 'docs/merch/print/colour-on-light-circle.svg', preview: 'brand/mockups/circle-shirt.png', approvedOn: '2026-10-19' } } };
+  assert.match(validate(bad).join('\n'), /fails print intake/);
 });
 
 test('names use the whole brand name, never WAIA', () => {

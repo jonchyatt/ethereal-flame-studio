@@ -12,13 +12,15 @@ export interface TierInfo {
   letters: string;
   allowsMessage: boolean;
   priceCents: number | null;
+  /** Proposed benefits, shown as proposals until Jonathan sets the real ladder. */
+  benefits: readonly string[];
 }
 
 export const TIERS: readonly TierInfo[] = [
-  { tier: 'plain', label: 'Plain', letters: 'Soft white letters, steady.', allowsMessage: false, priceCents: priceFor('patron:plain') },
-  { tier: 'glowing', label: 'Glowing', letters: 'Gentle glow, slow breathing, soft halo.', allowsMessage: false, priceCents: priceFor('patron:glowing') },
-  { tier: 'sparkly', label: 'Sparkly', letters: 'Restrained warm-gold sparkle.', allowsMessage: false, priceCents: priceFor('patron:sparkly') },
-  { tier: 'ethereal', label: 'Ethereal', letters: 'Larger letters, slow hue drift, halo, gentle float, plus one moderated message.', allowsMessage: true, priceCents: priceFor('patron:ethereal') },
+  { tier: 'plain', label: 'Plain', letters: 'Soft white letters, steady.', allowsMessage: false, priceCents: priceFor('patron:plain'), benefits: ['Your name or alias on the wall behind the orb', 'Your name on the closing card of flat videos'] },
+  { tier: 'glowing', label: 'Glowing', letters: 'Gentle glow, slow breathing, soft halo.', allowsMessage: false, priceCents: priceFor('patron:glowing'), benefits: ['Everything in Plain', 'Letters with a gentle glow and slow breathing'] },
+  { tier: 'sparkly', label: 'Sparkly', letters: 'Restrained warm-gold sparkle.', allowsMessage: false, priceCents: priceFor('patron:sparkly'), benefits: ['Everything in Glowing', 'Restrained warm-gold sparkle on your name'] },
+  { tier: 'ethereal', label: 'Ethereal', letters: 'Larger letters, slow hue drift, halo, gentle float, plus one moderated message.', allowsMessage: true, priceCents: priceFor('patron:ethereal'), benefits: ['Everything in Sparkly', 'Larger letters with a slow hue drift and gentle float', 'One short message, read by a person before it appears'] },
 ];
 
 export function tierInfo(tier: PatronTier): TierInfo {

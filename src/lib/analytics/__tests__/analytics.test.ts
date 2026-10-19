@@ -91,3 +91,15 @@ describe('reader', () => {
     await expect(assertReadChannel(deps(['UCyq4s4Nei7Q26tu7EIQY7xw', 'UCother']))).rejects.toThrow();
   });
 });
+
+describe('metric sources', () => {
+  it('grounds every weighted metric in a cited source and uses equal weights', async () => {
+    const { METRIC_SOURCES, UNGROUNDED } = await import('../sources');
+    const { DEFAULT_WEIGHTS } = await import('../rank');
+    for (const k of Object.keys(DEFAULT_WEIGHTS)) {
+      expect(METRIC_SOURCES[k as keyof typeof METRIC_SOURCES].sources.every((s) => s.url.startsWith('https://'))).toBe(true);
+    }
+    expect(Object.values(DEFAULT_WEIGHTS).reduce((a, b) => a + b, 0)).toBeCloseTo(1);
+    expect(UNGROUNDED.length).toBeGreaterThan(0);
+  });
+});

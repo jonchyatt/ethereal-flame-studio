@@ -1,7 +1,10 @@
 import type { GroupKey, GroupScore, SlateCandidate, SlateProposal, VideoMetrics, VideoTag } from './types';
 
-/** Starting weights: proposals for Jonathan (HB-4), tuned once real numbers exist. */
-export const DEFAULT_WEIGHTS = { watchTime: 0.5, retention: 0.4, subscribers: 0.1 };
+/**
+ * The three metrics are grounded in ./sources.ts. No source publishes weights between them, so they are equal
+ * (the no-preference default) until real channel numbers justify otherwise; see UNGROUNDED there.
+ */
+export const DEFAULT_WEIGHTS = { watchTime: 1 / 3, retention: 1 / 3, subscribers: 1 / 3 };
 /** Groups with fewer total views than this are listed but flagged not confident. */
 export const DEFAULT_MIN_VIEWS = 100;
 
