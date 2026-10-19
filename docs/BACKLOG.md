@@ -66,7 +66,7 @@ Still PC-only: **6** Episode 1 end to end, **7** first ten episodes render queue
 | 13 | Launch slate, cadence, titles, thumbnails, genre, AI-voice policy (HB-4) | **GREEN by building** | Propose by building the options, not by asking | Render three title/thumbnail/voice options per first-ten episode to a preview folder; Jonathan picks |
 | 14 | Seth commentary voice | **GREEN by building** | Same | Build text-only and AI-voice variants of one commentary clip |
 | 15 | Abraham Hicks excluded from launch slate | **Standing rule, not a block** | HB-3, rights; only the augmented remix with stored recipe is allowed and still goes through the gate | None |
-| 16 | Quote-clip line: permission from rights holders | **GREEN** to draft and track; **RED** to sign | R2 for any signed license | Build the clip ledger and permission-request drafts; sending and signing stay Jonathan's |
+| 16 | Quote-clip line: rights | **GREEN** | No releases are ever signed (Jonathan, 2026-10-19) | Worrying or licensed sources go to the re-record pile (`data/waia-rerecord-pile/PILE.md`); rules in `docs/WAIA-RIGHTS.md` |
 | 17 | Short-form posting to YouTube Shorts, Reels, TikTok | **RED** | R3 | Per-platform caption files and 9:16 cuts on disk, ready to post |
 | 18 | Curation gate approval of each item | **GREEN to build, the approval is Jonathan's word** | HB-3 | Build a one-screen approval queue; keep fail-closed |
 | 19 | Real prices and tier ladder ($5/$10/$20/$35 proposals) | **GREEN** | Placeholders ship; prices are config | Prices live in one config file, "not yet on sale" |
@@ -110,7 +110,6 @@ On master in `approvals/`, all `WAITING_ON_JON`:
 
 - `2026-10-17-publish-first-episode.md` (red 3): post the first episode and Shorts.
 - `2026-10-17-live-payments-or-unity-seat.md` (red 1): live payments or a paid Unity seat.
-- `2026-10-17-sign-clip-licences.md` (red 2): sign a clip or recording licence.
 - `2026-10-17-health-affiliate-programs.md` (red 2): your health list and an affiliate sign-up.
 - `2026-10-17-wix-google-login-handover.md` (red 5): hand a Wix or Google login to a tool or person.
 - `2026-10-17-analytics-weights.md` (second look): starting scoring weights for the next-slate ranking.
@@ -122,6 +121,5 @@ Inside open PRs, not on master yet: the Reset Biology footer link card (`approva
 
 - Uploads and posting (R3). Everything else up to the file on disk is green.
 - Live-mode payments and any paid Unity seat or cloud billing (R1).
-- Signing any license or permission agreement for clip rights (R2).
 - Handing a Wix, Google or hosting login to a tool or person other than Jonathan (R5).
 - Nothing in this list is waiting on a question; each has a named next step above.

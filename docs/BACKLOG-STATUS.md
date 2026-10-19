@@ -77,7 +77,6 @@ Open:
 | `approvals/2026-10-17-publish-first-episode.md` Post the first episode and Shorts publicly | red 3 | approve post episode 1 |
 | `approvals/2026-10-17-reset-biology-footer-link.md` Place the What Am I Appreciating Now link on resetbiology.com | red 3 | apply reset biology footer link |
 | `approvals/2026-10-17-sales-page-picks.md` Pick one sales page per program | red 3 | sales pages chosen: hypnosis <A\|B\|C>, inversion <A\|B\|C> |
-| `approvals/2026-10-17-sign-clip-licences.md` Sign a clip or recording licence | red 2 | approve sign: <clip name> |
 | `approvals/2026-10-17-wix-google-login-handover.md` Hand a Wix or Google login to a tool or person | red 5 | approve handover: <account> |
 | `approvals/2026-10-17-yale-protocol-claims-and-handover.md` Yale protocol: second look at the claims before it sells | second look | yale handover approved |
 <!-- refresh:waiting:end -->
