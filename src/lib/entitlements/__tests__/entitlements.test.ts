@@ -11,7 +11,7 @@ jest.mock('@/lib/storage', () => ({
 import { FREE_TOOLS, PROGRAMS, getProgram } from '../catalog';
 import { GRACE_DAYS, grantAccess, hasAccess, loadRecord, markPastDue, revokeAccess, setCancelAtPeriodEnd, summarizeAccess } from '../model';
 import { newCustomerId, signCustomerId, verifyCustomerCookie } from '../session';
-import { actionForEvent, createCheckoutSession, createPortalSession, testSecretKey, verifyWebhook } from '../stripe';
+import { PaymentsNotConfigured, actionForEvent, chargeCents, createCheckoutSession, createPortalSession, paymentsLive, secretKey, testSecretKey, verifyWebhook } from '../stripe';
 
 const cus = 'cus_' + 'a'.repeat(32);
 beforeEach(() => { files.clear(); process.env.ENTITLEMENT_COOKIE_SECRET = 'x'.repeat(32); });
@@ -90,6 +90,60 @@ describe('stripe adapter', () => {
     expect(calls[0].body).toContain('mode=subscription');
     expect(calls[0].body).toContain(`client_reference_id=${cus}`);
     await expect(createCheckoutSession(args, mk(true))).rejects.toThrow(/live-mode/);
+  });
+  describe('the one live switch (WAIA_PAYMENTS_LIVE)', () => {
+    const keys = ['WAIA_PAYMENTS_LIVE', 'STRIPE_TEST_SECRET_KEY', 'STRIPE_LIVE_SECRET_KEY', 'STRIPE_LIVE_WEBHOOK_SECRET', 'STRIPE_TEST_WEBHOOK_SECRET'];
+    const saved: Record<string, string | undefined> = {};
+    beforeEach(() => { for (const k of keys) { saved[k] = process.env[k]; delete process.env[k]; } });
+    afterEach(() => { for (const k of keys) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; } });
+    const ok = (livemode: boolean, calls: string[] = []) => (async (_u: string, init: any) => {
+      calls.push(init.body.toString());
+      return { ok: true, json: async () => ({ id: 'cs_1', url: 'https://checkout.stripe.com/x', livemode }) };
+    }) as unknown as typeof fetch;
+    const unpriced = getProgram('advanced-hypnosis-sessions')!;
+    const priced = { ...unpriced, priceCents: 1500 };
+    const args = (program = priced) => ({ program, customerId: cus, successUrl: 'https://s', cancelUrl: 'https://c' });
+
+    it('is off unless exactly "on"', () => {
+      for (const v of [undefined, '', 'true', '1', 'yes', 'off']) expect(paymentsLive(v)).toBe(false);
+      expect(paymentsLive(' ON ')).toBe(true);
+    });
+    it('off: never reads the live key, charges the set price or the test price', async () => {
+      process.env.STRIPE_LIVE_SECRET_KEY = 'sk_live_abc';
+      expect(() => secretKey()).toThrow(/STRIPE_TEST_SECRET_KEY/);
+      process.env.STRIPE_TEST_SECRET_KEY = 'sk_test_abc';
+      expect(secretKey()).toBe('sk_test_abc');
+      expect(chargeCents(unpriced)).toBe(unpriced.testPriceCents);
+      const calls: string[] = [];
+      await createCheckoutSession(args(priced), ok(false, calls));
+      expect(calls[0]).toContain('unit_amount%5D=1500');
+    });
+    it('on: needs a live key, refuses test keys, unpriced programs and test-mode sessions', async () => {
+      process.env.WAIA_PAYMENTS_LIVE = 'on';
+      process.env.STRIPE_TEST_SECRET_KEY = 'sk_test_abc';
+      expect(() => secretKey()).toThrow(/STRIPE_LIVE_SECRET_KEY is not set/);
+      process.env.STRIPE_LIVE_SECRET_KEY = 'sk_test_abc';
+      expect(() => secretKey()).toThrow(/live-mode key/);
+      process.env.STRIPE_LIVE_SECRET_KEY = 'sk_live_abc';
+      expect(secretKey()).toBe('sk_live_abc');
+      expect(() => chargeCents(unpriced)).toThrow(PaymentsNotConfigured);
+      await expect(createCheckoutSession(args(priced), ok(true))).resolves.toMatchObject({ id: 'cs_1' });
+      await expect(createCheckoutSession(args(priced), ok(false))).rejects.toThrow(/test-mode session while live/);
+    });
+    it('on: webhooks use the live secret and test-mode events are ignored', () => {
+      const payload = '{}', t = Math.floor(Date.now() / 1000);
+      const sig = (s: string) => `t=${t},v1=${createHmac('sha256', s).update(`${t}.${payload}`).digest('hex')}`;
+      process.env.STRIPE_TEST_WEBHOOK_SECRET = 'whsec_t';
+      process.env.STRIPE_LIVE_WEBHOOK_SECRET = 'whsec_l';
+      expect(verifyWebhook(payload, sig('whsec_t'))).toBe(true);
+      expect(verifyWebhook(payload, sig('whsec_l'))).toBe(false);
+      process.env.WAIA_PAYMENTS_LIVE = 'on';
+      expect(verifyWebhook(payload, sig('whsec_l'))).toBe(true);
+      expect(verifyWebhook(payload, sig('whsec_t'))).toBe(false);
+      const ev = (livemode: boolean) => ({ id: 'e', type: 'checkout.session.completed', livemode, data: { object: { payment_status: 'paid', mode: 'payment', client_reference_id: cus, metadata: { programId: 'yale-inversion-protocol' } } } });
+      expect(actionForEvent(ev(false)).op).toBe('ignore');
+      expect(actionForEvent(ev(true)).op).toBe('grant');
+    });
   });
   it('verifies webhook signatures', () => {
     const secret = 'whsec_test', payload = '{"id":"evt_1"}', t = 1_800_000_000;
