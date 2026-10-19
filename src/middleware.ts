@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { frontDoorRewrite } from '@/lib/waia/front-door';
+import { operatorPageDecision } from '@/lib/waia/operator-pages';
 
 /**
  * Middleware for subdomain routing and API authentication
@@ -87,6 +88,18 @@ export function middleware(request: NextRequest) {
     if (authError) {
       return authError;
     }
+  }
+
+  // Operator-only pages: 404 without a configured key, Basic-auth prompt otherwise.
+  const operatorGate = operatorPageDecision(hostname, pathname, request.headers.get('authorization'));
+  if (operatorGate === 'not-found') {
+    return new NextResponse('Not found', { status: 404 });
+  }
+  if (operatorGate === 'challenge') {
+    return new NextResponse('Operator sign-in required', {
+      status: 401,
+      headers: { 'WWW-Authenticate': 'Basic realm="operator", charset="UTF-8"' },
+    });
   }
 
   // Check if this is the jarvis subdomain
