@@ -1,12 +1,11 @@
 /**
  * Who operates the store, shown on every legal page and under every program.
- * No business entity is recorded in this repo, so this is a marked placeholder
- * (docs/GO-LIVE.md, prerequisite 1). Fill in the real entity and a contact
- * address before going live; never guess one.
+ * Hyatt Studio is Jonathan's Payhip/Stripe trade name (chosen 2026-10-19 for
+ * the Entity store); change it here if a different entity runs this site.
  */
 export const OPERATOR = {
-  name: '[OPERATOR ENTITY NOT YET RECORDED: Jonathan fills this in before live payments]',
-  contact: '[CONTACT EMAIL NOT YET RECORDED]',
+  name: 'Hyatt Studio',
+  contact: 'jonchyatt@gmail.com',
 };
 
 export const LEGAL_DOCS = [
@@ -23,7 +22,9 @@ export function LegalLinks() {
           <span key={d.slug}>{i > 0 && ' · '}<a href={`/legal/${d.slug}`} style={{ color: 'inherit' }}>{d.title}</a></span>
         ))}
       </p>
-      <p>What Am I Appreciating Now is operated by {OPERATOR.name}.</p>
+      <p>
+        Operated by {OPERATOR.name} · <a href={`mailto:${OPERATOR.contact}`} style={{ color: 'inherit' }}>{OPERATOR.contact}</a>
+      </p>
     </footer>
   );
 }
