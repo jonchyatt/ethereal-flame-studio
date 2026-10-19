@@ -108,8 +108,7 @@ Lane key: **cloud** = thread in this repo. **PC** = heavy or credentialed work f
 
 On master in `approvals/`, all `WAITING_ON_JON`:
 
-- `2026-10-17-publish-first-episode.md` (red 3): post the first episode and Shorts.
-- `2026-10-17-live-payments-or-unity-seat.md` (red 1): live payments or a paid Unity seat.
+- Retired 2026-10-19 (rulings in `docs/PUBLISH-REVIEW-FIRST.md`): the publish-publicly card and the live-payments-or-Unity-seat card.
 - `2026-10-17-sign-clip-licences.md` (red 2): sign a clip or recording licence.
 - `2026-10-17-health-affiliate-programs.md` (red 2): your health list and an affiliate sign-up.
 - `2026-10-17-wix-google-login-handover.md` (red 5): hand a Wix or Google login to a tool or person.
