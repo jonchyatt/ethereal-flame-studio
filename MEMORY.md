@@ -55,3 +55,8 @@
 
 - `docs/BACKLOG.md` reclassifies 28 items treated as blocked or red under the five reds; only uploads/posting (R3), live-mode payments and paid seats (R1), signing clip licences (R2) and handing logins to others (R5) remain red. Sixteen queued threads, first: programs paywall and entitlements (test mode).
 - Not verified: the jarvis repo files named in it were not readable from here.
+
+## 2026-10-17 digest: Backlog refresh
+
+- `docs/BACKLOG.md` marks queue items 1 to 5, 8 to 14 and 16 shipped (PRs #19 to #33; #19, #22 to #26, #28 merged, the rest open), keeps 6, 7 and 15 as PC-only, lists 15 new cloud-buildable threads ordered by revenue, and names the nine approval cards waiting on Jonathan.
+- Not verified: PR states were read from GitHub at 16:45 UTC and may have moved since.

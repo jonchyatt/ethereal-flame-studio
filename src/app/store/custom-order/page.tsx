@@ -41,13 +41,14 @@ export default function CustomOrderStatus() {
       <p>What Am I Appreciating Now. Nothing is charged here. A quote is a price offered, not a payment taken.</p>
       <form onSubmit={(e) => { e.preventDefault(); void load(ref.trim()); }}>
         <label>Your reference
-          <input value={ref} onChange={(e) => setRef(e.target.value)} style={{ display: 'block', width: '100%', padding: 8, margin: '6px 0' }} />
+          <input value={ref} onChange={(e) => setRef(e.target.value)} autoComplete="off" spellCheck={false} style={{ display: 'block', width: '100%', padding: 10, margin: '6px 0 12px', background: '#14142a', color: '#eee', border: '1px solid #8c8c9e', borderRadius: 8 }} />
         </label>
-        <button type="submit">Look up</button>
+        <button type="submit" style={{ padding: '10px 20px', fontSize: 16, borderRadius: 8 }}>Look up</button>
       </form>
-      {msg && <p role="status">{msg}</p>}
+      <p role="status">{msg}</p>
+      <div aria-live="polite">
       {view && (
-        <section style={{ marginTop: 24, padding: 20, border: '1px solid #333', borderRadius: 12 }}>
+        <section aria-label="Your request" style={{ marginTop: 24, padding: 20, border: '1px solid #333', borderRadius: 12 }}>
           <h2>{view.kind}</h2>
           <p>{view.details}</p>
           <p><strong>{LABEL[view.status] ?? view.status}</strong></p>
@@ -63,6 +64,7 @@ export default function CustomOrderStatus() {
           {view.status === 'accepted' && <p>Thank you. Payment is not set up yet, so nothing has been charged.</p>}
         </section>
       )}
+      </div>
     </main>
   );
 }

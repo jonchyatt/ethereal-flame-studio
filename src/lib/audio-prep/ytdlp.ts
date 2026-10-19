@@ -73,7 +73,11 @@ export async function extractYouTubeAudio(
   outputDir: string,
   options: YtDlpOptions = {}
 ): Promise<YtDlpResult> {
-  const { allowedDomains } = options;
+  const { allowedDomains, signal } = options;
+
+  if (signal?.aborted) {
+    throw new Error('yt-dlp cancelled');
+  }
 
   if (!validateYouTubeUrl(url, allowedDomains)) {
     throw new Error(`Invalid or disallowed YouTube URL: ${url}`);

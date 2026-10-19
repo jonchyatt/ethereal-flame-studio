@@ -1,0 +1,162 @@
+{
+  "base": "http://localhost:3111",
+  "when": "2026-10-17T17:48:53.044Z",
+  "pages": [
+    {
+      "path": "/waia-front-door.html",
+      "name": "front door",
+      "status": 200,
+      "violations": [],
+      "brokenImages": [],
+      "missingAlt": [],
+      "oversized": [],
+      "focusStops": 4,
+      "frameStops": 2,
+      "noRing": [],
+      "hidden": [],
+      "positiveTabindex": 0,
+      "overflowAt320": 0,
+      "failedRequests": [],
+      "consoleErrors": [],
+      "weightBytes": {
+        "total": 14500,
+        "images": 0,
+        "script": 0
+      }
+    },
+    {
+      "path": "/waia-store.html",
+      "name": "store",
+      "status": 200,
+      "violations": [],
+      "brokenImages": [],
+      "missingAlt": [],
+      "oversized": [
+        "/brand/what-am-i-appreciating-now-circle-dark.svg 600px shown at 140px"
+      ],
+      "focusStops": 10,
+      "frameStops": 1,
+      "noRing": [],
+      "hidden": [],
+      "positiveTabindex": 0,
+      "overflowAt320": 0,
+      "failedRequests": [],
+      "consoleErrors": [],
+      "weightBytes": {
+        "total": 93794,
+        "images": 63888,
+        "script": 6844
+      }
+    },
+    {
+      "path": "/programs",
+      "name": "programs",
+      "status": 200,
+      "violations": [],
+      "brokenImages": [],
+      "missingAlt": [],
+      "oversized": [],
+      "focusStops": 3,
+      "frameStops": 1,
+      "noRing": [],
+      "hidden": [],
+      "positiveTabindex": 0,
+      "overflowAt320": 0,
+      "failedRequests": [],
+      "consoleErrors": [],
+      "weightBytes": {
+        "total": 8205654,
+        "images": 0,
+        "script": 7985497
+      }
+    },
+    {
+      "path": "/programs/yale-inversion-protocol",
+      "name": "program detail",
+      "status": 200,
+      "violations": [],
+      "brokenImages": [],
+      "missingAlt": [],
+      "oversized": [],
+      "focusStops": 3,
+      "frameStops": 1,
+      "noRing": [],
+      "hidden": [],
+      "positiveTabindex": 0,
+      "overflowAt320": 0,
+      "failedRequests": [],
+      "consoleErrors": [],
+      "weightBytes": {
+        "total": 8251666,
+        "images": 0,
+        "script": 8034113
+      }
+    },
+    {
+      "path": "/store/custom-order",
+      "name": "custom order status",
+      "status": 200,
+      "violations": [],
+      "brokenImages": [],
+      "missingAlt": [],
+      "oversized": [],
+      "focusStops": 3,
+      "frameStops": 1,
+      "noRing": [],
+      "hidden": [],
+      "positiveTabindex": 0,
+      "overflowAt320": 0,
+      "failedRequests": [],
+      "consoleErrors": [],
+      "weightBytes": {
+        "total": 8267297,
+        "images": 0,
+        "script": 8050503
+      }
+    },
+    {
+      "path": "/patrons/join",
+      "name": "patron join",
+      "status": 200,
+      "violations": [],
+      "brokenImages": [],
+      "missingAlt": [],
+      "oversized": [],
+      "focusStops": 6,
+      "frameStops": 1,
+      "noRing": [],
+      "hidden": [],
+      "positiveTabindex": 0,
+      "overflowAt320": 0,
+      "failedRequests": [],
+      "consoleErrors": [],
+      "weightBytes": {
+        "total": 8289215,
+        "images": 0,
+        "script": 8069270
+      }
+    },
+    {
+      "path": "/patrons/remove",
+      "name": "patron removal",
+      "status": 200,
+      "violations": [],
+      "brokenImages": [],
+      "missingAlt": [],
+      "oversized": [],
+      "focusStops": 4,
+      "frameStops": 1,
+      "noRing": [],
+      "hidden": [],
+      "positiveTabindex": 0,
+      "overflowAt320": 0,
+      "failedRequests": [],
+      "consoleErrors": [],
+      "weightBytes": {
+        "total": 8257492,
+        "images": 0,
+        "script": 8040487
+      }
+    }
+  ]
+}
