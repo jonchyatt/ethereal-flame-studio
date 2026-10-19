@@ -35,28 +35,32 @@ The refresher reads merged and open PRs from the public GitHub REST API (set `GI
 | #25 | Patron intake and tier signup page (backlog item 10) | 2026-10-17 |
 | #26 | Store: health affiliate shelf (backlog item 11) | 2026-10-17 |
 | #28 | Short-form caption pack per platform (backlog 13) | 2026-10-17 |
+| #29 | Thumbnail options: scored frames, contact sheet, title soul check | 2026-10-18 |
+| #30 | Reset Biology cross-links (backlog item 12) | 2026-10-18 |
+| #31 | Advanced hypnosis sessions catalog with provenance | 2026-10-19 |
+| #32 | Make master's jest suite green (backlog 16) | 2026-10-18 |
+| #33 | Yale guided process: gated session player, steps in private storage (backlog item 2) | 2026-10-19 |
+| #34 | Backlog refresh: first queue shipped, fifteen new threads | 2026-10-18 |
+| #35 | Programs: subscription lifecycle in test mode | 2026-10-18 |
+| #36 | Programs: three sales-page previews per program | 2026-10-18 |
+| #37 | Price ladder config and comparison preview | 2026-10-19 |
+| #38 | Merchandise pages from the catalog with a count-only notify button (backlog item 4) | 2026-10-18 |
+| #39 | Print-ready merchandise artwork: outlined marks, ink sets, spec sheet (backlog item 5) | 2026-10-19 |
+| #40 | Custom hypnosis and VR session brief builder (backlog item 6) | 2026-10-18 |
+| #41 | Episode links and click counts: /e/<slug> redirect with no personal data | 2026-10-18 |
+| #43 | Site conversion counters: cookieless view and notify counts, weekly summary (backlog item 9) | 2026-10-18 |
+| #44 | Transcript writer for pack contents (backlog item 10) | 2026-10-18 |
+| #45 | Store: gift and bundle catalog with listing page and gift drafts (backlog item 11) | 2026-10-19 |
+| #46 | Accessibility and speed pass on the store and program pages (backlog item 12) | 2026-10-18 |
+| #47 | Reset Biology reverse-link kit and landing page | 2026-10-18 |
+| #48 | Weekly backlog refresher: shipped and waiting tables generated from PRs and approval cards (backlog item 14) | 2026-10-19 |
+| #49 | Programs: gated audio player with resume, buffering and sleep timer (backlog item 15) | 2026-10-19 |
+| #51 | Hypnosis sessions page keeps the buy button, access and audio player | 2026-10-19 |
 
 Open:
 
-- #29 Thumbnail options: scored frames, contact sheet, title soul check (draft)
-- #30 Reset Biology cross-links (backlog item 12) (ready)
-- #31 Advanced hypnosis sessions catalog with provenance (ready)
-- #32 Make master's jest suite green (backlog 16) (ready)
-- #33 Yale guided process: gated session player, steps in private storage (backlog item 2) (ready)
-- #34 Backlog refresh: first queue shipped, fifteen new threads (ready)
-- #35 Programs: subscription lifecycle in test mode (ready)
-- #36 Programs: three sales-page previews per program (ready)
-- #37 Price ladder config and comparison preview (ready)
-- #38 Merchandise pages from the catalog with a count-only notify button (backlog item 4) (ready)
-- #39 Print-ready merchandise artwork: outlined marks, ink sets, spec sheet (backlog item 5) (ready)
-- #40 Custom hypnosis and VR session brief builder (backlog item 6) (ready)
-- #41 Episode links and click counts: /e/ redirect with no personal data (ready)
 - #42 Public patron wall page and tier benefits (ready)
-- #43 Site conversion counters: cookieless view and notify counts, weekly summary (backlog item 9) (ready)
-- #44 Transcript writer for pack contents (backlog item 10) (ready)
-- #45 Store: gift and bundle catalog with listing page and gift drafts (backlog item 11) (ready)
-- #46 Accessibility and speed pass on the store and program pages (backlog item 12) (ready)
-- #47 Reset Biology reverse-link kit and landing page (ready)
+- #50 Merge order for the open PRs: conflicts, safe order, bundle price join (ready)
 <!-- refresh:shipped:end -->
 
 ## Waiting on Jonathan
@@ -68,7 +72,12 @@ Open:
 | `approvals/2026-10-17-health-affiliate-programs.md` Health shelf needs your list and an affiliate sign-up | red 2 | affiliate list sent |
 | `approvals/2026-10-17-live-payments-or-unity-seat.md` Turn on live payments or buy a paid Unity seat | red 1 | approve spend: payments live |
 | `approvals/2026-10-17-patron-consent-wording.md` Approve the patron consent wording and 18+ rule | second look | approve patron consent wording |
+| `approvals/2026-10-17-price-ladder.md` Pick the price ladder for patrons and programs | second look | price ladder A |
+| `approvals/2026-10-17-print-lettering-font.md` Pick the lettering for printed merchandise | second look | font ok |
 | `approvals/2026-10-17-publish-first-episode.md` Post the first episode and Shorts publicly | red 3 | approve post episode 1 |
+| `approvals/2026-10-17-reset-biology-footer-link.md` Place the What Am I Appreciating Now link on resetbiology.com | red 3 | apply reset biology footer link |
+| `approvals/2026-10-17-sales-page-picks.md` Pick one sales page per program | red 3 | sales pages chosen: hypnosis <A\|B\|C>, inversion <A\|B\|C> |
 | `approvals/2026-10-17-sign-clip-licences.md` Sign a clip or recording licence | red 2 | approve sign: <clip name> |
 | `approvals/2026-10-17-wix-google-login-handover.md` Hand a Wix or Google login to a tool or person | red 5 | approve handover: <account> |
+| `approvals/2026-10-17-yale-protocol-claims-and-handover.md` Yale protocol: second look at the claims before it sells | second look | yale handover approved |
 <!-- refresh:waiting:end -->

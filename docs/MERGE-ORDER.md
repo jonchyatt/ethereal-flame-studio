@@ -1,5 +1,7 @@
 # Merge order for the open PRs (checked 2026-10-17)
 
+**Applied 2026-10-18 (PR sweep):** merged in this order with the resolutions below. The price join went in inside #45. #51 then fixed one problem this check missed: the static hypnosis page from #31 hid the program view (buy button, access, audio player). #42 is still open, held on a red-3 wall card because it makes a public page of patron names; its conflict 4 is already resolved on its branch. `docs/BACKLOG-STATUS.md` was refreshed after the merges.
+
 Open: #29 to #49 (21 PRs), each branched from master separately. #17 is already merged. Method: every PR was merged onto current master (937a4b9) alone, then all 21 in number order on a scratch branch, resolving each conflict as written below. Result of the fully merged tree: `npx jest` 56 suites / 423 tests pass (with `better-sqlite3` built), and `test:merch` 16, `test:brand` 15, `test:a11y` 14, `test:backlog` 8 pass. Not run: `next build`, a browser.
 
 ## Conflicts found
