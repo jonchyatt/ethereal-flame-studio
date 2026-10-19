@@ -6,7 +6,7 @@ import { hasAccess, loadRecord } from '@/lib/entitlements/model';
 import { CUSTOMER_COOKIE, verifyCustomerCookie } from '@/lib/entitlements/session';
 import { loadAudioManifest } from '@/lib/entitlements/audio';
 import { paymentsLive } from '@/lib/entitlements/stripe';
-import { LegalLinks } from '@/app/legal/LegalLinks';
+import { LegalLinks, SAFETY_NOTE } from '@/app/legal/LegalLinks';
 import { AudioPlayer } from './AudioPlayer';
 import { BuyButton } from './BuyButton';
 import { CounterBeacon } from '@/components/CounterBeacon';
@@ -38,6 +38,7 @@ export async function ProgramView({ id, children }: { id: string; children?: Rea
       <h1>{program.title}</h1>
       <p>{program.summary}</p>
       <p style={{ fontSize: 14, opacity: 0.7 }}>{program.provenance}</p>
+      <p style={{ fontSize: 14, opacity: 0.85 }}><strong>Safety:</strong> {SAFETY_NOTE}</p>
       {allowed && program.guided && (
         <p><a href={`/programs/${id}/session`} style={{ color: 'inherit', fontWeight: 600 }}>Open the guided process →</a></p>
       )}

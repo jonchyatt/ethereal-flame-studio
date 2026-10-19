@@ -8,6 +8,10 @@ export const OPERATOR = {
   contact: 'jonchyatt@gmail.com',
 };
 
+/** Shown in the Terms and on every program page. */
+export const SAFETY_NOTE =
+  'Sessions are for relaxation and personal reflection. They are not medical or psychological treatment and do not replace a clinician. Do not listen while driving, operating machinery, or anywhere you need to stay alert. You must be 18 or over to buy.';
+
 export const LEGAL_DOCS = [
   { slug: 'terms', title: 'Terms of sale' },
   { slug: 'privacy', title: 'Privacy' },
@@ -24,7 +28,7 @@ export function LegalLinks() {
       </p>
       <p>
         Operated by {OPERATOR.name} · <a href={`mailto:${OPERATOR.contact}`} style={{ color: 'inherit' }}>{OPERATOR.contact}</a> ·{' '}
-        <a href="/about" style={{ color: 'inherit' }}>About</a>
+        <a href="/about" style={{ color: 'inherit' }}>About</a> · <a href="/support" style={{ color: 'inherit' }}>Support</a>
       </p>
     </footer>
   );
