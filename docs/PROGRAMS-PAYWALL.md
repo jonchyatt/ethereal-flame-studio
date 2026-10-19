@@ -48,3 +48,6 @@ Not done here: taking payment for an accepted quote; emailing customers (the ope
 
 ## Advanced hypnosis sessions catalog (backlog item 3)
 `/programs/advanced-hypnosis-sessions` lists sessions; `/programs/advanced-hypnosis-sessions/<id>` shows one with its rights and provenance. Schema and validation: `src/lib/hypnosis/catalog.ts`. Entries are read from private storage at `hypnosis/catalog.json` (a JSON array handed over by Jonathan); none are in the repo. An entry missing script author, voice, music or rights basis is dropped (HB-6); `rightsVerified` is false unless set to `true`. Status reads "Not yet on sale" until the program has a price. Check: `npx jest src/lib/hypnosis`.
+
+## Price config (backlog item 3)
+Every price lives in `src/lib/prices/config.ts` (`PRICES`, cents, `null` = not yet on sale). `catalog.ts` and `patrons/tiers.ts` read it through `priceFor`; no page holds a number. Options A, B and C in `src/lib/prices/options.ts` are proposals shown side by side at `/store/prices/preview` (noindex); checkout never reads them. The choice is on `approvals/2026-10-17-price-ladder.md`. Check: `npx jest src/lib/prices`.
