@@ -11,6 +11,8 @@
     "test:merch": "node --test scripts/merch/merch.test.mjs",
     "test:a11y": "node --test scripts/a11y/a11y.test.mjs",
     "audit:a11y": "node scripts/a11y/audit.mjs",
+    "test:backlog": "node --test scripts/backlog/refresh.test.mjs",
+    "backlog:refresh": "node scripts/backlog/refresh.mjs",
     "merch:csv": "node scripts/merch/build.mjs",
     "merch:print": "node scripts/merch/print-build.mjs",
     "kill": "npx kill-port 3000 3001 3002 3003 3004 3005",
