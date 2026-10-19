@@ -1,5 +1,16 @@
 import { validateUrl } from '../urlSecurity';
 
+// Resolve public hostnames from a fixed table so the suite runs offline.
+jest.mock('dns', () => {
+  const actual = jest.requireActual('dns');
+  const table: Record<string, string[]> = { 'example.com': ['93.184.216.34'] };
+  const lookup = (host: string, cb: (err: any, addrs?: string[]) => void) => {
+    if (table[host]) cb(null, table[host]);
+    else cb(Object.assign(new Error('ENOTFOUND'), { code: 'ENOTFOUND' }));
+  };
+  return { ...actual, resolve4: lookup, resolve6: (_h: string, cb: any) => cb(Object.assign(new Error('ENODATA'), { code: 'ENODATA' })) };
+});
+
 describe('validateUrl', () => {
   test('accepts HTTPS URLs', async () => {
     await expect(validateUrl('https://example.com/audio.mp3')).resolves.toBeDefined();

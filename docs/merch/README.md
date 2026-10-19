@@ -18,3 +18,9 @@ Psychedelic T-shirts, hats and mugs carrying the What Am I Appreciating Now mark
 - The web mark SVGs in `public/brand/` use live text; the files in `docs/merch/print/` are the outlined ones to send to print. Mockups are illustrative only.
 - The two `psychedelic-spiral` products use `public/overlays/WAIANCircle.png`. Confirm full ownership before print. No print file is made for them; the spec sheet marks them BLOCKED.
 - Print-area sizes in `SPEC.md` are typical placeholders; the provider's real template sizes are unknown until a provider is chosen.
+
+## Public pages
+
+`/merch` and `/merch/<slug>` are generated from `scripts/merch/catalog.json` (code in `src/lib/merch/`). They show mockups, sizes and "Not yet on sale", with no prices. Only products whose `rights` is `repo-drawn` appear; `overlay-unconfirmed` artwork (the spiral products) stays off the site until ownership is confirmed. Colours are not in the catalog, so the pages say they are set in the store.
+
+The "I would buy this" button posts to `/api/merch/notify`, which only increments `merch/notify/<slug>.json` in private storage (`{ total, sizes }`). No email, name, IP or cookie is stored. Read the counts with the storage adapter; buying will route to the Wix store later.

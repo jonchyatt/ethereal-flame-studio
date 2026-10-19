@@ -1,0 +1,194 @@
+{
+  "base": "http://localhost:3111",
+  "when": "2026-10-17T17:44:38.811Z",
+  "pages": [
+    {
+      "path": "/waia-front-door.html",
+      "name": "front door",
+      "status": 200,
+      "violations": [],
+      "brokenImages": [],
+      "missingAlt": [],
+      "oversized": [],
+      "focusStops": 6,
+      "frameStops": 4,
+      "noRing": [],
+      "hidden": [],
+      "positiveTabindex": 0,
+      "overflowAt320": 0,
+      "failedRequests": [],
+      "consoleErrors": [],
+      "weightBytes": {
+        "total": 13991,
+        "images": 0,
+        "script": 0
+      }
+    },
+    {
+      "path": "/waia-store.html",
+      "name": "store",
+      "status": 200,
+      "violations": [],
+      "brokenImages": [
+        "/public/brand/mockups/circle-shirt.png",
+        "/public/brand/mockups/infinity-shirt.png",
+        "/public/brand/mockups/circle-mug.png",
+        "/public/brand/mockups/wordmark-mug.png",
+        "/public/brand/mockups/loop-shirt.png",
+        "/public/brand/mockups/psychedelic-spiral-shirt.png",
+        "/public/brand/mockups/psychedelic-spiral-hat.png",
+        "/public/brand/mockups/psychedelic-spiral-mug.png",
+        "/public/brand/mockups/psychedelic-starfield-shirt.png",
+        "/public/brand/mockups/psychedelic-starfield-hat.png",
+        "/public/brand/mockups/psychedelic-starfield-mug.png",
+        "/public/brand/mockups/wordmark-shirt.png"
+      ],
+      "missingAlt": [],
+      "oversized": [
+        "/brand/what-am-i-appreciating-now-circle-dark.svg 600px shown at 140px"
+      ],
+      "focusStops": 10,
+      "frameStops": 1,
+      "noRing": [],
+      "hidden": [],
+      "positiveTabindex": 0,
+      "overflowAt320": 0,
+      "failedRequests": [
+        "404 /public/brand/mockups/infinity-shirt.png",
+        "404 /public/brand/mockups/circle-shirt.png",
+        "404 /public/brand/mockups/circle-mug.png",
+        "404 /public/brand/mockups/wordmark-mug.png",
+        "404 /public/brand/mockups/loop-shirt.png",
+        "404 /public/brand/mockups/psychedelic-spiral-shirt.png",
+        "404 /public/brand/mockups/psychedelic-spiral-hat.png",
+        "404 /public/brand/mockups/psychedelic-spiral-mug.png",
+        "404 /public/brand/mockups/psychedelic-starfield-shirt.png",
+        "404 /public/brand/mockups/psychedelic-starfield-hat.png",
+        "404 /public/brand/mockups/psychedelic-starfield-mug.png",
+        "404 /public/brand/mockups/wordmark-shirt.png"
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "weightBytes": {
+        "total": 53747,
+        "images": 25185,
+        "script": 6844
+      }
+    },
+    {
+      "path": "/programs",
+      "name": "programs",
+      "status": 200,
+      "violations": [],
+      "brokenImages": [],
+      "missingAlt": [],
+      "oversized": [],
+      "focusStops": 3,
+      "frameStops": 1,
+      "noRing": [],
+      "hidden": [],
+      "positiveTabindex": 0,
+      "overflowAt320": 0,
+      "failedRequests": [],
+      "consoleErrors": [],
+      "weightBytes": {
+        "total": 8206774,
+        "images": 0,
+        "script": 7986617
+      }
+    },
+    {
+      "path": "/programs/yale-inversion-protocol",
+      "name": "program detail",
+      "status": 200,
+      "violations": [],
+      "brokenImages": [],
+      "missingAlt": [],
+      "oversized": [],
+      "focusStops": 3,
+      "frameStops": 1,
+      "noRing": [],
+      "hidden": [],
+      "positiveTabindex": 0,
+      "overflowAt320": 0,
+      "failedRequests": [],
+      "consoleErrors": [],
+      "weightBytes": {
+        "total": 8251564,
+        "images": 0,
+        "script": 8034137
+      }
+    },
+    {
+      "path": "/store/custom-order",
+      "name": "custom order status",
+      "status": 200,
+      "violations": [],
+      "brokenImages": [],
+      "missingAlt": [],
+      "oversized": [],
+      "focusStops": 3,
+      "frameStops": 1,
+      "noRing": [],
+      "hidden": [],
+      "positiveTabindex": 0,
+      "overflowAt320": 0,
+      "failedRequests": [],
+      "consoleErrors": [],
+      "weightBytes": {
+        "total": 8263538,
+        "images": 0,
+        "script": 8048511
+      }
+    },
+    {
+      "path": "/patrons/join",
+      "name": "patron join",
+      "status": 200,
+      "violations": [],
+      "brokenImages": [],
+      "missingAlt": [],
+      "oversized": [],
+      "focusStops": 6,
+      "frameStops": 1,
+      "noRing": [],
+      "hidden": [],
+      "positiveTabindex": 0,
+      "overflowAt320": 0,
+      "failedRequests": [],
+      "consoleErrors": [],
+      "weightBytes": {
+        "total": 8288495,
+        "images": 0,
+        "script": 8068585
+      }
+    },
+    {
+      "path": "/patrons/remove",
+      "name": "patron removal",
+      "status": 200,
+      "violations": [],
+      "brokenImages": [],
+      "missingAlt": [],
+      "oversized": [],
+      "focusStops": 4,
+      "frameStops": 1,
+      "noRing": [],
+      "hidden": [],
+      "positiveTabindex": 0,
+      "overflowAt320": 0,
+      "failedRequests": [],
+      "consoleErrors": [],
+      "weightBytes": {
+        "total": 8254927,
+        "images": 0,
+        "script": 8039573
+      }
+    }
+  ]
+}
