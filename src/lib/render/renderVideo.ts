@@ -450,13 +450,15 @@ export async function renderVideo(config: RenderVideoConfig): Promise<RenderVide
       const tempVideoPath = outputPath.replace(/\.[^.]+$/, '_temp.mp4');
 
       try {
-        await injectSpatialMetadata({
+        const injected = await injectSpatialMetadata({
           inputPath: tempVideoPath,
           outputPath,
           projection: 'equirectangular' as ProjectionType,
           stereoMode: isStereoFormat(format) ? 'top-bottom' : 'none',
         });
 
+        // Injector reports failure via {success:false} (does not throw): keep the encode, never delete it.
+        if (!injected.success) throw new Error(injected.error || 'metadata injection failed');
         // Remove temp file
         await fs.unlink(tempVideoPath);
 
