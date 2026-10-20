@@ -702,6 +702,14 @@ export class PreAnalyzer {
     // Normalize audio levels so the peak amplitude reaches ~1.0
     // This ensures consistent visual reactivity regardless of audio loudness
     normalizeFrames(result.frames);
+    // Opt-in loudness smoothing (EFS_AUDIO_SMOOTH=1): music drive follows an attack/release envelope, not raw per-frame peaks.
+    if (process.env.EFS_AUDIO_SMOOTH) {
+      const aUp = 1 - Math.exp(-1 / (0.06 * fps)), aDn = 1 - Math.exp(-1 / (1.2 * fps));
+      const st: Record<string, number> = { amplitude: 0, bass: 0, mid: 0, high: 0 };
+      for (const fr of result.frames) for (const k of ['amplitude', 'bass', 'mid', 'high'] as const) {
+        st[k] += (fr[k] - st[k]) * (fr[k] > st[k] ? aUp : aDn); fr[k] = st[k];
+      }
+    }
 
     // Cache result (browser only)
     if (useCache && isIndexedDBAvailable()) {
