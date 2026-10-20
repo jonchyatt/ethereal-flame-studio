@@ -8,6 +8,10 @@
  */
 const OPERATOR_PREFIXES = ['/operator', '/approval-queue', '/creator', '/pipeline', '/local-agents', '/store/intake', '/store/prices/preview'];
 
+// The Studio visualizer and render/batch tools: not for the public site. They stay open on a local
+// machine (the render worker drives /studio on localhost) and behind the same key everywhere else.
+const STUDIO_TOOL_PREFIXES = ['/studio', '/create', '/batch', '/playlist-batches'];
+
 export type OperatorPageDecision = 'allow' | 'not-found' | 'challenge';
 
 function underPrefix(pathname: string, prefix: string): boolean {
@@ -45,7 +49,10 @@ export function operatorPageDecision(
   secret: string | undefined = process.env.WAIA_OPERATOR_SECRET,
   isDev: boolean = process.env.NODE_ENV === 'development',
 ): OperatorPageDecision {
-  if (!isOperatorPage(hostname, pathname)) return 'allow';
+  const h = hostname.toLowerCase();
+  const localHost = h.startsWith('localhost') || h.startsWith('127.0.0.1');
+  const studioTool = !localHost && STUDIO_TOOL_PREFIXES.some((p) => underPrefix(pathname, p));
+  if (!studioTool && !isOperatorPage(hostname, pathname)) return 'allow';
   const key = secret?.trim();
   if (!key) return isDev ? 'allow' : 'not-found';
   const supplied = basicPassword(authorization);
