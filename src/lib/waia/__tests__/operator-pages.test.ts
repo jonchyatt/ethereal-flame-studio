@@ -21,10 +21,18 @@ describe('operatorPageDecision', () => {
   });
 
   it('leaves public pages, look-alike paths and the jarvis host alone', () => {
-    for (const p of ['/', '/store', '/programs', '/create', '/creators', '/store/custom-order', '/studio', '/legal/terms']) {
+    for (const p of ['/', '/store', '/programs', '/listen', '/creators', '/store/custom-order', '/legal/terms']) {
       expect(operatorPageDecision(WWW, p, null, undefined, false)).toBe('allow');
     }
     expect(operatorPageDecision('jarvis.whatamiappreciatingnow.com', '/jarvis/app', null, undefined, false)).toBe('allow');
+  });
+
+  it('hides the Studio and render tools from the public site but not from localhost', () => {
+    for (const p of ['/studio', '/create', '/batch', '/playlist-batches']) {
+      expect(operatorPageDecision(WWW, p, null, undefined, false)).toBe('not-found');
+      expect(operatorPageDecision(WWW, p, basic('k3y'), 'k3y', false)).toBe('allow');
+      expect(operatorPageDecision('localhost:3000', p, null, undefined, false)).toBe('allow');
+    }
   });
 
   it('keeps local dev open when no key is set', () => {
