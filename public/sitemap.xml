@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://www.whatamiappreciatingnow.com/</loc></url>
-  <url><loc>https://www.whatamiappreciatingnow.com/store</loc></url>
-  <url><loc>https://www.whatamiappreciatingnow.com/store/bundles</loc></url>
-  <url><loc>https://www.whatamiappreciatingnow.com/store/shelf</loc></url>
-  <url><loc>https://www.whatamiappreciatingnow.com/programs</loc></url>
-  <url><loc>https://www.whatamiappreciatingnow.com/programs/advanced-hypnosis-sessions</loc></url>
-  <url><loc>https://www.whatamiappreciatingnow.com/programs/yale-inversion-protocol</loc></url>
-  <url><loc>https://www.whatamiappreciatingnow.com/patrons</loc></url>
-  <url><loc>https://www.whatamiappreciatingnow.com/about</loc></url>
-  <url><loc>https://www.whatamiappreciatingnow.com/support</loc></url>
-  <url><loc>https://www.whatamiappreciatingnow.com/legal/terms</loc></url>
-  <url><loc>https://www.whatamiappreciatingnow.com/legal/privacy</loc></url>
-  <url><loc>https://www.whatamiappreciatingnow.com/legal/refunds</loc></url>
+  <url><loc>https://www.whatamiappreciatingnow.com/</loc><lastmod>2026-10-20</lastmod></url>
+  <url><loc>https://www.whatamiappreciatingnow.com/store</loc><lastmod>2026-10-19</lastmod></url>
+  <url><loc>https://www.whatamiappreciatingnow.com/store/bundles</loc><lastmod>2026-10-19</lastmod></url>
+  <url><loc>https://www.whatamiappreciatingnow.com/store/shelf</loc><lastmod>2026-10-18</lastmod></url>
+  <url><loc>https://www.whatamiappreciatingnow.com/programs</loc><lastmod>2026-10-19</lastmod></url>
+  <url><loc>https://www.whatamiappreciatingnow.com/programs/advanced-hypnosis-sessions</loc><lastmod>2026-10-19</lastmod></url>
+  <url><loc>https://www.whatamiappreciatingnow.com/programs/yale-inversion-protocol</loc><lastmod>2026-10-19</lastmod></url>
+  <url><loc>https://www.whatamiappreciatingnow.com/patrons</loc><lastmod>2026-10-19</lastmod></url>
+  <url><loc>https://www.whatamiappreciatingnow.com/patrons/join</loc><lastmod>2026-10-19</lastmod></url>
+  <url><loc>https://www.whatamiappreciatingnow.com/listen</loc><lastmod>2026-10-20</lastmod></url>
+  <url><loc>https://www.whatamiappreciatingnow.com/about</loc><lastmod>2026-10-19</lastmod></url>
+  <url><loc>https://www.whatamiappreciatingnow.com/support</loc><lastmod>2026-10-19</lastmod></url>
+  <url><loc>https://www.whatamiappreciatingnow.com/legal/terms</loc><lastmod>2026-10-19</lastmod></url>
+  <url><loc>https://www.whatamiappreciatingnow.com/legal/privacy</loc><lastmod>2026-10-19</lastmod></url>
+  <url><loc>https://www.whatamiappreciatingnow.com/legal/refunds</loc><lastmod>2026-10-19</lastmod></url>
 </urlset>

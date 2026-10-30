@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const program = getProgram((await params).id);
   return program
-    ? { title: `${program.title} · What Am I Appreciating Now`, description: program.summary }
+    ? { title: `${program.title} · What Am I Appreciating Now`, description: program.summary, alternates: { canonical: `https://www.whatamiappreciatingnow.com/programs/${program.id}` } }
     : { title: 'Program not found · What Am I Appreciating Now' };
 }
 

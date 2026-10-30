@@ -58,10 +58,21 @@ export function generateStaticParams() {
   return LEGAL_DOCS.map((d) => ({ doc: d.slug }));
 }
 
+const DESCRIPTIONS: Record<Doc, string> = {
+  terms: 'Who the store is operated by, what is sold, how access works, and the health and safety note.',
+  privacy: 'What the store keeps, where it is kept, and your choices about your information.',
+  refunds: 'How to cancel a subscription, when refunds apply, and how custom sessions are handled.',
+};
+
 export async function generateMetadata({ params }: { params: Promise<{ doc: string }> }) {
   const { doc } = await params;
   const d = LEGAL_DOCS.find((x) => x.slug === doc);
-  return { title: `${d?.title ?? 'Not found'} · What Am I Appreciating Now` };
+  if (!d) return { title: 'Not found · What Am I Appreciating Now' };
+  return {
+    title: `${d.title} · What Am I Appreciating Now`,
+    description: DESCRIPTIONS[d.slug],
+    alternates: { canonical: `https://www.whatamiappreciatingnow.com/legal/${d.slug}` },
+  };
 }
 
 export default async function LegalPage({ params }: { params: Promise<{ doc: string }> }) {

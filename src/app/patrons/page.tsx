@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 export const metadata = {
   title: 'Patron wall · What Am I Appreciating Now',
   description: 'The people who made What Am I Appreciating Now possible. Nothing is on sale yet.',
+  alternates: { canonical: 'https://www.whatamiappreciatingnow.com/patrons' },
 };
 
 async function loadWall() {

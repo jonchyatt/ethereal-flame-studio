@@ -7,6 +7,7 @@ import { LegalLinks } from '@/app/legal/LegalLinks';
 export const metadata = {
   title: 'Programs · What Am I Appreciating Now',
   description: 'Advanced hypnosis sessions and guided processes from What Am I Appreciating Now.',
+  alternates: { canonical: 'https://www.whatamiappreciatingnow.com/programs' },
 };
 
 export default function ProgramsPage() {

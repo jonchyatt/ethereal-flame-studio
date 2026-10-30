@@ -4,6 +4,7 @@ import JoinForm from './JoinForm';
 export const metadata = {
   title: 'Join the patron wall · What Am I Appreciating Now',
   description: 'Add your name, or a short message, to the patron wall in What Am I Appreciating Now. Nothing is on sale yet.',
+  alternates: { canonical: 'https://www.whatamiappreciatingnow.com/patrons/join' },
 };
 
 export default function JoinPage() {

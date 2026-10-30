@@ -5,6 +5,7 @@ import { SHELF_ITEMS } from '@/lib/store/shelf-items';
 export const metadata = {
   title: 'The shelf · What Am I Appreciating Now',
   description: 'Things we use and recommend, one layout, outbound links only. Nothing is sold on this page.',
+  alternates: { canonical: 'https://www.whatamiappreciatingnow.com/store/shelf' },
 };
 
 export default function ShelfPage() {

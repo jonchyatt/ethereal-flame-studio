@@ -7,6 +7,7 @@ const SAMPLE = '/samples/gentle-reset-free-sample';
 export const metadata = {
   title: 'Advanced hypnosis sessions · What Am I Appreciating Now',
   description: 'The advanced hypnosis sessions from What Am I Appreciating Now, each with its rights and provenance.',
+  alternates: { canonical: 'https://www.whatamiappreciatingnow.com/programs/advanced-hypnosis-sessions' },
 };
 
 // This static route shadows /programs/[id] for this program, so it renders the same

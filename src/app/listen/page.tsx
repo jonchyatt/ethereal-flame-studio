@@ -1,6 +1,7 @@
 export const metadata = {
   title: 'Listen · What Am I Appreciating Now',
   description: 'A gentle ten-minute guided practice, voiced by Jonathan Hyatt.',
+  alternates: { canonical: 'https://www.whatamiappreciatingnow.com/listen' },
 };
 
 const AUDIO = '/samples/gentle-reset-listen.m4a';
