@@ -3,6 +3,7 @@ import { LegalLinks, OPERATOR } from '@/app/legal/LegalLinks';
 export const metadata = {
   title: 'About · What Am I Appreciating Now',
   description: 'Who runs What Am I Appreciating Now and how to reach us.',
+  alternates: { canonical: 'https://www.whatamiappreciatingnow.com/about' },
 };
 
 export default function AboutPage() {

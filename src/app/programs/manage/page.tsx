@@ -7,6 +7,7 @@ import { PortalButton } from './PortalButton';
 export const dynamic = 'force-dynamic';
 export const metadata = {
   title: 'Manage my access · What Am I Appreciating Now',
+  description: 'See which programs this browser can open and cancel a subscription.',
   robots: { index: false, follow: false },
 };
 

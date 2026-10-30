@@ -4,6 +4,7 @@ import { BUNDLES, bundlePriceCents, isOnSale, itemLabel } from '@/lib/store/bund
 export const metadata = {
   title: 'Gifts and bundles · What Am I Appreciating Now',
   description: 'Sessions and guided processes bundled to give or keep. Nothing here is on sale yet.',
+  alternates: { canonical: 'https://www.whatamiappreciatingnow.com/store/bundles' },
 };
 
 export default function BundlesPage() {

@@ -3,6 +3,7 @@ import { LegalLinks, OPERATOR } from '@/app/legal/LegalLinks';
 export const metadata = {
   title: 'Support · What Am I Appreciating Now',
   description: 'How to get help with access, billing, refunds and your data.',
+  alternates: { canonical: 'https://www.whatamiappreciatingnow.com/support' },
 };
 
 const link = { color: '#9cf' };
