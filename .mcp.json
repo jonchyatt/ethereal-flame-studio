@@ -4,7 +4,7 @@
       "command": "cmd",
       "args": ["/c", "npx", "-y", "@notionhq/notion-mcp-server"],
       "env": {
-        "NOTION_TOKEN": "ntn_Dj54656632339YveRG6Fk9IrhH9v13zp9sDFnd1br8Kefv"
+        "NOTION_TOKEN": "${NOTION_TOKEN}"
       }
     },
     "playwright": {
