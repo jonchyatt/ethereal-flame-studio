@@ -73,9 +73,9 @@ export function evaluateCurationGateForBatchResult(batchResult: unknown, ref: Cu
 }
 
 export class PublishChannelMismatchError extends Error {
-  constructor(public readonly actualChannelId: string | null) {
+  constructor(public readonly actualChannelId: string | null, expectedChannelId = WAIA_YOUTUBE_CHANNEL_ID) {
     super(
-      `Authenticated YouTube channel ${actualChannelId ?? '(none)'} does not equal the WAIA channel ${WAIA_YOUTUBE_CHANNEL_ID}; aborting before any upload`,
+      `Authenticated YouTube channel ${actualChannelId ?? '(none)'} does not equal the expected channel ${expectedChannelId}; aborting before any upload`,
     );
     this.name = 'PublishChannelMismatchError';
   }
@@ -84,12 +84,12 @@ export class PublishChannelMismatchError extends Error {
 /** HB-10 for the API path: ask YouTube which channel the credentials act as. */
 export async function assertAuthenticatedChannel(youtube: {
   channels: { list: (params: { part: string[]; mine: boolean }) => Promise<{ data: { items?: Array<{ id?: string | null }> | null } }> };
-}): Promise<void> {
+}, expectedChannelId = WAIA_YOUTUBE_CHANNEL_ID): Promise<void> {
   const response = await youtube.channels.list({ part: ['id'], mine: true });
   const ids = (response.data.items || []).map((c) => c.id ?? null);
-  // Every channel the credentials can act as must be the WAIA channel; any other one is ambiguous.
-  if (ids.length !== 1 || ids[0] !== WAIA_YOUTUBE_CHANNEL_ID) {
-    throw new PublishChannelMismatchError(ids.length === 1 ? ids[0] : ids.join(',') || null);
+  // Exactly one channel must match the requested destination; anything else is ambiguous.
+  if (ids.length !== 1 || ids[0] !== expectedChannelId) {
+    throw new PublishChannelMismatchError(ids.length === 1 ? ids[0] : ids.join(',') || null, expectedChannelId);
   }
 }
 

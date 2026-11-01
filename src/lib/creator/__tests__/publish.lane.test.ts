@@ -13,7 +13,7 @@ jest.mock('@/lib/storage', () => ({
 jest.mock('googleapis', () => ({ google: { youtube: jest.fn(), auth: { OAuth2: jest.fn() } } }));
 
 import type { AudioPrepJob, JobStore } from '@/lib/jobs/types';
-import { PlaylistBatchItemStateSchema, WAIA_YOUTUBE_CHANNEL_ID } from '@/lib/playlist-batch/schema';
+import { PlaylistBatchItemStateSchema } from '@/lib/playlist-batch/schema';
 import { CreatorRenderPackSchema } from '../types';
 import { getCreatorRenderPack, saveCreatorRenderPack } from '../store';
 import { queueCreatorPackPublishJobs } from '../queue';
@@ -95,24 +95,16 @@ async function setup(itemStatus: string) {
   return { pack, publishJob, queued: queued[0] };
 }
 
-describe('manual-draft lane, curated item to publish job', () => {
+describe('curated item to publish job', () => {
   const noChild = { current: null };
 
-  it('release-approved item: writes the manual-draft manifest with curation evidence and WAIA channel id', async () => {
+  it('release-approved item without credentials: rejects loudly and marks the task failed', async () => {
     const { pack, publishJob, queued } = await setup('release-approved');
-    await runPublishPipeline(store, publishJob, noChild);
-
-    const done = (await store.get(publishJob.jobId))!;
-    expect(done.status).toBe('complete');
+    await expect(runPublishPipeline(store, publishJob, noChild)).rejects.toThrow('YOUTUBE_PUBLISH_CLIENT_ID');
     const key = `creator/publish-drafts/youtube/${queued.publishId}.json`;
-    const manifest = JSON.parse(files.get(key)!.toString());
-    expect(manifest.connectorMode).toBe('manual-draft');
-    expect(manifest.channel.channelId).toBe(WAIA_YOUTUBE_CHANNEL_ID);
-    expect(manifest.curation).toMatchObject({
-      approvalId, recipeId, rightsBases: ['public-domain'], mixRecipeFingerprint: sha, itemIndex: 0,
-    });
+    expect(files.has(key)).toBe(false);
     const after = await getCreatorRenderPack(pack.packId);
-    expect(after!.publishTasks[0].draftManifestKey).toBe(key);
+    expect(after!.publishTasks[0]).toMatchObject({ status: 'failed', error: expect.stringContaining('YOUTUBE_PUBLISH_CLIENT_ID') });
   });
 
   it('pending item: publish is refused, job fails with the gate reason, nothing is written', async () => {

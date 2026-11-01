@@ -9,6 +9,13 @@ import type { CreatorPublishJobMetadata } from './jobs';
 import { getContentLibraryItemByPackId } from './store';
 import { WAIA_YOUTUBE_CHANNEL_ID } from '@/lib/playlist-batch/schema';
 import { assertAuthenticatedChannel, verifyDraftManifest, type CurationEvidence } from './publishGate';
+import { requireYoutubeCredentials, resolveYoutubeCredentialSlot, youtubeCategoryId, youtubeEnv, youtubeEnvName, type YoutubeCredentialSlot } from './youtubeCredentials';
+
+export { resolveYoutubeCredentialSlot } from './youtubeCredentials';
+export type { YoutubeCredentialSlot } from './youtubeCredentials';
+
+// Recorded authenticated Studio identity: Jarvis REVIEW-jon-six-videos-2026-09-30.md.
+export const CRITFAIL_YOUTUBE_CHANNEL_ID = 'UCXY-lg-p5LwXLGneUTUlDQg';
 
 export type PublishConnectorProvider = 'youtube' | 'tiktok' | 'instagram';
 export type PublishConnectorMode = 'api' | 'manual-draft';
@@ -250,12 +257,6 @@ async function maybeGenerateYoutubeThumbnail(
   }
 }
 
-function hasYoutubeApiCreds(): boolean {
-  const access = !!process.env.YOUTUBE_PUBLISH_ACCESS_TOKEN;
-  const refresh = !!(process.env.YOUTUBE_PUBLISH_REFRESH_TOKEN && process.env.YOUTUBE_PUBLISH_CLIENT_ID && process.env.YOUTUBE_PUBLISH_CLIENT_SECRET);
-  return access || refresh;
-}
-
 function hasTiktokApiCreds(): boolean {
   return !!process.env.TIKTOK_PUBLISH_ACCESS_TOKEN;
 }
@@ -264,10 +265,14 @@ function hasInstagramApiCreds(): boolean {
   return !!(process.env.INSTAGRAM_GRAPH_ACCESS_TOKEN && process.env.INSTAGRAM_GRAPH_USER_ID);
 }
 
-function resolveMode(provider: PublishConnectorProvider): PublishConnectorMode {
+export function resolvePublishConnectorMode(
+  provider: PublishConnectorProvider,
+  metadata: Pick<CreatorPublishJobMetadata, 'channelKey'> = {},
+): PublishConnectorMode {
   switch (provider) {
     case 'youtube':
-      return hasYoutubeApiCreds() ? 'api' : 'manual-draft';
+      requireYoutubeCredentials(resolveYoutubeCredentialSlot(metadata));
+      return 'api';
     case 'tiktok':
       return hasTiktokApiCreds() ? 'api' : 'manual-draft';
     case 'instagram':
@@ -311,7 +316,7 @@ async function writeDraftManifest(input: ConnectorInput, warnings: string[] = []
     providerHints:
       input.provider === 'youtube'
         ? {
-            categoryId: process.env.YOUTUBE_PUBLISH_DEFAULT_CATEGORY_ID || '10',
+            categoryId: youtubeCategoryId(resolveYoutubeCredentialSlot(input.metadata)),
             privacyStatus: resolveYoutubePrivacy(process.env.YOUTUBE_PUBLISH_DEFAULT_PRIVACY),
             madeForKids: parseBool(process.env.YOUTUBE_PUBLISH_MADE_FOR_KIDS, false),
             playlistIds: youtubePlaylistIdsForPlatform(input.metadata.platform),
@@ -349,17 +354,15 @@ async function writeDraftManifest(input: ConnectorInput, warnings: string[] = []
   };
 }
 
-async function buildYoutubeAuthClient() {
-  const clientId = process.env.YOUTUBE_PUBLISH_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || '';
-  const clientSecret = process.env.YOUTUBE_PUBLISH_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET || '';
-  const redirectUri = process.env.YOUTUBE_PUBLISH_REDIRECT_URI || process.env.GOOGLE_REDIRECT_URI || 'urn:ietf:wg:oauth:2.0:oob';
+async function buildYoutubeAuthClient(slot: YoutubeCredentialSlot) {
+  requireYoutubeCredentials(slot);
+  const clientId = youtubeEnv(slot, 'CLIENT_ID') || '';
+  const clientSecret = youtubeEnv(slot, 'CLIENT_SECRET') || '';
+  const redirectUri = youtubeEnv(slot, 'REDIRECT_URI');
   const oauth2 = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
 
-  const refreshToken = process.env.YOUTUBE_PUBLISH_REFRESH_TOKEN;
-  const accessToken = process.env.YOUTUBE_PUBLISH_ACCESS_TOKEN;
-  if (!refreshToken && !accessToken) {
-    throw new Error('YouTube publish API credentials are not configured');
-  }
+  const refreshToken = youtubeEnv(slot, 'REFRESH_TOKEN');
+  const accessToken = youtubeEnv(slot, 'ACCESS_TOKEN');
 
   if (refreshToken) {
     // Set refresh token first, then force a fresh access token
@@ -369,40 +372,42 @@ async function buildYoutubeAuthClient() {
       if (!token) {
         throw new Error('OAuth2 getAccessToken returned no token');
       }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      throw new Error(`YouTube OAuth token refresh failed  --  check YOUTUBE_PUBLISH_REFRESH_TOKEN and client credentials: ${msg}`);
+    } catch {
+      // OAuth errors can contain request bodies with secrets. Report variable names only.
+      throw new Error(`YouTube OAuth token refresh failed; check ${['REFRESH_TOKEN', 'CLIENT_ID', 'CLIENT_SECRET'].map((suffix) => youtubeEnvName(slot, suffix)).join(', ')}`);
     }
   } else if (accessToken) {
     // Static access token only  --  will fail when it expires
     oauth2.setCredentials({ access_token: accessToken });
-    console.warn('[publishConnectors] Using static YOUTUBE_PUBLISH_ACCESS_TOKEN without refresh token  --  this will expire.');
+    console.warn(`[publishConnectors] Using static ${youtubeEnvName(slot, 'ACCESS_TOKEN')} without refresh token; this will expire.`);
   }
   return oauth2;
 }
 
 async function publishYoutubeApi(input: ConnectorInput): Promise<PublishConnectorResult> {
-  if (!hasYoutubeApiCreds()) {
-    return writeDraftManifest(input, ['YouTube API credentials are not fully configured; using manual draft manifest.']);
+  const slot = resolveYoutubeCredentialSlot(input.metadata);
+  requireYoutubeCredentials(slot);
+  if (slot !== 'primary' && input.metadata.mode !== 'draft') {
+    throw new Error(`YouTube ${slot} accepts private drafts only; scheduled publication requires a separate approval flow.`);
   }
 
   const warnings: string[] = [];
-  const auth = await buildYoutubeAuthClient();
+  const auth = await buildYoutubeAuthClient(slot);
   const youtube = google.youtube({ version: 'v3', auth });
-  await assertAuthenticatedChannel(youtube);
+  await assertAuthenticatedChannel(youtube, slot === 'critfail' ? CRITFAIL_YOUTUBE_CHANNEL_ID : WAIA_YOUTUBE_CHANNEL_ID);
   const title = truncate((input.metadata.title || '').trim() || 'Untitled', 100);
   const description = buildYoutubeDescription(input.metadata);
   const tags = buildYoutubeTags(input.metadata);
   const requestedSchedule = coerceDateTime(input.metadata.scheduledFor || null);
   const scheduleMode = input.metadata.mode === 'schedule' && !!requestedSchedule;
   // Scheduled uploads stay private until publishAt; every other upload is private/unlisted for review.
-  const privacyStatus = scheduleMode ? 'private' : resolveYoutubePrivacy(process.env.YOUTUBE_PUBLISH_DEFAULT_PRIVACY);
+  const privacyStatus = scheduleMode || slot !== 'primary' ? 'private' : resolveYoutubePrivacy(process.env.YOUTUBE_PUBLISH_DEFAULT_PRIVACY);
 
   if (input.metadata.mode === 'schedule' && !requestedSchedule) {
     warnings.push('Scheduled publish requested without a valid scheduledFor datetime; uploaded as draft/private.');
   }
 
-  const categoryId = process.env.YOUTUBE_PUBLISH_DEFAULT_CATEGORY_ID || '10';
+  const categoryId = youtubeCategoryId(slot);
   const defaultLanguage = process.env.YOUTUBE_PUBLISH_DEFAULT_LANGUAGE;
   const notifySubscribers = parseBool(process.env.YOUTUBE_PUBLISH_NOTIFY_SUBSCRIBERS, false);
   const madeForKids = parseBool(process.env.YOUTUBE_PUBLISH_MADE_FOR_KIDS, false);
@@ -732,14 +737,14 @@ async function withFallbackOnApiError(
 }
 
 export async function runPublishConnector(input: ConnectorInput): Promise<PublishConnectorResult> {
-  const mode = resolveMode(input.provider);
+  const mode = resolvePublishConnectorMode(input.provider, input.metadata);
   if (mode === 'manual-draft') {
     return writeDraftManifest(input);
   }
 
   switch (input.provider) {
     case 'youtube':
-      return withFallbackOnApiError(input, 'YouTube', () => publishYoutubeApi(input));
+      return publishYoutubeApi(input);
     case 'tiktok':
       return withFallbackOnApiError(input, 'TikTok', () => publishTiktokApi(input));
     case 'instagram':

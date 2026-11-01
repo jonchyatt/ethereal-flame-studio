@@ -113,6 +113,7 @@ export const CreatorPublishTaskSchema = z.object({
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   platform: CreatorPublishPlatformSchema,
+  channelKey: z.enum(['primary', 'waia', 'critfail']).optional(),
   mode: z.enum(['draft', 'schedule']).default('draft'),
   scheduledFor: z.string().datetime().nullable().optional(),
   sourceKind: z.enum(['render', 'recut']).default('render'),
