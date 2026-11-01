@@ -75,7 +75,7 @@ export function evaluateCurationGateForBatchResult(batchResult: unknown, ref: Cu
 export class PublishChannelMismatchError extends Error {
   constructor(public readonly actualChannelId: string | null, expectedChannelId = WAIA_YOUTUBE_CHANNEL_ID) {
     super(
-      `Authenticated YouTube channel ${actualChannelId ?? '(none)'} does not equal the expected channel ${expectedChannelId}; aborting before any upload`,
+      `Authenticated YouTube channel ${actualChannelId ?? '(none)'} does not equal the ${expectedChannelId === WAIA_YOUTUBE_CHANNEL_ID ? 'WAIA' : 'expected'} channel ${expectedChannelId}; aborting before any upload`,
     );
     this.name = 'PublishChannelMismatchError';
   }

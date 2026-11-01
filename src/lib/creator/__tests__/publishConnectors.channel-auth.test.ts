@@ -12,7 +12,7 @@ jest.mock('googleapis', () => ({ google: { youtube: jest.fn(), auth: { OAuth2: j
 const metadata: CreatorPublishJobMetadata = {
   creatorPackId: '55555555-5555-4555-8555-555555555555',
   publishId: '66666666-6666-4666-8666-666666666666',
-  platform: 'youtube-long', provider: 'youtube', mode: 'draft', sourceKind: 'render',
+  platform: 'youtube', provider: 'youtube', mode: 'draft', sourceKind: 'render',
   sourceVariantId: 'v', sourceRenderJobId: 'r', sourceVideoKey: 'k', title: 'Title',
   description: 'Description', hashtags: [], keywords: [],
 };
