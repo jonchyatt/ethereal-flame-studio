@@ -5,6 +5,7 @@ import { queueCreatorPackPublishJobs } from '@/lib/creator/queue';
 export const dynamic = 'force-dynamic';
 
 const QueuePublishRequestSchema = z.object({
+  channelKey: z.enum(['primary', 'waia', 'critfail']).optional(),
   mode: z.enum(['draft', 'schedule']).default('draft'),
   scheduledFor: z.string().datetime().nullable().optional(),
   includePlatforms: z.array(z.string().min(1).max(64)).optional(),
@@ -47,4 +48,3 @@ export async function POST(
     );
   }
 }
-

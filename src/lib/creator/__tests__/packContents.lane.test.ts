@@ -13,7 +13,7 @@ jest.mock('@/lib/storage', () => ({
 jest.mock('googleapis', () => ({ google: { youtube: jest.fn(), auth: { OAuth2: jest.fn() } } }));
 
 import type { AudioPrepJob, JobStore } from '@/lib/jobs/types';
-import { PlaylistBatchItemStateSchema, WAIA_YOUTUBE_CHANNEL_ID } from '@/lib/playlist-batch/schema';
+import { PlaylistBatchItemStateSchema } from '@/lib/playlist-batch/schema';
 import { ensureRenderPacksForReleaseApproved, renderPackIdFor } from '@/lib/playlist-batch/renderPack';
 import { packContentsPrefix } from '@/lib/playlist-batch/packContents';
 import { getCreatorRenderPack, listCreatorRenderPacks } from '../store';
@@ -123,14 +123,12 @@ describe('approved item to render pack contents to manual-draft publish', () => 
     await ensureRenderPacksForReleaseApproved(store, batchId);
     expect(files.get(`${prefix}title.txt`)).toBe(before);
 
-    // the publish gate is untouched: the queued draft passes and writes a manifest
+    // Curation passes, but missing upload credentials must fail instead of producing a manifest.
     const { queued } = await queueCreatorPackPublishJobs(packId, { queueSyncJob: false });
     expect(queued).toHaveLength(1);
-    await runPublishPipeline(store, (await store.get(queued[0].publishJobId))!, noChild);
-    const manifest = JSON.parse(files.get(`creator/publish-drafts/youtube/${queued[0].publishId}.json`)!.toString());
-    expect(manifest.connectorMode).toBe('manual-draft');
-    expect(manifest.channel.channelId).toBe(WAIA_YOUTUBE_CHANNEL_ID);
-    expect(manifest.curation).toMatchObject({ approvalId, recipeId, itemIndex: 0 });
+    await expect(runPublishPipeline(store, (await store.get(queued[0].publishJobId))!, noChild))
+      .rejects.toThrow('YOUTUBE_PUBLISH_CLIENT_ID');
+    expect(files.has(`creator/publish-drafts/youtube/${queued[0].publishId}.json`)).toBe(false);
     expect((await getCreatorRenderPack(packId))!.curation).toEqual({ batchJobId: batchId, itemIndex: 0 });
   });
 

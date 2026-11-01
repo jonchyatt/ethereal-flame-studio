@@ -327,6 +327,7 @@ function existingPublishTaskDuplicate(
   tasks: CreatorPublishTask[],
   candidate: {
     platform: string;
+    channelKey: CreatorPublishTask['channelKey'];
     sourceVariantId: string;
     sourceRecutJobId: string | null;
     sourceRenderJobId: string;
@@ -336,6 +337,7 @@ function existingPublishTaskDuplicate(
 ): boolean {
   return tasks.some((task) =>
     task.platform === candidate.platform &&
+    (task.channelKey || 'primary') === (candidate.channelKey || 'primary') &&
     task.sourceVariantId === candidate.sourceVariantId &&
     task.sourceRenderJobId === candidate.sourceRenderJobId &&
     (task.sourceRecutJobId || null) === candidate.sourceRecutJobId &&
@@ -348,6 +350,7 @@ function existingPublishTaskDuplicate(
 export async function queueCreatorPackPublishJobs(
   creatorPackId: string,
   options: {
+    channelKey?: CreatorPublishTask['channelKey'];
     mode?: 'draft' | 'schedule';
     scheduledFor?: string | null;
     includePlatforms?: string[];
@@ -398,6 +401,7 @@ export async function queueCreatorPackPublishJobs(
         skipped.push({ reason: 'unsupported-platform', platform, sourceVariantId: variant.variantId });
         continue;
       }
+      const channelKey = provider === 'youtube' ? (options.channelKey || 'primary') : 'primary';
 
       const completedRecuts = findCompletedRecutsForVariant(pack, variant.variantId, platform)
         .filter((recut) => {
@@ -450,6 +454,7 @@ export async function queueCreatorPackPublishJobs(
         }
         const duplicate = existingPublishTaskDuplicate(nextPack.publishTasks, {
           platform,
+          channelKey,
           sourceVariantId: source.sourceVariantId,
           sourceRecutJobId: source.sourceRecutJobId,
           sourceRenderJobId: source.sourceRenderJobId,
@@ -469,6 +474,7 @@ export async function queueCreatorPackPublishJobs(
           creatorPackId,
           publishId,
           platform,
+          channelKey,
           provider,
           mode,
           scheduledFor,
@@ -491,6 +497,7 @@ export async function queueCreatorPackPublishJobs(
           createdAt: nowIso(),
           updatedAt: nowIso(),
           platform,
+          channelKey,
           mode,
           scheduledFor,
           sourceKind: source.sourceKind,

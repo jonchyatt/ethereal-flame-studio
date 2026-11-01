@@ -46,6 +46,7 @@ export const CreatorPublishJobMetadataSchema = z.object({
   cta: z.string().max(300).nullable().optional(),
   keywords: z.array(z.string().min(1).max(64)).max(30).default([]),
   channelPresetId: z.string().min(1).max(64).nullable().optional(),
+  channelKey: z.enum(['primary', 'waia', 'critfail']).optional(),
   /** Playlist-batch item this publish came from; the publish job refuses without a passing curation gate. */
   curation: z.object({
     batchJobId: z.string().min(1).max(128),
@@ -56,4 +57,3 @@ export const CreatorPublishJobMetadataSchema = z.object({
 export type CreatorPackSyncJobMetadata = z.infer<typeof CreatorPackSyncJobMetadataSchema>;
 export type CreatorRecutJobMetadata = z.infer<typeof CreatorRecutJobMetadataSchema>;
 export type CreatorPublishJobMetadata = z.infer<typeof CreatorPublishJobMetadataSchema>;
-
