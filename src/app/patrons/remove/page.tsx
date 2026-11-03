@@ -9,6 +9,9 @@ export default function RemovePage() {
   const field = { display: 'block', width: '100%', padding: 10, margin: '6px 0 16px', background: '#14142a', color: '#eee', border: '1px solid #8c8c9e', borderRadius: 8 } as const;
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
+      <nav aria-label="Site navigation" style={{ fontSize: 14, marginBottom: 24 }}>
+        <a href="/" style={{ color: 'inherit' }}>Home</a> · <a href="/store" style={{ color: 'inherit' }}>Store</a>
+      </nav>
       <h1>Remove my name from the patron wall</h1>
       <div role="status">
       {sent && (

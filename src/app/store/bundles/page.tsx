@@ -10,6 +10,9 @@ export const metadata = {
 export default function BundlesPage() {
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
+      <nav aria-label="Site navigation" style={{ fontSize: 14, marginBottom: 24 }}>
+        <a href="/" style={{ color: 'inherit' }}>Home</a> · <a href="/store" style={{ color: 'inherit' }}>Store</a>
+      </nav>
       <h1>Gifts and bundles</h1>
       {/* Copy v2 (Voss/NEPQ, 2026-10-19): NEPQ situation question opens on the reader. v1: docs/COPY-V2-VOSS-NEPQ-2026-10-19.md */}
       <p>Who do you know who could use an hour that is all theirs? What Am I Appreciating Now, bundled to keep or to give. Nothing here is on sale yet and nothing is charged.</p>

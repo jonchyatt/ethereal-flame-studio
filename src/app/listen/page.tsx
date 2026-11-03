@@ -15,7 +15,7 @@ export default function ListenPage() {
       </p>
       <audio controls autoPlay={false} preload="metadata" src={AUDIO} style={{ width: '100%' }} aria-label="A Gentle Reset, guided audio" />
       <p style={{ fontSize: 14, opacity: 0.7, marginTop: 24 }}>
-        Not medical advice or therapy. Voice: Jonathan Hyatt&rsquo;s own, rendered from his recordings with a voice clone.
+        Not medical advice or therapy. Do not listen while driving, operating machinery, or anywhere you need to stay alert. Voice: Jonathan Hyatt&rsquo;s own, rendered from his recordings with a voice clone.
         Words: Reset Biology, &ldquo;Reset Your Relationship with Food&rdquo;.
       </p>
       <p style={{ marginTop: 24 }}><a href="/" style={{ color: '#cf9d4f' }}>Back to home</a> · <a href="/programs/advanced-hypnosis-sessions" style={{ color: '#cf9d4f' }}>The video version</a></p>

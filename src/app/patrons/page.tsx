@@ -23,6 +23,9 @@ export default async function PatronsPage() {
   const shell = { maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' } as const;
   return (
     <main style={shell}>
+      <nav aria-label="Site navigation" style={{ fontSize: 14, marginBottom: 24 }}>
+        <a href="/" style={{ color: 'inherit' }}>Home</a> · <a href="/store" style={{ color: 'inherit' }}>Store</a>
+      </nav>
       <h1>Patron wall</h1>
       {/* Copy v2 (Voss/NEPQ, 2026-10-19): NEPQ situation question opens on the reader, then the fact. v1: docs/COPY-V2-VOSS-NEPQ-2026-10-19.md */}
       <p>Has a scene ever given you a quiet minute you did not expect? Turn away from the orb in a What Am I Appreciating Now scene and you find the people who made it possible. Here they are.</p>

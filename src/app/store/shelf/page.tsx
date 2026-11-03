@@ -12,6 +12,9 @@ export default function ShelfPage() {
   const items = renderableItems(SHELF_ITEMS);
   return (
     <main style={{ maxWidth: 960, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
+      <nav aria-label="Site navigation" style={{ fontSize: 14, marginBottom: 24 }}>
+        <a href="/" style={{ color: 'inherit' }}>Home</a> · <a href="/store" style={{ color: 'inherit' }}>Store</a>
+      </nav>
       <h1>The shelf</h1>
       {(items.length === 0 || shelfHasCommission(items)) && (
         <p style={{ fontSize: 14, opacity: 0.75 }} id="disclosure"><strong>Disclosure.</strong> {DISCLOSURE}</p>
