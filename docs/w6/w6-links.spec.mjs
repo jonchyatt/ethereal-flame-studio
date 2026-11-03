@@ -8,7 +8,7 @@ const viewports = [
   { name: 'phone', width: 390, height: 844 },
 ];
 const footerLinks = ['/legal/terms', '/legal/privacy', '/legal/refunds', '/support'];
-const hitAreaRoutes = ['/store', '/programs', '/support', '/store/bundles', '/listen'];
+const hitAreaRoutes = ['/store', '/programs', '/support', '/store/bundles', '/store/shelf', '/listen'];
 const legacyRedirects = {
   '/privacy': '/legal/privacy',
   '/terms': '/legal/terms',
@@ -130,12 +130,19 @@ try {
       const shelfResponse = await shelf.goto(`${base}/store/shelf`, { waitUntil: 'networkidle' });
       assert.equal(shelfResponse?.status(), 200, '/store/shelf should return 200');
       await assertPublicCopy(shelf, '/store/shelf');
+      const shelfHeading = shelf.getByRole('heading', { name: 'The shelf', exact: true });
+      assert.equal(await shelfHeading.count(), 1, 'The shelf should be the page heading');
+      const shelfBreadcrumb = shelf.locator('nav[aria-label="Site navigation"] [aria-current="page"]');
+      assert.equal(await shelfBreadcrumb.textContent(), 'The shelf', 'shelf breadcrumb should name the current page');
+      const shelfFooter = await shelf.locator('footer a').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
+      assert.deepEqual(shelfFooter, footerLinks, '/store/shelf should have the home footer links');
+      const shelfLinks = await assertHitAreas(shelf, '/store/shelf', viewport);
       const emptyShelf = shelf.locator('main > p').filter({ hasText: 'Nothing is listed yet' });
       assert.equal(await emptyShelf.locator('a').count(), 0, 'empty shelf sentence should not contain links');
-      assert.equal((await emptyShelf.textContent())?.trim().endsWith('Home.'), false, 'empty shelf sentence should not trail a dot after Home');
+      assert.equal(await emptyShelf.textContent(), 'The shelf is being stocked. Nothing is listed yet.', 'empty shelf sentence should end at Nothing is listed yet.');
       const shelfButtons = shelf.locator('main > div > a');
       assert.equal(await shelfButtons.count(), 2, 'empty shelf should have Store and Home buttons');
-      const { buttons, sentenceBottom } = await shelf.evaluate(() => ({
+      const { buttons, disclosureBottom, sentenceBottom, sentenceTop } = await shelf.evaluate(() => ({
         buttons: Array.from(document.querySelectorAll('main > div > a')).map((link) => ({
           href: link.getAttribute('href'),
           text: link.textContent?.trim(),
@@ -145,10 +152,17 @@ try {
         sentenceBottom: Array.from(document.querySelectorAll('main > p'))
           .find((paragraph) => paragraph.textContent?.includes('Nothing is listed yet'))
           ?.getBoundingClientRect().bottom,
+        sentenceTop: Array.from(document.querySelectorAll('main > p'))
+          .find((paragraph) => paragraph.textContent?.includes('Nothing is listed yet'))
+          ?.getBoundingClientRect().top,
+        disclosureBottom: document.querySelector('#disclosure')?.getBoundingClientRect().bottom,
       }));
       const buttonLayout = buttons;
       assert.notEqual(sentenceBottom, undefined, 'empty shelf sentence should be present');
+      assert.notEqual(disclosureBottom, undefined, 'empty shelf should show its disclosure');
+      assert.ok(sentenceTop - disclosureBottom >= 16, 'empty shelf should separate disclosure and stocking copy');
       assert.ok(buttonLayout[0].top >= sentenceBottom, 'empty shelf buttons should be below the sentence');
+      assert.ok(buttonLayout[0].top - sentenceBottom >= 16, 'empty shelf should separate stocking copy and buttons');
       assert.deepEqual(buttonLayout.map(({ href, text }) => ({ href, text })), [
         { href: '/store', text: 'Store' },
         { href: '/', text: 'Home' },
@@ -157,7 +171,7 @@ try {
       assert.equal(buttonLayout[0].top, buttonLayout[1].top, 'empty shelf buttons should share their own line');
       assert.ok(!/\./.test(buttonLayout.map(({ text }) => text).join('')), 'empty shelf buttons should not trail a dot');
       await shelf.screenshot({ path: screenshotName('/store/shelf', viewport), fullPage: true });
-      results.push({ viewport: viewport.name, route: '/store/shelf', status: shelfResponse.status(), emptyLinks: ['/store', '/'] });
+      results.push({ viewport: viewport.name, route: '/store/shelf', status: shelfResponse.status(), emptyLinks: ['/store', '/'], footer: shelfFooter, hitAreas: shelfLinks });
       await shelf.close();
 
       const legal = await context.newPage();
@@ -181,6 +195,18 @@ try {
         const hrefs = await page.locator('footer a').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
         assert.deepEqual(hrefs, footerLinks, `${route} should have the home footer links`);
         const links = await assertHitAreas(page, route, viewport);
+        if (route === '/listen' && viewport.name === 'phone') {
+          const listenLinks = await page.locator('main > p').filter({ hasText: 'Back to home' }).locator('a').evaluateAll((anchors) => anchors.map((anchor) => ({
+            href: anchor.getAttribute('href'),
+            text: anchor.textContent?.trim(),
+            height: anchor.getBoundingClientRect().height,
+          })));
+          assert.deepEqual(listenLinks.map(({ href, text }) => ({ href, text })), [
+            { href: '/', text: 'Back to home' },
+            { href: '/programs/advanced-hypnosis-sessions', text: 'The video version' },
+          ], '/listen should retain both bottom links');
+          assert.ok(listenLinks.every(({ height }) => height >= 44), '/listen bottom links should each have a 44px hit area on phone');
+        }
         await page.screenshot({ path: screenshotName(route, viewport), fullPage: true });
         results.push({ viewport: viewport.name, route, status: response.status(), footer: hrefs, hitAreas: links });
         await page.close();

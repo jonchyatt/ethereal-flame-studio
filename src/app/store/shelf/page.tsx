@@ -1,4 +1,6 @@
 import { StoreItemCard, gridStyle } from '@/components/store/StoreItemCard';
+import { WaiaFooter } from '@/components/WaiaFooter';
+import { NAV_LINK_STYLE } from '@/app/legal/LegalLinks';
 import { DISCLOSURE, renderableItems, shelfHasCommission } from '@/lib/store/items';
 import { SHELF_ITEMS } from '@/lib/store/shelf-items';
 
@@ -25,16 +27,16 @@ export default function ShelfPage() {
   return (
     <main style={{ maxWidth: 960, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
       <nav aria-label="Site navigation" style={{ fontSize: 14, marginBottom: 24 }}>
-        <a href="/" style={{ color: 'inherit' }}>Home</a> · <a href="/store" style={{ color: 'inherit' }}>Store</a>
+        <a href="/" style={NAV_LINK_STYLE}>Home</a> · <a href="/store" style={NAV_LINK_STYLE}>Store</a> · <span aria-current="page">The shelf</span>
       </nav>
       <h1>The shelf</h1>
       {(items.length === 0 || shelfHasCommission(items)) && (
-        <p style={{ fontSize: 14, opacity: 0.75 }} id="disclosure"><strong>Disclosure.</strong> {DISCLOSURE}</p>
+        <p style={{ fontSize: 14, opacity: 0.75, marginBottom: 24 }} id="disclosure"><strong>Disclosure.</strong> {DISCLOSURE}</p>
       )}
       {items.length === 0 ? (
         <>
-          <p style={{ opacity: 0.7 }}>The shelf is being stocked. Nothing is listed yet. Visit Store or Home</p>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <p style={{ opacity: 0.7, margin: 0 }}>The shelf is being stocked. Nothing is listed yet.</p>
+          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
             <a href="/store" style={shelfButtonStyle}>Store</a>
             <a href="/" style={shelfButtonStyle}>Home</a>
           </div>
@@ -43,6 +45,7 @@ export default function ShelfPage() {
         <div style={gridStyle}>{items.map((i) => <StoreItemCard key={i.id} item={i} />)}</div>
       )}
       <p style={{ fontSize: 14, opacity: 0.6, marginTop: 32 }}>Links go to the seller. Nothing is bought or stored here. The free Reset Biology tools stay free.</p>
+      <WaiaFooter />
     </main>
   );
 }
