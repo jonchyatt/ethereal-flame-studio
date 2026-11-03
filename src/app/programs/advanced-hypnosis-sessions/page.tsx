@@ -42,7 +42,7 @@ export default async function HypnosisSessionsPage() {
           </span>
           <span style={{ display: 'block', fontSize: 14, opacity: 0.7, marginTop: 6 }}>
             This is not medical advice, therapy, or a promise of any outcome. Words: Reset Biology, &ldquo;Reset Your
-            Relationship with Food&rdquo; (owned). Voice: Jonathan Hyatt&rsquo;s own voice, rendered from his recordings with a voice clone. Visuals: Ethereal Flame Studio.
+            Relationship with Food&rdquo; (owned). Voice: Jonathan Hyatt, generated from his own recordings with an AI voice clone. Visuals: the studio.
           </span>
         </figcaption>
       </figure>

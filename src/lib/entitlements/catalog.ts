@@ -46,7 +46,7 @@ export const PROGRAMS: readonly Program[] = [
     id: 'yale-inversion-protocol',
     title: 'Belief Lock-In',
     kind: 'one_time',
-    summary: 'A guided process built on the inversion protocol.',
+    summary: 'A guided process for locking in a belief you choose.',
     priceCents: priceFor('program:yale-inversion-protocol'),
     testPriceCents: 1000,
     guided: true,
