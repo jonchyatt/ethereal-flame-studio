@@ -18,17 +18,28 @@ export const LEGAL_DOCS = [
   { slug: 'refunds', title: 'Refunds and cancellation' },
 ] as const;
 
+export const NAV_LINK_STYLE = {
+  color: 'inherit',
+  display: 'inline-block',
+  minHeight: 44,
+  padding: '10px 8px',
+  lineHeight: '24px',
+  verticalAlign: 'middle',
+} as const;
+
+export const FOOTER_LINK_STYLE = NAV_LINK_STYLE;
+
 export function LegalLinks() {
   return (
     <footer style={{ marginTop: 48, fontSize: 13, opacity: 0.7 }}>
       <p>
         {LEGAL_DOCS.map((d, i) => (
-          <span key={d.slug}>{i > 0 && ' · '}<a href={`/legal/${d.slug}`} style={{ color: 'inherit' }}>{d.title}</a></span>
+          <span key={d.slug}>{i > 0 && ' · '}<a href={`/legal/${d.slug}`} style={FOOTER_LINK_STYLE}>{d.title}</a></span>
         ))}
       </p>
       <p>
-        Operated by {OPERATOR.name} · <a href={`mailto:${OPERATOR.contact}`} style={{ color: 'inherit' }}>{OPERATOR.contact}</a> ·{' '}
-        <a href="/about" style={{ color: 'inherit' }}>About</a> · <a href="/support" style={{ color: 'inherit' }}>Support</a>
+        Operated by {OPERATOR.name} · <a href={`mailto:${OPERATOR.contact}`} style={FOOTER_LINK_STYLE}>{OPERATOR.contact}</a> ·{' '}
+        <a href="/about" style={FOOTER_LINK_STYLE}>About</a> · <a href="/support" style={FOOTER_LINK_STYLE}>Support</a>
       </p>
     </footer>
   );

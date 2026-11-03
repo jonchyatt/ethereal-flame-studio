@@ -1,3 +1,6 @@
+import { NAV_LINK_STYLE } from '@/app/legal/LegalLinks';
+import { WaiaFooter } from '@/components/WaiaFooter';
+
 export const metadata = {
   title: 'Listen · What Am I Appreciating Now',
   description: 'A gentle ten-minute guided practice, voiced by Jonathan Hyatt.',
@@ -18,7 +21,8 @@ export default function ListenPage() {
         Not medical advice or therapy. Do not listen while driving, operating machinery, or anywhere you need to stay alert. Voice: Jonathan Hyatt&rsquo;s own, rendered from his recordings with a voice clone.
         Words: Reset Biology, &ldquo;Reset Your Relationship with Food&rdquo;.
       </p>
-      <p style={{ marginTop: 24 }}><a href="/" style={{ color: '#cf9d4f' }}>Back to home</a> · <a href="/programs/advanced-hypnosis-sessions" style={{ color: '#cf9d4f' }}>The video version</a></p>
+      <p style={{ marginTop: 24 }}><a href="/" style={{ ...NAV_LINK_STYLE, color: '#cf9d4f' }}>Back to home</a> · <a href="/programs/advanced-hypnosis-sessions" style={{ ...NAV_LINK_STYLE, color: '#cf9d4f' }}>The video version</a></p>
+      <WaiaFooter />
     </main>
   );
 }

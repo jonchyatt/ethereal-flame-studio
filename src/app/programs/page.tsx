@@ -1,8 +1,11 @@
+import { cookies } from 'next/headers';
 import { PROGRAMS } from '@/lib/entitlements/catalog';
+import { loadRecord, summarizeAccess } from '@/lib/entitlements/model';
+import { CUSTOMER_COOKIE, verifyCustomerCookie } from '@/lib/entitlements/session';
 import { paymentsLive } from '@/lib/entitlements/stripe';
 import { formatPrice } from '@/lib/prices/config';
 import { CounterBeacon } from '@/components/CounterBeacon';
-import { LegalLinks } from '@/app/legal/LegalLinks';
+import { LegalLinks, NAV_LINK_STYLE } from '@/app/legal/LegalLinks';
 
 export const metadata = {
   title: 'Programs · What Am I Appreciating Now',
@@ -10,12 +13,22 @@ export const metadata = {
   alternates: { canonical: 'https://www.whatamiappreciatingnow.com/programs' },
 };
 
-export default function ProgramsPage() {
+async function browserHasPurchase() {
+  try {
+    const customerId = verifyCustomerCookie((await cookies()).get(CUSTOMER_COOKIE)?.value);
+    return !!customerId && summarizeAccess(await loadRecord(customerId)).length > 0;
+  } catch {
+    return false;
+  }
+}
+
+export default async function ProgramsPage() {
   const live = paymentsLive();
+  const hasPurchase = await browserHasPurchase();
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
       <nav aria-label="Site navigation" style={{ fontSize: 14, marginBottom: 24 }}>
-        <a href="/" style={{ color: 'inherit' }}>Home</a> · <a href="/store" style={{ color: 'inherit' }}>Store</a>
+        <a href="/" style={NAV_LINK_STYLE}>Home</a> · <a href="/store" style={NAV_LINK_STYLE}>Store</a>
       </nav>
       <CounterBeacon page="programs" />
       <h1>Programs</h1>
@@ -31,7 +44,7 @@ export default function ProgramsPage() {
           <p style={{ fontSize: 14, opacity: 0.7 }}>{p.provenance}</p>
         </section>
       ))}
-      <p style={{ fontSize: 14, opacity: 0.7 }}><a href="/programs/manage" style={{ color: 'inherit' }}>Manage my access</a></p>
+      {hasPurchase && <p style={{ fontSize: 14, opacity: 0.7 }}><a href="/programs/manage" style={NAV_LINK_STYLE}>Manage my access</a></p>}
       <p style={{ fontSize: 14, opacity: 0.7 }}>The free Reset Biology tools stay free.</p>
       <LegalLinks />
     </main>
