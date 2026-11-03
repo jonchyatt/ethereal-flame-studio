@@ -44,11 +44,11 @@ export const PROGRAMS: readonly Program[] = [
     id: 'yale-inversion-protocol',
     title: 'Yale inversion protocol: guided process',
     kind: 'one_time',
-    summary: 'A guided process built from the protocol Jonathan has handed over.',
+    summary: 'A guided process built on the inversion protocol.',
     priceCents: priceFor('program:yale-inversion-protocol'),
     testPriceCents: 1000,
     guided: true,
-    provenance: "Source: the Yale attachment protocol document and Jonathan's mental-mastery script doctrine. Read, never rewritten.",
+    provenance: 'Source: the Yale attachment protocol document. The studio records provenance before release.',
   },
 ];
 

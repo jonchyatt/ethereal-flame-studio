@@ -2,7 +2,7 @@
    Renders only items that are on Jonathan's list AND carry a real link AND a provenance note.
    Stores nothing, sends nothing, takes no payment: each item is an outbound link to the merchant. */
 (function (root) {
-  var DISCLOSURE = 'Some links on this shelf are affiliate links. If you buy through one, What Am I Appreciating Now may earn a commission at no extra cost to you. We list an item only because it is on Jonathan\'s own list, and a commission never changes what we say about it. Nothing here is medical advice, and none of it is meant to diagnose, treat or cure anything; talk to a qualified professional about your health.';
+  var DISCLOSURE = 'Some links on this shelf are affiliate links. If you buy through one, What Am I Appreciating Now may earn a commission at no extra cost to you. The studio lists an item only when it considers it suitable, and a commission never changes what we say about it. Nothing here is medical advice, and none of it is meant to diagnose, treat or cure anything; talk to a qualified professional about your health.';
 
   // Add items here once Jonathan hands over his list and an affiliate programme has approved him.
   // Shape and rules: docs/AFFILIATE-SHELF.md. Never invent a link, an affiliate ID or a product claim.

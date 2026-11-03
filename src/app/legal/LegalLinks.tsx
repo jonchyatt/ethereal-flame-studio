@@ -5,7 +5,7 @@
  */
 export const OPERATOR = {
   name: 'Hyatt Studio',
-  contact: 'jonchyatt@gmail.com',
+  contact: 'support@whatamiappreciatingnow.com',
 };
 
 /** Shown in the Terms and on every program page. */
@@ -32,15 +32,17 @@ export const FOOTER_LINK_STYLE = NAV_LINK_STYLE;
 export function LegalLinks() {
   return (
     <footer style={{ marginTop: 48, fontSize: 13, opacity: 0.7 }}>
-      <p>
-        {LEGAL_DOCS.map((d, i) => (
-          <span key={d.slug}>{i > 0 && ' · '}<a href={`/legal/${d.slug}`} style={FOOTER_LINK_STYLE}>{d.title}</a></span>
+      <nav aria-label="Legal links" style={{ display: 'flex', flexWrap: 'wrap', gap: '0 4px' }}>
+        {LEGAL_DOCS.map((d) => (
+          <a key={d.slug} href={`/legal/${d.slug}`} style={FOOTER_LINK_STYLE}>{d.title}</a>
         ))}
-      </p>
-      <p>
-        Operated by {OPERATOR.name} · <a href={`mailto:${OPERATOR.contact}`} style={FOOTER_LINK_STYLE}>{OPERATOR.contact}</a> ·{' '}
-        <a href="/about" style={FOOTER_LINK_STYLE}>About</a> · <a href="/support" style={FOOTER_LINK_STYLE}>Support</a>
-      </p>
+      </nav>
+      <nav aria-label="Site details" style={{ display: 'flex', flexWrap: 'wrap', gap: '0 4px', alignItems: 'center' }}>
+        <span>Operated by {OPERATOR.name}</span>
+        <a href={`mailto:${OPERATOR.contact}`} style={FOOTER_LINK_STYLE}>{OPERATOR.contact}</a>
+        <a href="/about" style={FOOTER_LINK_STYLE}>About</a>
+        <a href="/support" style={FOOTER_LINK_STYLE}>Support</a>
+      </nav>
     </footer>
   );
 }

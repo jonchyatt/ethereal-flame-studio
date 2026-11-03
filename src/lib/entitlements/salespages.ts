@@ -190,7 +190,7 @@ export const SALES_PAGES: readonly SalesPage[] = [
         heading: 'A guided process, one step at a time',
         body: [
           'You move through the process one step at a time, with an optional timer and private notes that stay in your browser tab.',
-          'The steps are handed over by Jonathan and are not summarised or rewritten on this page.',
+          'The studio preserves the steps without summarising or rewriting them on this page.',
         ],
       },
       { heading: 'Your choice, every step', body: ['You choose to take part, and you can stop at any time. ' + YALE_NAMING_NOTE] },
@@ -264,7 +264,7 @@ export const SALES_PAGES: readonly SalesPage[] = [
         heading: 'It sounds like you want to move through it, not read about it',
         body: [
           'This is a guided process: one step at a time, an optional timer, and private notes that stay in your browser tab.',
-          'The steps are handed over by Jonathan and are not summarised or rewritten on this page.',
+          'The studio preserves the steps without summarising or rewriting them on this page.',
         ],
         technique: 'Voss label as the heading; the process is the quiet answer, facts only.',
       },

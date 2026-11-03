@@ -35,7 +35,7 @@ export const KIND_LABEL: Record<ItemKind, string> = {
 };
 
 export const DISCLOSURE =
-  "Some links on this shelf are affiliate links. If you buy through one, What Am I Appreciating Now may earn a commission at no extra cost to you. We list an item only because it is on Jonathan's own list, and a commission never changes what we say about it. Nothing here is medical advice, and none of it is meant to diagnose, treat or cure anything; talk to a qualified professional about your health.";
+  'Some links on this shelf are affiliate links. If you buy through one, What Am I Appreciating Now may earn a commission at no extra cost to you. The studio lists an item only when it considers it suitable, and a commission never changes what we say about it. Nothing here is medical advice, and none of it is meant to diagnose, treat or cure anything; talk to a qualified professional about your health.';
 
 const PLACEHOLDER = /placeholder|your[-_ ]?(id|tag)|\{[^}]*\}|<[^>]*>|example\.com|\.test\b|localhost/i;
 

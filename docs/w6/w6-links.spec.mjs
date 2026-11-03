@@ -15,6 +15,28 @@ const legacyRedirects = {
   '/refund-policy': '/legal/refunds',
   '/contact': '/support',
 };
+const retiredPublicCopy = [
+  'Further protocols',
+  'Guided process. Placeholder.',
+  'The protocol content is handed over by Jonathan',
+  'Read, never rewritten',
+  "Jonathan's mental-mastery script doctrine",
+  'Jonathan decides the real ones',
+  "on Jonathan's own list",
+];
+const publicCopyRoutes = [
+  '/',
+  '/about',
+  '/legal/privacy',
+  '/legal/refunds',
+  '/programs/yale-inversion-protocol',
+  '/programs/yale-inversion-protocol/preview/a',
+  '/programs/yale-inversion-protocol/preview/b',
+  '/programs/yale-inversion-protocol/preview/c',
+  '/programs/yale-inversion-protocol/preview/d',
+  '/patrons',
+  '/patrons/join',
+];
 
 await mkdir('docs/w6', { recursive: true });
 const browser = await chromium.launch({ headless: true, executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
@@ -40,6 +62,22 @@ async function assertHitAreas(page, route, viewport) {
   return links;
 }
 
+async function assertPublicCopy(page, route) {
+  const text = await page.locator('body').innerText();
+  for (const retired of retiredPublicCopy) {
+    assert.ok(!text.includes(retired), `${route} should not show retired copy: ${retired}`);
+  }
+  assert.ok(!text.includes('jonchyatt@gmail.com'), `${route} should not show Jon's personal email`);
+}
+
+async function assertFooterHasNoSeparators(page, route, viewport) {
+  if (viewport.name !== 'phone') return;
+  const footers = await page.locator('footer').evaluateAll((nodes) => nodes.map((node) => node.textContent ?? ''));
+  for (const text of footers) {
+    assert.ok(!text.includes('\u00b7') && !text.includes('\u00c2\u00b7'), `${route} footer should not put a dot at either end of a wrapped line`);
+  }
+}
+
 try {
   for (const viewport of viewports) {
     const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height } });
@@ -48,9 +86,28 @@ try {
       const storeResponse = await store.goto(`${base}/store`, { waitUntil: 'networkidle' });
       assert.equal(storeResponse?.status(), 200, '/store should return 200');
       assert.equal(await store.locator('a[href="/store/shelf"]').count(), 0, '/store should not link to /store/shelf while empty');
+      assert.equal(await store.locator('#shelf').count(), 0, '/store should hide its empty health shelf');
+      assert.equal(await store.locator('.proposed-price:visible').count(), 0, '/store should hide proposed tier prices');
+      assert.doesNotMatch(await store.locator('body').innerText(), /\$(?:5|10|20|35)\b/, '/store should not visibly show a tier price');
+      await assertPublicCopy(store, '/store');
+      await assertFooterHasNoSeparators(store, '/store', viewport);
+      const details = store.locator('#intake-details');
+      const contact = store.locator('#intake-contact');
+      assert.equal(Math.round((await details.boundingBox()).width), Math.round((await contact.boundingBox()).width), '/store contact input should match the full width of the details field');
+      await details.fill(`W8 local end-to-end request (${viewport.name})`);
+      await contact.fill('w8@example.test');
+      const [intakeResponse] = await Promise.all([
+        store.waitForResponse((response) => response.url().endsWith('/api/custom-orders') && response.request().method() === 'POST'),
+        store.locator('#intake-form button[type="submit"]').click(),
+      ]);
+      assert.equal(intakeResponse.status(), 201, '/store custom-work form should reach the live intake endpoint locally');
+      const intakeEcho = store.locator('#intake-echo');
+      await intakeEcho.waitFor({ state: 'visible' });
+      assert.match(await intakeEcho.innerText(), /Keep this reference to check on your request: ord_[0-9a-f]+\.[0-9a-f]+/, '/store should give the visitor the promised reference');
+      assert.match((await intakeEcho.locator('a').getAttribute('href')) ?? '', /^\/store\/custom-order#ref=ord_[0-9a-f]+\.[0-9a-f]+$/, '/store should link the reference to its status page');
       const storeLinks = await assertHitAreas(store, '/store', viewport);
       await store.screenshot({ path: screenshotName('/store', viewport), fullPage: true });
-      results.push({ viewport: viewport.name, route: '/store', status: storeResponse.status(), shelfLink: false, hitAreas: storeLinks });
+      results.push({ viewport: viewport.name, route: '/store', status: storeResponse.status(), shelfLink: false, healthShelf: 'hidden', proposedPrices: 'hidden', intake: '201 with reference', hitAreas: storeLinks });
       await store.close();
 
       for (const route of ['/programs', '/support']) {
@@ -58,6 +115,8 @@ try {
         const response = await page.goto(`${base}${route}`, { waitUntil: 'networkidle' });
         assert.equal(response?.status(), 200, `${route} should return 200`);
         assert.equal(await page.locator('a[href="/programs/manage"]').count(), 0, `${route} should hide Manage my access without a purchase`);
+        await assertPublicCopy(page, route);
+        await assertFooterHasNoSeparators(page, route, viewport);
         const links = await assertHitAreas(page, route, viewport);
         await page.screenshot({ path: screenshotName(route, viewport), fullPage: true });
         results.push({ viewport: viewport.name, route, status: response.status(), manageLink: false, hitAreas: links });
@@ -70,6 +129,7 @@ try {
       const shelf = await context.newPage();
       const shelfResponse = await shelf.goto(`${base}/store/shelf`, { waitUntil: 'networkidle' });
       assert.equal(shelfResponse?.status(), 200, '/store/shelf should return 200');
+      await assertPublicCopy(shelf, '/store/shelf');
       const emptyShelf = shelf.locator('main > p').filter({ hasText: 'Nothing is listed yet' });
       assert.equal(await emptyShelf.locator('a').count(), 0, 'empty shelf sentence should not contain links');
       assert.equal((await emptyShelf.textContent())?.trim().endsWith('Home.'), false, 'empty shelf sentence should not trail a dot after Home');
@@ -103,6 +163,8 @@ try {
       const legal = await context.newPage();
       const legalResponse = await legal.goto(`${base}/legal/terms`, { waitUntil: 'networkidle' });
       assert.equal(legalResponse?.status(), 200, '/legal/terms should return 200');
+      await assertPublicCopy(legal, '/legal/terms');
+      await assertFooterHasNoSeparators(legal, '/legal/terms', viewport);
       const breadcrumb = legal.locator('a').filter({ hasText: 'Programs' });
       assert.equal(await breadcrumb.count(), 1, 'legal terms should have one Programs breadcrumb');
       assert.equal(await breadcrumb.getAttribute('href'), '/', 'legal terms breadcrumb should point to Home');
@@ -114,6 +176,8 @@ try {
         const page = await context.newPage();
         const response = await page.goto(`${base}${route}`, { waitUntil: 'networkidle' });
         assert.equal(response?.status(), 200, `${route} should return 200`);
+        await assertPublicCopy(page, route);
+        await assertFooterHasNoSeparators(page, route, viewport);
         const hrefs = await page.locator('footer a').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
         assert.deepEqual(hrefs, footerLinks, `${route} should have the home footer links`);
         const links = await assertHitAreas(page, route, viewport);
@@ -122,10 +186,20 @@ try {
         await page.close();
       }
 
+      for (const route of publicCopyRoutes) {
+        const page = await context.newPage();
+        const response = await page.goto(`${base}${route}`, { waitUntil: 'networkidle' });
+        assert.equal(response?.status(), 200, `${route} should return 200`);
+        await assertPublicCopy(page, route);
+        await assertFooterHasNoSeparators(page, route, viewport);
+        results.push({ viewport: viewport.name, route, status: response.status(), publicCopy: 'clean' });
+        await page.close();
+      }
+
       for (const [route, location] of Object.entries(legacyRedirects)) {
         const response = await context.request.get(`${base}${route}`, { maxRedirects: 0 });
         assert.equal(response.status(), 307, `${route} should temporarily redirect`);
-        assert.equal(new URL(response.headers().location).pathname, location, `${route} should redirect to ${location}`);
+        assert.equal(new URL(response.headers().location, base).pathname, location, `${route} should redirect to ${location}`);
         results.push({ viewport: viewport.name, route, status: response.status(), location });
       }
     } finally {
