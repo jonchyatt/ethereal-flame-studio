@@ -29,22 +29,22 @@ const publicCopyRoutes = [
   '/about',
   '/legal/privacy',
   '/legal/refunds',
-  '/programs/yale-inversion-protocol',
-  '/programs/yale-inversion-protocol/preview/a',
-  '/programs/yale-inversion-protocol/preview/b',
-  '/programs/yale-inversion-protocol/preview/c',
-  '/programs/yale-inversion-protocol/preview/d',
+  '/programs/belief-lock-in',
+  '/programs/belief-lock-in/preview/a',
+  '/programs/belief-lock-in/preview/b',
+  '/programs/belief-lock-in/preview/c',
+  '/programs/belief-lock-in/preview/d',
   '/patrons',
   '/patrons/join',
 ];
 
-await mkdir('docs/w6', { recursive: true });
+await mkdir('test-results/w11', { recursive: true });
 const browser = await chromium.launch({ headless: true, executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
 const results = [];
 
 function screenshotName(route, viewport) {
   const slug = route.slice(1).replaceAll('/', '-') || 'home';
-  return `docs/w6/${slug}-${viewport.name}.png`;
+  return `test-results/w11/${slug}-${viewport.name}.png`;
 }
 
 async function assertHitAreas(page, route, viewport) {
@@ -68,6 +68,10 @@ async function assertPublicCopy(page, route) {
     assert.ok(!text.includes(retired), `${route} should not show retired copy: ${retired}`);
   }
   assert.ok(!text.includes('jonchyatt@gmail.com'), `${route} should not show Jon's personal email`);
+}
+
+async function assertNoYale(page, route) {
+  assert.doesNotMatch(await page.locator('body').innerText(), /yale/i, `${route} should not show Yale`);
 }
 
 async function assertFooterHasNoSeparators(page, route, viewport) {
@@ -117,6 +121,7 @@ try {
       assert.equal(await store.locator('.proposed-price:visible').count(), 0, '/store should hide proposed tier prices');
       assert.doesNotMatch(await store.locator('body').innerText(), /\$(?:5|10|20|35)\b/, '/store should not visibly show a tier price');
       await assertPublicCopy(store, '/store');
+      await assertNoYale(store, '/store');
       await assertFooterHasNoSeparators(store, '/store', viewport);
       await assertNoVisibleLinkSeparators(store, '/store', viewport);
       const storeHeadingFontSize = await store.getByRole('heading', { name: 'The Store', exact: true }).evaluate((heading) => getComputedStyle(heading).fontSize);
@@ -148,6 +153,7 @@ try {
         assert.equal(response?.status(), 200, `${route} should return 200`);
         assert.equal(await page.locator('a[href="/programs/manage"]').count(), 0, `${route} should hide Manage my access without a purchase`);
         await assertPublicCopy(page, route);
+        if (route === '/programs') await assertNoYale(page, route);
         await assertFooterHasNoSeparators(page, route, viewport);
         const links = await assertHitAreas(page, route, viewport);
         await page.screenshot({ path: screenshotName(route, viewport), fullPage: true });
@@ -168,6 +174,17 @@ try {
       await assertNoVisibleLinkSeparators(shelf, '/store/shelf', viewport);
       const shelfBreadcrumb = shelf.locator('nav[aria-label="Site navigation"] [aria-current="page"]');
       assert.equal(await shelfBreadcrumb.textContent(), 'The shelf', 'shelf breadcrumb should name the current page');
+      const shelfBreadcrumbStyle = await shelf.locator('nav[aria-label="Site navigation"] > *').evaluateAll((items) => items.slice(1).map((item) => ({
+        content: getComputedStyle(item, '::before').content,
+        top: item.getBoundingClientRect().top,
+      })));
+      assert.ok(shelfBreadcrumbStyle.every(({ content }) => content.includes('/')), 'shelf breadcrumb should show CSS separators after each item');
+      assert.ok(shelfBreadcrumbStyle.every(({ top }) => top === shelfBreadcrumbStyle[0].top), 'shelf breadcrumb items should share one baseline');
+      const shelfMarkupText = await shelf.locator('nav[aria-label="Site navigation"]').evaluate((nav) => Array.from(nav.childNodes)
+        .filter((node) => node.nodeType === Node.TEXT_NODE)
+        .map((node) => node.textContent?.trim())
+        .filter(Boolean));
+      assert.deepEqual(shelfMarkupText, [], 'shelf breadcrumb markup should not contain text separators');
       const shelfFooter = await shelf.locator('footer a').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
       assert.deepEqual(shelfFooter, footerLinks, '/store/shelf should have the home footer links');
       const shelfLinks = await assertHitAreas(shelf, '/store/shelf', viewport);
@@ -227,6 +244,7 @@ try {
         await assertPublicCopy(page, route);
         await assertFooterHasNoSeparators(page, route, viewport);
         if (route === '/listen') await assertNoVisibleLinkSeparators(page, route, viewport);
+        if (route === '/listen') await assertNoYale(page, route);
         const hrefs = await page.locator('footer a').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
         assert.deepEqual(hrefs, footerLinks, `${route} should have the home footer links`);
         const links = await assertHitAreas(page, route, viewport);
@@ -263,6 +281,11 @@ try {
         assert.equal(new URL(response.headers().location, base).pathname, location, `${route} should redirect to ${location}`);
         results.push({ viewport: viewport.name, route, status: response.status(), location });
       }
+
+      const renamedProgram = await context.request.get(`${base}/programs/yale-inversion-protocol`, { maxRedirects: 0 });
+      assert.equal(renamedProgram.status(), 308, 'old program URL should redirect permanently');
+      assert.equal(new URL(renamedProgram.headers().location, base).pathname, '/programs/belief-lock-in', 'old program URL should redirect to Belief Lock-In');
+      results.push({ viewport: viewport.name, route: '/programs/yale-inversion-protocol', status: renamedProgram.status(), location: '/programs/belief-lock-in' });
     } finally {
       await context.close();
     }

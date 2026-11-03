@@ -35,7 +35,7 @@ export const BUNDLES: readonly Bundle[] = [
   },
   {
     id: 'yale-guided-process-gift',
-    title: 'The Yale guided process, with a session made for one person',
+    title: 'Belief Lock-In, with a session made for one person',
     // Copy v2: Voss label, then the facts.
     summary: 'It sounds like they keep circling back to the same contrast. The guided inversion process paired with a custom session made for them, where Now closes back into What.',
     items: [{ type: 'program', id: 'yale-inversion-protocol' }, { type: 'custom-session' }],
@@ -43,7 +43,7 @@ export const BUNDLES: readonly Bundle[] = [
   },
   {
     id: 'sessions-and-process-gift',
-    title: 'The deeper sessions and the Yale guided process',
+    title: 'The deeper sessions and Belief Lock-In',
     // Copy v2: Voss no-oriented question as the close.
     summary: 'Both paid programs together, for someone ready to go further than the free collection. Would it be a bad idea to give them the whole circle at once?',
     items: [{ type: 'program', id: 'advanced-hypnosis-sessions' }, { type: 'program', id: 'yale-inversion-protocol' }],

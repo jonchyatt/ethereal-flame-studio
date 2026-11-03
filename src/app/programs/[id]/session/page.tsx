@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
-import { getProgram } from '@/lib/entitlements/catalog';
+import { getProgram, programSlug } from '@/lib/entitlements/catalog';
 import { loadGuidedSession } from '@/lib/entitlements/guided';
 import { hasAccess, loadRecord } from '@/lib/entitlements/model';
 import { CUSTOMER_COOKIE, verifyCustomerCookie } from '@/lib/entitlements/session';
@@ -12,19 +12,20 @@ export default async function GuidedSessionPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const program = getProgram(id);
   if (!program?.guided) notFound();
+  const slug = programSlug(program.id);
 
   let allowed = false;
   try {
     const customerId = verifyCustomerCookie((await cookies()).get(CUSTOMER_COOKIE)?.value);
-    allowed = !!customerId && hasAccess(await loadRecord(customerId), id);
+    allowed = !!customerId && hasAccess(await loadRecord(customerId), program.id);
   } catch { /* storage or secret unavailable: fail closed */ }
-  const session = allowed ? await loadGuidedSession(id) : null;
+  const session = allowed ? await loadGuidedSession(program.id) : null;
 
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
-      <p><a href={`/programs/${id}`} style={{ color: 'inherit' }}>← {program.title}</a></p>
+      <p><a href={`/programs/${slug}`} style={{ color: 'inherit' }}>← {program.title}</a></p>
       {!allowed ? (
-        <p>This guided process opens after purchase. <a href={`/programs/${id}`} style={{ color: 'inherit' }}>Back to the program page</a>.</p>
+        <p>This guided process opens after purchase. <a href={`/programs/${slug}`} style={{ color: 'inherit' }}>Back to the program page</a>.</p>
       ) : session ? (
         <SessionPlayer session={session} />
       ) : (

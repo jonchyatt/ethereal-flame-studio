@@ -1,4 +1,4 @@
-import { PROGRAMS } from '../catalog';
+import { getProgram, PROGRAMS, programSlug } from '../catalog';
 import { getSalesPage, LOOP_STAGES, SALES_PAGES, VARIANT_IDS } from '../salespages';
 
 const text = (p: (typeof SALES_PAGES)[number]) =>
@@ -36,8 +36,13 @@ describe('sales page previews', () => {
     }
   });
 
-  it('makes no Yale claim in public copy', () => {
-    for (const p of SALES_PAGES.filter((x) => x.programId === 'yale-inversion-protocol')) {
+  it('uses Belief Lock-In and keeps the legacy name out of public copy', () => {
+    const beliefLockIn = getProgram('belief-lock-in');
+    expect(beliefLockIn).not.toBeNull();
+    expect(programSlug(beliefLockIn!.id)).toBe('belief-lock-in');
+    expect(getSalesPage('belief-lock-in', 'a')).not.toBeNull();
+    for (const p of SALES_PAGES.filter((x) => x.programId === beliefLockIn!.id)) {
+      expect(p.displayName).toBe('Belief Lock-In');
       expect(p.displayName).not.toMatch(/yale/i);
       expect(text(p)).not.toMatch(/yale/i);
     }

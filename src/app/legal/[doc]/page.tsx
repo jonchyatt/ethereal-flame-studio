@@ -27,7 +27,7 @@ const BODY: Record<Doc, { h: string; p: ReactNode[] }[]> = {
       SAFETY_NOTE,
     ] },
     { h: 'Use of the content', p: [
-      'Your purchase is a personal licence to listen and use the program. Please do not copy, resell or redistribute it.',
+      'Your purchase is a personal license to listen and use the program. Please do not copy, resell or redistribute it.',
     ] },
     { h: 'Changes', p: ['If these terms change, the new version is posted here with its date. Changes never shorten a period you have already paid for.'] },
   ],

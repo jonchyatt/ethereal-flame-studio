@@ -13,7 +13,7 @@ export default async function MerchProductPage({ params }: { params: Promise<{ s
       <img src={p.image} alt={p.name} style={{ width: '100%', maxWidth: 480, borderRadius: 12 }} />
       <p>{p.description}</p>
       <p style={{ fontSize: 14, opacity: 0.7 }}>
-        {p.kindLabel}, printed on demand.{p.sizes.length > 0 ? ` Sizes: ${p.sizes.join(', ')}.` : ''} Colours are set in the store when it opens. Not yet on sale.
+        {p.kindLabel}, printed on demand.{p.sizes.length > 0 ? ` Sizes: ${p.sizes.join(', ')}.` : ''} Colors are set in the store when it opens. Not yet on sale.
       </p>
       <NotifyButton slug={p.slug} sizes={p.sizes} />
     </main>

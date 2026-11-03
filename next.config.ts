@@ -13,6 +13,13 @@ const nextConfig: NextConfig = {
       headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' }],
     }];
   },
+  async redirects() {
+    return [{
+      source: '/programs/yale-inversion-protocol/:path*',
+      destination: '/programs/belief-lock-in/:path*',
+      permanent: true,
+    }];
+  },
   webpack: (config) => {
     // Add GLSL shader file support
     config.module.rules.push({

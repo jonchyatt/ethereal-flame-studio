@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { PROGRAMS } from '@/lib/entitlements/catalog';
+import { PROGRAMS, programSlug } from '@/lib/entitlements/catalog';
 import { loadRecord, summarizeAccess } from '@/lib/entitlements/model';
 import { CUSTOMER_COOKIE, verifyCustomerCookie } from '@/lib/entitlements/session';
 import { paymentsLive } from '@/lib/entitlements/stripe';
@@ -36,7 +36,7 @@ export default async function ProgramsPage() {
       <p>What Am I Appreciating Now programs.{live ? '' : ' Nothing here is on sale yet.'}</p>
       {PROGRAMS.map((p) => (
         <section key={p.id} style={{ margin: '24px 0', padding: 20, border: '1px solid #333', borderRadius: 12 }}>
-          <h2><a href={`/programs/${p.id}`} style={{ color: 'inherit' }}>{p.title}</a></h2>
+          <h2><a href={`/programs/${programSlug(p.id)}`} style={{ color: 'inherit' }}>{p.title}</a></h2>
           <p>{p.summary}</p>
           <p style={{ fontSize: 14, opacity: 0.7 }}>
             {p.kind === 'subscription' ? 'Subscription' : 'One-time purchase'} ·{' '}

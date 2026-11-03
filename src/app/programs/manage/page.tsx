@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { getProgram } from '@/lib/entitlements/catalog';
+import { getProgram, programSlug } from '@/lib/entitlements/catalog';
 import { loadRecord, summarizeAccess, type AccessStatus } from '@/lib/entitlements/model';
 import { CUSTOMER_COOKIE, verifyCustomerCookie } from '@/lib/entitlements/session';
 import { PortalButton } from './PortalButton';
@@ -46,7 +46,7 @@ export default async function ManagePage() {
             <h2>{getProgram(i.programId)?.title}</h2>
             <p>{WORDS[i.status](i.endsAt)}</p>
             {(i.status === 'active' || i.status === 'cancelling' || i.status === 'grace') && (
-              <p><a href={`/programs/${i.programId}`} style={{ color: 'inherit' }}>Open program</a></p>
+              <p><a href={`/programs/${programSlug(i.programId)}`} style={{ color: 'inherit' }}>Open program</a></p>
             )}
           </section>
         ))
