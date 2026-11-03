@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
-import { getProgram } from '@/lib/entitlements/catalog';
+import { getProgram, programSlug } from '@/lib/entitlements/catalog';
 import { loadProgramContent } from '@/lib/entitlements/content';
 import { hasAccess, loadRecord } from '@/lib/entitlements/model';
 import { CUSTOMER_COOKIE, verifyCustomerCookie } from '@/lib/entitlements/session';
@@ -25,13 +25,14 @@ const COMING_SOON_QUESTION: Record<string, string> = {
 export async function ProgramView({ id, children }: { id: string; children?: React.ReactNode }) {
   const program = getProgram(id);
   if (!program) notFound();
+  const slug = programSlug(program.id);
 
   let allowed = false;
   try {
     const customerId = verifyCustomerCookie((await cookies()).get(CUSTOMER_COOKIE)?.value);
-    allowed = !!customerId && hasAccess(await loadRecord(customerId), id);
+    allowed = !!customerId && hasAccess(await loadRecord(customerId), program.id);
   } catch { /* storage or secret unavailable: fail closed */ }
-  const content = allowed ? await loadProgramContent(id) : null;
+  const content = allowed ? await loadProgramContent(program.id) : null;
   let tracks: { id: string; title: string }[] = [];
   if (allowed) {
     try { tracks = (await loadAudioManifest(id)).map(({ id: tid, title }) => ({ id: tid, title })); } catch { /* no audio shown */ }
@@ -46,7 +47,7 @@ export async function ProgramView({ id, children }: { id: string; children?: Rea
       <p style={{ fontSize: 14, opacity: 0.7 }}>{program.provenance}</p>
       <p style={{ fontSize: 14, opacity: 0.85 }}><strong>Safety:</strong> {SAFETY_NOTE}</p>
       {allowed && program.guided && (
-        <p><a href={`/programs/${id}/session`} style={{ color: 'inherit', fontWeight: 600 }}>Open the guided process →</a></p>
+        <p><a href={`/programs/${slug}/session`} style={{ color: 'inherit', fontWeight: 600 }}>Open the guided process →</a></p>
       )}
       {allowed && tracks.length > 0 && <AudioPlayer programId={program.id} tracks={tracks} />}
       {allowed ? (

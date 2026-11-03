@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { getProgram } from '@/lib/entitlements/catalog';
+import { getProgram, programSlug } from '@/lib/entitlements/catalog';
 import { loadRecord, summarizeAccess, type AccessStatus } from '@/lib/entitlements/model';
 import { CUSTOMER_COOKIE, verifyCustomerCookie } from '@/lib/entitlements/session';
 import { PortalButton } from './PortalButton';
@@ -39,14 +39,14 @@ export default async function ManagePage() {
       <h1>Manage my access</h1>
       <p style={{ fontSize: 14, opacity: 0.7 }}>This browser is how we know it is you; no account or email is kept here.</p>
       {items.length === 0 ? (
-        <p>No programs found on this browser. If you bought from another device, open this page there.</p>
+        <p>No programs found on this browser. If you bought from another device, open this page there. For manual recovery, visit <a href="/support" style={{ color: 'inherit' }}>Support</a>.</p>
       ) : (
         items.map((i) => (
           <section key={i.programId} style={{ margin: '24px 0', padding: 20, border: '1px solid #333', borderRadius: 12 }}>
             <h2>{getProgram(i.programId)?.title}</h2>
             <p>{WORDS[i.status](i.endsAt)}</p>
             {(i.status === 'active' || i.status === 'cancelling' || i.status === 'grace') && (
-              <p><a href={`/programs/${i.programId}`} style={{ color: 'inherit' }}>Open program</a></p>
+              <p><a href={`/programs/${programSlug(i.programId)}`} style={{ color: 'inherit' }}>Open program</a></p>
             )}
           </section>
         ))

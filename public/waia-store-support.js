@@ -20,12 +20,36 @@
   var form = document.getElementById('intake-form');
   if (!form) return;
   var out = document.getElementById('intake-echo');
-  function show(heading, lines, link) {
+  function show(heading, lines, link, reference) {
     out.textContent = '';
     var h = document.createElement('h3');
     h.textContent = heading;
     out.appendChild(h);
     lines.forEach(function (t) { var p = document.createElement('p'); p.textContent = t; out.appendChild(p); });
+    if (reference) {
+      var referenceLine = document.createElement('p');
+      referenceLine.append('Keep this reference to check on your request: ');
+      var code = document.createElement('code');
+      code.textContent = reference;
+      referenceLine.appendChild(code);
+      var copy = document.createElement('button');
+      copy.type = 'button'; copy.className = 'copy-reference'; copy.textContent = 'Copy reference';
+      copy.addEventListener('click', function () {
+        var selectReference = function () {
+          var range = document.createRange();
+          range.selectNodeContents(code);
+          var selection = window.getSelection();
+          selection.removeAllRanges(); selection.addRange(range);
+        };
+        if (!navigator.clipboard || !navigator.clipboard.writeText) { selectReference(); return; }
+        navigator.clipboard.writeText(reference).then(function () {
+          copy.textContent = 'Copied';
+          window.setTimeout(function () { copy.textContent = 'Copy reference'; }, 2000);
+        }).catch(selectReference);
+      });
+      referenceLine.appendChild(copy);
+      out.appendChild(referenceLine);
+    }
     if (link) {
       var a = document.createElement('a');
       a.href = link; a.textContent = 'Check on your request';
@@ -52,9 +76,8 @@
       if (!res.ok) { show('Not yet', [res.body.error || 'That did not go through. Please try again.']); return; }
       form.reset();
       show('Request received', [r.kind + ': ' + r.details,
-        'Keep this reference to check on your request: ' + res.body.reference,
         'Nothing has been charged. You will see a quote there when one is ready, and you can accept or decline it.'],
-        '/store/custom-order#ref=' + encodeURIComponent(res.body.reference));
+        '/store/custom-order#ref=' + encodeURIComponent(res.body.reference), res.body.reference);
     }).catch(function () { show('Not yet', ['That did not go through. Please try again.']); });
   });
 })(typeof window !== 'undefined' ? window : globalThis);

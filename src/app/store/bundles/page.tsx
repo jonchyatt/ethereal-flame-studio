@@ -1,4 +1,6 @@
 import { ComingSoon } from '@/components/ComingSoon';
+import { WaiaFooter } from '@/components/WaiaFooter';
+import { NAV_LINK_STYLE } from '@/app/legal/LegalLinks';
 import { BUNDLES, bundlePriceCents, isOnSale, itemLabel } from '@/lib/store/bundles';
 
 export const metadata = {
@@ -10,6 +12,10 @@ export const metadata = {
 export default function BundlesPage() {
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
+      <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
+        <a href="/" style={NAV_LINK_STYLE}>Home</a>
+        <a href="/store" style={NAV_LINK_STYLE}>Store</a>
+      </nav>
       <h1>Gifts and bundles</h1>
       {/* Copy v2 (Voss/NEPQ, 2026-10-19): NEPQ situation question opens on the reader. v1: docs/COPY-V2-VOSS-NEPQ-2026-10-19.md */}
       <p>Who do you know who could use an hour that is all theirs? What Am I Appreciating Now, bundled to keep or to give. Nothing here is on sale yet and nothing is charged.</p>
@@ -33,6 +39,7 @@ export default function BundlesPage() {
       <h2>How giving will work</h2>
       <p>Choose a bundle, add a short note and an optional delivery date. You receive a one-time gift code to pass on; we keep only a scrambled copy of it, and no email address or postal address is stored.</p>
       <p style={{ fontSize: 14, opacity: 0.7 }}>The free Reset Biology tools stay free.</p>
+      <WaiaFooter />
     </main>
   );
 }

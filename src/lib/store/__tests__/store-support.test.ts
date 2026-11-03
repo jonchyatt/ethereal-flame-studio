@@ -7,7 +7,7 @@ const patron = fs.readFileSync(path.join(root, 'docs/PATRON-WALL.md'), 'utf8');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { buildEcho } = require(path.join(root, 'public/waia-store-support.js'));
 
-const section = html.slice(html.indexOf('<section id="support">'), html.indexOf('<p class="note">'));
+const section = html.slice(html.indexOf('<section id="support">'), html.indexOf('</main>'));
 
 describe('store: Support the channel', () => {
   it('shows every tier price and name from PATRON-WALL.md as a proposal', () => {
@@ -42,6 +42,11 @@ describe('store: Support the channel', () => {
       ok: true, kind: 'Custom VR session', details: 'a quiet forest', contact: '',
     });
     expect(fs.readFileSync(path.join(root, "public/waia-store-support.js"), "utf8")).toMatch(/Coming soon/);
+  });
+
+  it('does not expose the internal build note', () => {
+    expect(html).not.toContain('render-brand-mockups');
+    expect(html).not.toContain('BRAND-MARK.md');
   });
 
   it('rejects missing kind or details and caps length', () => {

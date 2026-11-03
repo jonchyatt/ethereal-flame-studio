@@ -19,6 +19,24 @@ body.canvas-page {
   min-height: 100%;
 }
 
+.shelf-breadcrumb {
+  gap: 0 !important;
+}
+
+.shelf-breadcrumb > * {
+  align-items: center;
+  display: inline-flex;
+  min-height: 44px;
+  padding: 10px 8px;
+  line-height: 24px;
+}
+
+.shelf-breadcrumb > * + *::before {
+  content: '/';
+  margin: 0 8px;
+  color: #9b9788;
+}
+
 /* Nudge overlay animation */
 @keyframes fade-in-up {
   from {

@@ -29,6 +29,8 @@ export interface Program {
 }
 
 export const FREE_TOOLS = ['peptide-tracker', 'self-help'] as const;
+const BELIEF_LOCK_IN_PROGRAM_ID = 'yale-inversion-protocol';
+const BELIEF_LOCK_IN_SLUG = 'belief-lock-in';
 
 export const PROGRAMS: readonly Program[] = [
   {
@@ -42,13 +44,13 @@ export const PROGRAMS: readonly Program[] = [
   },
   {
     id: 'yale-inversion-protocol',
-    title: 'Yale inversion protocol: guided process',
+    title: 'Belief Lock-In',
     kind: 'one_time',
-    summary: 'A guided process built from the protocol Jonathan has handed over.',
+    summary: 'A guided process for locking in a belief you choose.',
     priceCents: priceFor('program:yale-inversion-protocol'),
     testPriceCents: 1000,
     guided: true,
-    provenance: "Source: the Yale attachment protocol document and Jonathan's mental-mastery script doctrine. Read, never rewritten.",
+    provenance: 'Source: the Belief Lock-In source document.',
   },
 ];
 
@@ -59,7 +61,13 @@ for (const p of PROGRAMS) {
 }
 
 export function getProgram(id: string): Program | null {
-  return PROGRAMS.find((p) => p.id === id) ?? null;
+  const programId = id === BELIEF_LOCK_IN_SLUG ? BELIEF_LOCK_IN_PROGRAM_ID : id;
+  return PROGRAMS.find((p) => p.id === programId) ?? null;
+}
+
+/** Visitor-facing path segment; program ids remain stable for purchases and entitlements. */
+export function programSlug(programId: string): string {
+  return programId === BELIEF_LOCK_IN_PROGRAM_ID ? BELIEF_LOCK_IN_SLUG : programId;
 }
 
 export function isFreeTool(id: string): boolean {

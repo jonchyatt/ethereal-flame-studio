@@ -29,6 +29,8 @@
     --display: "Iowan Old Style", "Sitka Text", Georgia, "Times New Roman", serif;
     --body-font: "Seravek", "Gill Sans Nova", Corbel, "Segoe UI", system-ui, sans-serif;
     --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+    /* Change to block only after Jon approves the proposed supporter prices. */
+    --proposed-price-display: none;
   }
 
   * { box-sizing: border-box; }
@@ -50,6 +52,14 @@
   a:focus-visible, button:focus-visible, input:focus-visible {
     outline: 2px solid var(--gold-bright);
     outline-offset: 3px;
+  }
+
+  nav a, footer a {
+    display: inline-block;
+    min-height: 44px;
+    padding: 10px 8px;
+    line-height: 24px;
+    vertical-align: middle;
   }
 
   h1, h2 {
@@ -98,12 +108,17 @@
   .tiers .tag { font-family: var(--mono); }
   .intake { background: var(--ground-raised); border-radius: 14px; padding: 1.25rem; margin-top: 1.5rem; max-width: 640px; box-shadow: 0 0 40px -16px var(--indigo-glow); }
   .intake label { display: block; margin-top: 0.9rem; color: var(--ink-bright); }
-  .intake select, .intake textarea { width: 100%; margin-top: 0.3rem; background: var(--ground-deep); color: var(--ink); border: 1px solid #8b8878; border-radius: 8px; padding: 0.6rem; font: inherit; }
+  .intake select, .intake textarea, .intake input[type="text"] { width: 100%; margin-top: 0.3rem; background: var(--ground-deep); color: var(--ink); border: 1px solid #8b8878; border-radius: 8px; padding: 0.6rem; font: inherit; }
   .intake select:focus-visible, .intake textarea:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; }
   .intake button { margin-top: 1rem; background: var(--gold); color: var(--ground-deep); border: 0; border-radius: 999px; padding: 0.6rem 1.4rem; font: inherit; cursor: pointer; }
   .intake .echo { margin-top: 1rem; border-top: 1px solid #ffffff14; padding-top: 0.8rem; white-space: pre-wrap; overflow-wrap: anywhere; }
   .intake .echo h3 { margin: 0; font-family: var(--display); font-weight: 400; color: var(--ink-bright); }
+  .intake .copy-reference { min-height: 44px; margin-left: 0.5rem; }
   .fine { font-size: 0.82rem; color: var(--ink-dim); }
+  .proposed-price { display: var(--proposed-price-display); }
+  .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 0.35rem; }
+  .outbound-links { display: flex; flex-wrap: wrap; gap: 0 0.35rem; }
+  .outbound-links a { display: inline-block; min-height: 44px; padding: 10px 8px; line-height: 24px; vertical-align: middle; }
 </style>
 </head>
 <body data-waia-page="store">
@@ -134,36 +149,25 @@
         
         <div class="card-body">
           <span class="state">Coming soon</span>
-          <h3>The Yale inversion protocol</h3>
+          <h3>Belief Lock-In</h3>
           <div class="tag">Guided process. Price to be set.</div>
-          <p>A guided process built on the inversion protocol. The protocol content is handed over by Jonathan and is not written or paraphrased on this page.</p>
-          <p class="rights"><strong>Rights and provenance.</strong> Source lives with the protocol documents; its provenance note is attached before release.</p>
-        </div>
-      </article>
-      <article class="card">
-        
-        <div class="card-body">
-          <span class="state">Coming soon</span>
-          <h3>Further protocols</h3>
-          <div class="tag">Guided process. Placeholder.</div>
-          <p>Space held for protocols that have not been handed over yet. Their content is never invented.</p>
-          <p class="rights"><strong>Rights and provenance.</strong> Each protocol carries its own source and permission note before it appears.</p>
+          <p>A guided process for locking in a belief you choose.</p>
         </div>
       </article>
     </div>
-    <p>What would you want the first session to help with? <a href="mailto:jonchyatt@gmail.com?subject=Tell%20me%20first%3A%20the%20programs">Leave your email</a> and you hear first.</p>
+    <p>What would you want the first session to help with? <a href="mailto:support@whatamiappreciatingnow.com?subject=Tell%20me%20first%3A%20the%20programs">Leave your email</a> and you hear first.</p>
   </section>
 
   <section id="custom-sessions">
     <h2>Custom Sessions</h2>
-    <p>Personalised hypnosis, set against a star-field or in VR.</p>
+    <p>Personalized hypnosis, set against a star-field or in VR.</p>
     <div class="grid">
       <article class="card">
         
         <div class="card-body">
           <span class="state">Coming soon</span>
           <h3>Custom hypnosis session</h3>
-          <div class="tag">Personalised. Price to be set.</div>
+          <div class="tag">Personalized. Price to be set.</div>
           <p>A session written around one person, with a star-field background from the studio.</p>
           <p class="rights"><strong>Rights and provenance.</strong> Written for the buyer. Voice and music provenance are recorded per order; no rights are claimed over the buyer's own words.</p>
         </div>
@@ -173,9 +177,9 @@
         <div class="card-body">
           <span class="state">Coming soon</span>
           <h3>Custom VR session</h3>
-          <div class="tag">Personalised, headset-ready. Price to be set.</div>
-          <p>The same personal session in a 360° VR environment rendered by Ethereal Flame Studio.</p>
-          <p class="rights"><strong>Rights and provenance.</strong> Backgrounds are studio-made (star-field shader and EFS renders). Any third-party asset is logged with its licence before use.</p>
+          <div class="tag">Personalized, headset-ready. Price to be set.</div>
+          <p>The same personal session in a 360° VR environment rendered by the studio.</p>
+          <p class="rights"><strong>Rights and provenance.</strong> Backgrounds are studio-made (star-field shader and studio renders). Any third-party asset is logged with its license before use.</p>
         </div>
       </article>
     </div>
@@ -183,27 +187,21 @@
 
   <section id="free-tools">
     <h2>Free tools from Reset Biology</h2>
-    <p>Reset Biology offers a peptide tracker and self-help tools that are free and stay free. It takes no money, and nothing on it is sold from this page.</p>
-    <p><a href="https://resetbiology.com/" rel="noopener" data-crosslink="reset-biology">Visit Reset Biology</a> &middot; <a href="https://resetbiology.com/education" rel="noopener" data-crosslink="reset-biology-education">Reset Biology education</a></p>
+    <p><a href="https://resetbiology.com/" rel="noopener" data-crosslink="reset-biology">Reset Biology</a> offers a peptide tracker and self-help tools that are free and stay free. It takes no money, and nothing on it is sold from this page.</p>
+    <p class="outbound-links"><a href="https://resetbiology.com/" rel="noopener" data-crosslink="reset-biology">Visit Reset Biology</a><a href="https://resetbiology.com/education" rel="noopener" data-crosslink="reset-biology-education">Reset Biology education</a></p>
     <p class="fine">These are plain outbound links to a separate site. What Am I Appreciating Now earns nothing from them.</p>
-  </section>
-
-  <section id="shelf">
-    <h2>Health shelf</h2>
-    <p class="fine" id="shelf-disclosure"><strong>Disclosure.</strong> Some links on this shelf are affiliate links. If you buy through one, What Am I Appreciating Now may earn a commission at no extra cost to you. We list an item only because it is on Jonathan's own list, and a commission never changes what we say about it. Nothing here is medical advice, and none of it is meant to diagnose, treat or cure anything; talk to a qualified professional about your health.</p>
-    <div id="shelf-items"><p class="fine">The shelf is being stocked. Nothing is listed yet.</p></div>
-    <p class="fine">Every item is an outbound link to the merchant. Nothing is bought, paid or saved on this page.</p>
   </section>
 
   <section id="support">
     <h2>Support the channel</h2>
-    <p>Supporters of What Am I Appreciating Now could have their name, or a short message, inscribed in the 360 scene behind the viewer, and on the closing card of flat videos. These tiers and prices are proposals only: Jonathan decides the real ones. Nothing can be bought or joined yet, and there is no payment of any kind on this page.</p>
+    <p>Supporters of What Am I Appreciating Now could have their name, or a short message, inscribed in the 360 scene behind the viewer, and on the closing card of flat videos. These tiers and prices are proposals only: the studio will set the final terms. Nothing can be bought or joined yet, and there is no payment of any kind on this page.</p>
     <div class="grid">
       <article class="card">
         <div class="card-body">
           <span class="state">Proposal</span>
           <h3>Plain</h3>
-          <div class="tag">$5 a month, proposed. Not final.</div>
+          <div class="tag">Not yet on sale.</div>
+          <div class="tag proposed-price">$5 a month, proposed. Not final.</div>
           <p>Soft white name, steady.</p>
         </div>
       </article>
@@ -211,7 +209,8 @@
         <div class="card-body">
           <span class="state">Proposal</span>
           <h3>Glowing</h3>
-          <div class="tag">$10 a month, proposed. Not final.</div>
+          <div class="tag">Not yet on sale.</div>
+          <div class="tag proposed-price">$10 a month, proposed. Not final.</div>
           <p>Gentle glow, slow breathing, soft halo.</p>
         </div>
       </article>
@@ -219,7 +218,8 @@
         <div class="card-body">
           <span class="state">Proposal</span>
           <h3>Sparkly</h3>
-          <div class="tag">$20 a month, proposed. Not final.</div>
+          <div class="tag">Not yet on sale.</div>
+          <div class="tag proposed-price">$20 a month, proposed. Not final.</div>
           <p>Restrained sparkle in warm gold.</p>
         </div>
       </article>
@@ -227,8 +227,9 @@
         <div class="card-body">
           <span class="state">Proposal</span>
           <h3>Ethereal</h3>
-          <div class="tag">$35 a month, proposed. Not final.</div>
-          <p>Larger letters, slow colour drift, gentle float, plus one short moderated message.</p>
+          <div class="tag">Not yet on sale.</div>
+          <div class="tag proposed-price">$35 a month, proposed. Not final.</div>
+          <p>Larger letters, slow color drift, gentle float, plus one short moderated message.</p>
         </div>
       </article>
     </div>
@@ -257,11 +258,9 @@
     </form>
   </section>
 
-  <p class="note">Rendered by scripts/render-brand-mockups.mjs. Meaning of the marks: docs/BRAND-MARK.md.</p>
 </main>
-<footer><a href="/">Back to What Am I Appreciating Now</a> · <a href="/programs">Programs</a> · <a href="/store/bundles">Gifts and bundles</a> · <a href="/store/shelf">The shelf</a> · <a href="/patrons">Patron wall</a> · <a href="/legal/terms">Terms of sale</a> · <a href="/legal/privacy">Privacy</a> · <a href="/legal/refunds">Refunds and cancellation</a> · <a href="/about">About and contact</a> · <a href="/support">Support</a></footer>
+<footer><nav class="footer-links" aria-label="Footer"><a href="/">Back to What Am I Appreciating Now</a><a href="/programs">Programs</a><a href="/store/bundles">Gifts and bundles</a><a href="/patrons">Patron wall</a><a href="/legal/terms">Terms of sale</a><a href="/legal/privacy">Privacy</a><a href="/legal/refunds">Refunds and cancellation</a><a href="/about">About and contact</a><a href="/support">Support</a></nav></footer>
 <script src="/waia-store-support.js"></script>
 <script src="/waia-counters.js"></script>
-<script src="/waia-affiliate-shelf.js"></script>
 </body>
 </html>

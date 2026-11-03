@@ -7,9 +7,9 @@
     "circle": { "file": "brand/what-am-i-appreciating-now-circle-light.svg", "means": "The full name set on a circle so Now closes back into What." },
     "infinity": { "file": "brand/what-am-i-appreciating-now-infinity-light.svg", "means": "The name running once around the infinity loop of desire, passion, achievement, peace, contrast and new desire." },
     "loop": { "file": "brand/what-am-i-appreciating-now-loop-light.svg", "means": "The text ring around an arrow that closes on itself." },
-    "wordmark": { "file": "brand/what-am-i-appreciating-now-wordmark-light.svg", "means": "The name on one line, with Now in the accent colour and a line returning from Now to What." },
+    "wordmark": { "file": "brand/what-am-i-appreciating-now-wordmark-light.svg", "means": "The name on one line, with Now in the accent color and a line returning from Now to What." },
     "psychedelic-spiral": { "file": "overlays/WAIANCircle.png", "means": "The studio's spiral artwork behind the mark." },
-    "psychedelic-starfield": { "file": "brand/what-am-i-appreciating-now-infinity-dark.svg", "means": "The infinity loop over colours echoing the studio's star-field presets." }
+    "psychedelic-starfield": { "file": "brand/what-am-i-appreciating-now-infinity-dark.svg", "means": "The infinity loop over colors echoing the studio's star-field presets." }
   },
   "rights": {
     "repo-drawn": "Mark and layout drawn in this repository.",

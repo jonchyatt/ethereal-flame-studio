@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
-import { LEGAL_DOCS, LegalLinks, OPERATOR, SAFETY_NOTE } from '../LegalLinks';
+import type { ReactNode } from 'react';
+import { LEGAL_DOCS, LegalLinks, NAV_LINK_STYLE, OPERATOR, SAFETY_NOTE } from '../LegalLinks';
 
 /**
  * Terms, privacy and refunds for the store. Every statement describes what the
@@ -11,7 +12,7 @@ type Doc = (typeof LEGAL_DOCS)[number]['slug'];
 
 const UPDATED = '2026-10-19';
 
-const BODY: Record<Doc, { h: string; p: string[] }[]> = {
+const BODY: Record<Doc, { h: string; p: ReactNode[] }[]> = {
   terms: [
     { h: 'Who you are buying from', p: [`What Am I Appreciating Now (whatamiappreciatingnow.com) is operated by ${OPERATOR.name}. Contact: ${OPERATOR.contact}.`] },
     { h: 'What is sold', p: [
@@ -26,7 +27,7 @@ const BODY: Record<Doc, { h: string; p: string[] }[]> = {
       SAFETY_NOTE,
     ] },
     { h: 'Use of the content', p: [
-      'Your purchase is a personal licence to listen and use the program. Please do not copy, resell or redistribute it.',
+      'Your purchase is a personal license to listen and use the program. Please do not copy, resell or redistribute it.',
     ] },
     { h: 'Changes', p: ['If these terms change, the new version is posted here with its date. Changes never shorten a period you have already paid for.'] },
   ],
@@ -44,7 +45,7 @@ const BODY: Record<Doc, { h: string; p: string[] }[]> = {
   ],
   refunds: [
     { h: 'Subscriptions', p: [
-      'Cancel any time from Manage my access (/programs/manage), which opens Stripe\'s billing page. You keep access until the end of the month you paid for and are not charged again.',
+      <>Cancel any time from <a href="/programs/manage" style={{ color: 'inherit' }}>Manage my access</a>, which opens Stripe&apos;s billing page. You keep access until the end of the month you paid for and are not charged again.</>,
       'If a renewal payment fails, access stays open for 7 days while the payment is retried, then closes until it is paid.',
     ] },
     { h: 'Refunds', p: [
@@ -81,13 +82,17 @@ export default async function LegalPage({ params }: { params: Promise<{ doc: str
   if (!meta) notFound();
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif', lineHeight: 1.6 }}>
-      <p><a href="/programs" style={{ color: 'inherit' }}>← Programs</a></p>
+      <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
+        <a href="/" style={NAV_LINK_STYLE}>Home</a>
+        <a href="/store" style={NAV_LINK_STYLE}>Store</a>
+      </nav>
+      <p><a href="/" style={NAV_LINK_STYLE}>← Programs</a></p>
       <h1>{meta.title}</h1>
       <p style={{ fontSize: 14, opacity: 0.7 }}>Last updated {UPDATED}</p>
       {BODY[meta.slug].map((s) => (
         <section key={s.h}>
           <h2 style={{ fontSize: 20 }}>{s.h}</h2>
-          {s.p.map((t) => <p key={t}>{t}</p>)}
+          {s.p.map((t, index) => <p key={`${s.h}-${index}`}>{t}</p>)}
         </section>
       ))}
       <LegalLinks />

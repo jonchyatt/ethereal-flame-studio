@@ -8,8 +8,7 @@
  * (boring on its own), contrast, new desire, and "Now" brings it back around.
  *
  * Copy describes the offer, never the protocol or the session words (those are
- * handed over by Jonathan and live in private storage). The Yale program uses
- * a neutral public name until Jonathan answers the naming card.
+ * handed over by Jonathan and live in private storage).
  */
 
 import { getProgram } from './catalog';
@@ -53,9 +52,9 @@ const CTA = 'Not yet on sale. Nothing here can be bought today.';
 const HYPNOSIS_SAFETY =
   'Listen somewhere safe, never while driving or operating anything. You can stop any time. Sessions are not medical care.';
 
-const YALE_NAME = 'The inversion protocol: a guided process';
-const YALE_NAMING_NOTE =
-  'Public name is neutral on purpose while the naming question is open. No claim is made about where the protocol was first tested.';
+const BELIEF_LOCK_IN_NAME = 'Belief Lock-In';
+const BELIEF_LOCK_IN_NAMING_NOTE =
+  'The name makes no claim about where the protocol was first tested.';
 
 export const SALES_PAGES: readonly SalesPage[] = [
   // Advanced hypnosis sessions
@@ -174,12 +173,12 @@ export const SALES_PAGES: readonly SalesPage[] = [
     ],
     ctaNote: CTA,
   },
-  // Yale inversion protocol, guided process
+  // Belief Lock-In, guided process
   {
     programId: 'yale-inversion-protocol',
     variant: 'a',
     angle: 'Story-led: the loop is the hero, the process turns a contrast around',
-    displayName: YALE_NAME,
+    displayName: BELIEF_LOCK_IN_NAME,
     headline: 'Contrast is not the end of the loop. It is the way into the next desire.',
     loopSection: {
       heading: 'The loop',
@@ -190,10 +189,9 @@ export const SALES_PAGES: readonly SalesPage[] = [
         heading: 'A guided process, one step at a time',
         body: [
           'You move through the process one step at a time, with an optional timer and private notes that stay in your browser tab.',
-          'The steps are handed over by Jonathan and are not summarised or rewritten on this page.',
         ],
       },
-      { heading: 'Your choice, every step', body: ['You choose to take part, and you can stop at any time. ' + YALE_NAMING_NOTE] },
+      { heading: 'Your choice, every step', body: ['You choose to take part, and you can stop at any time. ' + BELIEF_LOCK_IN_NAMING_NOTE] },
     ],
     ctaNote: CTA,
   },
@@ -201,7 +199,7 @@ export const SALES_PAGES: readonly SalesPage[] = [
     programId: 'yale-inversion-protocol',
     variant: 'b',
     angle: 'Question-led: the two readings of the name, then plain answers',
-    displayName: YALE_NAME,
+    displayName: BELIEF_LOCK_IN_NAME,
     headline: 'Now, what am I appreciating? What am I appreciating now?',
     loopSection: {
       heading: 'The loop',
@@ -216,7 +214,7 @@ export const SALES_PAGES: readonly SalesPage[] = [
           'Can I buy it? Not yet. It is not on sale.',
         ],
       },
-      { heading: 'About the name', body: [YALE_NAMING_NOTE] },
+      { heading: 'About the name', body: [BELIEF_LOCK_IN_NAMING_NOTE] },
     ],
     ctaNote: CTA,
   },
@@ -224,7 +222,7 @@ export const SALES_PAGES: readonly SalesPage[] = [
     programId: 'yale-inversion-protocol',
     variant: 'c',
     angle: 'Quiet and short: loop, what you get, what it is not',
-    displayName: YALE_NAME,
+    displayName: BELIEF_LOCK_IN_NAME,
     headline: 'One guided process, at your pace',
     loopSection: {
       heading: 'The loop',
@@ -234,7 +232,7 @@ export const SALES_PAGES: readonly SalesPage[] = [
       { heading: 'What you get', body: ['A step-by-step player, a timer if you want one, and notes only you can see.'] },
       {
         heading: 'What it is not',
-        body: ['Not therapy, not medical care, not a promise of any result. You can stop at any time. ' + YALE_NAMING_NOTE],
+        body: ['Not therapy, not medical care, not a promise of any result. You can stop at any time. ' + BELIEF_LOCK_IN_NAMING_NOTE],
       },
     ],
     ctaNote: CTA,
@@ -243,7 +241,7 @@ export const SALES_PAGES: readonly SalesPage[] = [
     programId: 'yale-inversion-protocol',
     variant: 'd',
     angle: 'Voss and NEPQ (2026-10-19): questions first, a label, the process as the quiet answer, a no-oriented close',
-    displayName: YALE_NAME,
+    displayName: BELIEF_LOCK_IN_NAME,
     headline: 'It seems like one contrast keeps coming back around. What has it been costing you?',
     headlineTechnique: 'Voss label, then an NEPQ consequence question. The reader names the problem; the page does not.',
     loopSection: {
@@ -264,13 +262,12 @@ export const SALES_PAGES: readonly SalesPage[] = [
         heading: 'It sounds like you want to move through it, not read about it',
         body: [
           'This is a guided process: one step at a time, an optional timer, and private notes that stay in your browser tab.',
-          'The steps are handed over by Jonathan and are not summarised or rewritten on this page.',
         ],
         technique: 'Voss label as the heading; the process is the quiet answer, facts only.',
       },
       {
         heading: 'What it is not',
-        body: ['Not therapy, not medical care, not a promise of any result. You can stop at any time.', YALE_NAMING_NOTE],
+        body: ['Not therapy, not medical care, not a promise of any result. You can stop at any time.', BELIEF_LOCK_IN_NAMING_NOTE],
         technique: 'Voss accusation audit: the limits are said first, plainly.',
       },
       {
@@ -289,10 +286,12 @@ export function isVariantId(v: string): v is VariantId {
 
 /** Only programs in the paid catalog have previews; unknown ids or variants give null. */
 export function getSalesPage(programId: string, variant: string): SalesPage | null {
-  if (!getProgram(programId) || !isVariantId(variant)) return null;
-  return SALES_PAGES.find((p) => p.programId === programId && p.variant === variant) ?? null;
+  const program = getProgram(programId);
+  if (!program || !isVariantId(variant)) return null;
+  return SALES_PAGES.find((p) => p.programId === program.id && p.variant === variant) ?? null;
 }
 
 export function salesPagesFor(programId: string): SalesPage[] {
-  return SALES_PAGES.filter((p) => p.programId === programId);
+  const program = getProgram(programId);
+  return program ? SALES_PAGES.filter((p) => p.programId === program.id) : [];
 }
