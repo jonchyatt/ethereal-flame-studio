@@ -1,7 +1,18 @@
-import { NAV_LINK_STYLE } from '@/app/legal/LegalLinks';
 import { StoreItemCard, gridStyle } from '@/components/store/StoreItemCard';
 import { DISCLOSURE, renderableItems, shelfHasCommission } from '@/lib/store/items';
 import { SHELF_ITEMS } from '@/lib/store/shelf-items';
+
+const shelfButtonStyle = {
+  alignItems: 'center',
+  border: '1px solid #555',
+  borderRadius: 8,
+  boxSizing: 'border-box',
+  color: 'inherit',
+  display: 'inline-flex',
+  height: 44,
+  padding: '10px 14px',
+  textDecoration: 'none',
+} as const;
 
 export const metadata = {
   title: 'The shelf · What Am I Appreciating Now',
@@ -21,7 +32,13 @@ export default function ShelfPage() {
         <p style={{ fontSize: 14, opacity: 0.75 }} id="disclosure"><strong>Disclosure.</strong> {DISCLOSURE}</p>
       )}
       {items.length === 0 ? (
-        <p style={{ opacity: 0.7 }}>The shelf is being stocked. Nothing is listed yet. Visit <a href="/store" style={NAV_LINK_STYLE}>Store</a> or <a href="/" style={NAV_LINK_STYLE}>Home</a>.</p>
+        <>
+          <p style={{ opacity: 0.7 }}>The shelf is being stocked. Nothing is listed yet. Visit Store or Home</p>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <a href="/store" style={shelfButtonStyle}>Store</a>
+            <a href="/" style={shelfButtonStyle}>Home</a>
+          </div>
+        </>
       ) : (
         <div style={gridStyle}>{items.map((i) => <StoreItemCard key={i.id} item={i} />)}</div>
       )}

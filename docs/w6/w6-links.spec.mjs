@@ -9,6 +9,12 @@ const viewports = [
 ];
 const footerLinks = ['/legal/terms', '/legal/privacy', '/legal/refunds', '/support'];
 const hitAreaRoutes = ['/store', '/programs', '/support', '/store/bundles', '/listen'];
+const legacyRedirects = {
+  '/privacy': '/legal/privacy',
+  '/terms': '/legal/terms',
+  '/refund-policy': '/legal/refunds',
+  '/contact': '/support',
+};
 
 await mkdir('docs/w6', { recursive: true });
 const browser = await chromium.launch({ headless: true, executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
@@ -65,8 +71,31 @@ try {
       const shelfResponse = await shelf.goto(`${base}/store/shelf`, { waitUntil: 'networkidle' });
       assert.equal(shelfResponse?.status(), 200, '/store/shelf should return 200');
       const emptyShelf = shelf.locator('main > p').filter({ hasText: 'Nothing is listed yet' });
-      assert.equal(await emptyShelf.locator('a[href="/store"]').count(), 1, 'empty shelf should link to Store');
-      assert.equal(await emptyShelf.locator('a[href="/"]').count(), 1, 'empty shelf should link to Home');
+      assert.equal(await emptyShelf.locator('a').count(), 0, 'empty shelf sentence should not contain links');
+      assert.equal((await emptyShelf.textContent())?.trim().endsWith('Home.'), false, 'empty shelf sentence should not trail a dot after Home');
+      const shelfButtons = shelf.locator('main > div > a');
+      assert.equal(await shelfButtons.count(), 2, 'empty shelf should have Store and Home buttons');
+      const { buttons, sentenceBottom } = await shelf.evaluate(() => ({
+        buttons: Array.from(document.querySelectorAll('main > div > a')).map((link) => ({
+          href: link.getAttribute('href'),
+          text: link.textContent?.trim(),
+          height: link.getBoundingClientRect().height,
+          top: link.getBoundingClientRect().top,
+        })),
+        sentenceBottom: Array.from(document.querySelectorAll('main > p'))
+          .find((paragraph) => paragraph.textContent?.includes('Nothing is listed yet'))
+          ?.getBoundingClientRect().bottom,
+      }));
+      const buttonLayout = buttons;
+      assert.notEqual(sentenceBottom, undefined, 'empty shelf sentence should be present');
+      assert.ok(buttonLayout[0].top >= sentenceBottom, 'empty shelf buttons should be below the sentence');
+      assert.deepEqual(buttonLayout.map(({ href, text }) => ({ href, text })), [
+        { href: '/store', text: 'Store' },
+        { href: '/', text: 'Home' },
+      ], 'empty shelf button labels and destinations should match');
+      assert.ok(buttonLayout.every(({ height }) => height === 44), 'empty shelf buttons should be 44px tall');
+      assert.equal(buttonLayout[0].top, buttonLayout[1].top, 'empty shelf buttons should share their own line');
+      assert.ok(!/\./.test(buttonLayout.map(({ text }) => text).join('')), 'empty shelf buttons should not trail a dot');
       await shelf.screenshot({ path: screenshotName('/store/shelf', viewport), fullPage: true });
       results.push({ viewport: viewport.name, route: '/store/shelf', status: shelfResponse.status(), emptyLinks: ['/store', '/'] });
       await shelf.close();
@@ -91,6 +120,13 @@ try {
         await page.screenshot({ path: screenshotName(route, viewport), fullPage: true });
         results.push({ viewport: viewport.name, route, status: response.status(), footer: hrefs, hitAreas: links });
         await page.close();
+      }
+
+      for (const [route, location] of Object.entries(legacyRedirects)) {
+        const response = await context.request.get(`${base}${route}`, { maxRedirects: 0 });
+        assert.equal(response.status(), 307, `${route} should temporarily redirect`);
+        assert.equal(new URL(response.headers().location).pathname, location, `${route} should redirect to ${location}`);
+        results.push({ viewport: viewport.name, route, status: response.status(), location });
       }
     } finally {
       await context.close();

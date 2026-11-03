@@ -77,7 +77,7 @@ export function middleware(request: NextRequest) {
 
   const legacyTarget = LEGACY_REDIRECTS[pathname];
   if (legacyTarget) {
-    return NextResponse.redirect(new URL(legacyTarget, request.url), 308);
+    return NextResponse.redirect(new URL(legacyTarget, request.url), 307);
   }
 
   // Check if this is a Jarvis API request
