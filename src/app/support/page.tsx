@@ -12,6 +12,9 @@ export default function SupportPage() {
   const mail = <a href={`mailto:${OPERATOR.contact}`} style={link}>{OPERATOR.contact}</a>;
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif', lineHeight: 1.6 }}>
+      <nav aria-label="Site navigation" style={{ fontSize: 14, marginBottom: 24 }}>
+        <a href="/" style={{ color: 'inherit' }}>Home</a> · <a href="/store" style={{ color: 'inherit' }}>Store</a>
+      </nav>
       <p><a href="/" style={{ color: 'inherit' }}>← What Am I Appreciating Now</a></p>
       <h1>Support</h1>
       <p>Email {mail} for anything below. A person reads every message.</p>

@@ -3,6 +3,13 @@ import type { NextRequest } from 'next/server';
 import { frontDoorRewrite } from '@/lib/waia/front-door';
 import { operatorPageDecision } from '@/lib/waia/operator-pages';
 
+const LEGACY_REDIRECTS: Record<string, string> = {
+  '/privacy': '/legal/privacy',
+  '/terms': '/legal/terms',
+  '/refund-policy': '/legal/refunds',
+  '/contact': '/support',
+};
+
 /**
  * Middleware for subdomain routing and API authentication
  *
@@ -67,6 +74,11 @@ function validateJarvisAuth(request: NextRequest): NextResponse | null {
 export function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || '';
   const pathname = request.nextUrl.pathname;
+
+  const legacyTarget = LEGACY_REDIRECTS[pathname];
+  if (legacyTarget) {
+    return NextResponse.redirect(new URL(legacyTarget, request.url), 308);
+  }
 
   // Check if this is a Jarvis API request
   const isJarvisApiRequest = pathname.startsWith('/api/jarvis/');
