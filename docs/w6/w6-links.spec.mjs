@@ -78,6 +78,33 @@ async function assertFooterHasNoSeparators(page, route, viewport) {
   }
 }
 
+async function assertNoVisibleLinkSeparators(page, route, viewport) {
+  if (viewport.name !== 'phone') return;
+  const separators = await page.locator('body').evaluate((body) => {
+    const isVisible = (node) => {
+      const element = node.parentElement;
+      if (!element) return false;
+      const style = getComputedStyle(element);
+      return style.display !== 'none' && style.visibility !== 'hidden';
+    };
+    const adjacentLink = (node, direction) => {
+      let sibling = node[direction];
+      while (sibling?.nodeType === Node.TEXT_NODE && !sibling.textContent?.trim()) sibling = sibling[direction];
+      return sibling instanceof HTMLAnchorElement;
+    };
+    const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+    const matches = [];
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      if (node.textContent?.trim() === '·' && isVisible(node) && adjacentLink(node, 'previousSibling') && adjacentLink(node, 'nextSibling')) {
+        matches.push(node.textContent);
+      }
+    }
+    return matches;
+  });
+  assert.deepEqual(separators, [], `${route} should not put standalone dots between visible links on phone`);
+}
+
 try {
   for (const viewport of viewports) {
     const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height } });
@@ -91,10 +118,12 @@ try {
       assert.doesNotMatch(await store.locator('body').innerText(), /\$(?:5|10|20|35)\b/, '/store should not visibly show a tier price');
       await assertPublicCopy(store, '/store');
       await assertFooterHasNoSeparators(store, '/store', viewport);
+      await assertNoVisibleLinkSeparators(store, '/store', viewport);
+      const storeHeadingFontSize = await store.getByRole('heading', { name: 'The Store', exact: true }).evaluate((heading) => getComputedStyle(heading).fontSize);
       const details = store.locator('#intake-details');
       const contact = store.locator('#intake-contact');
       assert.equal(Math.round((await details.boundingBox()).width), Math.round((await contact.boundingBox()).width), '/store contact input should match the full width of the details field');
-      await details.fill(`W8 local end-to-end request (${viewport.name})`);
+      await details.fill(`W10 local end-to-end request (${viewport.name})`);
       await contact.fill('w8@example.test');
       const [intakeResponse] = await Promise.all([
         store.waitForResponse((response) => response.url().endsWith('/api/custom-orders') && response.request().method() === 'POST'),
@@ -105,6 +134,9 @@ try {
       await intakeEcho.waitFor({ state: 'visible' });
       assert.match(await intakeEcho.innerText(), /Keep this reference to check on your request: ord_[0-9a-f]+\.[0-9a-f]+/, '/store should give the visitor the promised reference');
       assert.match((await intakeEcho.locator('a').getAttribute('href')) ?? '', /^\/store\/custom-order#ref=ord_[0-9a-f]+\.[0-9a-f]+$/, '/store should link the reference to its status page');
+      const copyReference = intakeEcho.getByRole('button', { name: 'Copy reference', exact: true });
+      assert.equal(await copyReference.count(), 1, '/store should provide one Copy reference button after intake');
+      assert.ok((await copyReference.boundingBox())?.height >= 44, '/store Copy reference button should be at least 44px tall');
       const storeLinks = await assertHitAreas(store, '/store', viewport);
       await store.screenshot({ path: screenshotName('/store', viewport), fullPage: true });
       results.push({ viewport: viewport.name, route: '/store', status: storeResponse.status(), shelfLink: false, healthShelf: 'hidden', proposedPrices: 'hidden', intake: '201 with reference', hitAreas: storeLinks });
@@ -132,6 +164,8 @@ try {
       await assertPublicCopy(shelf, '/store/shelf');
       const shelfHeading = shelf.getByRole('heading', { name: 'The shelf', exact: true });
       assert.equal(await shelfHeading.count(), 1, 'The shelf should be the page heading');
+      assert.equal(await shelfHeading.evaluate((heading) => getComputedStyle(heading).fontSize), storeHeadingFontSize, 'The shelf heading should match The Store heading font size');
+      await assertNoVisibleLinkSeparators(shelf, '/store/shelf', viewport);
       const shelfBreadcrumb = shelf.locator('nav[aria-label="Site navigation"] [aria-current="page"]');
       assert.equal(await shelfBreadcrumb.textContent(), 'The shelf', 'shelf breadcrumb should name the current page');
       const shelfFooter = await shelf.locator('footer a').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
@@ -192,6 +226,7 @@ try {
         assert.equal(response?.status(), 200, `${route} should return 200`);
         await assertPublicCopy(page, route);
         await assertFooterHasNoSeparators(page, route, viewport);
+        if (route === '/listen') await assertNoVisibleLinkSeparators(page, route, viewport);
         const hrefs = await page.locator('footer a').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
         assert.deepEqual(hrefs, footerLinks, `${route} should have the home footer links`);
         const links = await assertHitAreas(page, route, viewport);

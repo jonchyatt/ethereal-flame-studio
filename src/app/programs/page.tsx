@@ -27,8 +27,9 @@ export default async function ProgramsPage() {
   const hasPurchase = await browserHasPurchase();
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
-      <nav aria-label="Site navigation" style={{ fontSize: 14, marginBottom: 24 }}>
-        <a href="/" style={NAV_LINK_STYLE}>Home</a> · <a href="/store" style={NAV_LINK_STYLE}>Store</a>
+      <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
+        <a href="/" style={NAV_LINK_STYLE}>Home</a>
+        <a href="/store" style={NAV_LINK_STYLE}>Store</a>
       </nav>
       <CounterBeacon page="programs" />
       <h1>Programs</h1>
