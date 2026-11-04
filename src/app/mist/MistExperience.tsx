@@ -2,22 +2,24 @@
 
 import { useEffect, useState } from 'react';
 import ThinkingGlow from '@/components/mist/ThinkingGlow';
-import { MIST_PRESETS, type MistPresetId } from '@/components/mist/presets';
+import { MIST_PRESETS, type GlowStyle, type MistPresetId } from '@/components/mist/presets';
 
 export default function MistExperience() {
   const [preset, setPreset] = useState<MistPresetId>('whatAmIAppreciatingNow');
+  const [style, setStyle] = useState<GlowStyle>('mist');
   const [controlsOpen, setControlsOpen] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setControlsOpen(params.get('controls') === '1');
+    if (params.get('style') === 'vortex') setStyle('vortex');
     const selected = params.get('preset');
     if (selected && Object.hasOwn(MIST_PRESETS, selected)) setPreset(selected as MistPresetId);
   }, []);
 
   return (
     <main className="fixed inset-0 overflow-hidden bg-black" data-testid="mist-stage">
-      <ThinkingGlow {...MIST_PRESETS[preset]} mode="searching" />
+      <ThinkingGlow {...MIST_PRESETS[preset]} mode="searching" style={style} />
       <button
         type="button"
         aria-label={controlsOpen ? 'Close mist controls' : 'Open mist controls'}
@@ -34,6 +36,13 @@ export default function MistExperience() {
             Palette
             <select value={preset} onChange={(event) => setPreset(event.target.value as MistPresetId)} className="rounded-lg border border-white/20 bg-[#0b0b14] p-2">
               {Object.entries(MIST_PRESETS).map(([id, value]) => <option key={id} value={id}>{value.label}</option>)}
+            </select>
+          </label>
+          <label className="mt-4 grid gap-2">
+            Style
+            <select value={style} onChange={(event) => setStyle(event.target.value as GlowStyle)} className="rounded-lg border border-white/20 bg-[#0b0b14] p-2">
+              <option value="mist">Mist</option>
+              <option value="vortex">Vortex</option>
             </select>
           </label>
         </aside>

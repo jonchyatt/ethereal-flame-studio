@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
-import type { GlowMode, GlowPosition } from './presets'
+import type { GlowMode, GlowPosition, GlowStyle } from './presets'
 import { FluidSimulation, type FluidSettings } from './fluidSimulation'
 import './ThinkingGlow.css'
 
@@ -15,7 +15,8 @@ export type ThinkingGlowProps = Readonly<{
   position?: GlowPosition
   mode?: GlowMode
   className?: string
-  style?: CSSProperties
+  style?: GlowStyle
+  containerStyle?: CSSProperties
 }>
 
 const DEFAULT_PALETTE = ['#1a2e5c', '#083820', '#56440f', '#3e264b', '#1a2e5c']
@@ -32,15 +33,15 @@ function clamp(value: number, min: number, max: number) {
 
 export function ThinkingGlow({
   palette = DEFAULT_PALETTE, speed = 0.25, intensity = 0.8, height = 0.74,
-  grain = 0.2, position = 'bottom', mode = 'idle', className = '', style,
+  grain = 0.2, position = 'bottom', mode = 'idle', className = '', style = 'mist', containerStyle,
 }: ThinkingGlowProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const settingsRef = useRef<FluidSettings>({ palette, speed, intensity, height, grain, position, mode })
+  const settingsRef = useRef<FluidSettings>({ palette, speed, intensity, height, grain, position, mode, style })
   const [webGlReady, setWebGlReady] = useState(false)
   const [isActive, setIsActive] = useState(true)
   const [reducedMotion, setReducedMotion] = useState(false)
-  settingsRef.current = { palette, speed, intensity, height, grain, position, mode }
+  settingsRef.current = { palette, speed, intensity, height, grain, position, mode, style }
 
   useEffect(() => {
     const root = rootRef.current, canvas = canvasRef.current
@@ -71,7 +72,7 @@ export function ThinkingGlow({
       if (fluid.configure(settings)) elapsed = 0
       // Prepare a still initial state; toggling reduced motion holds the last dye.
       if (!motionReduced) elapsed += delta
-      else elapsed = Math.max(elapsed, 1.5)
+      else elapsed = Math.max(elapsed, settings.style === 'vortex' ? 7 : 1.5)
       const test = window as GlowTestWindow
       const testTime = test.__GLOW_TEST_TIME__
       const seeking = Number.isFinite(testTime)
@@ -183,7 +184,8 @@ export function ThinkingGlow({
     <div
       ref={rootRef}
       className={`thinking-glow-root ${className}`.trim()}
-      style={style}
+      style={containerStyle}
+      data-style={style}
       data-active={isActive ? 'true' : 'false'}
       data-reduced-motion={reducedMotion ? 'true' : 'false'}
       data-webgl={webGlReady ? 'true' : 'false'}

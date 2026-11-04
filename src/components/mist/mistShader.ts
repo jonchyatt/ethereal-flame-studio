@@ -93,6 +93,85 @@ void main() {
   velocity += force * u_dt;
   gl_FragColor = vec4(clamp(velocity, vec2(-0.35), vec2(0.35)), 0.0, 1.0);
 }`,
+  vortexAdvect: common + `
+uniform vec4 u_eye;
+uniform float u_decay;
+uniform float u_colour_decay;
+uniform float u_dye_pass;
+void main() {
+  vec2 velocity = bilerp(u_velocity, v_uv, u_texel).xy;
+  vec2 previous = v_uv - u_dt * velocity / vec2(u_aspect, 1.0);
+  float inside = step(0.0, previous.x) * step(previous.x, 1.0) * step(0.0, previous.y) * step(previous.y, 1.0);
+  vec4 value = bilerp(u_source, previous, u_source_texel) * exp(-u_decay * u_dt) * inside;
+  value.rgb *= exp(-u_colour_decay * u_dt);
+  if (u_dye_pass > 0.5) {
+    // Feather the thin outskirts, without a threshold or a hard cutout.
+    float density = u_dye_pass > 1.5 ? bilerp(u_dye, previous, u_source_texel).a * exp(-u_decay * u_dt) * inside : value.a;
+    float edge = 0.65 * (1.0 - smoothstep(0.015, 0.18, density));
+    float outlet = 2.5 * smoothstep(0.92, 1.0, v_uv.y);
+    vec2 q = (v_uv - u_eye.xy) / u_eye.zw;
+    // Axial escape at the eye: this planar slice feeds a rising column.
+    float eyeOutlet = 1.8 * (1.0 - smoothstep(0.06, 0.32, length(q)));
+    value *= exp(-(edge + outlet + eyeOutlet) * u_dt);
+  }
+  gl_FragColor = value;
+}`,
+  vortexProject: common + `
+uniform vec4 u_eye;
+void main() {
+  float l = texture2D(u_source, v_uv - vec2(u_texel.x, 0.0)).x;
+  float r = texture2D(u_source, v_uv + vec2(u_texel.x, 0.0)).x;
+  float b = texture2D(u_source, v_uv - vec2(0.0, u_texel.y)).x;
+  float t = texture2D(u_source, v_uv + vec2(0.0, u_texel.y)).x;
+  vec2 velocity = texture2D(u_velocity, v_uv).xy - vec2(r - l, t - b) * 0.5 / u_texel.y;
+  // Resolved planar motion plus converging flow into an axial outlet.
+  // Projection alone would erase this 3D funnel's in-plane convergence.
+  vec2 q = (v_uv - u_eye.xy) / u_eye.zw;
+  velocity -= q * u_eye.zw * vec2(u_aspect, 1.0) * (0.16 / (0.3 + dot(q, q)));
+  if (v_uv.x < u_texel.x || v_uv.x > 1.0 - u_texel.x) velocity.x = 0.0;
+  if (v_uv.y < u_texel.y) velocity.y = max(velocity.y, 0.0);
+  gl_FragColor = vec4(velocity, 0.0, 1.0);
+}`,
+  vortexForce: common + `
+uniform vec4 u_eye;
+float noiseHash(vec2 p) {
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
+}
+vec2 curlNoise(vec2 p) {
+  vec2 cell = floor(p), f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f), du = 6.0 * f * (1.0 - f);
+  float a = noiseHash(cell), b = noiseHash(cell + vec2(1.0, 0.0));
+  float c = noiseHash(cell + vec2(0.0, 1.0)), d = noiseHash(cell + vec2(1.0));
+  vec2 gradient = vec2(mix(b - a, d - c, u.y), mix(c - a, d - b, u.x)) * du;
+  return vec2(gradient.y, -gradient.x);
+}
+void main() {
+  vec2 q = (v_uv - u_eye.xy) / u_eye.zw;
+  float radius2 = dot(q, q);
+  // Smooth Rankine profile: solid-body core, 1/r tangential falloff.
+  // A long breathing cycle loosens the arms without reversing the flow.
+  float breath = 0.78 + 0.22 * sin(u_time * 0.26 - 0.8);
+  float release = 1.0 - 0.45 * pow(0.5 + 0.5 * sin(u_time * 0.11 - 1.7), 6.0);
+  float angular = 0.88 * breath * release / (0.16 + radius2);
+  vec2 orbit = vec2(-q.y, q.x) * angular;
+  orbit -= q * (0.075 / (0.45 + radius2));
+  vec2 current = orbit * u_eye.zw * vec2(u_aspect, 1.0);
+  // Buoyancy gently carries the whole circulation upward. Small shear
+  // prevents perfectly concentric bands while retaining a legible eye.
+  current.y += 0.022;
+  vec2 p = v_uv * vec2(u_aspect, 1.0);
+  current += 0.065 * curlNoise(p * 17.0 + vec2(u_time * 0.16, -u_time * 0.12));
+  current += 0.025 * curlNoise(p * 31.0 + vec2(-u_time * 0.11, u_time * 0.15));
+  current.x += 0.012 * sin(q.y * 5.0 + u_time * 0.3);
+  vec2 velocity = texture2D(u_velocity, v_uv).xy;
+  float density = bilerp(u_dye, v_uv, u_source_texel).a;
+  vec2 force = (current - velocity) * 2.2;
+  force.y += min(density, 0.6) * 0.018;
+  velocity += force * u_dt;
+  gl_FragColor = vec4(clamp(velocity, vec2(-0.65), vec2(0.65)), 0.0, 1.0);
+}`,
   divergence: common + `
 void main() {
   vec2 c = texture2D(u_velocity, v_uv).xy;

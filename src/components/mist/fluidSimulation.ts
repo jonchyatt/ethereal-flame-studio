@@ -1,7 +1,8 @@
 import { FLUID_SHADERS, FLUID_VERTEX } from './mistShader'
-import type { GlowMode, GlowPosition } from './presets'
+import type { GlowMode, GlowPosition, GlowStyle } from './presets'
 
 export type FluidSettings = {
+  style?: GlowStyle
   palette: readonly string[]
   speed: number
   intensity: number
@@ -93,6 +94,7 @@ export class FluidSimulation {
   private traceId: number | undefined
   private traceValues = new Float32Array(48)
   private aspect = 1
+  private resolution = 128
   private emitters: Emitter[] = []
   private seed = 0x41c6ce57
   private nextBirth = 0
@@ -187,13 +189,13 @@ export class FluidSimulation {
     return target
   }
 
-  resize(width: number, height: number) {
+  resize(width: number, height: number, force = false) {
     const aspect = width / height
-    if (this.targets.length && Math.abs(aspect - this.aspect) < 0.002) return
+    if (!force && this.targets.length && Math.abs(aspect - this.aspect) < 0.002) return
     this.clearTargets()
     this.aspect = aspect
     const size = (long: number) => aspect > 1 ? [long, Math.max(16, Math.round(long / aspect))] : [Math.max(16, Math.round(long * aspect)), long]
-    const [vw, vh] = size(128), [dw, dh] = size(256)
+    const [vw, vh] = size(this.resolution), [dw, dh] = size(this.resolution * 2)
     const pair = (w: number, h: number) => ({ read: this.target(w, h), write: this.target(w, h) })
     this.velocity = pair(vw, vh)
     this.dye = pair(dw, dh)
@@ -238,16 +240,64 @@ export class FluidSimulation {
   }
 
   configure(settings: FluidSettings) {
-    const signature = [settings.position, settings.height, settings.palette.join(','), settings.mode === 'idle'].join('|')
+    // A shallow desktop vortex needs enough cells across its core to retain
+    // the curl. Mist and full-screen/portrait vortex keep the R4 grid budget.
+    const resolution = settings.style === 'vortex' && settings.position !== 'full' && this.aspect > 1 ? 256 : 128
+    const signature = [settings.style ?? 'mist', resolution, settings.position, settings.height, settings.palette.join(','), settings.mode === 'idle'].join('|')
     if (signature === this.signature) return false
     this.signature = signature
     this.palette = settings.palette.length ? settings.palette.map(linear) : [linear('#1a2e5c')]
     while (this.palette.length < 5) this.palette.push(this.palette[0])
-    this.reset()
+    if (resolution !== this.resolution) {
+      this.resolution = resolution
+      this.resize(this.canvas.width, this.canvas.height, true)
+    } else this.reset()
     return true
   }
 
+  // An elliptical, slowly wandering circulation fits each placement. These
+  // coordinates drive only forces and inlets, never the displayed image.
+  private vortexFrame(settings: FluidSettings) {
+    const full = settings.position === 'full'
+    const height = full ? 1 : Math.max(0.2, Math.min(0.96, settings.height))
+    const x = 0.5 + 0.045 * Math.sin(this.time * 0.17) + 0.018 * Math.sin(this.time * 0.31 + 1.4)
+    const y = (full ? 0.52 : settings.position === 'top' ? 1 - height * 0.45 : height * 0.45)
+      + height * 0.028 * Math.sin(this.time * 0.21 + 0.7)
+    // A shallow placement on a wide screen needs a narrower circulation so
+    // its eye remains visible instead of collapsing into a horizontal streak.
+    const radiusX = full ? 0.39 : Math.min(0.39, height * 0.42 / this.aspect)
+    return [x, y, radiusX, height * (full ? 0.35 : 0.38)]
+  }
+
+  private vortexSources(settings: FluidSettings) {
+    this.emitters = this.emitters.filter(e => this.time - e.birth < e.duration)
+    if (this.time >= this.nextBirth) {
+      const [cx, cy, rx, ry] = this.vortexFrame(settings)
+      // Two loose, unequal inlet regions. The velocity winds their pigment
+      // into arms; no spiral curve, texture, or display warp is drawn.
+      const angle = -0.9 + (this.births % 2) * Math.PI + 0.65 * Math.sin(this.time * 0.13)
+        + 0.22 * Math.sin(this.time * 0.31) + (this.random() - 0.5) * 0.6
+      const radius = 0.72 + this.random() * 0.34
+      this.emitters.push({ id: this.births, birth: this.time, duration: 3.2 + this.random() * 0.8,
+        x: cx + rx * Math.cos(angle) * radius, y: cy + ry * Math.sin(angle) * radius,
+        radius: (0.075 + this.random() * 0.04) * (rx / 0.39), lean: (this.random() - 0.5) * 0.025 })
+      this.births++
+      this.nextBirth = this.time + 0.34 + this.random() * 0.06
+    }
+    this.emitterValues.fill(0)
+    this.inkValues.fill(0)
+    this.traceValues.fill(0)
+    this.emitters.slice(-12).forEach((emitter, i) => {
+      const life = (this.time - emitter.birth) / emitter.duration
+      const colour = this.colour(this.time + 0.8 + 0.3 * Math.sin(emitter.birth * 0.25 + emitter.x * 3), settings)
+      this.emitterValues.set([emitter.x + emitter.lean * life, emitter.y, emitter.radius, Math.sin(Math.PI * life) ** 2], i * 4)
+      this.inkValues.set([...colour, emitter.lean], i * 4)
+      if (emitter.id === this.traceId) this.traceValues.set(this.emitterValues.subarray(i * 4, i * 4 + 4), i * 4)
+    })
+  }
+
   private sources(settings: FluidSettings) {
+    if (settings.style === 'vortex') { this.vortexSources(settings); return }
     this.emitters = this.emitters.filter(e => this.time - e.birth < e.duration)
     if (this.time >= this.nextBirth) {
       // A low-discrepancy sequence avoids accidental clumps or a sweeping row.
@@ -306,13 +356,21 @@ export class FluidSimulation {
   step(settings: FluidSettings) {
     this.sources(settings)
     const v = this.velocity, d = this.dye, p = this.pressure
+    const vortex = settings.style === 'vortex'
+    const eye: Record<string, number[]> = vortex ? { u_eye: this.vortexFrame(settings) } : {}
     const vTexel = [1 / v.read.width, 1 / v.read.height], dTexel = [1 / d.read.width, 1 / d.read.height]
     this.pass('advect', v.write, { u_source: v.read, u_velocity: v.read }, { u_source_texel: vTexel, u_decay: 0.16, u_colour_decay: 0, u_dye_pass: 0 })
     this.swap(v)
     this.pass('inject', v.write, { u_source: v.read }, { u_emitters: this.emitterValues, u_inks: this.inkValues, u_velocity_pass: 1 })
     this.swap(v)
     this.pass('curl', this.curl, { u_velocity: v.read })
-    this.pass('force', v.write, { u_velocity: v.read, u_dye: d.read, u_curl: this.curl }, { u_source_texel: dTexel })
+    if (settings.style === 'vortex') {
+      this.pass('vortexForce', v.write, { u_velocity: v.read, u_dye: d.read }, {
+        u_source_texel: dTexel, u_eye: this.vortexFrame(settings),
+      })
+    } else {
+      this.pass('force', v.write, { u_velocity: v.read, u_dye: d.read, u_curl: this.curl }, { u_source_texel: dTexel })
+    }
     this.swap(v)
     this.pass('divergence', this.divergence, { u_velocity: v.read })
     // Warm-started Jacobi projection keeps the bandwidth bounded on phones.
@@ -320,15 +378,17 @@ export class FluidSimulation {
       this.pass('pressure', p.write, { u_source: p.read, u_divergence: this.divergence })
       this.swap(p)
     }
-    this.pass('project', v.write, { u_source: p.read, u_velocity: v.read })
+    this.pass(vortex ? 'vortexProject' : 'project', v.write, { u_source: p.read, u_velocity: v.read }, eye)
     this.swap(v)
+    const decay = settings.style === 'vortex' ? 0.18 : 0.45
+    const colourDecay = settings.style === 'vortex' ? 0.23 : 0.7
     if (this.tracer) {
-      this.pass('advect', this.tracer.write, { u_source: this.tracer.read, u_velocity: v.read, u_dye: d.read }, {
-        u_source_texel: dTexel, u_decay: 0.45, u_colour_decay: 0.7, u_dye_pass: 2,
+      this.pass(vortex ? 'vortexAdvect' : 'advect', this.tracer.write, { u_source: this.tracer.read, u_velocity: v.read, u_dye: d.read }, {
+        ...eye, u_source_texel: dTexel, u_decay: decay, u_colour_decay: colourDecay, u_dye_pass: 2,
       })
       this.swap(this.tracer)
     }
-    this.pass('advect', d.write, { u_source: d.read, u_velocity: v.read }, { u_source_texel: dTexel, u_decay: 0.45, u_colour_decay: 0.7, u_dye_pass: 1 })
+    this.pass(vortex ? 'vortexAdvect' : 'advect', d.write, { u_source: d.read, u_velocity: v.read }, { ...eye, u_source_texel: dTexel, u_decay: decay, u_colour_decay: colourDecay, u_dye_pass: 1 })
     this.swap(d)
     this.pass('inject', d.write, { u_source: d.read }, { u_emitters: this.emitterValues, u_inks: this.inkValues, u_velocity_pass: 0 })
     this.swap(d)

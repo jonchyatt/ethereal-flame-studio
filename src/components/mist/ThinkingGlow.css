@@ -73,3 +73,21 @@
 @media (prefers-reduced-motion: reduce) {
   .thinking-glow-field { animation: none; }
 }
+
+/* Graceful non-WebGL approximation: broad tangential wisps, no image assets. */
+.thinking-glow-root[data-style='vortex'] .thinking-glow-field {
+  top: 34%;
+  left: 24%;
+  width: 52%;
+  height: 25%;
+  transform-origin: 50% 65%;
+  animation-name: thinking-glow-orbit;
+  transform: rotate(calc(var(--thinking-glow-index) * 72deg)) translateX(28%);
+}
+.thinking-glow-root[data-style='vortex'][data-reduced-motion='true'] .thinking-glow-field {
+  animation: none;
+}
+@keyframes thinking-glow-orbit {
+  0%, 100% { opacity: 0.45; transform: rotate(calc(var(--thinking-glow-index) * 72deg)) translateX(28%) scale(1, 0.8); }
+  50% { opacity: 0.8; transform: rotate(calc(var(--thinking-glow-index) * 72deg + 110deg)) translateX(12%) scale(0.8, 1.1); }
+}
