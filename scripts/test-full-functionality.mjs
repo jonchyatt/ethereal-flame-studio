@@ -13,7 +13,7 @@ import { chromium } from 'playwright';
 import { mkdirSync } from 'fs';
 
 const BASE = 'http://localhost:3001';
-const SECRET = 'c6556c2ed60b7fc6ba9ecbcbbe3877f9c5980a80fe81c6616787a0aa2d197609';
+const SECRET = process.env.JARVIS_API_SECRET || '';
 const SCREENSHOT_DIR = 'scripts/screenshots/full-test';
 const results = [];
 let stepNum = 0;

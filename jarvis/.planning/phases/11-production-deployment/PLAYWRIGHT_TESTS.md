@@ -46,7 +46,7 @@ curl -s https://jarvis.whatamiappreciatingnow.com/api/jarvis/session
 # Response: {"error":"Unauthorized"}
 
 # With auth - returns 200 ✓
-curl -s -H "X-Jarvis-Secret: c6556c2ed60b7fc6ba9ecbcbbe3877f9c5980a80fe81c6616787a0aa2d197609" \
+curl -s -H "X-Jarvis-Secret: $JARVIS_API_SECRET" \
   https://jarvis.whatamiappreciatingnow.com/api/jarvis/session
 # Response: {"id":1,"startedAt":"2026-02-02T15:59:10.592Z","active":true}
 ```

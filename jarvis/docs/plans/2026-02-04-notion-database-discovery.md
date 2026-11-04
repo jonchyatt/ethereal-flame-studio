@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-04
 **Workspace:** Jarvis Complete Notion Life OS Bundle
-**Integration:** Claude Code (`ntn_Dj54656632339...`)
+**Integration:** Claude Code (`ntn_REDACTED`)
 **API Version:** SDK v5 / Notion API 2025-09-03
 
 ---
