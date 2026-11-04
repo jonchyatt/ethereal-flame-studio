@@ -26,6 +26,12 @@ export interface StoreItem {
   listedBy: 'jonathan';
   listedOn: string;
   provenance: string;
+  /** true for a dietary supplement: the card shows the FDA line under the description. */
+  supplement?: boolean;
+  /** The affiliate program that issued the link, as named in the card's commission line. Defaults to source. */
+  program?: string;
+  /** A safety warning the seller prints (e.g. pregnancy), shown on the card as given. */
+  warning?: string;
   /** Only 'live' items appear on the public shelf. Missing means 'draft'. */
   status?: ItemStatus;
 }
@@ -42,6 +48,15 @@ export const KIND_LABEL: Record<ItemKind, string> = {
 
 export const DISCLOSURE =
   'Some links on this shelf are affiliate links. If you buy through one, What Am I Appreciating Now may earn a commission at no extra cost to you. The studio lists an item only when it considers it suitable, and a commission never changes what we say about it. Nothing here is medical advice, and none of it is meant to diagnose, treat or cure anything; talk to a qualified professional about your health.';
+
+/** Shown next to the link on every commission card. */
+export function affiliateLine(item: Pick<StoreItem, 'source' | 'program'>): string {
+  return `Affiliate link: WAIA may earn a commission from ${item.program?.trim() || item.source} if you buy through this link, at no extra cost to you.`;
+}
+
+/** Shown under the description on every supplement card. */
+export const FDA_LINE =
+  'These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.';
 
 const PLACEHOLDER = /placeholder|your[-_ ]?(id|tag)|\{[^}]*\}|<[^>]*>|example\.com|\.test\b|localhost/i;
 

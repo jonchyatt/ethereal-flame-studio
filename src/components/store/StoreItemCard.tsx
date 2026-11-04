@@ -1,4 +1,4 @@
-import { KIND_LABEL, itemStatus, linkRel, type StoreItem } from '@/lib/store/items';
+import { FDA_LINE, KIND_LABEL, affiliateLine, itemStatus, linkRel, type StoreItem } from '@/lib/store/items';
 
 /** The one layout every store item uses: kind, picture slot, name, source, blurb, one link, provenance. */
 export const CARD = {
@@ -23,13 +23,16 @@ export function StoreItemCard({ item }: { item: StoreItem }) {
         <h3 style={{ margin: 0, fontSize: 18 }}>{item.name}</h3>
         <div style={{ fontSize: 13, opacity: 0.7 }}>From {item.source}</div>
         {item.blurb ? <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5 }}>{item.blurb}</p> : null}
+        {item.warning ? <p style={{ margin: 0, fontSize: 13, lineHeight: 1.4 }}><strong>Warning.</strong> {item.warning}</p> : null}
+        {item.supplement ? <p style={{ margin: 0, fontSize: 12, opacity: 0.7, lineHeight: 1.4 }}>{FDA_LINE}</p> : null}
         <p style={{ margin: '4px 0 0' }}>
           <a href={item.url} rel={linkRel(item)} target="_blank" style={{ color: '#9ad' }}>
             View at {item.source}
           </a>
+          {item.commission ? <span style={{ display: 'block', fontSize: 12, opacity: 0.7, marginTop: 4 }}>{affiliateLine(item)}</span> : null}
         </p>
         <p style={{ margin: 0, fontSize: 12, opacity: 0.55, lineHeight: 1.4 }}>
-          <strong>Provenance.</strong> {item.provenance} Listed by {item.listedBy} on {item.listedOn}.
+          <strong>Provenance.</strong> {item.provenance} Listed by Jonathan on {item.listedOn}.
         </p>
       </div>
     </article>
