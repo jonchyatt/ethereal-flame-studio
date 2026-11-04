@@ -26,6 +26,8 @@ beforeEach(() => { files.clear(); process.env.WAIA_OPERATOR_SECRET = 'operator-s
 describe('parseEvent', () => {
   it('accepts only the allowlist', () => {
     expect(parseEvent({ kind: 'view', page: 'store' })).toEqual({ ok: true, event: { kind: 'view', page: 'store', slug: undefined } });
+    // Program pages send the public slug; it is counted under the program id.
+    expect(parseEvent({ kind: 'view', page: 'program', slug: 'belief-lock-in' })).toEqual({ ok: true, event: { kind: 'view', page: 'program', slug: 'yale-inversion-protocol' } });
     expect(parseEvent({ kind: 'notify', page: 'merch', slug: 'infinity-tee' }).ok).toBe(true);
     for (const bad of [null, 'x', { kind: 'click', page: 'store' }, { kind: 'view', page: 'admin' },
       { kind: 'view', page: 'program', slug: 'A B' }, { kind: 'view', page: 'program', slug: '../x' },

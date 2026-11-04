@@ -1,5 +1,6 @@
 import { ComingSoon } from '@/components/ComingSoon';
 import { WaiaFooter } from '@/components/WaiaFooter';
+import { BundleAnchorAlias } from './BundleAnchorAlias';
 import { NAV_LINK_STYLE } from '@/app/legal/LegalLinks';
 import { programSlug } from '@/lib/entitlements/catalog';
 import { BUNDLES, bundlePriceCents, isOnSale, itemLabel, type BundleItem } from '@/lib/store/bundles';
@@ -42,6 +43,7 @@ export default function BundlesPage() {
       <h2>How giving will work</h2>
       <p>Choose a bundle, add a short note and an optional delivery date. You receive a one-time gift code to pass on; we keep only a scrambled copy of it, and no email address or postal address is stored.</p>
       <p style={{ fontSize: 14, opacity: 0.7 }}>The free Reset Biology tools stay free.</p>
+      <BundleAnchorAlias />
       <WaiaFooter />
     </main>
   );

@@ -35,7 +35,7 @@ export default async function ProgramsPage() {
       <h1>Programs</h1>
       <p>What Am I Appreciating Now programs.{live ? '' : ' Nothing here is on sale yet.'}</p>
       {PROGRAMS.map((p) => (
-        <section key={p.id} style={{ margin: '24px 0', padding: 20, border: '1px solid #333', borderRadius: 12 }}>
+        <section key={programSlug(p.id)} style={{ margin: '24px 0', padding: 20, border: '1px solid #333', borderRadius: 12 }}>
           <h2><a href={`/programs/${programSlug(p.id)}`} style={{ color: 'inherit' }}>{p.title}</a></h2>
           <p>{p.summary}</p>
           <p style={{ fontSize: 14, opacity: 0.7 }}>

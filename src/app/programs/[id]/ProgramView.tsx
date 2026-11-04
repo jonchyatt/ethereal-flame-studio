@@ -40,7 +40,7 @@ export async function ProgramView({ id, children }: { id: string; children?: Rea
 
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
-      <CounterBeacon page="program" slug={program.id} />
+      <CounterBeacon page="program" slug={slug} />
       <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
         <a href="/" style={NAV_LINK_STYLE}>Home</a>
         <a href="/programs" style={NAV_LINK_STYLE}>← Programs</a>
@@ -60,7 +60,7 @@ export async function ProgramView({ id, children }: { id: string; children?: Rea
         // The payment switch decides: off (today) shows the pre-launch state, on shows checkout.
         paymentsLive()
           ? <BuyButton programId={program.id} kind={program.kind} live />
-          : <ComingSoon id={`${program.id}-soon`} item={program.title} question={COMING_SOON_QUESTION[program.id]} />
+          : <ComingSoon id={`${slug}-soon`} item={program.title} question={COMING_SOON_QUESTION[program.id]} />
       )}
       {children}
       <p style={{ fontSize: 14 }}><a href="/listen" style={NAV_LINK_STYLE}>Not sure yet? Listen to a free ten-minute session</a></p>

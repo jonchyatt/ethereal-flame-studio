@@ -36,7 +36,7 @@ export const PRICES: Readonly<Record<PriceKey, number | null>> = {
  */
 export const BUNDLE_PRICES: Readonly<Record<string, number | null>> = {
   'deeper-sessions-gift': null,
-  'yale-guided-process-gift': null,
+  'belief-lock-in-gift': null,
   'sessions-and-process-gift': null,
 };
 
