@@ -1,5 +1,5 @@
 // Renders static merchandise mockups (shirt, mug, hat) of each brand mark into
-// public/brand/mockups/. Run `node scripts/generate-brand-marks.mjs` first.
+// docs/merch/retired/ (declined; kept off the public site). Run `node scripts/generate-brand-marks.mjs` first.
 // Usage: node scripts/render-brand-mockups.mjs
 // Illustrative previews only; not production print files.
 import { readFileSync, mkdirSync } from 'node:fs';
@@ -9,7 +9,7 @@ import { chromium } from 'playwright';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BRAND = join(ROOT, 'public', 'brand');
-const OUT = join(BRAND, 'mockups');
+const OUT = join(ROOT, 'docs', 'merch', 'retired');
 mkdirSync(OUT, { recursive: true });
 
 const mark = (name, mode) =>

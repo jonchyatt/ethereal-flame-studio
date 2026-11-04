@@ -4,7 +4,7 @@
 
 Psychedelic T-shirts, hats and mugs carrying the What Am I Appreciating Now marks (see `docs/BRAND-MARK.md`).
 
-- Catalog: `scripts/merch/catalog.json` (14 products, each with a mark, a rights basis and a mockup in `public/brand/mockups/`).
+- Catalog: `scripts/merch/catalog.json` (14 products, each with a mark, a rights basis and a declined mockup kept in `docs/merch/retired/`, not served).
 - Feed: `docs/merch/wix-products.csv`, built by `npm run merch:csv`, checked by `npm run test:merch`.
 - Print files: `docs/merch/print/` (outlined SVGs, four ink sets, star-field disc) and `docs/merch/print/SPEC.md` (size and placement per product), built by `npm run merch:print`.
 - Every row is `visible=FALSE` and `price` is blank. Prices and going live are Jonathan's, inside his own Wix store.
