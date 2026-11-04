@@ -47,6 +47,7 @@ export default async function ProgramsPage() {
       ))}
       {hasPurchase && <p style={{ fontSize: 14, opacity: 0.7 }}><a href="/programs/manage" style={NAV_LINK_STYLE}>Manage my access</a></p>}
       <p style={{ fontSize: 14, opacity: 0.7 }}>The free Reset Biology tools stay free.</p>
+      <p style={{ fontSize: 14 }}><a href="/listen" style={NAV_LINK_STYLE}>Not sure yet? Listen to a free ten-minute session</a></p>
       <LegalLinks />
     </main>
   );

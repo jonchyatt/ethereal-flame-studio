@@ -6,7 +6,7 @@ import { hasAccess, loadRecord } from '@/lib/entitlements/model';
 import { CUSTOMER_COOKIE, verifyCustomerCookie } from '@/lib/entitlements/session';
 import { loadAudioManifest } from '@/lib/entitlements/audio';
 import { paymentsLive } from '@/lib/entitlements/stripe';
-import { LegalLinks, SAFETY_NOTE } from '@/app/legal/LegalLinks';
+import { LegalLinks, NAV_LINK_STYLE, SAFETY_NOTE } from '@/app/legal/LegalLinks';
 import { AudioPlayer } from './AudioPlayer';
 import { BuyButton } from './BuyButton';
 import { ComingSoon } from '@/components/ComingSoon';
@@ -41,7 +41,10 @@ export async function ProgramView({ id, children }: { id: string; children?: Rea
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
       <CounterBeacon page="program" slug={program.id} />
-      <p><a href="/programs" style={{ color: 'inherit' }}>← Programs</a></p>
+      <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
+        <a href="/" style={NAV_LINK_STYLE}>Home</a>
+        <a href="/programs" style={NAV_LINK_STYLE}>← Programs</a>
+      </nav>
       <h1>{program.title}</h1>
       <p>{program.summary}</p>
       <p style={{ fontSize: 14, opacity: 0.7 }}>{program.provenance}</p>
@@ -60,6 +63,7 @@ export async function ProgramView({ id, children }: { id: string; children?: Rea
           : <ComingSoon id={`${program.id}-soon`} item={program.title} question={COMING_SOON_QUESTION[program.id]} />
       )}
       {children}
+      <p style={{ fontSize: 14 }}><a href="/listen" style={NAV_LINK_STYLE}>Not sure yet? Listen to a free ten-minute session</a></p>
       <LegalLinks />
     </main>
   );
