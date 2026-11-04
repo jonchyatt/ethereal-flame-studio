@@ -14,6 +14,7 @@ export default function RemovePage() {
       <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
         <a href="/" style={{ color: 'inherit' }}>Home</a>
         <a href="/store" style={{ color: 'inherit' }}>Store</a>
+        <a href="/patrons" style={{ color: 'inherit' }}>← Patron wall</a>
       </nav>
       <h1>Remove my name from the patron wall</h1>
       <div role="status">
