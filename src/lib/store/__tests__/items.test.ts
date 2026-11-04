@@ -1,11 +1,32 @@
-import { checkItem, parseIntake, itemsToSource, renderableItems, linkRel, DISCLOSURE, type StoreItem } from '../items';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import ShelfPage from '@/app/store/shelf/page';
+import IntakePage from '@/app/store/intake/page';
+import { checkItem, parseIntake, itemsToSource, renderableItems, liveItems, linkRel, DISCLOSURE, type StoreItem } from '../items';
 import { SHELF_ITEMS } from '../shelf-items';
 
 const opts = { kind: 'affiliate' as const, commission: true, provenance: 'From Jonathan.', today: '2026-10-19' };
 
 describe('store: unified item layout and intake', () => {
-  it('ships an empty shelf, nothing invented', () => {
-    expect(SHELF_ITEMS).toEqual([]);
+  it('ships the six picks as drafts: public shelf unchanged, intake previews all with disclosures', () => {
+    expect(SHELF_ITEMS).toHaveLength(6);
+    expect(renderableItems(SHELF_ITEMS)).toHaveLength(6);
+    expect(liveItems(SHELF_ITEMS)).toEqual([]);
+    for (const i of SHELF_ITEMS) {
+      expect(i).toMatchObject({ status: 'draft', commission: true, provenance: 'Maker page; swap for program-issued link when approved.' });
+      expect(i.url).toMatch(/^https:\/\/www\.(thorne\.com|stemregen\.co)\/products\//);
+    }
+    expect(JSON.stringify(SHELF_ITEMS)).not.toMatch(/\$\d/);
+    const pub = renderToStaticMarkup(createElement(ShelfPage));
+    expect(pub).toContain('The shelf is being stocked');
+    expect(pub).not.toMatch(/thorne|stemregen/i);
+    const intake = renderToStaticMarkup(createElement(IntakePage));
+    for (const i of SHELF_ITEMS) expect(intake).toContain(`href="${i.url}"`);
+    expect(intake).toContain('6 draft, 0 live');
+    expect(intake.match(/may earn a commission from Thorne/g)).toHaveLength(4);
+    expect(intake.match(/may earn a commission from STEMREGEN/g)).toHaveLength(2);
+    expect(intake.match(/Food and Drug Administration/g)).toHaveLength(5);
+    expect(intake).toContain('If pregnant, nursing, or trying to conceive do not use this product.');
   });
 
   it('parses the pipe, dash and bare-link shapes', () => {

@@ -2,8 +2,12 @@
 
 Every item the store shows, whether an affiliate link, an item in our Wix store or (later) merchandise, is one `StoreItem` (`src/lib/store/items.ts`) drawn by one component (`src/components/store/StoreItemCard.tsx`): kind label, picture slot, name, "From <seller>", the seller's own description, one outbound link, provenance line. Style and build quality come first: one card, one grid, no per-item variations.
 
-- **Shelf page:** `/store/shelf`, reading `src/lib/store/shelf-items.ts`. It ships empty and says so; nothing is invented.
-- **Intake page:** `/store/intake`. Paste one item per line, see each rendered in the real card, fix errors on the spot, then copy the printed lines into `shelf-items.ts` (or hand them to Claude). The page sends and stores nothing.
+- **Shelf page:** `/store/shelf`, reading `src/lib/store/shelf-items.ts`. It shows only items with `status: 'live'` (a missing status means `draft`); with none live it says the shelf is being stocked. Nothing is invented.
+- **Intake page:** `/store/intake`. Paste one item per line, see each rendered in the real card, fix errors on the spot, then copy the printed lines into `shelf-items.ts` (or hand them to Claude). Below the form it previews every item already in the shelf file, drafts included. The page sends and stores nothing.
+
+## Disclosures on the card
+
+Every `commission: true` card prints "Affiliate link: WAIA may earn a commission from <program> if you buy through this link, at no extra cost to you." beside its link (`program`, else the seller). Every `supplement: true` card prints the FDA line under the description. An optional `warning` (the seller's own safety text, e.g. pregnancy) prints as given. The page-top disclosure stays.
 
 ## Paste shapes
 
