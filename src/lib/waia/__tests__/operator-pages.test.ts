@@ -2,7 +2,9 @@ import { operatorPageDecision } from '../operator-pages';
 
 const WWW = 'www.whatamiappreciatingnow.com';
 const basic = (pw: string) => `Basic ${Buffer.from(`jon:${pw}`).toString('base64')}`;
-const PAGES = ['/operator/custom-orders', '/approval-queue', '/creator', '/creator/library', '/pipeline', '/local-agents', '/store/intake', '/store/prices/preview', '/programs/belief-lock-in/preview', '/programs/belief-lock-in/preview/d', '/programs/advanced-hypnosis-sessions/preview', '/jarvis', '/jarvis/app'];
+const PAGES = ['/operator/custom-orders', '/approval-queue', '/creator', '/creator/library', '/pipeline', '/local-agents', '/store/intake', '/store/prices/preview', '/programs/belief-lock-in/preview', '/programs/belief-lock-in/preview/d', '/programs/advanced-hypnosis-sessions/preview', '/jarvis', '/jarvis/app',
+  // case, percent-encoding and doubled-slash variants the live site also serves (Programs Bot, PR #73 review)
+  '/PROGRAMS/belief-lock-in/preview/d', '/programs/belief-lock-in/Preview/d', '/Programs/advanced-hypnosis-sessions/preview', '/programs/belief-lock-in/%70review/d', '/store/prices/%70review', '/%6Fperator/custom-orders', '//operator/custom-orders', '/STUDIO'];
 
 describe('operatorPageDecision', () => {
   it('answers 404 for every operator page when no key is configured (production)', () => {

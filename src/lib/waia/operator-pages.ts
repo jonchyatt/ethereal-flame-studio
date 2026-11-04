@@ -45,6 +45,18 @@ function basicPassword(authorization: string | null): string | null {
   }
 }
 
+// The site serves pages for any letter case and for percent-encoded letters (/PROGRAMS/x/Preview,
+// /store/prices/%70review), so every check runs on the decoded, lowercased path with doubled slashes collapsed.
+function normalizePath(pathname: string): string {
+  let p = pathname;
+  try {
+    p = decodeURIComponent(p);
+  } catch {
+    // malformed escape: check the raw path
+  }
+  return p.toLowerCase().replace(/\/{2,}/g, '/');
+}
+
 export function operatorPageDecision(
   hostname: string,
   pathname: string,
@@ -52,6 +64,7 @@ export function operatorPageDecision(
   secret: string | undefined = process.env.WAIA_OPERATOR_SECRET,
   isDev: boolean = process.env.NODE_ENV === 'development',
 ): OperatorPageDecision {
+  pathname = normalizePath(pathname);
   const h = hostname.toLowerCase();
   const localHost = h.startsWith('localhost') || h.startsWith('127.0.0.1');
   const studioTool = !localHost && STUDIO_TOOL_PREFIXES.some((p) => underPrefix(pathname, p));
