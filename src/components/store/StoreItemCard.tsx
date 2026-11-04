@@ -1,4 +1,4 @@
-import { KIND_LABEL, linkRel, type StoreItem } from '@/lib/store/items';
+import { KIND_LABEL, itemStatus, linkRel, type StoreItem } from '@/lib/store/items';
 
 /** The one layout every store item uses: kind, picture slot, name, source, blurb, one link, provenance. */
 export const CARD = {
@@ -9,7 +9,7 @@ export const CARD = {
 
 export function StoreItemCard({ item }: { item: StoreItem }) {
   return (
-    <article style={CARD.card} data-kind={item.kind}>
+    <article style={CARD.card} data-kind={item.kind} data-status={itemStatus(item)}>
       <div style={CARD.media}>
         {item.image ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -19,7 +19,7 @@ export function StoreItemCard({ item }: { item: StoreItem }) {
         )}
       </div>
       <div style={CARD.body}>
-        <span style={{ fontSize: 12, letterSpacing: 0.6, textTransform: 'uppercase', opacity: 0.65 }}>{KIND_LABEL[item.kind]}</span>
+        <span style={{ fontSize: 12, letterSpacing: 0.6, textTransform: 'uppercase', opacity: 0.65 }}>{KIND_LABEL[item.kind]}{itemStatus(item) === 'draft' ? ' · Draft, not on the public shelf' : ''}</span>
         <h3 style={{ margin: 0, fontSize: 18 }}>{item.name}</h3>
         <div style={{ fontSize: 13, opacity: 0.7 }}>From {item.source}</div>
         {item.blurb ? <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5 }}>{item.blurb}</p> : null}

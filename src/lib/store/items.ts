@@ -26,7 +26,13 @@ export interface StoreItem {
   listedBy: 'jonathan';
   listedOn: string;
   provenance: string;
+  /** Only 'live' items appear on the public shelf. Missing means 'draft'. */
+  status?: ItemStatus;
 }
+
+export type ItemStatus = 'draft' | 'live';
+
+export const itemStatus = (item: Pick<StoreItem, 'status'>): ItemStatus => item.status ?? 'draft';
 
 export const KIND_LABEL: Record<ItemKind, string> = {
   affiliate: 'Affiliate link',
@@ -53,12 +59,18 @@ export function checkItem(item: Partial<StoreItem> | null | undefined): string |
   if (!/^\d{4}-\d{2}-\d{2}$/.test(item.listedOn as string)) return 'listedOn must be YYYY-MM-DD';
   if (!/^https:\/\/[^\s/]+\.[^\s/]+/.test(item.url as string)) return 'url must be https';
   if (PLACEHOLDER.test(item.url as string)) return 'url is a placeholder';
+  if (item.status !== undefined && item.status !== 'draft' && item.status !== 'live') return 'status must be draft or live';
   if (item.image && !/^(https:\/\/|\/)[^\s]+$/.test(item.image)) return 'image must be https or site-relative';
   return null;
 }
 
 export function renderableItems(items: readonly Partial<StoreItem>[]): StoreItem[] {
   return items.filter((i) => !checkItem(i)) as StoreItem[];
+}
+
+/** What the public shelf shows: renderable and marked live. Drafts show only in the intake preview. */
+export function liveItems(items: readonly Partial<StoreItem>[]): StoreItem[] {
+  return renderableItems(items).filter((i) => itemStatus(i) === 'live');
 }
 
 /** rel for the outbound link: commission links are marked sponsored. */
