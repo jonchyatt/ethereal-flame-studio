@@ -2,7 +2,7 @@ import { operatorPageDecision } from '../operator-pages';
 
 const WWW = 'www.whatamiappreciatingnow.com';
 const basic = (pw: string) => `Basic ${Buffer.from(`jon:${pw}`).toString('base64')}`;
-const PAGES = ['/operator/custom-orders', '/approval-queue', '/creator', '/creator/library', '/pipeline', '/local-agents', '/store/intake', '/store/prices/preview', '/jarvis', '/jarvis/app'];
+const PAGES = ['/operator/custom-orders', '/approval-queue', '/creator', '/creator/library', '/pipeline', '/local-agents', '/store/intake', '/store/prices/preview', '/programs/belief-lock-in/preview', '/programs/belief-lock-in/preview/d', '/programs/advanced-hypnosis-sessions/preview', '/jarvis', '/jarvis/app'];
 
 describe('operatorPageDecision', () => {
   it('answers 404 for every operator page when no key is configured (production)', () => {
@@ -21,7 +21,7 @@ describe('operatorPageDecision', () => {
   });
 
   it('leaves public pages, look-alike paths and the jarvis host alone', () => {
-    for (const p of ['/', '/store', '/programs', '/listen', '/creators', '/store/custom-order', '/legal/terms']) {
+    for (const p of ['/', '/store', '/programs', '/listen', '/creators', '/store/custom-order', '/legal/terms', '/programs/belief-lock-in', '/programs/previewer']) {
       expect(operatorPageDecision(WWW, p, null, undefined, false)).toBe('allow');
     }
     expect(operatorPageDecision('jarvis.whatamiappreciatingnow.com', '/jarvis/app', null, undefined, false)).toBe('allow');

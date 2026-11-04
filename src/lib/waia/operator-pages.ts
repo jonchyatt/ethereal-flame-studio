@@ -8,6 +8,9 @@
  */
 const OPERATOR_PREFIXES = ['/operator', '/approval-queue', '/creator', '/pipeline', '/local-agents', '/store/intake', '/store/prices/preview'];
 
+// Sales page drafts for each program (/programs/<id>/preview and its A-D pages): for Jonathan's pick only.
+const SALES_PREVIEW = /^\/programs\/[^/]+\/preview(\/|$)/;
+
 // The Studio visualizer and render/batch tools: not for the public site. They stay open on a local
 // machine (the render worker drives /studio on localhost) and behind the same key everywhere else.
 const STUDIO_TOOL_PREFIXES = ['/studio', '/create', '/batch', '/playlist-batches'];
@@ -19,7 +22,7 @@ function underPrefix(pathname: string, prefix: string): boolean {
 }
 
 export function isOperatorPage(hostname: string, pathname: string): boolean {
-  if (OPERATOR_PREFIXES.some((p) => underPrefix(pathname, p))) return true;
+  if (OPERATOR_PREFIXES.some((p) => underPrefix(pathname, p)) || SALES_PREVIEW.test(pathname)) return true;
   // The Jarvis app has its own host; on the public site its pages stay private.
   return underPrefix(pathname, '/jarvis') && !hostname.toLowerCase().startsWith('jarvis.');
 }
