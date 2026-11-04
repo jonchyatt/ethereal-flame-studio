@@ -1,7 +1,10 @@
 import { ComingSoon } from '@/components/ComingSoon';
 import { WaiaFooter } from '@/components/WaiaFooter';
 import { NAV_LINK_STYLE } from '@/app/legal/LegalLinks';
-import { BUNDLES, bundlePriceCents, isOnSale, itemLabel } from '@/lib/store/bundles';
+import { programSlug } from '@/lib/entitlements/catalog';
+import { BUNDLES, bundlePriceCents, isOnSale, itemLabel, type BundleItem } from '@/lib/store/bundles';
+
+const itemHref = (i: BundleItem) => (i.type === 'program' ? `/programs/${programSlug(i.id)}` : '/store/custom-order/brief');
 
 export const metadata = {
   title: 'Gifts and bundles · What Am I Appreciating Now',
@@ -25,7 +28,7 @@ export default function BundlesPage() {
           <section key={b.id} id={b.id} style={{ margin: '24px 0', padding: 20, border: '1px solid #333', borderRadius: 12 }}>
             <h2>{b.title}</h2>
             <p>{b.summary}</p>
-            <ul>{b.items.map((i, n) => <li key={n}>{itemLabel(i)}</li>)}</ul>
+            <ul>{b.items.map((i, n) => <li key={n}><a href={itemHref(i)} style={{ color: 'inherit' }}>{itemLabel(i)}</a></li>)}</ul>
             <p style={{ fontSize: 14, opacity: 0.7 }}>
               {b.giftable ? 'Can be given as a gift' : ''}
               {isOnSale(b.id) && cents !== null ? `${b.giftable ? ' · ' : ''}${(cents / 100).toFixed(2)} USD` : ''}
