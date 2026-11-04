@@ -21,7 +21,9 @@ describe('store: Support the channel', () => {
   });
 
   it('has no payment links, checkout, or data-sending form', () => {
-    expect(section).not.toMatch(/href=|checkout|stripe|paypal|patreon\.com|wix/i);
+    // The one link is the custom-work brief form, which takes no payment either.
+    expect([...section.matchAll(/href="([^"]*)"/g)].map((m) => m[1])).toEqual(['/store/custom-order/brief']);
+    expect(section.replace('href="/store/custom-order/brief"', '')).not.toMatch(/href=|checkout|stripe|paypal|patreon\.com|wix/i);
     const form = section.match(/<form[^>]*>/)![0];
     expect(form).not.toMatch(/method="post"/i);
     expect(form).toContain('action="#custom-work"');
