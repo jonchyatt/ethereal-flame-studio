@@ -105,6 +105,10 @@ export interface IntakeOptions {
   provenance: string;
   /** YYYY-MM-DD */
   today: string;
+  /** Marks every pasted item a supplement (adds the FDA line). */
+  supplement?: boolean;
+  /** Affiliate program that issued these links; blank leaves it out. */
+  program?: string;
 }
 
 export interface IntakeRow {
@@ -175,6 +179,8 @@ export function parseIntake(text: string, opts: IntakeOptions): IntakeRow[] {
     const item: StoreItem = {
       id, kind: opts.kind, name, source, blurb, url,
       commission: opts.commission, listedBy: 'jonathan', listedOn: opts.today, provenance: opts.provenance.trim(),
+      status: 'draft', supplement: !!opts.supplement,
+      ...(opts.program?.trim() ? { program: opts.program.trim() } : {}),
     };
     const error = checkItem(item);
     rows.push({ line: idx + 1, raw, item: error ? null : item, error });

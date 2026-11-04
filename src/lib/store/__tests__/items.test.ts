@@ -65,6 +65,18 @@ describe('store: unified item layout and intake', () => {
     expect(renderableItems([...back, { ...back[0], url: 'nope' }])).toHaveLength(1);
   });
 
+  it('prints supplement and program from the intake fields, as drafts', () => {
+    const [row] = parseIntake('Glycine | Thorne | https://www.thorne.com/products/dp/glycine | Maker words.', { ...opts, supplement: true, program: ' Thorne ' });
+    expect(row.error).toBeNull();
+    const printed = itemsToSource([row.item as StoreItem]);
+    expect(printed).toContain('"supplement":true');
+    expect(printed).toContain('"program":"Thorne"');
+    expect(printed).toContain('"status":"draft"');
+    const plain = itemsToSource(parseIntake('A | https://x.shop/a', opts).map((r) => r.item as StoreItem));
+    expect(plain).toContain('"supplement":false');
+    expect(plain).not.toContain('"program"');
+  });
+
   it('keeps the disclosure wording', () => {
     expect(DISCLOSURE).toMatch(/no extra cost/);
     expect(DISCLOSURE).toMatch(/nothing here is medical advice/i);
