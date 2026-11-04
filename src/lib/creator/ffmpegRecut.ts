@@ -63,7 +63,9 @@ function buildCrop(sourceWidth: number, sourceHeight: number, targetWidth: numbe
 }
 
 function escapeFilterPath(value: string): string {
-  return value.replace(/\\/g, '/').replace(/[:'\[\],;]/g, (c) => `\\${c}`);
+  // The filtergraph parser treats both quote styles as syntax. Keep the path
+  // as one argv value (so spaces are safe) and escape only filter syntax here.
+  return value.replace(/\\/g, '/').replace(/[:'"\[\],;]/g, (c) => `\\${c}`);
 }
 
 export function buildRecutArgs(options: RecutVideoOptions): { args: string[]; durationSec: number } {

@@ -46,6 +46,26 @@ describe('ffmpeg command', () => {
     expect(vf).toMatch(/^crop=.*,scale=1080:1920.*,fps=30,subtitles=filename=\/tmp\/a b\/short\.ass$/);
     expect(args[args.indexOf('-t') + 1]).toBe('45.000');
   });
+
+  it.each([
+    ['C:\\Captions Folder\\short.ass', 'C\\:/Captions Folder/short.ass'],
+    ["C:\\Captions\\Sam's \\"quote\\".ass", 'C\\:/Captions/Sam\\\'s \\\"quote\\\".ass'],
+  ])('escapes Windows drive, spaces, and quote syntax in %s', (subtitlePath, expectedPath) => {
+    const { args } = buildRecutArgs({
+      inputPath: 'in.mp4',
+      outputPath: 'o.mp4',
+      startSec: 0,
+      endSec: 1,
+      sourceWidth: 1920,
+      sourceHeight: 1080,
+      targetWidth: 1080,
+      targetHeight: 1920,
+      fps: 30,
+      subtitlePath,
+    });
+    const vf = args[args.indexOf('-vf') + 1];
+    expect(vf).toContain(`subtitles=filename=${expectedPath}`);
+  });
 });
 
 (hasFfmpeg ? describe : describe.skip)('shorts from peaks (synthetic fixture)', () => {
