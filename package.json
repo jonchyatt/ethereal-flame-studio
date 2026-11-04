@@ -7,6 +7,7 @@
     "build": "printf '\\n' | drizzle-kit push --force 2>/dev/null || true && next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "jest",
     "test:brand": "node --test scripts/brand/brand.test.mjs",
     "test:merch": "node --test scripts/merch/merch.test.mjs scripts/merch/print-intake.test.mjs",
     "test:a11y": "node --test scripts/a11y/a11y.test.mjs",

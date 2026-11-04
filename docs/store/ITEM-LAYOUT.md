@@ -20,7 +20,7 @@ https://link            (reported as "missing name": the name is never guessed)
 
 Seller defaults to the link's domain. The description may be empty. Provenance ("where these came from") is required and printed on every card. Pick "These links earn a commission" for affiliate links: they get `rel="sponsored"` and the disclosure shows. Default is on, because disclosing a commission that is not there costs nothing and the reverse does.
 
-## Rules (carried over from `docs/AFFILIATE-SHELF.md`)
+## Rules (carried over from the retired static shelf)
 
 https only; placeholder links (`{ID}`, `<id>`, `example.com`, `PLACEHOLDER`) never render; outbound links only, no cart or checkout; no health claims, only what the seller says; the disclosure comes before the items; signing up to an affiliate programme binds Jonathan to its terms (red 2), so a person does that and the issued link is what gets pasted.
 
@@ -30,4 +30,4 @@ https only; placeholder links (`{ID}`, `<id>`, `example.com`, `PLACEHOLDER`) nev
 
 ## Not done here
 
-`public/waia-store.html` still has its older static health shelf section, and the bare-apex `/store` rewrite still points at that file; moving the apex store onto `/store/shelf` is a follow-up once items exist.
+Linking `/store` to `/store/shelf`, and setting any item `live`, waits for Jonathan's separate yes.
