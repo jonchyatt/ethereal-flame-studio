@@ -30,6 +30,19 @@ vec4 bilerp(sampler2D field, vec2 uv, vec2 texel) {
 `
 
 export const FLUID_SHADERS = {
+  blend: common + `
+uniform sampler2D u_overlay;
+uniform vec2 u_overlay_texel;
+uniform vec4 u_eye;
+void main() {
+  vec4 curtains = bilerp(u_source, v_uv, u_source_texel);
+  vec4 spiral = bilerp(u_overlay, v_uv, u_overlay_texel);
+  float radius = length((v_uv - u_eye.xy) / u_eye.zw);
+  // Let rising veils cross the arms while leaving air around the eye.
+  // This weights real dye; it does not draw or warp a spiral image.
+  float curtainWeight = 0.85 * mix(0.55, 1.0, smoothstep(0.2, 1.05, radius));
+  gl_FragColor = curtains * curtainWeight + spiral * 0.95;
+}`,
   advect: common + `
 uniform float u_decay;
 uniform float u_colour_decay;

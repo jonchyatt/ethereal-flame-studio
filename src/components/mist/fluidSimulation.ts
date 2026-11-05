@@ -90,6 +90,8 @@ export class FluidSimulation {
   private curl!: Target
   private divergence!: Target
   private bloom!: Pair
+  private overlay: FluidSimulation | null = null
+  private composite: Target | null = null
   private tracer: Pair | null = null
   private traceId: number | undefined
   private traceValues = new Float32Array(48)
@@ -105,11 +107,11 @@ export class FluidSimulation {
   private births = 0
   time = 0
 
-  constructor(private canvas: HTMLCanvasElement) {
-    const kind = contextKind()
+  constructor(private canvas: HTMLCanvasElement, shared?: FluidSimulation) {
+    const kind = shared?.backend ?? contextKind()
     if (!kind) throw new Error('Fluid textures are unsupported')
     this.backend = kind
-    const gl = canvas.getContext(kind, attributes) as GL | null
+    const gl = shared?.gl ?? canvas.getContext(kind, attributes) as GL | null
     if (!gl) throw new Error('Unable to create fluid context')
     this.gl = gl
     const format = supportedFormat(gl, kind === 'webgl2')
@@ -204,6 +206,7 @@ export class FluidSimulation {
     this.divergence = this.target(vw, vh)
     const [bw, bh] = size(64)
     this.bloom = pair(bw, bh)
+    this.overlay?.resize(width, height, force)
     this.reset()
   }
 
@@ -217,6 +220,7 @@ export class FluidSimulation {
     this.seed = 0x41c6ce57
     this.nextBirth = 0
     this.births = 0
+    this.overlay?.reset()
   }
 
   private random() {
@@ -243,7 +247,8 @@ export class FluidSimulation {
     // A shallow desktop vortex needs enough cells across its core to retain
     // the curl. Mist and full-screen/portrait vortex keep the R4 grid budget.
     const resolution = settings.style === 'vortex' && settings.position !== 'full' && this.aspect > 1 ? 256 : 128
-    const signature = [settings.style ?? 'mist', resolution, settings.position, settings.height, settings.palette.join(','), settings.mode === 'idle'].join('|')
+    const overlayResolution = settings.style === 'blend' && settings.position !== 'full' && this.aspect > 1 ? 256 : 128
+    const signature = [settings.style ?? 'mist', resolution, overlayResolution, settings.position, settings.height, settings.palette.join(','), settings.mode === 'idle'].join('|')
     if (signature === this.signature) return false
     this.signature = signature
     this.palette = settings.palette.length ? settings.palette.map(linear) : [linear('#1a2e5c')]
@@ -252,6 +257,19 @@ export class FluidSimulation {
       this.resolution = resolution
       this.resize(this.canvas.width, this.canvas.height, true)
     } else this.reset()
+    if (settings.style === 'blend') {
+      // Independent velocity, pressure and dye fields keep the rising
+      // curtains intact while the second layer winds into a full vortex.
+      if (!this.overlay) {
+        this.overlay = new FluidSimulation(this.canvas, this)
+        this.overlay.resize(this.canvas.width, this.canvas.height)
+      }
+      this.overlay.configure({ ...settings, style: 'vortex' })
+    } else if (this.overlay) {
+      this.overlay.dispose()
+      this.overlay = null
+      this.releaseComposite()
+    }
     return true
   }
 
@@ -354,6 +372,11 @@ export class FluidSimulation {
   private swap(pair: Pair) { const previous = pair.read; pair.read = pair.write; pair.write = previous }
 
   step(settings: FluidSettings) {
+    if (settings.style === 'blend' && this.overlay) {
+      this.step({ ...settings, style: 'mist' })
+      this.overlay.step({ ...settings, style: 'vortex' })
+      return
+    }
     this.sources(settings)
     const v = this.velocity, d = this.dye, p = this.pressure
     const vortex = settings.style === 'vortex'
@@ -427,17 +450,33 @@ export class FluidSimulation {
   }
 
   draw(settings: FluidSettings, answerAge: number) {
+    let dye = this.dye.read
+    if (settings.style === 'blend' && this.overlay) {
+      const other = this.overlay.dye.read
+      const width = Math.max(dye.width, other.width), height = Math.max(dye.height, other.height)
+      if (!this.composite || this.composite.width !== width || this.composite.height !== height) {
+        this.releaseComposite()
+        this.composite = this.target(width, height)
+      }
+      // Combine transported pigment in linear light, before the single bloom
+      // and highlight shoulder. The overlap mixes colour without whitening.
+      this.pass('blend', this.composite, { u_source: dye, u_overlay: other }, {
+        u_source_texel: [1 / dye.width, 1 / dye.height],
+        u_overlay_texel: [1 / other.width, 1 / other.height], u_eye: this.overlay.vortexFrame(settings),
+      })
+      dye = this.composite
+    }
     // Wide separable bloom is made only from transported dye, at 64px long side.
-    this.pass('blur', this.bloom.write, { u_source: this.dye.read }, {
-      u_source_texel: [1 / this.dye.read.width, 1 / this.dye.read.height], u_direction: [0.035 / this.aspect, 0],
+    this.pass('blur', this.bloom.write, { u_source: dye }, {
+      u_source_texel: [1 / dye.width, 1 / dye.height], u_direction: [0.035 / this.aspect, 0],
     })
     this.swap(this.bloom)
     this.pass('blur', this.bloom.write, { u_source: this.bloom.read }, {
       u_source_texel: [1 / this.bloom.read.width, 1 / this.bloom.read.height], u_direction: [0, 0.035],
     })
     this.swap(this.bloom)
-    this.pass('display', null, { u_source: this.dye.read, u_bloom: this.bloom.read }, {
-      u_source_texel: [1 / this.dye.read.width, 1 / this.dye.read.height],
+    this.pass('display', null, { u_source: dye, u_bloom: this.bloom.read }, {
+      u_source_texel: [1 / dye.width, 1 / dye.height],
       u_bloom_texel: [1 / this.bloom.read.width, 1 / this.bloom.read.height],
       u_intensity: Math.max(0, Math.min(1.5, settings.intensity)), u_grain: Math.max(0, Math.min(1, settings.grain)),
       u_position: settings.position === 'full' ? 2 : settings.position === 'top' ? 1 : 0,
@@ -445,14 +484,25 @@ export class FluidSimulation {
     })
   }
 
+  private releaseComposite() {
+    if (!this.composite) return
+    this.gl.deleteTexture(this.composite.texture)
+    this.gl.deleteFramebuffer(this.composite.framebuffer)
+    this.targets = this.targets.filter(target => target !== this.composite)
+    this.composite = null
+  }
+
   private clearTargets() {
     for (const target of this.targets) { this.gl.deleteTexture(target.texture); this.gl.deleteFramebuffer(target.framebuffer) }
     this.targets = []
+    this.composite = null
     this.tracer = null
     this.traceId = undefined
   }
 
   dispose() {
+    this.overlay?.dispose()
+    this.overlay = null
     this.clearTargets()
     for (const { program } of Object.values(this.programs)) this.gl.deleteProgram(program)
     this.programs = {} as typeof this.programs

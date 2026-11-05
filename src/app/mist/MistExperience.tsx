@@ -12,7 +12,8 @@ export default function MistExperience() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setControlsOpen(params.get('controls') === '1');
-    if (params.get('style') === 'vortex') setStyle('vortex');
+    const selectedStyle = params.get('style');
+    if (selectedStyle === 'vortex' || selectedStyle === 'blend') setStyle(selectedStyle);
     const selected = params.get('preset');
     if (selected && Object.hasOwn(MIST_PRESETS, selected)) setPreset(selected as MistPresetId);
   }, []);
@@ -43,6 +44,7 @@ export default function MistExperience() {
             <select value={style} onChange={(event) => setStyle(event.target.value as GlowStyle)} className="rounded-lg border border-white/20 bg-[#0b0b14] p-2">
               <option value="mist">Mist</option>
               <option value="vortex">Vortex</option>
+              <option value="blend">Blend</option>
             </select>
           </label>
         </aside>

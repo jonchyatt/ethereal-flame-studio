@@ -1,4 +1,4 @@
-export type GlowStyle = 'mist' | 'vortex'
+export type GlowStyle = 'mist' | 'vortex' | 'blend'
 
 export type GlowPosition = 'top' | 'bottom' | 'full';
 export type GlowMode = 'idle' | 'searching' | 'answering';

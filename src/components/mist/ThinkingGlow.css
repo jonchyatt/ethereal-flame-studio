@@ -75,7 +75,8 @@
 }
 
 /* Graceful non-WebGL approximation: broad tangential wisps, no image assets. */
-.thinking-glow-root[data-style='vortex'] .thinking-glow-field {
+.thinking-glow-root[data-style='vortex'] .thinking-glow-field,
+.thinking-glow-root[data-style='blend'] .thinking-glow-orbit-field {
   top: 34%;
   left: 24%;
   width: 52%;
@@ -84,7 +85,8 @@
   animation-name: thinking-glow-orbit;
   transform: rotate(calc(var(--thinking-glow-index) * 72deg)) translateX(28%);
 }
-.thinking-glow-root[data-style='vortex'][data-reduced-motion='true'] .thinking-glow-field {
+.thinking-glow-root[data-style='vortex'][data-reduced-motion='true'] .thinking-glow-field,
+.thinking-glow-root[data-style='blend'][data-reduced-motion='true'] .thinking-glow-field {
   animation: none;
 }
 @keyframes thinking-glow-orbit {

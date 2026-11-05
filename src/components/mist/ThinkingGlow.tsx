@@ -72,7 +72,7 @@ export function ThinkingGlow({
       if (fluid.configure(settings)) elapsed = 0
       // Prepare a still initial state; toggling reduced motion holds the last dye.
       if (!motionReduced) elapsed += delta
-      else elapsed = Math.max(elapsed, settings.style === 'vortex' ? 7 : 1.5)
+      else elapsed = Math.max(elapsed, settings.style === 'vortex' || settings.style === 'blend' ? 7 : 1.5)
       const test = window as GlowTestWindow
       const testTime = test.__GLOW_TEST_TIME__
       const seeking = Number.isFinite(testTime)
@@ -198,6 +198,16 @@ export function ThinkingGlow({
           <span
             key={`${colour}-${index}`}
             className="thinking-glow-field"
+            style={{
+              '--thinking-glow-color': colour,
+              '--thinking-glow-index': index,
+            } as CSSProperties}
+          />
+        ))}
+        {style === 'blend' && fallbackPalette.map((colour, index) => (
+          <span
+            key={`orbit-${colour}-${index}`}
+            className="thinking-glow-field thinking-glow-orbit-field"
             style={{
               '--thinking-glow-color': colour,
               '--thinking-glow-index': index,
