@@ -267,6 +267,9 @@
   .btn-solid:hover { background: var(--gold-bright); }
 
   .capture-note { font-size: 0.78rem; color: var(--ink-dim); font-family: var(--mono); letter-spacing: 0.02em; }
+  .signup-label { width: 100%; color: var(--ink-bright); font-size: 0.95rem; }
+  .capture-status { width: 100%; min-height: 1.5em; margin: 0; color: var(--ink-bright); }
+  .honeypot { position: absolute; left: -10000px; }
 
   footer {
     text-align: center;
@@ -338,9 +341,13 @@
       following along on YouTube?
     </p>
 
-    <form class="capture-row" onsubmit="event.preventDefault(); this.querySelector('button').textContent='Coming soon';">
-      <input type="email" placeholder="you@wherever.com" aria-label="Email address" disabled />
-      <button type="submit" class="btn" disabled>Coming soon</button>
+    <form class="capture-row" data-email-signup novalidate>
+      <label class="signup-label" for="front-door-email">Email address</label>
+      <input id="front-door-email" data-email-input name="email" type="email" placeholder="you@wherever.com" autocomplete="email" required />
+      <button type="submit" class="btn">Tell me when</button>
+      <div class="honeypot" aria-hidden="true"><label>Leave this empty <input name="website" type="text" tabindex="-1" autocomplete="off" /></label></div>
+      <p class="capture-note">Get new sessions when they are released. You can unsubscribe anytime.</p>
+      <p class="capture-status" data-email-status role="status" aria-live="polite"></p>
     </form>
 
     <a class="btn btn-solid" href="https://www.youtube.com/@What_Am_I_Appreciating_Now" target="_blank" rel="noopener">Watch on YouTube</a>
@@ -423,6 +430,7 @@
   drawSpiral(document.getElementById('spiralTop'), { turns: 3.4, gold: goldColor, indigo: indigoColor });
   drawSpiral(document.getElementById('spiralBottom'), { turns: 2.6, gold: goldColor, indigo: indigoColor });
 </script>
+<script src="/waia-email-signup.js"></script>
 
 </body>
 </html>
