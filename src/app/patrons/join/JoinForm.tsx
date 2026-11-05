@@ -54,11 +54,11 @@ export default function JoinForm({ tiers }: { tiers: Tier[] }) {
   return (
     <form onSubmit={submit} style={{ marginTop: 24 }}>
       <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
-        <legend>Tier</legend>
+        <legend>Requested display style</legend>
         {tiers.map((t) => (
           <label key={t.tier} style={{ display: 'block', margin: '8px 0', padding: 12, border: '1px solid #333', borderRadius: 8 }}>
             <input type="radio" name="tier" value={t.tier} checked={tier === t.tier} onChange={() => setTier(t.tier)} /> <strong>{t.label}</strong>
-            <span style={{ display: 'block', opacity: 0.7, fontSize: 14 }}>{t.letters} Not yet on sale.</span>
+            <span style={{ display: 'block', opacity: 0.7, fontSize: 14 }}>{t.letters} Proposed style.</span>
           </label>
         ))}
       </fieldset>

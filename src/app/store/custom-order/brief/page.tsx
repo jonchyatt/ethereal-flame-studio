@@ -12,32 +12,34 @@ export default function CustomSessionBrief() {
   const [f, setF] = useState({ goal: '', lengthMinutes: 20, voice: 'no-preference', music: 'no-preference', vrScene: 'forest', vrSceneNote: '', vrComfortFlag: false, safetyNotes: '', acknowledgeSafeUse: false, contact: '', website: '' });
   const [msg, setMsg] = useState('');
   const [reference, setReference] = useState('');
+  const [busy, setBusy] = useState(false);
   const set = (k: string, v: unknown) => setF((p) => ({ ...p, [k]: v }));
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setMsg('');
+    setBusy(true);
     const { contact, website, vrScene, vrSceneNote, vrComfortFlag, ...rest } = f;
     const brief = { kind, ...rest, ...(kind === 'vr' ? { vrScene, vrSceneNote, vrComfortFlag } : {}) };
+    try {
     const res = await fetch('/api/custom-orders/brief', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brief, contact, website }),
     });
     const data = await res.json().catch(() => ({}));
-    if (res.ok) setReference(data.reference);
-    else setMsg(res.status === 503 ? 'Custom sessions are not open yet.' : (data.issues ?? [data.error ?? 'That did not go through.']).join(' '));
+    if (res.ok && data.reference) setReference(data.reference);
+    else setMsg(res.status === 503 ? 'The brief service is not accepting requests right now. Your answers are still here. Please try again later or contact Support.' : (data.issues ?? [data.error ?? 'That did not go through. Please try again.']).join(' '));
+    } catch { setMsg('We could not connect. Your answers are still here; please try again.'); }
+    finally { setBusy(false); }
   }
 
   return (
-    <main style={{ maxWidth: 640, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
-      <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
-        <a href="/" style={NAV_LINK_STYLE}>Home</a>
-        <a href="/store" style={NAV_LINK_STYLE}>Store</a>
-      </nav>
+    <main className="narrow" style={{ maxWidth: 640, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
+      
       <h1>Describe your custom session</h1>
-      <p>What Am I Appreciating Now. Not yet on sale: nothing is charged here. You will get a reference to check where your request stands, and a quote is an offer, not a payment taken.</p>
+      <p>Tell us the session you have in mind. Sending a brief does not take payment. Format, length, voice and scene choices below are requests; feasibility, timing and revisions are discussed before any agreement.</p>
       {reference ? (
         <section role="status">
-          <p>Thank you. Keep this reference; it is shown once:</p>
+          <h2>Your brief is saved</h2><p>Keep this private reference to check the response:</p>
           <p><code>{reference}</code></p>
           <p><a href={`/store/custom-order#ref=${encodeURIComponent(reference)}`} style={{ color: '#9cf' }}>See where your request stands</a></p>
         </section>
@@ -92,11 +94,12 @@ export default function CustomSessionBrief() {
           <label style={{ display: 'block', marginBottom: 16 }}>
             <input type="checkbox" required checked={f.acknowledgeSafeUse} onChange={(e) => set('acknowledgeSafeUse', e.target.checked)} /> I understand a session is never to be used while driving or operating anything
           </label>
-          <button type="submit">Send my brief</button>
+          <button type="submit" disabled={busy}>{busy ? 'Saving…' : 'Send my brief'}</button>
           {msg && <p role="status">{msg}</p>}
         </form>
       )}
-      <WaiaFooter />
+      <p><a href="/store/custom-order">← Custom sessions and request lookup</a></p>
+      <p className="meta">Your request and optional contact details stay private. <a href="/legal/privacy">Privacy</a> · <a href="/support">Support</a></p>
     </main>
   );
 }

@@ -1,27 +1,28 @@
 'use client';
-
 import { usePathname } from 'next/navigation';
-import { useId, useState } from 'react';
+import Link from 'next/link';
+import { useId, useRef, useState } from 'react';
 
-const formStyle = { display: 'grid', gap: 10, width: '100%', maxWidth: 520 } as const;
-const rowStyle = { display: 'flex', flexWrap: 'wrap' as const, gap: 10, width: '100%' };
-const inputStyle = { flex: '1 1 220px', minWidth: 0, padding: '12px 14px', borderRadius: 8, border: '1px solid #777', font: 'inherit' };
-const buttonStyle = { minHeight: 44, padding: '10px 18px', borderRadius: 8, border: 0, background: '#d6ad63', color: '#111', cursor: 'pointer', font: 'inherit', fontWeight: 700 };
-
-/** The React counterpart of public/waia-email-signup.js. */
 export function EmailSignup({ question }: { question?: string }) {
-  const pathname = usePathname() || 'unknown';
+  const pathname = usePathname() || '/';
   const id = useId();
+  const input = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
-  const [busy, setBusy] = useState(false);
-
+  const [state, setState] = useState<'idle' | 'busy' | 'saved' | 'error'>(
+    'idle',
+  );
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!input.current?.validity.valid) {
+      setMessage('Enter a valid email address, such as you@example.com.');
+      setState('error');
+      input.current?.focus();
+      return;
+    }
+    const website = new FormData(event.currentTarget).get('website');
+    setState('busy');
     setMessage('');
-    setBusy(true);
-    const form = event.currentTarget;
-    const website = new FormData(form).get('website');
     try {
       const response = await fetch('/api/subscribe', {
         method: 'POST',
@@ -30,33 +31,70 @@ export function EmailSignup({ question }: { question?: string }) {
       });
       const result = await response.json().catch(() => ({}));
       if (response.ok && result.ok) {
+        setState('saved');
         setMessage(result.message || 'Thanks — you’re on the list.');
         setEmail('');
       } else {
-        setMessage(result.error || 'We could not save that right now. Please try again shortly.');
+        setState('error');
+        setMessage(
+          result.error ||
+            'We could not save that right now. Please try again shortly.',
+        );
       }
     } catch {
-      setMessage('We could not save that right now. Please try again shortly.');
-    } finally {
-      setBusy(false);
+      setState('error');
+      setMessage(
+        'We could not save that right now. Your address is still here; please try again.',
+      );
     }
   }
-
   return (
-    <div style={{ margin: '16px 0', width: '100%' }}>
-      {question && <p style={{ fontSize: 15, margin: '0 0 10px' }}>{question}</p>}
-      <form onSubmit={submit} style={formStyle} noValidate>
+    <section className="signup" aria-labelledby={`${id}-heading`}>
+      <h2 id={`${id}-heading`}>A new moment, when it’s ready</h2>
+      <p>{question || 'Get a note when a new session is released.'}</p>
+      <form
+        onSubmit={submit}
+        noValidate
+        data-email-signup
+        aria-busy={state === 'busy'}
+      >
         <label htmlFor={id}>Email address</label>
-        <div style={rowStyle}>
-          <input id={id} name="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required style={inputStyle} />
-          <button type="submit" disabled={busy} style={{ ...buttonStyle, opacity: busy ? 0.7 : 1 }}>{busy ? 'Joining…' : 'Tell me when'}</button>
+        <div className="signup-row">
+          <input
+            ref={input}
+            id={id}
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+            aria-invalid={state === 'error'}
+            aria-describedby={`${id}-message ${id}-privacy`}
+          />
+          <button type="submit" disabled={state === 'busy'}>
+            {state === 'busy' ? 'Joining…' : 'Tell me when'}
+          </button>
         </div>
-        <div aria-hidden="true" style={{ position: 'absolute', left: -10000 }}>
-          <label>Leave this empty <input name="website" tabIndex={-1} autoComplete="off" /></label>
+        <div aria-hidden="true" className="honeypot">
+          <label>
+            Leave this empty
+            <input name="website" tabIndex={-1} autoComplete="off" />
+          </label>
         </div>
-        <p style={{ fontSize: 14, margin: 0, opacity: 0.8 }}>Get new sessions when they are released. You can unsubscribe anytime.</p>
-        {message && <p role="status" aria-live="polite" style={{ margin: 0 }}>{message}</p>}
+        <p className="meta" id={`${id}-privacy`}>
+          New-session updates only. Unsubscribe anytime using the link in each
+          update. <Link href="/legal/privacy">Privacy</Link>
+        </p>
+        <p
+          role="status"
+          aria-live="polite"
+          id={`${id}-message`}
+          className={`form-message ${state === 'error' ? 'error' : ''}`}
+        >
+          {message}
+        </p>
       </form>
-    </div>
+    </section>
   );
 }

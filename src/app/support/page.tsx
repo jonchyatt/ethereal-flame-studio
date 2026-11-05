@@ -24,11 +24,8 @@ export default async function SupportPage() {
   const mail = <a href={`mailto:${OPERATOR.contact}`} style={link}>{OPERATOR.contact}</a>;
   const hasPurchase = await browserHasPurchase();
   return (
-    <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif', lineHeight: 1.6 }}>
-      <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
-        <a href="/" style={NAV_LINK_STYLE}>Home</a>
-        <a href="/store" style={NAV_LINK_STYLE}>Store</a>
-      </nav>
+    <main className="narrow" style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif', lineHeight: 1.6 }}>
+      
       <p><a href="/" style={{ color: 'inherit' }}>← What Am I Appreciating Now</a></p>
       <h1>Support</h1>
       <p>Email {mail} for anything below. A person reads every message.</p>
@@ -42,7 +39,6 @@ export default async function SupportPage() {
       <p>Charged in error, or a program did not work as described? Email {mail} within 14 days of the charge for a full refund. Details: <a href="/legal/refunds" style={link}>Refunds and cancellation</a>.</p>
       <h2 style={{ fontSize: 20 }}>Your data</h2>
       <p>To see, correct or delete what we hold, email {mail}. Patron listings can also be removed at <a href="/patrons/remove" style={link}>/patrons/remove</a> with your code. Details: <a href="/legal/privacy" style={link}>Privacy</a>.</p>
-      <LegalLinks />
     </main>
   );
 }
