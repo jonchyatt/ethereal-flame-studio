@@ -63,7 +63,7 @@ export async function ProgramView({ id, children }: { id: string; children?: Rea
           : <ComingSoon id={`${slug}-soon`} item={program.title} question={COMING_SOON_QUESTION[program.id]} />
       )}
       {children}
-      <p style={{ fontSize: 14 }}><a href="/listen" style={NAV_LINK_STYLE}>Not sure yet? Listen to a free ten-minute session</a></p>
+      <p style={{ fontSize: 14 }}><a href="/#practices" style={NAV_LINK_STYLE}>Not sure yet? Try a one-minute practice first</a></p>
       <LegalLinks />
     </main>
   );

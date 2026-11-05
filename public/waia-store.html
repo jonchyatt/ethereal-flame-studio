@@ -119,13 +119,40 @@
   .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 0.35rem; }
   .outbound-links { display: flex; flex-wrap: wrap; gap: 0 0.35rem; }
   .outbound-links a { display: inline-block; min-height: 44px; padding: 10px 8px; line-height: 24px; vertical-align: middle; }
+
+  /* The site's one index bar, kept in step with src/components/waia/WaiaHeader.tsx and globals.css. */
+  .waia-index { position: sticky; top: 0; z-index: 70; display: flex; align-items: center; gap: 1rem; min-height: 60px;
+    padding: 0 clamp(1rem, 4vw, 3rem); background: rgb(10 13 23 / 0.92); border-bottom: 1px solid rgb(236 230 214 / 0.08); }
+  .waia-index__brand { display: flex; align-items: center; gap: 0.7rem; min-height: 44px; color: var(--ink); text-decoration: none;
+    font-family: var(--display); font-size: 1.05rem; white-space: nowrap; }
+  .waia-index__brand img { width: 40px; height: 40px; border-radius: 8px; }
+  .waia-index ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; }
+  .waia-index li a { color: var(--ink-dim); text-decoration: none; font-size: 0.92rem; }
+  .waia-index li a:hover { color: var(--gold-bright); }
+  .waia-index > nav { margin-left: auto; }
+  .waia-index details { display: none; margin-left: auto; position: relative; }
+  .waia-index summary { list-style: none; cursor: pointer; min-height: 44px; display: flex; align-items: center; padding: 0 0.9rem;
+    border: 1px solid rgb(230 189 119 / 0.45); border-radius: 999px; color: var(--gold-bright); }
+  .waia-index summary::-webkit-details-marker { display: none; }
+  .waia-index details nav { position: absolute; right: 0; top: calc(100% + 8px); min-width: 220px; padding: 0.5rem;
+    background: var(--ground-raised); border: 1px solid rgb(236 230 214 / 0.1); border-radius: 12px; }
+  .waia-index details ul { flex-direction: column; }
+  .waia-index details li a { color: var(--ink); }
+  @media (max-width: 960px) { .waia-index > nav { display: none; } .waia-index details { display: block; } }
+  @media (max-width: 480px) { .waia-index { gap: 0.6rem; padding: 0 1rem; } .waia-index__brand { font-size: 0.94rem; gap: 0.5rem; }
+    .waia-index__brand img { width: 32px; height: 32px; } }
 </style>
 </head>
 <body data-waia-page="store">
+<div class="waia-index" role="banner">
+  <a class="waia-index__brand" href="/"><img src="/waia-home/mark-carving.webp" width="40" height="40" alt=""><span>What Am I Appreciating Now</span></a>
+  <nav aria-label="Index"><ul><li><a href="/#practices">Practices</a></li><li><a href="/programs">Programs</a></li><li><a href="/#vr">VR and 360</a></li><li><a href="/store/shelf">Health shop</a></li><li><a href="/merch">Merch and patrons</a></li><li><a href="https://www.youtube.com/@What_Am_I_Appreciating_Now" target="_blank" rel="noopener">Channel</a></li></ul></nav>
+  <details><summary>Index</summary><nav aria-label="Index"><ul><li><a href="/#practices">Practices</a></li><li><a href="/programs">Programs</a></li><li><a href="/#vr">VR and 360</a></li><li><a href="/store/shelf">Health shop</a></li><li><a href="/merch">Merch and patrons</a></li><li><a href="https://www.youtube.com/@What_Am_I_Appreciating_Now" target="_blank" rel="noopener">Channel</a></li></ul></nav></details>
+</div>
 <div class="starfield" aria-hidden="true"></div>
 <main>
   <header>
-    <img src="/brand/what-am-i-appreciating-now-circle-dark.svg" width="140" height="140" alt="What Am I Appreciating Now, set on a circle so Now closes back into What" />
+    <img src="/waia-home/mark-carving-lg.webp" width="140" height="140" style="border-radius:18px" alt="The mark: What Am I Appreciating Now carved in wood as one ring around a spiral vortex" />
     <div class="loop-label">What Am I Appreciating Now</div>
     <h1>The Store</h1>
     <p>Programs and custom sessions. Nothing here is on sale yet: no prices, no cart, no payment. Every item shows where its words, voices, images and music come from.</p>

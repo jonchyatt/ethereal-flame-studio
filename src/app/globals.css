@@ -185,3 +185,52 @@ html:has(.waia-shell), body:has(.waia-shell) { background: #0a0d17; }
   .waia-header__mark { width: 32px; height: 32px; }
   .waia-header__menu summary { padding: 0 0.75rem; }
 }
+
+/* ---------- inner public pages: one system (Scrollcraft pass, gallery grammar) ----------
+   The pages keep their markup; the shell gives them the art band, the type scale, label
+   plates for their sections and the arrival motion. Inline styles on those pages lose to
+   these rules where the two disagree. */
+.page-band { position: relative; height: clamp(170px, 30svh, 340px); overflow: hidden; background: #05060c; }
+.page-band img { position: absolute; left: 0; top: -12%; width: 100%; height: 124%; object-fit: cover; max-width: none; }
+.page-band img[src$="vortex.webp"] { opacity: 0.4; }
+.page-band::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, rgb(10 13 23 / 0) 40%, var(--waia-ground)); }
+.waia-shell main:not(.waia-home) {
+  color: var(--waia-ink) !important; max-width: 46rem !important; margin: 0 auto !important;
+  padding: clamp(1rem, 4vw, 2.5rem) 16px 4rem !important; min-height: 0 !important;
+  font-size: 1.0625rem; line-height: 1.65; position: relative;
+}
+@media (min-width: 700px) { .waia-shell main:not(.waia-home) { padding-inline: 24px !important; } }
+.waia-shell main:not(.waia-home) h1 { font-size: clamp(2.1rem, 6.5vw, 3.4rem); line-height: 1.04; margin: 0 0 0.45em; color: #f6f1e3; text-wrap: balance; }
+.waia-shell main:not(.waia-home) h2 { font-size: clamp(1.35rem, 3.6vw, 1.85rem); line-height: 1.15; margin: 1.8em 0 0.45em; color: #f6f1e3; }
+.waia-shell main:not(.waia-home) section > h2:first-child { margin-top: 0; }
+.waia-shell main:not(.waia-home) h3 { font-family: var(--waia-display); font-weight: 400; font-size: 1.2rem; color: #f6f1e3; }
+.waia-shell main:not(.waia-home) :is(p, li) { max-width: 62ch; text-wrap: pretty; }
+.waia-shell main:not(.waia-home) a:not(:has(h2, h3, img)) { color: var(--waia-gold) !important; }
+.waia-shell main:not(.waia-home) [style*="opacity"] { opacity: 1 !important; color: var(--waia-ink-soft); }
+/* The shell's index replaces each page's own small Home / Store row. */
+.waia-shell main:not(.waia-home) > nav[aria-label="Site navigation"] { display: none; }
+/* Sections the pages drew as bordered boxes become label plates. */
+.waia-shell main:not(.waia-home) :is(section, a, article, div)[style*="border"] {
+  background: var(--waia-raised) !important; border: 1px solid rgb(236 230 214 / 0.1) !important;
+  border-radius: 14px !important; padding: clamp(1rem, 3.5vw, 1.5rem) !important;
+  box-shadow: 0 10px 30px -18px rgb(2 3 8 / 0.8);
+}
+.waia-shell main:not(.waia-home) :is(input, select, textarea) {
+  background: #05060c; color: var(--waia-ink); border: 1px solid rgb(236 230 214 / 0.25);
+  border-radius: 10px; min-height: 44px; padding: 0.5rem 0.75rem; font: inherit; max-width: 100%;
+}
+.waia-shell main:not(.waia-home) button:not([class]) {
+  min-height: 44px; padding: 0 1.25rem; border: 0; border-radius: 999px;
+  background: var(--waia-gold); color: #0a0d17; font: 600 1rem/1 var(--waia-text); cursor: pointer;
+}
+.waia-shell main:not(.waia-home) :is(img, video, iframe) { max-width: 100%; height: auto; }
+@keyframes waia-rise { from { opacity: 0; translate: 0 22px; } to { opacity: 1; translate: 0 0; } }
+@keyframes waia-drift { from { translate: 0 0; } to { translate: 0 10%; } }
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .waia-shell main:not(.waia-home) > :is(section, figure, article) {
+      animation: waia-rise linear both; animation-timeline: view(); animation-range: entry 0% entry 35%;
+    }
+    .page-band img { animation: waia-drift linear both; animation-timeline: scroll(root); animation-range: 0 60vh; }
+  }
+}
