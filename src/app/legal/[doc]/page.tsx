@@ -37,10 +37,11 @@ const BODY: Record<Doc, { h: string; p: ReactNode[] }[]> = {
       'A purchase: an anonymous customer number (cus_ followed by random characters) in a signed cookie named waia_customer, plus a private access record saying which programs it may open, until when, and the Stripe subscription or payment reference. No name or email is stored by this site for a purchase.',
       'Payment details: you type your card into Stripe, not into this site. Stripe handles them under its own privacy policy (stripe.com/privacy) and tells us only whether the payment succeeded.',
       'Patron sign-up (optional): the name or alias, optional short message, tier and consent ticks you submit, kept privately until reviewed. You can ask for removal at /patrons/remove with the code you were given.',
+      'Email updates (optional): the email address you submit, the page where you signed up, the signup time and a browser user-agent string of up to 500 characters. We use these only to send new-session updates. Every update includes a link to unsubscribe.',
       'Custom session request (optional): what you write in the form and any contact details you choose to add, kept privately and never shown on the site.',
       'Page counts: we count page views and "notify me" taps per day and page. No cookie, address, browser details or visitor id are kept for this, and requests sent with Do Not Track or Global Privacy Control are not counted.',
     ] },
-    { h: 'Where it is kept', p: ['The site runs on Vercel. Private records are kept in Cloudflare R2 storage. We do not sell or share your information for advertising, and there are no ad or tracking scripts on the store.'] },
+    { h: 'Where it is kept', p: ['The site runs on Vercel. Private records are kept in Cloudflare R2 storage, except optional email-update records, which are kept in Turso. We do not sell or share your information for advertising, and there are no ad or tracking scripts on the store.'] },
     { h: 'Your choices', p: [`To see, correct or delete what we hold about you, contact ${OPERATOR.contact}. Clearing the waia_customer cookie removes the link between this browser and your access.`] },
   ],
   refunds: [
