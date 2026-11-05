@@ -1,0 +1,100 @@
+[
+  {
+    "file": "public/media/appreciation/19.mp4",
+    "bytes": 39816589,
+    "sha256": "3d6e67da930d3ce9711e5912f17a952965f9b1ce277c3d6de9a906cee72bd575",
+    "probe": {
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1080,
+          "height": 1920
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "format": {
+        "duration": "41.333333"
+      }
+    }
+  },
+  {
+    "file": "public/media/appreciation/12.mp4",
+    "bytes": 55533406,
+    "sha256": "c98d396adbca1a269c686606b3ffa3ec8075229f13af9f21781db667bac78414",
+    "probe": {
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1080,
+          "height": 1920
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "format": {
+        "duration": "59.266667"
+      }
+    }
+  },
+  {
+    "file": "public/media/appreciation/04.mp4",
+    "bytes": 43706631,
+    "sha256": "98db5bb13194370612ec419c39becdf96e077bf7a52f694d23942e120c0230bc",
+    "probe": {
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1080,
+          "height": 1920
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "format": {
+        "duration": "65.533333"
+      }
+    }
+  },
+  {
+    "file": "public/media/reading/serenity.mp3",
+    "bytes": 5712888,
+    "sha256": "4345d35973245d279f556937d20e822ae5374186fb42e917756ae5d2309f15fb",
+    "probe": {
+      "streams": [
+        {
+          "codec_name": "mp3",
+          "codec_type": "audio"
+        }
+      ],
+      "format": {
+        "duration": "237.982896"
+      }
+    }
+  },
+  {
+    "file": "public/samples/gentle-reset-listen.m4a",
+    "bytes": 5126116,
+    "sha256": "2e9ca06901a1e95daf88a4b39d2d7d2989c29dcd24bdac4af09c5785b2ba6120",
+    "probe": {
+      "streams": [
+        {
+          "codec_name": "aac",
+          "codec_type": "audio"
+        }
+      ],
+      "format": {
+        "duration": "635.716009"
+      }
+    }
+  }
+]
