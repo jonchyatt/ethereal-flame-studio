@@ -1,77 +1,75 @@
+using Crest;
 using UnityEngine;
 
 /// <summary>
-/// Makes Water4Advanced respond to sub-bass frequencies.
-///
-/// Sub-bass (20-60 Hz) drives wave intensity — heavy bass = choppier water.
-/// Bass (60-250 Hz) drives reflection distortion.
-/// Overall energy drives foam/whitecap amount.
-///
-/// Attach to any Water4Advanced GameObject.
-/// Requires AudioAnalyzer in the scene.
+/// Makes Crest's Gerstner wave weight and planar-reflection distortion respond
+/// to the project's multi-band audio analysis. Attach this to the Crest Ocean
+/// GameObject; it deliberately no longer writes legacy Standard Assets water
+/// material properties.
 /// </summary>
 public class AudioReactiveWater : MonoBehaviour
 {
-    [Header("Wave Scale (driven by Sub-bass)")]
-    [Range(0, 7)] public int waveScaleBand = 0;
-    public float restWaveScale = 0.05f;
-    public float beatWaveScale = 0.3f;
+    [Header("Crest references")]
+    public OceanRenderer crestOcean;
+    public ShapeGerstner crestWaves;
 
-    [Header("Reflection Distortion (driven by Bass)")]
-    [Range(0, 7)] public int reflectionBand = 1;
-    public float restReflectionDistort = 0.44f;
-    public float beatReflectionDistort = 1.5f;
+    [Header("Wave Weight (driven by Sub-bass)")]
+    [UnityEngine.Range(0, 7)] public int waveScaleBand = 0;
+    [UnityEngine.Range(0f, 1f)] public float restWaveScale = 0.48f;
+    [UnityEngine.Range(0f, 1f)] public float beatWaveScale = 0.92f;
+
+    [Header("Planar Reflection Distortion (driven by Bass)")]
+    [UnityEngine.Range(0, 7)] public int reflectionBand = 1;
+    public float restReflectionDistort = 0.42f;
+    public float beatReflectionDistort = 0.92f;
 
     [Header("Smoothing")]
-    public float reactionSpeed = 4f;
+    [Min(0f)] public float reactionSpeed = 4f;
 
-    // Cached
-    private Material _waterMat;
-    private float _currentWaveScale;
-    private float _currentReflection;
+    float _currentWaveWeight;
+    float _currentReflection;
+
+    void Awake()
+    {
+        if (crestOcean == null) crestOcean = GetComponent<OceanRenderer>();
+        if (crestWaves == null) crestWaves = GetComponent<ShapeGerstner>();
+    }
 
     void Start()
     {
-        var renderer = GetComponent<Renderer>();
-        if (renderer != null)
+        if (crestOcean == null || crestWaves == null)
         {
-            _waterMat = renderer.sharedMaterial;
+            Debug.LogWarning("[AudioReactiveWater] Crest OceanRenderer and ShapeGerstner are required.", this);
+            enabled = false;
+            return;
         }
 
-        if (_waterMat == null)
-        {
-            Debug.LogWarning("[AudioReactiveWater] No material found on water object");
-            enabled = false;
-        }
+        _currentWaveWeight = crestWaves._weight;
+        var material = crestOcean.OceanMaterial;
+        _currentReflection = material != null && material.HasProperty("_PlanarReflectionNormalsStrength")
+            ? material.GetFloat("_PlanarReflectionNormalsStrength")
+            : restReflectionDistort;
     }
 
     void Update()
     {
-        if (_waterMat == null) return;
+        if (crestOcean == null || crestWaves == null) return;
 
-        float dt = Time.deltaTime * reactionSpeed;
+        float blend = Mathf.Clamp01(Time.deltaTime * reactionSpeed);
 
-        // Wave scale from sub-bass
-        float subBass = AudioAnalyzer.GetBand(waveScaleBand);
-        float targetWave = Mathf.Lerp(restWaveScale, beatWaveScale, subBass);
-        _currentWaveScale = Mathf.Lerp(_currentWaveScale, targetWave, dt);
+        // Crest consumes ShapeGerstner._weight during every wave-buffer draw,
+        // so this scales the actual ocean spectrum rather than a legacy shader.
+        float subBass = Mathf.Clamp01(AudioAnalyzer.GetBand(waveScaleBand));
+        float targetWaveWeight = Mathf.Lerp(restWaveScale, beatWaveScale, subBass);
+        _currentWaveWeight = Mathf.Lerp(_currentWaveWeight, targetWaveWeight, blend);
+        crestWaves._weight = _currentWaveWeight;
 
-        // Try common Water4 shader properties
-        if (_waterMat.HasProperty("_BumpScale"))
-            _waterMat.SetFloat("_BumpScale", _currentWaveScale);
-        if (_waterMat.HasProperty("_GAmplitude"))
-        {
-            Vector4 amp = _waterMat.GetVector("_GAmplitude");
-            amp *= (1f + subBass * 2f);
-            _waterMat.SetVector("_GAmplitude", amp);
-        }
+        float bass = Mathf.Clamp01(AudioAnalyzer.GetBand(reflectionBand));
+        float targetReflection = Mathf.Lerp(restReflectionDistort, beatReflectionDistort, bass);
+        _currentReflection = Mathf.Lerp(_currentReflection, targetReflection, blend);
 
-        // Reflection distortion from bass
-        float bass = AudioAnalyzer.GetBand(reflectionBand);
-        float targetReflect = Mathf.Lerp(restReflectionDistort, beatReflectionDistort, bass);
-        _currentReflection = Mathf.Lerp(_currentReflection, targetReflect, dt);
-
-        if (_waterMat.HasProperty("_ReflDistort"))
-            _waterMat.SetFloat("_ReflDistort", _currentReflection);
+        var material = crestOcean.OceanMaterial;
+        if (material != null && material.HasProperty("_PlanarReflectionNormalsStrength"))
+            material.SetFloat("_PlanarReflectionNormalsStrength", _currentReflection);
     }
 }
