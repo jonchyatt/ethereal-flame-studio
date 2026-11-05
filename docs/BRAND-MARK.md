@@ -35,7 +35,7 @@ node scripts/generate-brand-marks.mjs
 node scripts/render-brand-mockups.mjs   # needs Playwright Chromium; set CHROMIUM_PATH if the default is not installed
 ```
 
-Mockups land in `public/brand/mockups/` (shirt and mug for every mark, plus psychedelic shirt, hat and mug variants). They are illustrative, not print files. The store page at `public/waia-store.html` (served at `/store` on the bare apex) shows them.
+Mockups (shirt and mug for every mark, plus psychedelic shirt, hat and mug variants) were declined and are retired to `docs/merch/retired/`, off the public site. They are illustrative, not print files, and no page shows them.
 
 ## Psychedelic backgrounds used
 

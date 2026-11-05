@@ -60,7 +60,7 @@ test('front door: the spiral stops drawing when off-screen', () => {
 });
 
 test('store mockups: a small WebP copy exists for every PNG, and is lighter', () => {
-  const dir = join(root, 'public/brand/mockups');
+  const dir = join(root, 'docs/merch/retired');
   for (const f of readdirSync(dir).filter((n) => n.endsWith('.png'))) {
     const web = join(dir, 'web', f.replace('.png', '.webp'));
     assert.ok(existsSync(web), `${f} has no web copy`);

@@ -12,10 +12,12 @@ export default function IntakeForm() {
   const [text, setText] = useState('');
   const [kind, setKind] = useState<ItemKind>('affiliate');
   const [commission, setCommission] = useState(true);
+  const [supplement, setSupplement] = useState(false);
+  const [program, setProgram] = useState('');
   const [provenance, setProvenance] = useState('Pasted by Jonathan from his own list; link as supplied.');
   const [copied, setCopied] = useState(false);
 
-  const rows = useMemo(() => parseIntake(text, { kind, commission, provenance, today }), [text, kind, commission, provenance, today]);
+  const rows = useMemo(() => parseIntake(text, { kind, commission, provenance, today, supplement, program }), [text, kind, commission, provenance, today, supplement, program]);
   const good = rows.flatMap((r) => (r.item ? [r.item] : []));
   const bad = rows.filter((r) => r.error);
   const source = itemsToSource(good);
@@ -37,6 +39,14 @@ export default function IntakeForm() {
         <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <input type="checkbox" checked={commission} onChange={(e) => setCommission(e.target.checked)} />
           These links earn a commission
+        </label>
+        <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input type="checkbox" checked={supplement} onChange={(e) => setSupplement(e.target.checked)} />
+          Supplement (adds the FDA line)
+        </label>
+        <label style={{ display: 'grid', gap: 6 }}>
+          Program (named in the commission line)
+          <input value={program} onChange={(e) => setProgram(e.target.value)} placeholder="Thorne" style={field} />
         </label>
       </div>
       <label style={{ display: 'grid', gap: 6 }}>

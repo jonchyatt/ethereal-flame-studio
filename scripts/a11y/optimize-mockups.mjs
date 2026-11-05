@@ -1,10 +1,10 @@
-// Writes 640px WebP copies of the store mockups to public/brand/mockups/web/.
-// The 1000px PNGs stay put: the Wix product feed points at them. The store page uses these for display.
+// Writes 640px WebP copies of the store mockups to docs/merch/retired/web/ (retired; declined mockups, not served).
+// Kept for the record only: the mockups were declined and nothing on the site shows them.
 import sharp from 'sharp';
 import { readdirSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-const dir = 'public/brand/mockups';
+const dir = 'docs/merch/retired';
 const out = join(dir, 'web');
 mkdirSync(out, { recursive: true });
 for (const f of readdirSync(dir).filter((n) => n.endsWith('.png'))) {
