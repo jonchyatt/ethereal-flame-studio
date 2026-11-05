@@ -1,5 +1,6 @@
 import { randomBytes } from 'crypto';
 import type { StorageAdapter } from '@/lib/storage';
+import { getProgram } from '@/lib/entitlements/catalog';
 
 /**
  * Privacy-first site counters. An event is only what happened and where:
@@ -39,7 +40,9 @@ export function parseEvent(input: unknown): ParseResult {
   }
   // A "notify me" tap is always about one item.
   if (kind === 'notify' && !slug) return { ok: false };
-  return { ok: true, event: { kind: kind as CounterKind, page: page as CounterPage, slug: slug ? (slug as string) : undefined } };
+  // Program pages send their public slug; count under the program id so history stays in one place.
+  const key = slug ? (page === 'program' ? getProgram(slug as string)?.id ?? (slug as string) : (slug as string)) : undefined;
+  return { ok: true, event: { kind: kind as CounterKind, page: page as CounterPage, slug: key } };
 }
 
 /** Respect Do Not Track and Global Privacy Control, and skip obvious crawlers. */

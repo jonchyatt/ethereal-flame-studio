@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { WaiaFooter } from '@/components/WaiaFooter';
+import { NAV_LINK_STYLE } from '@/app/legal/LegalLinks';
 import { LENGTHS, MUSIC, VOICES, VR_SCENES } from '@/lib/custom-orders/brief-options';
 
 const field = { display: 'block', width: '100%', padding: 8, margin: '6px 0 16px' } as const;
@@ -27,6 +29,10 @@ export default function CustomSessionBrief() {
 
   return (
     <main style={{ maxWidth: 640, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
+      <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
+        <a href="/" style={NAV_LINK_STYLE}>Home</a>
+        <a href="/store" style={NAV_LINK_STYLE}>Store</a>
+      </nav>
       <h1>Describe your custom session</h1>
       <p>What Am I Appreciating Now. Not yet on sale: nothing is charged here. You will get a reference to check where your request stands, and a quote is an offer, not a payment taken.</p>
       {reference ? (
@@ -90,6 +96,7 @@ export default function CustomSessionBrief() {
           {msg && <p role="status">{msg}</p>}
         </form>
       )}
+      <WaiaFooter />
     </main>
   );
 }

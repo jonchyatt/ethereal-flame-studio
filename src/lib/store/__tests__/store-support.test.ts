@@ -21,8 +21,9 @@ describe('store: Support the channel', () => {
   });
 
   it('has no payment links, checkout, or data-sending form', () => {
-    // The one link allowed is the free patron-wall sign-up, which takes no payment.
-    expect(section.replace('<a href="/patrons/join">', '')).not.toMatch(/href=|checkout|stripe|paypal|patreon\.com|wix/i);
+    // The only links are the free patron-wall sign-up and the custom-work brief form; neither takes payment.
+    expect([...section.matchAll(/href="([^"]*)"/g)].map((m) => m[1]).sort()).toEqual(['/patrons/join', '/store/custom-order/brief']);
+    expect(section.replace('<a href="/patrons/join">', '').replace('href="/store/custom-order/brief"', '')).not.toMatch(/href=|checkout|stripe|paypal|patreon\.com|wix/i);
     const form = section.match(/<form[^>]*>/)![0];
     expect(form).not.toMatch(/method="post"/i);
     expect(form).toContain('action="#custom-work"');
