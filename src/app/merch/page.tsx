@@ -14,6 +14,10 @@ export default function MerchPage() {
   if (products.length === 0) notFound();
   return (
     <main style={page}>
+      <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
+        <a href="/" style={{ color: 'inherit' }}>Home</a>
+        <a href="/store" style={{ color: 'inherit' }}>Store</a>
+      </nav>
       <h1>Merchandise</h1>
       <p>The infinity loop of desire, passion, achievement, peace, contrast and new desire, on things you can wear and hold. Nothing here is on sale yet.</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 20, marginTop: 24 }}>
