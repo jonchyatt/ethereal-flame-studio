@@ -1,54 +1,42 @@
-import { cookies } from 'next/headers';
-import { PROGRAMS, programSlug } from '@/lib/entitlements/catalog';
-import { loadRecord, summarizeAccess } from '@/lib/entitlements/model';
-import { CUSTOMER_COOKIE, verifyCustomerCookie } from '@/lib/entitlements/session';
-import { paymentsLive } from '@/lib/entitlements/stripe';
-import { formatPrice } from '@/lib/prices/config';
-import { CounterBeacon } from '@/components/CounterBeacon';
-import { LegalLinks, NAV_LINK_STYLE } from '@/app/legal/LegalLinks';
-
-export const metadata = {
-  title: 'Programs · What Am I Appreciating Now',
-  description: 'Advanced hypnosis sessions and guided processes from What Am I Appreciating Now.',
-  alternates: { canonical: 'https://www.whatamiappreciatingnow.com/programs' },
-};
-
-async function browserHasPurchase() {
-  try {
-    const customerId = verifyCustomerCookie((await cookies()).get(CUSTOMER_COOKIE)?.value);
-    return !!customerId && summarizeAccess(await loadRecord(customerId)).length > 0;
-  } catch {
-    return false;
-  }
-}
-
-export default async function ProgramsPage() {
-  const live = paymentsLive();
-  const hasPurchase = await browserHasPurchase();
+import { ProgramCards } from '@/components/site/ProgramCards';
+import { EmailSignup } from '@/components/EmailSignup';
+import { pageMetadata } from '@/lib/site/metadata';
+export const metadata = pageMetadata(
+  'Guided programs',
+  '/programs',
+  'Explore guided programs from What Am I Appreciating Now, including a food-relationship audio sample.',
+  'programs',
+);
+export default function Programs() {
   return (
-    <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
-      <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
-        <a href="/" style={NAV_LINK_STYLE}>Home</a>
-        <a href="/store" style={NAV_LINK_STYLE}>Store</a>
-      </nav>
-      <CounterBeacon page="programs" />
-      <h1>Programs</h1>
-      <p>What Am I Appreciating Now programs.{live ? '' : ' Nothing here is on sale yet.'}</p>
-      {PROGRAMS.map((p) => (
-        <section key={programSlug(p.id)} style={{ margin: '24px 0', padding: 20, border: '1px solid #333', borderRadius: 12 }}>
-          <h2><a href={`/programs/${programSlug(p.id)}`} style={{ color: 'inherit' }}>{p.title}</a></h2>
-          <p>{p.summary}</p>
-          <p style={{ fontSize: 14, opacity: 0.7 }}>
-            {p.kind === 'subscription' ? 'Subscription' : 'One-time purchase'} ·{' '}
-            {live && p.priceCents !== null ? `${formatPrice(p.priceCents)}${p.kind === 'subscription' ? ' a month' : ''}` : 'Not yet on sale'}
-          </p>
-          <p style={{ fontSize: 14, opacity: 0.7 }}>{p.provenance}</p>
-        </section>
-      ))}
-      {hasPurchase && <p style={{ fontSize: 14, opacity: 0.7 }}><a href="/programs/manage" style={NAV_LINK_STYLE}>Manage my access</a></p>}
-      <p style={{ fontSize: 14, opacity: 0.7 }}>The free Reset Biology tools stay free.</p>
-      <p style={{ fontSize: 14 }}><a href="/listen" style={NAV_LINK_STYLE}>Not sure yet? Listen to a free ten-minute session</a></p>
-      <LegalLinks />
+    <main>
+      <header className="page-intro">
+        <p className="eyebrow">Listen, then explore</p>
+        <h1>Guided programs</h1>
+        <p className="lead">
+          Two different directions for personal reflection. Begin with what you
+          can hear today.
+        </p>
+      </header>
+      <ProgramCards />
+      <section className="section quiet-panel">
+        <h2>Start with something free</h2>
+        <p>
+          The original appreciation moments and food-relationship sample are
+          free to play here. The program collections are still being prepared;
+          their finished contents and access details will be shown when
+          available.
+        </p>
+        <div className="actions">
+          <a className="button primary" href="/listen?clip=19">
+            Try appreciation · 0:41
+          </a>
+          <a className="text-link" href="https://resetbiology.com/">
+            The free Reset Biology tools stay free ↗
+          </a>
+        </div>
+      </section>
+      <EmailSignup />
     </main>
   );
 }

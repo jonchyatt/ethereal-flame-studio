@@ -3,68 +3,107 @@ import { notFound } from 'next/navigation';
 import { getProgram, programSlug } from '@/lib/entitlements/catalog';
 import { loadProgramContent } from '@/lib/entitlements/content';
 import { hasAccess, loadRecord } from '@/lib/entitlements/model';
-import { CUSTOMER_COOKIE, verifyCustomerCookie } from '@/lib/entitlements/session';
+import {
+  CUSTOMER_COOKIE,
+  verifyCustomerCookie,
+} from '@/lib/entitlements/session';
 import { loadAudioManifest } from '@/lib/entitlements/audio';
-import { paymentsLive } from '@/lib/entitlements/stripe';
-import { LegalLinks, NAV_LINK_STYLE, SAFETY_NOTE } from '@/app/legal/LegalLinks';
+import { SAFETY_NOTE } from '@/app/legal/LegalLinks';
 import { AudioPlayer } from './AudioPlayer';
-import { BuyButton } from './BuyButton';
-import { ComingSoon } from '@/components/ComingSoon';
-import { CounterBeacon } from '@/components/CounterBeacon';
+import { EmailSignup } from '@/components/EmailSignup';
 
-/**
- * One program page: buy button, or (with access) the guided link, audio player and words.
- * Shared by /programs/[id] and the static /programs/advanced-hypnosis-sessions page, which
- * would otherwise shadow the dynamic route and drop all of this. `children` render last.
- */
-const COMING_SOON_QUESTION: Record<string, string> = {
-  'advanced-hypnosis-sessions': 'What would you want the first session to help with?',
-  'yale-inversion-protocol': 'What would you want this process to help you turn around first?',
-};
-
-export async function ProgramView({ id, children }: { id: string; children?: React.ReactNode }) {
+export async function ProgramView({
+  id,
+  children,
+}: {
+  id: string;
+  children?: React.ReactNode;
+}) {
   const program = getProgram(id);
   if (!program) notFound();
   const slug = programSlug(program.id);
-
   let allowed = false;
   try {
-    const customerId = verifyCustomerCookie((await cookies()).get(CUSTOMER_COOKIE)?.value);
-    allowed = !!customerId && hasAccess(await loadRecord(customerId), program.id);
-  } catch { /* storage or secret unavailable: fail closed */ }
+    const customerId = verifyCustomerCookie(
+      (await cookies()).get(CUSTOMER_COOKIE)?.value,
+    );
+    allowed =
+      !!customerId && hasAccess(await loadRecord(customerId), program.id);
+  } catch {}
   const content = allowed ? await loadProgramContent(program.id) : null;
   let tracks: { id: string; title: string }[] = [];
   if (allowed) {
-    try { tracks = (await loadAudioManifest(id)).map(({ id: tid, title }) => ({ id: tid, title })); } catch { /* no audio shown */ }
+    try {
+      tracks = (await loadAudioManifest(id)).map(({ id: tid, title }) => ({
+        id: tid,
+        title,
+      }));
+    } catch {}
   }
-
   return (
-    <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
-      <CounterBeacon page="program" slug={slug} />
-      <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
-        <a href="/" style={NAV_LINK_STYLE}>Home</a>
-        <a href="/programs" style={NAV_LINK_STYLE}>← Programs</a>
+    <main>
+      <nav className="breadcrumb" aria-label="Breadcrumb">
+        <a href="/programs">← Programs</a>
       </nav>
-      <h1>{program.title}</h1>
-      <p>{program.summary}</p>
-      <p style={{ fontSize: 14, opacity: 0.7 }}>{program.provenance}</p>
-      <p style={{ fontSize: 14, opacity: 0.85 }}><strong>Safety:</strong> {SAFETY_NOTE}</p>
-      {allowed && program.guided && (
-        <p><a href={`/programs/${slug}/session`} style={{ color: 'inherit', fontWeight: 600 }}>Open the guided process →</a></p>
+      {children || (
+        <section className="program-hero">
+          <div>
+            <p className="eyebrow">A belief you choose</p>
+            <h1>{program.title}</h1>
+            <p className="lead">
+              A guided process for exploring and strengthening a belief you
+              choose.
+            </p>
+            <p>
+              Preview in preparation. The first-step demo, exact materials and
+              access details will be shown here when they are ready.
+            </p>
+            <a className="button primary" href="/listen?clip=19">
+              Try free appreciation · 0:41
+            </a>
+          </div>
+          <img
+            className="story-mark"
+            src="/brand/carving/04.png"
+            alt="The original carved wood mark, not a program demo"
+            width="1024"
+            height="1024"
+          />
+        </section>
       )}
-      {allowed && tracks.length > 0 && <AudioPlayer programId={program.id} tracks={tracks} />}
-      {allowed ? (
-        content ? <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{content}</pre>
-          : <p>You have access. The program words have not been handed over yet.</p>
-      ) : (
-        // The payment switch decides: off (today) shows the pre-launch state, on shows checkout.
-        paymentsLive()
-          ? <BuyButton programId={program.id} kind={program.kind} live />
-          : <ComingSoon id={`${slug}-soon`} item={program.title} question={COMING_SOON_QUESTION[program.id]} />
+      {allowed && (
+        <section className="section">
+          <h2>Your program access</h2>
+          {program.guided && (
+            <a className="button" href={`/programs/${slug}/session`}>
+              Open the guided process →
+            </a>
+          )}
+          {tracks.length > 0 && (
+            <AudioPlayer programId={program.id} tracks={tracks} />
+          )}
+          {content ? (
+            <pre className="transcript">{content}</pre>
+          ) : (
+            <p>
+              You have access. Contact <a href="/support">Support</a> if you
+              need help with your materials.
+            </p>
+          )}
+        </section>
       )}
-      {children}
-      <p style={{ fontSize: 14 }}><a href="/listen" style={NAV_LINK_STYLE}>Not sure yet? Listen to a free ten-minute session</a></p>
-      <LegalLinks />
+      <section className="section quiet-panel">
+        <h2>Make a little space to listen</h2>
+        <p>
+          Choose a quiet place where you can stop whenever you wish. Use the
+          player controls to pause or return to a passage.
+        </p>
+        <p>{SAFETY_NOTE}</p>
+        <a className="text-link" href="/listen">
+          Explore the original appreciation moments →
+        </a>
+      </section>
+      <EmailSignup />
     </main>
   );
 }
