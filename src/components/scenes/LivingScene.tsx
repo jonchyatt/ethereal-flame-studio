@@ -33,7 +33,13 @@ export default function LivingScene({ kind }: { kind: SceneKind }) {
     const query = new URLSearchParams(location.search);
     setControls(query.get('controls') === '1');
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
-    import('./renderer').then(({ createSceneRenderer }) => {
+    // Keep the waterfall's original renderer and bundle independent of the
+    // reflective three-dimensional orb scene.
+    const renderer = kind === 'orb-ocean'
+      ? import('./OrbOceanRenderer').then(({ createOrbOceanRenderer }) =>
+          (target: HTMLCanvasElement, _kind: SceneKind, onFailure: () => void) => createOrbOceanRenderer(target, onFailure))
+      : import('./renderer').then(module => module.createSceneRenderer);
+    renderer.then(createSceneRenderer => {
       if (cancelled || !canvas.current) return;
       try {
         const scene = createSceneRenderer(canvas.current, kind, () => setFailed(true));
