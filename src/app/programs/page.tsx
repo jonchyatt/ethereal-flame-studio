@@ -4,7 +4,7 @@ import { pageMetadata } from '@/lib/site/metadata';
 export const metadata = pageMetadata(
   'Guided programs',
   '/programs',
-  'Explore guided programs from What Am I Appreciating Now, including a food-relationship audio sample.',
+  'Explore guided programs from What Am I Appreciating Now.',
   'programs',
 );
 export default function Programs() {
@@ -22,10 +22,9 @@ export default function Programs() {
       <section className="section quiet-panel">
         <h2>Start with something free</h2>
         <p>
-          The original appreciation moments and food-relationship sample are
-          free to play here. The program collections are still being prepared;
-          their finished contents and access details will be shown when
-          available.
+          The original appreciation moments are free to play here. The program
+          collections are still being prepared; their finished contents and
+          access details will be shown when available.
         </p>
         <div className="actions">
           <a className="button primary" href="/listen?clip=19">

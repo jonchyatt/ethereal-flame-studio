@@ -77,8 +77,7 @@ export default function Home() {
           <article className="quiet-panel">
             <h3>Guided programs</h3>
             <p>
-              Hear the available food-relationship sample, and get told when more
-              opens.
+              Explore programs and get told when more opens.
             </p>
             <a className="text-link" href="/programs">
               Explore programs →

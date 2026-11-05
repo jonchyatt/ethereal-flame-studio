@@ -3,7 +3,6 @@
 import { useRef, useState } from 'react';
 import { Clip, MUSIC_CREDIT, VOICE_CREDIT } from '@/lib/site/content';
 import { MotionControl } from './AudioAtmosphere';
-import { FOOD_TRANSCRIPT } from '@/lib/site/food-transcript';
 
 type Props = {
   src: string;
@@ -205,37 +204,5 @@ export function ClipCredits({ clip }: { clip: Clip }) {
         <p>Script text is provided for reading; it is not timed captions.</p>
       </details>
     </div>
-  );
-}
-
-export function FoodSample({ compact = false }: { compact?: boolean }) {
-  return (
-    <figure className={compact ? 'food-sample compact' : 'food-sample'}>
-      <figcaption>
-        <p className="eyebrow">Food-relationship sample · 10:35</p>
-        <h3>A Gentle Reset: Making Peace with Food</h3>
-      </figcaption>
-      <MediaPlayer
-        src="/samples/gentle-reset-listen.m4a"
-        title="A Gentle Reset: Making Peace with Food"
-        duration="10:35"
-        transcriptHref="#food-sample-transcript"
-      />
-      <p className="meta">
-        Audio · {VOICE_CREDIT} Words: Reset Biology, “Reset Your Relationship
-        with Food”.
-      </p>
-      <p className="meta">
-        A topic-specific practice about food, eating and your relationship with
-        it.
-      </p>
-      <details className="credits" id="food-sample-transcript">
-        <summary>Read the sample transcript</summary>
-        <p>{FOOD_TRANSCRIPT}</p>
-        <a className="text-link" href="/samples/gentle-reset-free-sample.vtt">
-          Original timed caption file
-        </a>
-      </details>
-    </figure>
   );
 }

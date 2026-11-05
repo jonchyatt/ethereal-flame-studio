@@ -1,10 +1,9 @@
-import { FoodSample } from '@/components/site/MediaPlayer';
 import { ComingSoon } from '@/components/ComingSoon';
 import { pageMetadata } from '@/lib/site/metadata';
 export const metadata = pageMetadata(
   'Gifts and bundles',
   '/store/bundles',
-  'Explore the planned program combinations and hear the available food-relationship sample.',
+  'Explore the planned program combinations.',
   'store',
 );
 const combinations = [
@@ -26,7 +25,7 @@ const combinations = [
   },
   {
     title: 'Advanced + Belief Lock-In',
-    copy: 'Two distinct directions: food-related guided practices and a belief you choose.',
+    copy: 'Two distinct directions: advanced hypnosis sessions and a belief you choose.',
     links: [
       ['/programs/advanced-hypnosis-sessions', 'Advanced hypnosis sessions'],
       ['/programs/belief-lock-in', 'Belief Lock-In'],
@@ -47,14 +46,13 @@ export default function Bundles() {
           <p className="lead">Bring two kinds of reflection together.</p>
           <p>
             Bundles are being prepared. You can explore their intended
-            components and hear the available sample now.
+            components.
           </p>
           <p className="meta">
             Gift delivery, redemption, final contents and custom scope will be
             confirmed before a bundle is offered.
           </p>
         </div>
-        <FoodSample />
       </div>
       <section className="section three-grid">
         {combinations.map((c) => (

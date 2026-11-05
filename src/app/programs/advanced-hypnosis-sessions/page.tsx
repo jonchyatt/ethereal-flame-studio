@@ -1,46 +1,21 @@
 import { HYPNOSIS_PROGRAM_ID } from '@/lib/hypnosis/catalog';
 import { ProgramView } from '../[id]/ProgramView';
-import { FoodSample } from '@/components/site/MediaPlayer';
 import { pageMetadata } from '@/lib/site/metadata';
 export const dynamic = 'force-dynamic';
 export const metadata = pageMetadata(
   'Advanced hypnosis sessions',
   '/programs/advanced-hypnosis-sessions',
-  'Hear A Gentle Reset: Making Peace with Food, the free 10:35 food-relationship audio sample.',
+  'Advanced hypnosis sessions from What Am I Appreciating Now.',
   'programs',
 );
 export default function HypnosisSessionsPage() {
   return (
     <ProgramView id={HYPNOSIS_PROGRAM_ID}>
-      <div className="program-hero">
+      <section className="program-hero">
         <div>
-          <p className="eyebrow">Food and personal reflection</p>
           <h1>Advanced hypnosis sessions</h1>
-          <p className="lead">
-            How does sitting down to eat feel for you right now?
-          </p>
-          <p>
-            Begin with A Gentle Reset, a guided practice about food and your
-            relationship with it.
-          </p>
-          <p>
-            This is the session available today, and it is free. More sessions
-            are not for sale yet; you can be told when they open below.
-          </p>
+          <p className="lead">Sessions are being recorded.</p>
         </div>
-        <FoodSample />
-      </div>
-      <section className="section quiet-panel">
-        <h2>What you can listen to today</h2>
-        <p>
-          <strong>A Gentle Reset: Making Peace with Food</strong>
-          <br />
-          10:35 · Audio · Jonathan Hyatt’s AI-cloned voice · Free sample
-        </p>
-        <p>
-          Nothing else is listed yet. Each new session will appear here with its
-          length and its playable preview the day it opens.
-        </p>
       </section>
     </ProgramView>
   );
