@@ -66,9 +66,11 @@ test('nothing goes live and no price is invented: visible FALSE, price blank', (
   assert.ok(rows.every((r) => r[v] === 'FALSE' && r[pr] === ''));
 });
 
-test('image URLs point at the site mockups; no credentials or tokens in the feed', () => {
+test('image URLs come only from approved designs, never the retired mockups; no credentials or tokens in the feed', () => {
   const csv = toWixCsv(catalog);
-  assert.match(csv, /https:\/\/www\.whatamiappreciatingnow\.com\/brand\/mockups\/circle-shirt\.png/);
+  assert.doesNotMatch(csv, /brand\/mockups\//);
+  const approved = { ...catalog, approvedDesigns: { 'circle-shirt': { preview: 'brand/merch/circle-shirt.png' } } };
+  assert.match(toWixCsv(approved), /https:\/\/www\.whatamiappreciatingnow\.com\/brand\/merch\/circle-shirt\.png/);
   assert.doesNotMatch(csv, /token|secret|password|api[_-]?key|@/i);
 });
 

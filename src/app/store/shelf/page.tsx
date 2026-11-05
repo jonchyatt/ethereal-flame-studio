@@ -1,7 +1,7 @@
 import { StoreItemCard, gridStyle } from '@/components/store/StoreItemCard';
 import { WaiaFooter } from '@/components/WaiaFooter';
 import { NAV_LINK_STYLE } from '@/app/legal/LegalLinks';
-import { DISCLOSURE, renderableItems, shelfHasCommission } from '@/lib/store/items';
+import { DISCLOSURE, liveItems, shelfHasCommission } from '@/lib/store/items';
 import { SHELF_ITEMS } from '@/lib/store/shelf-items';
 
 const shelfButtonStyle = {
@@ -23,7 +23,7 @@ export const metadata = {
 };
 
 export default function ShelfPage() {
-  const items = renderableItems(SHELF_ITEMS);
+  const items = liveItems(SHELF_ITEMS);
   return (
     <main style={{ maxWidth: 960, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
       <nav aria-label="Site navigation" className="shelf-breadcrumb" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, marginBottom: 24 }}>

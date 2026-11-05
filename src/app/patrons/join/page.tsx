@@ -13,6 +13,7 @@ export default function JoinPage() {
       <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
         <a href="/" style={{ color: 'inherit' }}>Home</a>
         <a href="/store" style={{ color: 'inherit' }}>Store</a>
+        <a href="/patrons" style={{ color: 'inherit' }}>← Patron wall</a>
       </nav>
       <h1>Join the patron wall</h1>
       {/* Copy v2 (Voss/NEPQ, 2026-10-19): calibrated "which" question opens on the reader; the steps follow. v1: docs/COPY-V2-VOSS-NEPQ-2026-10-19.md */}

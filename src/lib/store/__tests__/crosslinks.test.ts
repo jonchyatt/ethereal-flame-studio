@@ -4,7 +4,7 @@ import path from 'path';
 const root = path.resolve(__dirname, '../../../..');
 const store = fs.readFileSync(path.join(root, 'public/waia-store.html'), 'utf8');
 const door = fs.readFileSync(path.join(root, 'public/waia-front-door.html'), 'utf8');
-const section = store.slice(store.indexOf('<section id="free-tools">'), store.indexOf('<section id="shelf">'));
+const section = store.slice(store.indexOf('<section id="free-tools">'), store.indexOf('<section id="support">'));
 
 describe('Reset Biology cross-links', () => {
   it('store section links only to resetbiology.com over https, plain links', () => {

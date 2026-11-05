@@ -33,7 +33,7 @@ export function validate(catalog, root = repoRoot) {
     if (!catalog.kinds[p.kind]) errors.push(`${p.slug}: unknown kind ${p.kind}`);
     if (!catalog.marks[p.mark]) errors.push(`${p.slug}: unknown mark ${p.mark}`);
     if (!catalog.rights[p.rights]) errors.push(`${p.slug}: missing rights basis`);
-    if (!existsSync(join(root, 'public', 'brand', 'mockups', `${p.slug}.png`))) errors.push(`${p.slug}: mockup missing`);
+    if (!existsSync(join(root, 'docs', 'merch', 'retired', `${p.slug}.png`))) errors.push(`${p.slug}: mockup missing`);
     if (/\bWAIA\b/.test(productName(catalog, p) + productDescription(catalog, p))) errors.push(`${p.slug}: short name in text`);
   }
   // A design is public only if its file passes the print-spec intake (docs/merch/DESIGN-STANDARD.md).
@@ -64,7 +64,8 @@ export function toWixCsv(catalog) {
     const k = catalog.kinds[p.kind];
     const base = {
       handleId: p.slug, name: productName(catalog, p), description: productDescription(catalog, p),
-      productImageUrl: `${catalog.siteBase}/brand/mockups/${p.slug}.png`, collection: catalog.collection,
+      // Declined mockups are retired (docs/merch/retired/), so only an approved design gives the product an image.
+      productImageUrl: catalog.approvedDesigns?.[p.slug] ? `${catalog.siteBase}/${catalog.approvedDesigns[p.slug].preview}` : '', collection: catalog.collection,
       sku: p.slug.toUpperCase(), ribbon: '', price: '', surcharge: '', visible: 'FALSE', discountMode: '', discountValue: '',
       inventory: 'InStock', weight: '', cost: '',
     };
