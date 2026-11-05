@@ -7,6 +7,3 @@
   Kevin MacLeod (incompetech.com), licensed under Creative Commons: By
   Attribution 4.0 License, http://creativecommons.org/licenses/by/4.0/
   Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Meditation%20Impromptu%2001.mp3
-
-The separate voice track is the existing public-domain LibriVox recording
-credited in the on-scene control.

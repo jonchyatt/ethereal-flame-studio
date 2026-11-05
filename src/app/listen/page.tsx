@@ -3,7 +3,7 @@ import { pageMetadata } from '@/lib/site/metadata';
 export const metadata = pageMetadata(
   'Listen',
   '/listen',
-  'Three original appreciation moments, starting with Put one hand on your chest, and a 3:58 reading of Serenity.',
+  'Three original appreciation moments, starting with Put one hand on your chest.',
 );
 export default async function ListenPage({
   searchParams,

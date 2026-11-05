@@ -1,5 +1,4 @@
 import { HomeHero } from '@/components/site/HomeHero';
-import { Reading } from '@/components/site/Listening';
 import { EmailSignup } from '@/components/EmailSignup';
 import { clips } from '@/lib/site/content';
 import { pageMetadata } from '@/lib/site/metadata';
@@ -43,7 +42,6 @@ export default function Home() {
           ))}
         </div>
       </section>
-      <Reading />
       <section className="section split-section">
         <img
           className="story-mark"
@@ -63,8 +61,7 @@ export default function Home() {
           </p>
           <p>
             Here, original reflections in Jonathan’s AI-cloned voice sit
-            alongside readings and a separately credited collection of 360°
-            videos.
+            alongside a separately credited collection of 360° videos.
           </p>
           <a className="text-link" href="/about">
             Meet Jonathan and the work →

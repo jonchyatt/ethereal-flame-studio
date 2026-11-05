@@ -5,7 +5,7 @@ import { assertNoBait, baitProblems, captionFor, writePostPack } from '../postPa
 import { platformCaptions, type ShortCut } from '../cut';
 
 const rights = [
-  { sourceId: 'james-allen-above-lifes-turmoil', rightsBasis: 'public-domain' as const, rightsEvidence: 'Published 1910' },
+  { sourceId: 'archive-voice', rightsBasis: 'public-domain' as const, rightsEvidence: 'Published 1910' },
   { sourceId: 'own-binaural-bed', rightsBasis: 'transformative-remix' as const, rightsEvidence: 'Recipe stored' },
 ];
 
@@ -22,7 +22,7 @@ describe('short-form caption pack', () => {
     for (const p of ['youtube-shorts', 'instagram-reels', 'tiktok'] as const) {
       const { caption } = captionFor(cutWith('Joy is here.'), p);
       expect(caption).toContain('What Am I Appreciating Now');
-      expect(caption).toContain('james-allen-above-lifes-turmoil (public-domain)');
+      expect(caption).toContain('archive-voice (public-domain)');
       expect(caption).toContain('own-binaural-bed (transformative-remix)');
       expect(caption).not.toMatch(/WAIA/);
       expect((caption.match(/#/g) ?? []).length).toBeLessThanOrEqual(3);
@@ -62,11 +62,11 @@ describe('short-form caption pack', () => {
     const shortDir = path.join(dir, 'short-01');
     require('fs').mkdirSync(shortDir);
     writeFileSync(path.join(shortDir, 'short.mp4'), 'fake-video-bytes');
-    const { dir: out, entries } = await writePostPack({ shortDir, cut: cutWith('Joy is here.'), stem: 'James Allen Mix.mp3', index: 0, outDir: path.join(dir, 'post') });
+    const { dir: out, entries } = await writePostPack({ shortDir, cut: cutWith('Joy is here.'), stem: 'Appreciation Mix.mp3', index: 0, outDir: path.join(dir, 'post') });
     expect(entries.map((e) => e.video)).toEqual([
-      'youtube-shorts/james-allen-mix-short-01-yt-shorts.mp4',
-      'instagram-reels/james-allen-mix-short-01-reels.mp4',
-      'tiktok/james-allen-mix-short-01-tiktok.mp4',
+      'youtube-shorts/appreciation-mix-short-01-yt-shorts.mp4',
+      'instagram-reels/appreciation-mix-short-01-reels.mp4',
+      'tiktok/appreciation-mix-short-01-tiktok.mp4',
     ]);
     for (const e of entries) {
       expect(existsSync(path.join(out, e.video))).toBe(true);

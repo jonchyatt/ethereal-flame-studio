@@ -28,7 +28,7 @@ const assetId = '55555555-5555-4555-8555-555555555555';
 
 function makeItem(status: string, renderJobId: string) {
   return PlaylistBatchItemStateSchema.parse({
-    index: 0, videoId: 'v', title: 'As a Man Thinketh, Chapter One', url: 'https://example.com/v', status,
+    index: 0, videoId: 'v', title: 'A quiet appreciation moment', url: 'https://example.com/v', status,
     assetId, currentApprovalId: approvalId, currentRecipeId: recipeId, reviewGeneration: 1,
     approvals: [{ approvalId, reviewGeneration: 1, actor: 'op', approvedAt: iso, requestHash: sha, idempotencyKey: 'idem-key-1', recipeId }],
     recipes: [{
@@ -42,8 +42,8 @@ function makeItem(status: string, renderJobId: string) {
       target: 'cloud', recipeId, reviewGeneration: 1, status: 'completed', renderJobId, cancellationStatus: 'not-needed', updatedAt: iso,
     }],
     provenance: [{
-      provenanceId: '44444444-4444-4444-8444-444444444444', sourceUrl: 'https://archive.org/details/as_a_man_thinketh_mc_librivox',
-      sourceId: 's', sourceTitle: 'As a Man Thinketh (LibriVox)', rightsBasis: 'public-domain', rightsEvidence: 'pd',
+      provenanceId: '44444444-4444-4444-8444-444444444444', sourceUrl: 'https://example.com/public-domain-reading',
+      sourceId: 's', sourceTitle: 'Public-domain reading', rightsBasis: 'public-domain', rightsEvidence: 'pd',
       attestedBy: 'op', attestedAt: iso, approvalId,
     }],
   });
@@ -104,8 +104,8 @@ describe('approved item to render pack contents to manual-draft publish', () => 
     const prefix = packContentsPrefix(packId);
     const read = (name: string) => files.get(`${prefix}${name}`)!.toString();
 
-    expect(read('title.txt')).toBe('As a Man Thinketh, Chapter One | What Am I Appreciating Now');
-    expect(read('description.txt')).toContain('As a Man Thinketh (LibriVox)');
+    expect(read('title.txt')).toBe('A quiet appreciation moment | What Am I Appreciating Now');
+    expect(read('description.txt')).toContain('Public-domain reading');
     expect(read('description.txt')).toContain('public-domain');
     expect(read('description.txt')).not.toMatch(/\bWAIA\b/);
     expect(read('captions.srt')).toContain('00:00:04,000 --> 00:00:08,000');

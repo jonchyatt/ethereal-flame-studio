@@ -69,12 +69,11 @@ describe('playlist curation service', () => {
     expectedGeneration: 0,
     idempotencyKey: 'service-approve-001',
     sourceRights: [
-      { assetId: 'voice-as-a-man-thinketh', confirmed: true as const },
       { assetId: 'voice-science-of-getting-rich', confirmed: true as const },
       { assetId: 'bed-calm-pill-1', confirmed: true as const },
     ],
     mixRecipeId: 'data/waia-mixer-spike/recipe.json@v1',
-    mixRecipeFingerprint: '70c0a2914da7bfd1643c61b780d2230593952a7e4a317fbbc889ea27d6db2f19',
+    mixRecipeFingerprint: '44303fa03efb82cec0934a2c5bbda21c33e2b59e8f66b2116adc7e30af16d01b',
     brandPackVersion: 'waian-circle-v1',
     experimentId: 'waia-phase3-real-mix',
     outputs: [
@@ -89,7 +88,7 @@ describe('playlist curation service', () => {
 
     expect(item.status).toBe('rendering');
     expect(item.approvals).toHaveLength(3);
-    expect(item.provenance).toHaveLength(3);
+    expect(item.provenance).toHaveLength(2);
     expect(item.renderIntents).toHaveLength(2);
     expect(item.renderIntents.find((intent) => intent.engine === 'puppeteer')?.status).toBe('queued');
     expect(item.renderIntents.find((intent) => intent.engine === 'unity')?.status).toBe('blocked');

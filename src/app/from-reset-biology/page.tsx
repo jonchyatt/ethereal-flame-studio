@@ -44,13 +44,6 @@ export default function Handoff() {
             </a>
           </article>
           <article className="quiet-panel">
-            <h3>Stay a little longer</h3>
-            <p>Serenity, read by Mark Cawley. A 3:58 reading excerpt.</p>
-            <a className="text-link" href="/listen#longer">
-              Hear the reading →
-            </a>
-          </article>
-          <article className="quiet-panel">
             <h3>Explore an idea</h3>
             <p>
               Explore guided programs or describe a custom session.
