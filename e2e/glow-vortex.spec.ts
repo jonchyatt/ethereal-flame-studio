@@ -41,7 +41,7 @@ test(`URL selects ${selectedStyle}; controls preserve all presets at ${viewport.
   await page.setViewportSize(viewport)
   await page.addInitScript(() => { (window as ProbeWindow).__GLOW_TEST_TIME__ = 7 })
   await page.goto(route())
-  const root = page.locator('.thinking-glow-root')
+  const root = page.locator('.thinking-glow-root').first()
   await expect(root).toHaveAttribute('data-style', 'mist')
   await expect(root).toHaveAttribute('data-webgl', 'true')
   await clock(page, 7)
