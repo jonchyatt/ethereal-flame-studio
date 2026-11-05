@@ -9,17 +9,23 @@ export type Quality = 'auto' | 'low' | 'medium' | 'high';
 export type SceneStats = {
   frames: number; time: number; quality: string; resolution: number[];
   reducedMotion: boolean; paused: boolean; contextLost: boolean;
-  frameIntervals: number[]; renderCpuTimes: number[];
+  frameIntervals: number[]; renderCpuTimes: number[]; audioLevel: number;
+  oceanLevel: number; musicLevel: number; voiceTone: number;
 };
+
+export type SceneAudioLevels = { voice: number; ocean: number; music: number; voiceTone: number };
 
 const levels = [
   { name: 'low', ratio: .65, pixels: 500_000, octaves: 0 },
   { name: 'medium', ratio: 1, pixels: 1_000_000, octaves: 1 },
-  { name: 'high', ratio: 1.4, pixels: 1_800_000, octaves: 2 },
+  { name: 'high', ratio: 1.4, pixels: 2_100_000, octaves: 2 },
 ];
 
 export function createSceneRenderer(canvas: HTMLCanvasElement, kind: SceneKind, onFailure: () => void) {
-  const renderer = new WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
+  // Pixel-analysis captures need the final buffer after presentation. This is
+  // opt-in and never changes the production rendering path.
+  const capture = new URLSearchParams(location.search).get('capture') === '1';
+  const renderer = new WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: capture });
   renderer.setClearColor(0x030610);
   const scene = new Scene();
   const camera = new Camera();
@@ -39,6 +45,8 @@ export function createSceneRenderer(canvas: HTMLCanvasElement, kind: SceneKind, 
   const uniforms = {
     uResolution: { value: new Vector2(1, 1) }, uTime: { value: 0 },
     uQuality: { value: 2 }, uFalls: { value: kind === 'rainbow-falls' ? 1 : 0 },
+    uVoice: { value: 0 }, uOcean: { value: 0 }, uMusic: { value: 0 }, uVoiceTone: { value: .38 },
+    uBlueGold: { value: new URLSearchParams(location.search).get('sky') === 'bluegold' ? 1 : 0 },
     uNoise: { value: texture },
   };
   const material = new ShaderMaterial({
@@ -52,6 +60,7 @@ export function createSceneRenderer(canvas: HTMLCanvasElement, kind: SceneKind, 
   let level = navigator.hardwareConcurrency <= 4 || innerWidth < 700 ? 1 : 2;
   let disposed = false, paused = false, lost = false, raf = 0, previous = 0;
   let elapsed = 0, frames = 0, sampleCount = 0, sampleDuration = 0, cooldown = 180;
+  let audio: SceneAudioLevels = { voice: 0, ocean: 0, music: 0, voiceTone: .38 };
   const intervals: number[] = [], cpuTimes: number[] = [];
 
   const resize = () => {
@@ -71,7 +80,9 @@ export function createSceneRenderer(canvas: HTMLCanvasElement, kind: SceneKind, 
     previous = now;
     if (dt > 0 && dt < 250) {
       intervals.push(dt); if (intervals.length > 1200) intervals.shift();
-      if (!reduced) elapsed += Math.min(dt, 50) / 1000;
+      // Reduced-motion retains a slow breathing sea as part of the baseline
+      // experience; audio remains opt-in and all rapid motion is suppressed.
+      elapsed += Math.min(dt, 50) / 1000 * (reduced ? .14 : 1);
       sampleCount++; sampleDuration += dt;
       if (mode === 'auto' && --cooldown <= 0 && sampleCount >= 90) {
         const mean = sampleDuration / sampleCount;
@@ -84,7 +95,7 @@ export function createSceneRenderer(canvas: HTMLCanvasElement, kind: SceneKind, 
     renderer.render(scene, camera);
     cpuTimes.push(performance.now() - start); if (cpuTimes.length > 1200) cpuTimes.shift();
     frames++;
-    if (!reduced) raf = requestAnimationFrame(draw);
+    raf = requestAnimationFrame(draw);
   };
   const restart = () => {
     cancelAnimationFrame(raf); raf = 0; previous = 0;
@@ -107,11 +118,24 @@ export function createSceneRenderer(canvas: HTMLCanvasElement, kind: SceneKind, 
       level = value === 'auto' ? (innerWidth < 700 ? 1 : 2) : ['low', 'medium', 'high'].indexOf(value);
       resize(); restart();
     },
+    setAudioLevels(value: SceneAudioLevels) {
+      audio = {
+        voice: Math.min(1, Math.max(0, value.voice)),
+        ocean: Math.min(1, Math.max(0, value.ocean)),
+        music: Math.min(1, Math.max(0, value.music)),
+        voiceTone: Math.min(1, Math.max(0, value.voiceTone)),
+      };
+      uniforms.uVoice.value = audio.voice;
+      uniforms.uOcean.value = audio.ocean;
+      uniforms.uMusic.value = audio.music;
+      uniforms.uVoiceTone.value = audio.voiceTone;
+    },
     setPaused(value: boolean) { paused = value; restart(); },
     stats(): SceneStats {
       return { frames, time: elapsed, quality: levels[level].name, resolution: [canvas.width, canvas.height],
         reducedMotion: reduced, paused: paused || document.hidden, contextLost: lost,
-        frameIntervals: [...intervals], renderCpuTimes: [...cpuTimes] };
+        frameIntervals: [...intervals], renderCpuTimes: [...cpuTimes], audioLevel: audio.voice,
+        oceanLevel: audio.ocean, musicLevel: audio.music, voiceTone: audio.voiceTone };
     },
     dispose() {
       disposed = true; cancelAnimationFrame(raf); observer.disconnect();

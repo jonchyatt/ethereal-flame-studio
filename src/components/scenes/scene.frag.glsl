@@ -3,6 +3,11 @@ uniform vec2 uResolution;
 uniform float uTime;
 uniform float uQuality;
 uniform float uFalls;
+uniform float uVoice;
+uniform float uOcean;
+uniform float uMusic;
+uniform float uVoiceTone;
+uniform float uBlueGold;
 uniform sampler2D uNoise;
 varying vec2 vUv;
 
@@ -111,21 +116,163 @@ vec3 nebula(vec2 p, bool detail) {
   return c;
 }
 
-vec3 orb(vec2 p) {
-  vec2 q = p-vec2(0.,.205);
-  float r = length(q), angle=atan(q.y,q.x), radius=.105;
-  float breath = 1.+.045*sin(uTime*.55);
-  vec3 c = vec3(1.,.32,.055)*exp(-r*r*75.)*.34;
-  c += vec3(.015,.63,.78)*exp(-pow((r-.124)/.018,2.))*.58;
-  float corona = .126 + .003*sin(angle*9.+uTime*.21) + .003*sin(angle*17.-uTime*.14);
-  c += vec3(.10,1.1,1.3)*exp(-abs(r-corona)*650.)*.46;
-  float body = smoothstep(radius+.002,radius-.002,r);
-  float turbulence = fbm(q*95.+vec2(uTime*.075,angle*.35));
-  vec3 shell = mix(vec3(.75,.14,.018),vec3(2.2,.87,.12),turbulence);
-  shell += vec3(3.5,2.1,.68)*exp(-r*r*650.);
-  shell += vec3(1.8,.60,.07)*pow(.5+.5*sin(r*420.+turbulence*8.-uTime*.18),9.)*.33;
-  c += shell*body*breath;
-  c += vec3(1.5,.65,.1)*exp(-abs(r-radius)*750.);
+// This sky intentionally has no nebula or cloud layers. Its sparse, sharp
+// stars rotate very slowly while the near-black violet stays dark around the orb.
+float starLayer(vec2 p, float scale, float threshold, out float seed) {
+  vec2 cell = floor(p * scale);
+  vec2 f = fract(p * scale);
+  seed = hash(cell + scale * 3.17);
+  vec2 center = vec2(hash(cell + 1.23), hash(cell + 8.91));
+  float d = length(f - center);
+  float point = exp(-d * d * (850. + 800. * seed));
+  return point * smoothstep(threshold, 1., seed);
+}
+
+vec3 orbOceanSky(vec2 p) {
+  float turn = uTime * .006;
+  mat2 rotate = mat2(cos(turn), -sin(turn), sin(turn), cos(turn));
+  vec2 q = rotate * p;
+  vec3 c = mix(vec3(.017, .011, .022), vec3(.032, .036, .37), uBlueGold);
+  float a, b, d, musicSeed;
+  float tiny = starLayer(q + vec2(13.7, -4.2), 72., .57, a);
+  float medium = starLayer(q + vec2(-7.4, 11.8), 31., .76, b);
+  float bright = starLayer(q + vec2(2.1, 19.6), 13., .91, d);
+  // A denser field of pinprick stars is reserved for the music mapping. It
+  // never becomes a nebula or screen wash; the bed merely makes thousands of
+  // points glint together and then recede.
+  float musicPoints = starLayer(q + vec2(-29.2, 7.4), 118., .43, musicSeed);
+  vec3 cool = mix(vec3(.46, .65, 1.15), vec3(1.25, .62, .25), a);
+  vec3 warm = mix(vec3(.55, .72, 1.35), vec3(1.4, .7, .3), b);
+  // Music opens and closes the fine points independently of the speech. A
+  // quiet bed still leaves a living, slowly rotating star field.
+  float musicTwinkle = .22 + uMusic * 3.1 + .035 * sin(uTime * 2.7 + q.x * 23. - q.y * 17.);
+  c += cool * tiny * .7 * musicTwinkle;
+  c += warm * medium * 1.45 * musicTwinkle;
+  c += mix(vec3(.72, .86, 1.65), vec3(1.9, 1.22, .42), d) * bright * 2.5 * musicTwinkle;
+  c += mix(vec3(.28, .53, 1.05), vec3(1.15, .55, .22), musicSeed) * musicPoints * (.12 + uMusic * 3.8);
+  return c;
+}
+
+// A low-frequency swell foundation with small chop over it. The analytic slope
+// is enough for moving Fresnel and sparkles without texture fetches.
+vec3 orbWaterWaves(vec2 p) {
+  float height = 0.;
+  vec2 slope = vec2(0.);
+  float frequency = .18;
+  // The ocean's low band opens the range of both the near swells and the
+  // fine, far-away chop. It never reaches zero, so silence still feels alive.
+  float amplitude = .27 * (.52 + uOcean * 1.05);
+  for (int i = 0; i < 9; i++) {
+    if (float(i) > 4. + uQuality * 2.) break;
+    float fi = float(i);
+    float angle = fi * 2.31 + .42;
+    vec2 direction = vec2(cos(angle), sin(angle));
+    float phase = dot(p, direction) * frequency - uTime * (.23 + frequency * .22) + fi * 1.81;
+    height += amplitude * sin(phase);
+    slope += amplitude * frequency * direction * cos(phase);
+    frequency *= 1.88;
+    amplitude *= .47;
+  }
+  return vec3(height, slope);
+}
+
+vec3 orbOceanWater(vec2 screen, float horizon) {
+  float depth = max(.0, horizon - screen.y);
+  float nearWater = clamp(depth / .86, 0., 1.);
+  // Perspective makes large nearby swells and fine distant chop read clearly.
+  float distance = 1. / (.035 + depth * 1.72);
+  vec2 world = vec2(screen.x * distance * 1.75, distance * 2.1);
+  vec3 wave = orbWaterWaves(world);
+  vec3 horizonWater = mix(vec3(.072, .091, .13), vec3(.11, .13, .38), uBlueGold);
+  vec3 nearWaterColor = mix(vec3(.031, .066, .079), vec3(.038, .075, .22), uBlueGold);
+  vec3 c = mix(horizonWater, nearWaterColor, pow(nearWater, .72));
+  float slowSwell = .5 + .5 * sin(world.x * .21 + world.y * .16 - uTime * .24);
+  slowSwell += .5 * sin(world.x * .11 - world.y * .27 + uTime * .17 + 1.4);
+  c *= .82 + .13 * slowSwell * smoothstep(.12, .95, nearWater);
+
+  float fresnel = .035 + .42 * pow(clamp(nearWater + abs(wave.y) * .7, 0., 1.), 2.2);
+  c += mix(vec3(.018, .032, .045), vec3(.045, .052, .16), uBlueGold) * fresnel;
+  // Crest light and cooler trough shadow are what make this a volume of water
+  // rather than a shaded flat plane. The perspective mapping makes the chop
+  // become finer toward the hard horizon.
+  float crest = smoothstep(.045, .23, wave.x + length(wave.yz) * .18);
+  float trough = smoothstep(-.045, -.25, wave.x);
+  float broadSwell = .5 + .5 * sin(world.x * 2.7 + world.y * 1.18 - uTime * .38 + sin(world.y * .42));
+  c += mix(vec3(.13, .20, .24), vec3(.20, .27, .54), uBlueGold) * crest * (.32 + .48 * nearWater);
+  c += mix(vec3(.035, .075, .09), vec3(.065, .08, .22), uBlueGold) * broadSwell * nearWater * .13;
+  c *= 1. - trough * (.21 + .16 * nearWater);
+
+  // A broken white, sun-like road widens toward the low camera. Its tiny,
+  // irregular facet cells ride the wave slope rather than making stripes.
+  float roadWidth = .009 + depth * .25;
+  float wander = (sin(world.y * .92 - uTime * 1.8) + sin(world.x * .45 + uTime * 1.3)) * roadWidth * .34 + wave.y * .065;
+  float road = exp(-pow((screen.x - wander) / roadWidth, 2.));
+  vec2 facetScale = vec2(120. / (.25 + depth * 2.0), 48. + depth * 150.);
+  vec2 facetCell = floor(vec2((screen.x - wander) * facetScale.x, depth * facetScale.y + world.y * 2.7));
+  float facetSeed = hash(facetCell + floor(uTime * 7.2) * 3.17);
+  float facetBlink = .42 + .58 * sin(uTime * (3. + facetSeed * 8.) + facetSeed * 91.);
+  float facets = smoothstep(.57, .94, facetSeed) * smoothstep(.13, .94, facetBlink);
+  float normalFlash = .26 + .74 * pow(clamp(.58 + wave.z * 2.6 - wave.y * 1.4, 0., 1.), 2.2);
+  vec3 glint = mix(vec3(1.55, 1.7, 1.9), vec3(2.0, 1.55, .62), uBlueGold);
+  c += glint * road * facets * normalFlash * (.20 + uOcean * 1.55);
+
+  // The coloured reflection is separate from the white road: it stretches
+  // under the orb, breaks with the same waves, and keeps the current hue.
+  float hue = fract(uTime * (.1667 + (uVoiceTone - .5) * .012) + .045);
+  float smearWidth = .020 + depth * .14;
+  float smearBreak = .28 + .72 * smoothstep(.35, .78, noise(world * 5.6 + vec2(uTime * .52, -uTime * .33)));
+  float smear = exp(-pow((screen.x + wave.y * .035) / smearWidth, 2.)) * exp(-depth * 5.8) * smearBreak;
+  c += rainbow(hue) * max(0., smear) * (.46 + .92 * uOcean);
+  return c;
+}
+
+// Independently drifting Gaussian fields make a luminous living cloud. There
+// is no disc mask or rim: every edge is the short fade of an individual blob.
+vec3 livingOrb(vec2 screen, float horizon) {
+  float aspect = uResolution.x / uResolution.y;
+  float landscape = smoothstep(.58, 1.5, aspect);
+  float quietRadius = mix(.075, .19, landscape);
+  float breath = 1. + .032 * sin(uTime * .52);
+  // Radius, not emission, follows the analyser. A full voice makes about three
+  // times the quiet area while preserving the same luminous character.
+  float radius = quietRadius * (.92 + .64 * uVoice) * breath;
+  // The visible lower quarter hangs over the sea, rather than floating above
+  // it. A cloud has no hard contour, so its centre sits a little higher.
+  vec2 center = vec2(0., horizon + radius * .79);
+  vec2 local = (screen - center) / radius;
+  float density = 0.;
+  if (max(abs(local.x), abs(local.y)) < 1.62) {
+    for (int i = 0; i < 29; i++) {
+      if (float(i) > 18. + uQuality * 4.) break;
+      float fi = float(i);
+      float seed = hash(vec2(fi * 7.13, fi * 19.71));
+      // A random cloud base plus distinct lissajous motion keeps the silhouette
+      // from falling into a repeating four-leaf/clover arrangement.
+      vec2 base = vec2(hash(vec2(fi + 2.3, 11.4)), hash(vec2(fi + 8.6, 4.2))) * 1.34 - .67;
+      vec2 drift = vec2(
+        sin(uTime * (.37 + seed * .97) + fi * 4.17),
+        cos(uTime * (.51 + hash(vec2(fi, 5.1)) * .86) + fi * 2.63)
+      ) * (.045 + seed * .105 + uVoice * .075);
+      vec2 blob = base + drift;
+      float blobRadius = .18 + .17 * hash(vec2(fi + 9.6, 1.8)) + uVoice * .045;
+      vec2 delta = local - blob;
+      vec2 ellipse = vec2(1. + .48 * seed, 1.42 - .38 * seed);
+      density += exp(-dot(delta * ellipse, delta * ellipse) / (blobRadius * blobRadius));
+    }
+  }
+  float presence = 1. - exp(-density * 1.15);
+  float edge = smoothstep(.20, 1.13, length(local));
+  // The cyan/magenta/etc. edge runs ahead of the denser interior. The spread
+  // is deliberately neighbouring hues, not a one-colour clover fill.
+  float hue = fract(uTime * (.1667 + (uVoiceTone - .5) * .012));
+  vec3 saturated = rainbow(hue + edge * (.16 + uVoiceTone * .09));
+  float core = smoothstep(4.15, 6.45, density);
+  float outerWisp = smoothstep(.045, .27, density) * (1. - smoothstep(.28, .82, density));
+  vec3 c = saturated * (.05 + .98 * density) * presence;
+  c += saturated * outerWisp * (.08 + uMusic * .29);
+  // Stack-ups burn creamy-white only in the centre. The coloured surrounding
+  // densities remain saturated and fade quickly back into the black sky.
+  c = mix(c, vec3(3.2, 3.0, 2.72), core * presence);
   return c;
 }
 
@@ -300,9 +447,12 @@ void main() {
     p.y=(vUv.y-.22)*1.62;
   }
   vec3 c;
-  if(screen.y<horizon) c=ocean(screen,p,horizon,falls);
-  else if(falls) c=vec3(.002,.005,.012)+sideSmoke(p)+fallingLight(p)+storm(p);
-  else c=nebula(p,true)+orb(p);
+  if(!falls) {
+    c = screen.y < horizon ? orbOceanWater(screen, horizon) : orbOceanSky(screen);
+    // Draw after the water so the bottom quarter visibly sits in front of it.
+    c += livingOrb(screen, horizon);
+  } else if(screen.y<horizon) c=ocean(screen,p,horizon,true);
+  else c=vec3(.002,.005,.012)+sideSmoke(p)+fallingLight(p)+storm(p);
   // Filmic shoulder preserves gold and cyan around emissive whites.
   c=max(vec3(0.),c);
   c=(c*(2.51*c+.03))/(c*(2.43*c+.59)+.14);
