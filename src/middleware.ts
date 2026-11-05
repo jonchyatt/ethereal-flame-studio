@@ -4,6 +4,11 @@ import { frontDoorRewrite } from '@/lib/waia/front-door';
 import { operatorPageDecision } from '@/lib/waia/operator-pages';
 
 const LEGACY_REDIRECTS: Record<string, string> = {
+  '/patron': '/patrons',
+  '/shelf': '/store/shelf',
+  '/sessions': '/programs',
+  '/health': '/store/shelf',
+  '/appreciation': '/',
   '/privacy': '/legal/privacy',
   '/terms': '/legal/terms',
   '/refund-policy': '/legal/refunds',
@@ -78,7 +83,19 @@ export function middleware(request: NextRequest) {
 
   const legacyTarget = LEGACY_REDIRECTS[pathname];
   if (legacyTarget) {
-    return NextResponse.redirect(new URL(legacyTarget, request.url), 307);
+    return NextResponse.redirect(new URL(legacyTarget, request.url), 301);
+  }
+
+  // These two files were public entry points before the rebuild. Keep their
+  // legacy contract as a real 301 rather than Next's default permanent 308.
+  const staticTarget =
+    pathname === '/waia-store.html'
+      ? '/store'
+      : pathname === '/waia-front-door.html'
+        ? '/'
+        : null;
+  if (staticTarget) {
+    return NextResponse.redirect(new URL(staticTarget, request.url), 301);
   }
 
   // Check if this is a Jarvis API request

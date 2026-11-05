@@ -12,6 +12,7 @@ type Props = {
   poster?: string;
   portrait?: boolean;
   captions?: string;
+  transcriptHref?: string;
   label?: string;
   onEnded?: () => void;
 };
@@ -22,6 +23,7 @@ export function MediaPlayer({
   poster,
   portrait,
   captions,
+  transcriptHref,
   label = 'Play',
   onEnded,
 }: Props) {
@@ -48,8 +50,24 @@ export function MediaPlayer({
     }
   }
   const handlers = {
-    onPlay: () => setPlaying(true),
-    onPause: () => setPlaying(false),
+    onPlay: () => {
+      setPlaying(true);
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title,
+          artist: 'What Am I Appreciating Now',
+          album: 'Original listening',
+          artwork: poster
+            ? [{ src: poster, sizes: '1080x1920', type: 'image/png' }]
+            : [{ src: '/brand/carving/04.png', sizes: '1024x1024', type: 'image/png' }],
+        });
+        navigator.mediaSession.playbackState = 'playing';
+      }
+    },
+    onPause: () => {
+      setPlaying(false);
+      if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+    },
     onError: () => {
       setError(true);
       setLoading(false);
@@ -57,6 +75,7 @@ export function MediaPlayer({
     onEnded: () => {
       setPlaying(false);
       setEnded(true);
+      if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
       onEnded?.();
     },
     onWaiting: () => setLoading(true),
@@ -119,6 +138,11 @@ export function MediaPlayer({
           · {duration}
         </button>
         <MotionControl />
+        {transcriptHref && (
+          <a className="button" href={transcriptHref}>
+            Read transcript
+          </a>
+        )}
       </div>
       {error && (
         <div role="alert" className="notice error">
@@ -138,7 +162,15 @@ export function MediaPlayer({
   );
 }
 
-export function ClipPlayer({ clip, label }: { clip: Clip; label?: string }) {
+export function ClipPlayer({
+  clip,
+  label,
+  onEnded,
+}: {
+  clip: Clip;
+  label?: string;
+  onEnded?: () => void;
+}) {
   return (
     <MediaPlayer
       key={clip.id}
@@ -148,13 +180,15 @@ export function ClipPlayer({ clip, label }: { clip: Clip; label?: string }) {
       duration={clip.duration}
       portrait
       label={label}
+      transcriptHref={`/listen#clip-${clip.id}-transcript`}
+      onEnded={onEnded}
     />
   );
 }
 
 export function ClipCredits({ clip }: { clip: Clip }) {
   return (
-    <div className="credits">
+    <div className="credits" id={`clip-${clip.id}-transcript`}>
       <p>
         {VOICE_CREDIT} Original words and visuals from the studio. Flat portrait
         video.
@@ -185,6 +219,7 @@ export function FoodSample({ compact = false }: { compact?: boolean }) {
         src="/samples/gentle-reset-listen.m4a"
         title="A Gentle Reset: Making Peace with Food"
         duration="10:35"
+        transcriptHref="#food-sample-transcript"
       />
       <p className="meta">
         Audio · {VOICE_CREDIT} Words: Reset Biology, “Reset Your Relationship
@@ -194,7 +229,7 @@ export function FoodSample({ compact = false }: { compact?: boolean }) {
         A topic-specific practice about food, eating and your relationship with
         it.
       </p>
-      <details className="credits">
+      <details className="credits" id="food-sample-transcript">
         <summary>Read the sample transcript</summary>
         <p>{FOOD_TRANSCRIPT}</p>
         <a className="text-link" href="/samples/gentle-reset-free-sample.vtt">

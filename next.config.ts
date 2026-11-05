@@ -15,8 +15,6 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-    { source: '/waia-store.html', destination: '/store', permanent: true },
-    { source: '/waia-front-door.html', destination: '/', permanent: true },
     {
       source: '/programs/yale-inversion-protocol/:path*',
       destination: '/programs/belief-lock-in/:path*',

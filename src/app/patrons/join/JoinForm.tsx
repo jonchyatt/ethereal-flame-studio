@@ -15,6 +15,7 @@ export default function JoinForm({ tiers }: { tiers: Tier[] }) {
   const [errors, setErrors] = useState<string[]>([]);
   const [done, setDone] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const field = { border: '1px solid #8c8c9e' } as const;
 
   const allowsMessage = tiers.find((t) => t.tier === tier)?.allowsMessage ?? false;
   const shownMessage = allowsMessage ? message.trim() : '';
@@ -50,15 +51,14 @@ export default function JoinForm({ tiers }: { tiers: Tier[] }) {
     );
   }
 
-  const field = { display: 'block', width: '100%', padding: 10, margin: '6px 0 16px', background: '#14142a', color: '#eee', border: '1px solid #8c8c9e', borderRadius: 8 } as const;
   return (
-    <form onSubmit={submit} style={{ marginTop: 24 }}>
-      <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
+    <form onSubmit={submit} className="patron-form">
+      <fieldset className="patron-options">
         <legend>Requested display style</legend>
         {tiers.map((t) => (
-          <label key={t.tier} style={{ display: 'block', margin: '8px 0', padding: 12, border: '1px solid #333', borderRadius: 8 }}>
+          <label key={t.tier} className="patron-option">
             <input type="radio" name="tier" value={t.tier} checked={tier === t.tier} onChange={() => setTier(t.tier)} /> <strong>{t.label}</strong>
-            <span style={{ display: 'block', opacity: 0.7, fontSize: 14 }}>{t.letters} Proposed style.</span>
+            <span className="meta">{t.letters} Display style.</span>
           </label>
         ))}
       </fieldset>
@@ -72,23 +72,26 @@ export default function JoinForm({ tiers }: { tiers: Tier[] }) {
       )}
       {/* Honeypot: hidden from people. */}
       <input aria-hidden tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} style={{ position: 'absolute', left: -9999 }} />
-      <div style={{ padding: 16, border: '1px dashed #555', borderRadius: 8, margin: '8px 0 16px' }}>
-        <div style={{ opacity: 0.7, fontSize: 14 }}>Exactly as it will appear</div>
-        <div style={{ fontSize: 22 }}>{displayName.trim() || '…'}</div>
-        {shownMessage && <div style={{ opacity: 0.85 }}>{shownMessage}</div>}
+      <div className="patron-preview">
+        <div className="meta">Exactly as it will appear</div>
+        <div className="patron-preview-name">{displayName.trim() || '…'}</div>
+        {shownMessage && <div>{shownMessage}</div>}
       </div>
-      <label style={{ display: 'block', margin: '8px 0' }}>
+      <label className="patron-consent">
         <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} /> {CONSENT_TEXT}
       </label>
-      <label style={{ display: 'block', margin: '8px 0' }}>
+      <label className="patron-consent">
         <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} /> I am 18 or older.
       </label>
-      <p style={{ fontSize: 14, opacity: 0.7 }}>Not allowed: impersonating a person or brand, links, and private details such as addresses, phone numbers, emails or health information.</p>
-      {errors.length > 0 && <ul role="alert" style={{ color: '#ff9a9a' }}>{errors.map((m) => <li key={m}>{m}</li>)}</ul>}
-      <button type="submit" disabled={busy || !consent || !adult || !displayName.trim()} style={{ padding: '12px 24px', borderRadius: 8, border: 'none', background: '#c9b3ff', color: '#0b0b14', fontSize: 16, opacity: busy || !consent || !adult || !displayName.trim() ? 0.5 : 1, cursor: busy || !consent || !adult || !displayName.trim() ? 'not-allowed' : 'pointer' }}>
+      <p className="meta">Not allowed: impersonating a person or brand, links, and private details such as addresses, phone numbers, emails or health information.</p>
+      <p className="meta">
+        Read <a href="/legal/privacy">Privacy</a>, <a href="/legal/terms">Terms</a>, or get help from <a href="/support">Support</a> before you send a display request.
+      </p>
+      {errors.length > 0 && <ul role="alert" className="form-message error">{errors.map((m) => <li key={m}>{m}</li>)}</ul>}
+      <button type="submit" disabled={busy || !consent || !adult || !displayName.trim()}>
         {busy ? 'Sending…' : 'Send for approval'}
       </button>
-      <p style={{ fontSize: 14, marginTop: 24 }}>Already on the wall and want out? <a href="/patrons/remove" style={{ color: 'inherit' }}>Ask for removal</a>.</p>
+      <p className="meta">Already on the wall and want out? <a href="/patrons/remove">Ask for removal</a>.</p>
     </form>
   );
 }

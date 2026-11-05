@@ -4,10 +4,13 @@ import { OrderError } from '@/lib/custom-orders/model';
 
 export const dynamic = 'force-dynamic';
 
+const CLOSED_BRIEF_MESSAGE =
+  'Coming soon. Requests are not open yet, so this was not saved or sent anywhere, and nothing has been charged. Keep a copy if you want it. You can also email support@whatamiappreciatingnow.com.';
+
 /** Public brief intake. Same gate as the plain request form: closed until CUSTOM_ORDERS_OPEN=1. Nothing is charged. */
 export async function POST(req: NextRequest) {
   if (process.env.CUSTOM_ORDERS_OPEN !== '1') {
-    return NextResponse.json({ error: 'Not open yet' }, { status: 503 });
+    return NextResponse.json({ error: CLOSED_BRIEF_MESSAGE }, { status: 403 });
   }
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   if (typeof body.website === 'string' && body.website.trim()) {

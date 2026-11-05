@@ -61,9 +61,11 @@ describe('intake', () => {
     expect(JSON.stringify(publicView(order))).not.toContain('private@example.invalid');
     expect(reference.startsWith(order.id)).toBe(true);
   });
-  it('route: 503 when closed, 400 with issues when incomplete, 201 when complete, honeypot looks successful but saves nothing', async () => {
+  it('route: 403 with the approved unsaved notice when closed, 400 with issues when incomplete, 201 when complete, honeypot looks successful but saves nothing', async () => {
     process.env.CUSTOM_ORDERS_OPEN = '0';
-    expect((await intake(post({ brief: hypnosis }))).status).toBe(503);
+    const closed = await intake(post({ brief: hypnosis }));
+    expect(closed.status).toBe(403);
+    expect((await closed.json()).error).toBe('Coming soon. Requests are not open yet, so this was not saved or sent anywhere, and nothing has been charged. Keep a copy if you want it. You can also email support@whatamiappreciatingnow.com.');
     process.env.CUSTOM_ORDERS_OPEN = '1';
     const bad = await intake(post({ brief: { ...hypnosis, acknowledgeSafeUse: false } }));
     expect(bad.status).toBe(400);
