@@ -6,7 +6,7 @@ import {
   AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, Color, Group,
   InstancedBufferAttribute, InstancedBufferGeometry, Mesh, PerspectiveCamera,
   PlaneGeometry, Points, RepeatWrapping, Scene, ShaderMaterial, TextureLoader,
-  Vector3, WebGLRenderer, type WebGLRenderTarget,
+  Sprite, SpriteMaterial, Vector3, WebGLRenderer, type WebGLRenderTarget,
 } from 'three';
 import { Water } from 'three/examples/jsm/objects/Water.js';
 import type { Quality, SceneAudioLevels, SceneStats } from './renderer';
@@ -46,7 +46,7 @@ function softSprite() {
   return new CanvasTexture(canvas);
 }
 
-function makeOrb() {
+function makeOrb(homePresentation: boolean) {
   const rand = random(140927);
   const texture = softSprite();
   const geometry = new InstancedBufferGeometry();
@@ -58,7 +58,7 @@ function makeOrb() {
   const sizes = new InstancedBufferAttribute(new Float32Array(360), 1);
   geometry.setAttribute('centre', centres); geometry.setAttribute('tint', colours); geometry.setAttribute('diameter', sizes);
   const material = new ShaderMaterial({
-    uniforms: { glow: { value: texture }, radius:{value:15}, time:{value:0} }, transparent: true,
+    uniforms: { glow: { value: texture }, radius:{value:15}, time:{value:0}, homePresentation:{value:homePresentation?1:0} }, transparent: true,
     blending: AdditiveBlending, depthWrite: false, depthTest: false, toneMapped: false,
     vertexShader: `attribute vec3 centre; attribute vec3 tint; attribute float diameter;
       uniform float radius; varying vec2 vUv; varying vec3 vTint; varying vec3 vField;
@@ -66,24 +66,53 @@ function makeOrb() {
         vec4 p=modelViewMatrix*vec4(centre,1.);
         p.xy+=position.xy*diameter; gl_Position=projectionMatrix*p;
         vField=vec3((centre.xy-vec2(0.,10.)+position.xy*diameter)/radius,(centre.z+68.)/10.); }`,
-    fragmentShader: `uniform sampler2D glow; uniform float time; varying vec2 vUv; varying vec3 vTint; varying vec3 vField;
+    fragmentShader: `uniform sampler2D glow; uniform float time; uniform float homePresentation; varying vec2 vUv; varying vec3 vTint; varying vec3 vField;
       float hash(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}
       float noise(vec3 p){vec3 i=floor(p),f=fract(p); f=f*f*(3.-2.*f);
         return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),
           mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),f.z);}
       void main(){ vec3 p=vField*7.+vec3(time*.12,-time*.09,time*.07);
-        float density=noise(p)*.65+noise(p*2.03)*.35;
-        float a=texture2D(glow,vUv).a*mix(.25,1.6,smoothstep(.24,.76,density));
+        float density=noise(p)*mix(.76,.92,homePresentation)+noise(p*2.03)*mix(.35,.025,homePresentation);
+        float a=texture2D(glow,vUv).a*mix(.38,1.20,smoothstep(.16,.86,density));
         gl_FragColor=vec4(vTint,a); }`,
   });
   const mesh = new Mesh(geometry, material);
   mesh.frustumCulled = false;
   mesh.renderOrder = 2;
+  // The core gives the field a calm, luminous body before its outer particles
+  // answer the analyser. It is a separate, soft radial layer rather than a
+  // voice-driven brightness meter, so the silhouette stays spherical at rest.
+  const coreMaterial = new SpriteMaterial({
+    map: texture,
+    color: homePresentation ? '#f5c990' : '#e9f4ff',
+    transparent: true,
+    opacity: homePresentation ? .34 : 0,
+    blending: AdditiveBlending,
+    depthWrite: false,
+    depthTest: false,
+  });
+  const core = new Sprite(coreMaterial);
+  core.position.set(0, 10, -68.3);
+  core.scale.setScalar(homePresentation ? 11.5 : 9);
+  core.renderOrder = 1;
+  const innerCoreMaterial = new SpriteMaterial({
+    map: texture,
+    color: '#fff0d7',
+    transparent: true,
+    opacity: homePresentation ? .84 : 0,
+    blending: AdditiveBlending,
+    depthWrite: false,
+    depthTest: false,
+  });
+  const innerCore = new Sprite(innerCoreMaterial);
+  innerCore.position.set(0, 10, -68.45);
+  innerCore.scale.setScalar(homePresentation ? 7.6 : 0);
+  innerCore.renderOrder = 1.5;
   // Twenty independent, incommensurate drift paths, distributed in a volume.
   const clusters = Array.from({ length: 20 }, (_, i) => {
     const azimuth = i * 2.399963;
     const y = i < 5 ? 1-2*(i+.5)/5 : 1-2*(i-5+.5)/15;
-    const r = i < 5 ? .24 : .60 + rand() * .10;
+    const r = i < 5 ? .24 : (homePresentation ? .35 : .60) + rand() * (homePresentation ? .04 : .10);
     return { x: Math.cos(azimuth) * Math.sqrt(1 - y*y) * r, y: y*r,
       z: Math.sin(azimuth) * Math.sqrt(1 - y*y) * r, phase: rand()*30,
       speed: .11 + rand()*.17 };
@@ -95,6 +124,8 @@ function makeOrb() {
   const colour = new Color();
   return {
     mesh,
+    core,
+    innerCore,
     update(t: number, audio: SceneAudioLevels, reduced: boolean, count: number) {
       geometry.instanceCount = count;
       // A quiet 10° cloud, an 18° idle breath, and >30° full-scale peaks.
@@ -103,10 +134,17 @@ function makeOrb() {
       // preserves visible neighbouring hues instead of turning the expanded
       // cloud into a single high-overlap additive wash.
       const active = audio.voice > .001 || audio.ocean > .001 || audio.music > .001;
-      const radius = reduced || !active ? 15.0 + .45*Math.sin(t*.7) : 7.0 + 18.0*Math.sqrt(audio.voice);
+      const bedEnergy = Math.min(1, audio.ocean*.48 + audio.music*.38);
+      const radius = reduced || !active ? 15.0 + .45*Math.sin(t*.7) : 14.0 + 5.0*Math.sqrt(Math.max(audio.voice, bedEnergy));
       const spriteRadius = Math.min(17, radius*.70+2.0);
       material.uniforms.radius.value=radius;material.uniforms.time.value=t;
-      const hue = (t / 6) % 1;
+      const hue = homePresentation ? .065 + .020*Math.sin(t*.16) : (t / 6) % 1;
+      const breath = 1 + .055*Math.sin(t*.72) + .025*Math.sin(t*.29 + .6);
+      coreMaterial.color.setHSL(hue, homePresentation ? .68 : .72, homePresentation ? .72 : .76);
+      coreMaterial.opacity = homePresentation ? .34 + .12*Math.sqrt(Math.max(audio.voice, bedEnergy)) : 0;
+      const coreSize = (homePresentation ? 10.5 : 9)*breath + 2.4*Math.sqrt(Math.max(audio.voice, bedEnergy));
+      core.scale.setScalar(coreSize);
+      innerCore.scale.setScalar(homePresentation ? 7.4*breath + 1.1*Math.sqrt(Math.max(audio.voice, bedEnergy)) : 0);
       for (let i = 0; i < count; i++) {
         const p = particles[i], c = clusters[p.cluster], phase = c.phase;
         const x = c.x + .115*Math.sin(t*c.speed+phase) + .055*Math.sin(t*.319+phase*2.7) + p.x;
@@ -115,7 +153,8 @@ function makeOrb() {
         // Lower wisps contract around the waterline, so quiet speech does not
         // lift the whole cloud clear of the sea. The luminous centre stays put.
         const skirt=Math.max(0,15-radius)*Math.max(0,-y)*1.5;
-        centres.setXYZ(i, x*radius, 10+y*radius-skirt, -68+z*10);
+        const coronaTightness=homePresentation ? .72 : 1;
+        centres.setXYZ(i, x*radius*coronaTightness, 10+y*radius*coronaTightness-skirt, -68+z*10);
         const edge = Math.min(1, Math.hypot(x,y,z));
         // The outer cloud permanently leads the core by roughly 55°, with a
         // small particle-local variation.  It is intentionally not collapsed
@@ -127,8 +166,11 @@ function makeOrb() {
         // third adjacent hue visible when the spectral sweep crosses a named
         // colour boundary instead of reducing loud peaks to a binary split.
         const clusterHue=(.045+.020*audio.voice)*Math.sin(c.phase*1.71);
-        colour.setHSL((hue + edgeLead + clusterHue + .012*Math.sin(p.phase))%1, 1, .5);
-        const energy = (360/count) * (.10 + .02*Math.sin(p.phase));
+        const particleHue = homePresentation
+          ? hue + edgeLead*.22 + clusterHue*.18 + .007*Math.sin(p.phase)
+          : hue + edgeLead + clusterHue + .012*Math.sin(p.phase);
+        colour.setHSL(particleHue%1, homePresentation ? .70 : 1, homePresentation ? .63 : .5);
+        const energy = (360/count) * (.10 + .02*Math.sin(p.phase)) * (homePresentation ? .64 + .36*(1-edge) : 1);
         // A very small spectral floor burns white only where many sprites stack.
         const spectralFloor=1.0*Math.pow(1-edge,8);
         colours.setXYZ(i, (colour.r+spectralFloor)*energy, (colour.g+spectralFloor)*energy, (colour.b+spectralFloor)*energy);
@@ -141,7 +183,7 @@ function makeOrb() {
       }
       centres.needsUpdate = colours.needsUpdate = sizes.needsUpdate = true;
     },
-    dispose() { geometry.dispose(); material.dispose(); texture.dispose(); },
+    dispose() { geometry.dispose(); material.dispose(); coreMaterial.dispose(); innerCoreMaterial.dispose(); texture.dispose(); },
   };
 }
 
@@ -186,7 +228,7 @@ function makeStars(blueGold: boolean) {
   };
 }
 
-function makeWater(tier: typeof tiers[number], blueGold: boolean, onFailure: () => void) {
+function makeWater(tier: typeof tiers[number], blueGold: boolean, onFailure: () => void, homePresentation: boolean, core: Sprite, innerCore: Sprite) {
   const normals = new TextureLoader().load('/textures/waternormals.jpg', undefined, undefined, onFailure);
   normals.wrapS=normals.wrapT=RepeatWrapping;
   const geometry = new PlaneGeometry(2,2,tier.segments,tier.segments);
@@ -199,13 +241,14 @@ function makeWater(tier: typeof tiers[number], blueGold: boolean, onFailure: () 
   geometry.computeBoundingSphere();
   const water = new Water(geometry, { textureWidth:tier.reflection, textureHeight:tier.reflection,
     waterNormals:normals, sunDirection:new Vector3(0,.095,-1).normalize(), sunColor:0xffffff,
-    waterColor:blueGold ? 0x334888 : 0x324752, distortionScale:2.5, fog:false });
+    waterColor:blueGold ? 0x334888 : homePresentation ? 0x182944 : 0x324752, distortionScale:2.5, fog:false });
   water.rotation.x=-Math.PI/2;
   water.frustumCulled=false;
   const material=water.material;
   material.uniforms.size.value=24;
   material.uniforms.swell={value:.35}; material.uniforms.glintStrength={value:1};
-  material.uniforms.horizonTint={value:new Color(blueGold ? 0x4e5ca4 : 0x4b5465)};
+  material.uniforms.horizonTint={value:new Color(blueGold ? 0x4e5ca4 : homePresentation ? 0x15182c : 0x4b5465)};
+  material.uniforms.homePresentation={value:homePresentation ? 1 : 0};
   // The mirror camera, projective reflection, animated normal sampling, Fresnel
   // and sunLight all remain Water.js. Add physical swells and their derivatives.
   const swellGLSL=`
@@ -221,7 +264,7 @@ function makeWater(tier: typeof tiers[number], blueGold: boolean, onFailure: () 
       'vec3 displaced=position; displaced.z+=heightAt(vec2(position.x,-position.y)); mirrorCoord = modelMatrix * vec4(displaced,1.);')
     .replace('modelViewMatrix * vec4( position, 1.0 )','viewMatrix * worldPosition');
   material.fragmentShader=material.fragmentShader
-    .replace('void main() {',`${swellGLSL}\nuniform float glintStrength; uniform vec3 horizonTint;\nvoid main() {`)
+    .replace('void main() {',`${swellGLSL}\nuniform float glintStrength; uniform vec3 horizonTint; uniform float homePresentation;\nvoid main() {`)
     .replace('vec3 surfaceNormal = normalize( noise.xzy * vec3( 1.5, 1.0, 1.5 ) );',`
       vec2 p=worldPosition.xz;
       vec2 slope=vec2(heightAt(p+vec2(.3,0.))-heightAt(p-vec2(.3,0.)),
@@ -231,12 +274,15 @@ function makeWater(tier: typeof tiers[number], blueGold: boolean, onFailure: () 
     .replace('vec3 outgoingLight = albedo;',`
       float horizon=pow(1.-max(eyeDirection.y,0.),8.);
       vec3 base=mix(waterColor,horizonTint,horizon);
+      // The hero's low atmospheric haze softens the otherwise exact waterline
+      // without hiding the scene route's crisp reflection study.
+      base=mix(base,horizonTint*1.18,horizon*.68*homePresentation);
       float crest=.45+.95*max(0.,dot(surfaceNormal,normalize(vec3(-.5,.5,-.65))));
       float trough=.60+.40*smoothstep(-swell,swell,heightAt(worldPosition.xz));
       // A perspective corridor from the orb's foot to the camera. Its world
       // width grows slower than distance, which makes it fan outward on the
       // screen toward the foreground while keeping a narrow horizon origin.
-      float roadWidth=mix(1.0,18.0,smoothstep(3.,220.,distance));
+      float roadWidth=mix(mix(1.0,2.2,homePresentation),mix(18.0,25.0,homePresentation),smoothstep(3.,220.,distance));
       float roadAxis=1.-smoothstep(roadWidth,roadWidth*1.72,abs(worldPosition.x));
       float roadReach=1.-smoothstep(420.,1250.,distance);
       float foreground=.38+.62*(1.-smoothstep(10.,96.,distance));
@@ -245,29 +291,37 @@ function makeWater(tier: typeof tiers[number], blueGold: boolean, onFailure: () 
       // never read the voice level or orb reflection.
       vec2 facetCell=floor(worldPosition.xz*vec2(64.,32.));
       float facets=smoothstep(.82,.94,fract(sin(dot(facetCell,vec2(127.1,311.7)))*43758.5453));
+      facets=mix(facets,.35+.65*facets,homePresentation);
       float nearRoad=1.-smoothstep(7.,28.,distance);
       float roadModulation=glintStrength;
-      float whiteRoad=roadAxis*roadReach*facets*roadModulation;
+      float waveJitter=.64+.36*sin(worldPosition.x*1.7+worldPosition.z*.41+time*2.1)*sin(worldPosition.x*.73-worldPosition.z*.97-time*1.3);
+      float whiteRoad=roadAxis*roadReach*facets*roadModulation*mix(1.,.08,homePresentation)*mix(1.,waveJitter,homePresentation);
       // Keep the foreground sparkles emphatic for the widening road, then
       // ease their upper reach so the coloured mirror flanks remain legible
       // beside the road near the orb's foot.
-      vec3 glitter=specularLight*foreground*(.30+nearRoad*.40)+sunColor*whiteRoad*mix(2.0,4.2,nearRoad);
+      vec3 glitter=specularLight*foreground*(.30+nearRoad*.40)+sunColor*whiteRoad*mix(2.0,mix(4.2,2.35,homePresentation),nearRoad);
       // White sun glints replace coloured mirror light on the lit microfacets;
       // adding both without this energy split turns the white road pink.
       float sunFacet=smoothstep(.12,.65,glitter.r);
       vec3 reflected=reflectionSample*reflectance*(.95-nearRoad*.80)*(1.-sunFacet);
-      vec3 outgoingLight=base*crest*trough + reflected + glitter;
+      vec3 flankSheen=vec3(.035,.075,.15)*homePresentation*(.32+.68*pow(1.-abs(surfaceNormal.y),2.));
+      vec3 outgoingLight=base*crest*trough + reflected + glitter + flankSheen;
     `);
   // Water.js keeps its target private. Retain it once, for deterministic cleanup.
   let reflectionTarget: Pick<WebGLRenderTarget, 'dispose'> | null=null;
   const original=water.onBeforeRender;
   water.onBeforeRender=function(renderer,...args){
+    const coreWasVisible=core.visible;
+    const innerCoreWasVisible=innerCore.visible;
+    // The dense home-only core belongs in the sky, not as a blown-out mirror
+    // stamp. The particle field still provides the living reflected colour.
+    if(homePresentation) { core.visible=false; innerCore.visible=false; }
     const setTarget=renderer.setRenderTarget;
     renderer.setRenderTarget=function(target,...rest){
       if(target?.texture===material.uniforms.mirrorSampler.value) reflectionTarget=target;
       return setTarget.call(this,target,...rest);
     };
-    try { original.call(this,renderer,...args); } finally { renderer.setRenderTarget=setTarget; }
+    try { original.call(this,renderer,...args); } finally { renderer.setRenderTarget=setTarget; core.visible=coreWasVisible; innerCore.visible=innerCoreWasVisible; }
   };
   return {water,
     update(t:number,ocean:number,reduced:boolean){
@@ -283,17 +337,17 @@ function makeWater(tier: typeof tiers[number], blueGold: boolean, onFailure: () 
 }
 
 export function createOrbOceanRenderer(canvas:HTMLCanvasElement,onFailure:()=>void) {
-  const query=new URLSearchParams(location.search), blueGold=query.get('sky')==='bluegold';
+  const query=new URLSearchParams(location.search), blueGold=query.get('sky')==='bluegold', homePresentation=canvas.dataset.presentation==='home';
   const phone=innerWidth<700 || navigator.hardwareConcurrency<=4;
   let tierIndex=phone?0:2, mode:Quality='auto';
-  const scene=new Scene(); scene.background=blueGold ? new Color(0x3234a5) : new Color().setRGB(.033,.026,.042);
+  const scene=new Scene(); scene.background=blueGold ? new Color(0x3234a5) : homePresentation ? new Color(0x0f0f19) : new Color().setRGB(.033,.026,.042);
   const camera=new PerspectiveCamera(54,1,.1,50000);
-  camera.position.set(0,3,12); camera.rotation.x=.105;
+  camera.position.set(0,homePresentation?2.65:3,homePresentation?10.25:12); camera.rotation.x=.105;
   const gl=new WebGLRenderer({canvas,antialias:false,alpha:false,powerPreference:'high-performance',preserveDrawingBuffer:query.get('capture')==='1'});
   gl.debug.onShaderError=onFailure;
-  const orb=makeOrb(), stars=makeStars(blueGold);
-  let ocean=makeWater(tiers[tierIndex],blueGold,onFailure);
-  scene.add(ocean.water,orb.mesh,stars.group);
+  const orb=makeOrb(homePresentation), stars=makeStars(blueGold);
+  let ocean=makeWater(tiers[tierIndex],blueGold,onFailure,homePresentation,orb.core,orb.innerCore);
+  scene.add(ocean.water,orb.core,orb.innerCore,orb.mesh,stars.group);
   let audio:SceneAudioLevels={voice:0,ocean:0,music:0,voiceTone:.38};
   const motion=matchMedia('(prefers-reduced-motion: reduce)');
   let reduced=motion.matches, paused=false, lost=false, disposed=false;
@@ -316,7 +370,7 @@ export function createOrbOceanRenderer(canvas:HTMLCanvasElement,onFailure:()=>vo
     const next=value==='auto'?(phone?0:2):['low','medium','high'].indexOf(value);
     if(next!==tierIndex){
       tierIndex=next; scene.remove(ocean.water); ocean.dispose();
-      ocean=makeWater(tiers[tierIndex],blueGold,onFailure); scene.add(ocean.water);
+      ocean=makeWater(tiers[tierIndex],blueGold,onFailure,homePresentation,orb.core,orb.innerCore); scene.add(ocean.water);
     }
     resize();
   }

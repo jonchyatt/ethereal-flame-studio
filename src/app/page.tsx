@@ -1,4 +1,4 @@
-import { HeroArt } from '@/components/site/AudioAtmosphere';
+import { HomeHero } from '@/components/site/HomeHero';
 import { Reading } from '@/components/site/Listening';
 import { EmailSignup } from '@/components/EmailSignup';
 import { clips } from '@/lib/site/content';
@@ -11,29 +11,7 @@ export const metadata = pageMetadata(
 export default function Home() {
   return (
     <main>
-      <section className="home-hero">
-        <div className="hero-copy">
-          <p className="eyebrow">A moment, just for you</p>
-          <h1>
-            Put one hand
-            <br />
-            on your chest
-          </h1>
-          <p className="lead">
-            Notice what has carried you through today. A short reflection in
-            Jonathan’s voice.
-          </p>
-        </div>
-        <HeroArt />
-        <div className="hero-action">
-          <a className="button primary" href="/listen?clip=19">
-            Begin · 0:41 <span aria-hidden="true">→</span>
-          </a>
-          <p className="meta" style={{ marginTop: 16 }}>
-            Free to listen. No account needed.
-          </p>
-        </div>
-      </section>
+      <HomeHero />
       <section className="section">
         <div className="section-heading">
           <h2>Another way into the moment</h2>
