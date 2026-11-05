@@ -117,7 +117,6 @@ export default function LivingScene({ kind }: { kind: SceneKind }) {
         {!started ? <button type="button" className={styles.begin} onClick={startSound} disabled={reducedMotion}>
           {reducedMotion ? 'Motion reduced' : 'Begin'}
         </button> : null}
-        <p>Voice: James Allen, <i>As a Man Thinketh</i>, Mark Cawley / LibriVox (public domain)</p>
         <p>Ocean: kingsrow / Freesound #362300 (CC0) · Music: Kevin MacLeod, CC BY 4.0</p>
       </div> : null}
       {kind === 'rainbow-falls' && started ? (

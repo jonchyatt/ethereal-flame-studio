@@ -89,16 +89,11 @@ const BRAND_RING = ['DESIRE', 'FULFILL', 'APPRECIATE', 'ALLOW', 'NEXT DESIRE'];
 const FLAT_OUTPUTS = ['flat-1080p-landscape', 'flat-1080p-portrait', 'flat-4k-landscape'];
 const OUTPUT_FORMATS = [...FLAT_OUTPUTS, '360-mono-4k', '360-mono-6k', '360-mono-8k', '360-stereo-8k'];
 const PHASE_TWO_RECIPE_ID = 'data/waia-mixer-spike/recipe.json@v1';
-const PHASE_TWO_RECIPE_HASH = '70c0a2914da7bfd1643c61b780d2230593952a7e4a317fbbc889ea27d6db2f19';
+const PHASE_TWO_RECIPE_HASH = '44303fa03efb82cec0934a2c5bbda21c33e2b59e8f66b2116adc7e30af16d01b';
 const PHASE_TWO_SOURCES = [
   {
-    assetId: 'voice-as-a-man-thinketh',
-    label: 'James Allen · As a Man Thinketh · LibriVox',
-    evidence: 'Public-domain recording receipt verified through the Archive.org metadata API.',
-  },
-  {
     assetId: 'voice-science-of-getting-rich',
-    label: 'Wallace Wattles · The Science of Getting Rich · LibriVox',
+    label: 'Wallace Wattles · The Science of Getting Rich',
     evidence: 'Public-domain recording receipt verified through the Archive.org metadata API.',
   },
   {

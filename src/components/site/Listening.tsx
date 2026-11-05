@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Clip, clips } from '@/lib/site/content';
-import { ClipCredits, ClipPlayer, MediaPlayer } from './MediaPlayer';
+import { ClipCredits, ClipPlayer } from './MediaPlayer';
 
 /** Which clip is current, and whether it just ended. Shared by /listen and the home hero. */
 export function useClipSequence(initialId = '19') {
@@ -66,9 +66,6 @@ export function Listening({ initialId = '19' }: { initialId?: string }) {
             Jonathan’s voice, made with his own-recording AI clone. No account
             needed.
           </p>
-          <a className="text-link" href="#longer">
-            Stay for a longer reading ↓
-          </a>
         </div>
         <ClipPlayer clip={clip} onEnded={markEnded} />
       </section>
@@ -101,7 +98,6 @@ export function Listening({ initialId = '19' }: { initialId?: string }) {
         </div>
         <ClipCredits clip={clip} />
       </section>
-      <Reading />
       <section className="section quiet-panel">
         <h2>Free tools from Reset Biology</h2>
         <p>
@@ -113,39 +109,5 @@ export function Listening({ initialId = '19' }: { initialId?: string }) {
         </a>
       </section>
     </>
-  );
-}
-
-export function Reading() {
-  return (
-    <section id="longer" className="section reading-section">
-      <div>
-        <p className="eyebrow">Stay longer</p>
-        <h2>Serenity</h2>
-        <p>Reading excerpt · 3:58</p>
-        <p>
-          From <em>As a Man Thinketh</em>, by James Allen. Read by Mark Cawley.
-        </p>
-        <p className="meta">
-          A complete chapter reading, offered as an excerpt for reflection. The
-          longer twenty-minute session is not made yet; the excerpt is what exists today.
-        </p>
-        <p className="meta">
-          LibriVox recording · Public domain in the United States.{' '}
-          <a href="https://librivox.org/pages/public-domain/">
-            Recording licence ↗
-          </a>
-        </p>
-        <a className="text-link" href="/media/reading/serenity.txt">
-          Read the full text and provenance
-        </a>
-      </div>
-      <MediaPlayer
-        src="/media/reading/serenity.mp3"
-        title="Serenity — Reading excerpt"
-        duration="3:58"
-        transcriptHref="/media/reading/serenity.txt"
-      />
-    </section>
   );
 }

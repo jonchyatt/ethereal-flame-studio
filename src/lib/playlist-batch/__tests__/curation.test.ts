@@ -13,9 +13,8 @@ import {
 import { resolveMixRecipe } from '../mix-recipes';
 
 const NOW = '2026-07-13T18:00:00.000Z';
-const MIX_FINGERPRINT = '70c0a2914da7bfd1643c61b780d2230593952a7e4a317fbbc889ea27d6db2f19';
+const MIX_FINGERPRINT = '44303fa03efb82cec0934a2c5bbda21c33e2b59e8f66b2116adc7e30af16d01b';
 const SOURCE_RIGHTS = [
-  { assetId: 'voice-as-a-man-thinketh', confirmed: true as const },
   { assetId: 'voice-science-of-getting-rich', confirmed: true as const },
   { assetId: 'bed-calm-pill-1', confirmed: true as const },
 ];
@@ -90,7 +89,7 @@ test('approval commits provenance, immutable lineage, audit, and both child inte
   const item = result.items[0];
 
   expect(item.status).toBe('approved');
-  expect(item.provenance).toHaveLength(3);
+  expect(item.provenance).toHaveLength(2);
   expect(item.approvals).toHaveLength(3);
   expect(item.recipes[0].inputArtifact).toEqual(item.inputArtifact);
   expect(item.recipes[0].mixRecipeFingerprint).toBe(MIX_FINGERPRINT);
@@ -197,12 +196,12 @@ test('approval rejects incomplete, duplicate, and caller-mismatched source manif
   const initial = pendingReviewResult();
   expect(() => applyPlaylistReview(
     initial,
-    { ...approve(), sourceRights: SOURCE_RIGHTS.slice(0, 2) },
+    { ...approve(), sourceRights: SOURCE_RIGHTS.slice(0, 1) },
     context(initial),
   )).toThrow('Every authoritative mix source');
   expect(() => applyPlaylistReview(
     initial,
-    { ...approve(), sourceRights: [SOURCE_RIGHTS[0], SOURCE_RIGHTS[0], SOURCE_RIGHTS[2]] },
+    { ...approve(), sourceRights: [SOURCE_RIGHTS[0], SOURCE_RIGHTS[0]] },
     context(initial),
   )).toThrow('Duplicate source rights');
   expect(() => applyPlaylistReview(
