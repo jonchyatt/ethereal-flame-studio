@@ -9,7 +9,7 @@ export type Quality = 'auto' | 'low' | 'medium' | 'high';
 export type SceneStats = {
   frames: number; time: number; quality: string; resolution: number[];
   reducedMotion: boolean; paused: boolean; contextLost: boolean;
-  frameIntervals: number[]; renderCpuTimes: number[];
+  frameIntervals: number[]; renderCpuTimes: number[]; audioLevel: number;
 };
 
 const levels = [
@@ -39,6 +39,8 @@ export function createSceneRenderer(canvas: HTMLCanvasElement, kind: SceneKind, 
   const uniforms = {
     uResolution: { value: new Vector2(1, 1) }, uTime: { value: 0 },
     uQuality: { value: 2 }, uFalls: { value: kind === 'rainbow-falls' ? 1 : 0 },
+    uAudio: { value: 0 },
+    uBlueGold: { value: new URLSearchParams(location.search).get('sky') === 'bluegold' ? 1 : 0 },
     uNoise: { value: texture },
   };
   const material = new ShaderMaterial({
@@ -51,7 +53,7 @@ export function createSceneRenderer(canvas: HTMLCanvasElement, kind: SceneKind, 
   let mode: Quality = 'auto';
   let level = navigator.hardwareConcurrency <= 4 || innerWidth < 700 ? 1 : 2;
   let disposed = false, paused = false, lost = false, raf = 0, previous = 0;
-  let elapsed = 0, frames = 0, sampleCount = 0, sampleDuration = 0, cooldown = 180;
+  let elapsed = 0, frames = 0, sampleCount = 0, sampleDuration = 0, cooldown = 180, audioLevel = 0;
   const intervals: number[] = [], cpuTimes: number[] = [];
 
   const resize = () => {
@@ -107,11 +109,15 @@ export function createSceneRenderer(canvas: HTMLCanvasElement, kind: SceneKind, 
       level = value === 'auto' ? (innerWidth < 700 ? 1 : 2) : ['low', 'medium', 'high'].indexOf(value);
       resize(); restart();
     },
+    setAudioLevel(value: number) {
+      audioLevel = Math.min(1, Math.max(0, value));
+      uniforms.uAudio.value = audioLevel;
+    },
     setPaused(value: boolean) { paused = value; restart(); },
     stats(): SceneStats {
       return { frames, time: elapsed, quality: levels[level].name, resolution: [canvas.width, canvas.height],
         reducedMotion: reduced, paused: paused || document.hidden, contextLost: lost,
-        frameIntervals: [...intervals], renderCpuTimes: [...cpuTimes] };
+        frameIntervals: [...intervals], renderCpuTimes: [...cpuTimes], audioLevel };
     },
     dispose() {
       disposed = true; cancelAnimationFrame(raf); observer.disconnect();
