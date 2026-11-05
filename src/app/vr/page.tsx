@@ -1,39 +1,68 @@
-import { notFound } from 'next/navigation';
-import { WaiaFooter } from '@/components/WaiaFooter';
-import { NAV_LINK_STYLE } from '@/app/legal/LegalLinks';
-import { VR_SESSIONS, vrPublic } from './sessions';
-
-// Read the flag per request, so turning it on needs no rebuild. Not in the sitemap or on the home page.
-export const dynamic = 'force-dynamic';
-
-export const metadata = {
-  title: 'VR sessions · What Am I Appreciating Now',
-  description: '360 VR sessions from What Am I Appreciating Now.',
-  robots: { index: false, follow: false },
-};
-
+import { videos360 } from '@/lib/site/content';
+import { pageMetadata } from '@/lib/site/metadata';
+export const metadata = pageMetadata(
+  '360° appreciation',
+  '/vr',
+  'Four existing 360° videos featuring Abraham Hicks, with screen and headset viewing links.',
+);
 export default function VrPage() {
-  if (!vrPublic()) notFound();
   return (
-    <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
-      <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
-        <a href="/" style={NAV_LINK_STYLE}>Home</a>
-        <a href="/store" style={NAV_LINK_STYLE}>Store</a>
-        <a href="/programs" style={NAV_LINK_STYLE}>Programs</a>
-      </nav>
-      <h1>VR sessions</h1>
-      <p>360 sessions to watch in a headset or on your phone. Sit somewhere safe, never while driving or moving around.</p>
-      {VR_SESSIONS.length === 0 ? (
-        <p>The first VR sessions are being prepared.</p>
-      ) : VR_SESSIONS.map((s) => (
-        <section key={s.youtube} style={{ margin: '24px 0', padding: 20, border: '1px solid #333', borderRadius: 12 }}>
-          <h2><a href={s.youtube} rel="noopener" style={{ color: 'inherit' }}>{s.title}</a></h2>
-          <p style={{ fontSize: 14, opacity: 0.7 }}>{s.length}</p>
-          <p>Goes with: <a href={s.goesWith.href} style={{ color: 'inherit' }}>{s.goesWith.label}</a></p>
-        </section>
-      ))}
-      <p><a href="/store/custom-order/brief" style={NAV_LINK_STYLE}>Ask for a custom VR session made for you</a></p>
-      <WaiaFooter />
+    <main>
+      <header className="page-intro">
+        <p className="eyebrow">From the channel archive</p>
+        <h1>360° appreciation</h1>
+        <p className="lead">
+          Watch on a screen or open on YouTube in a compatible headset.
+        </p>
+      </header>
+      <div className="two-grid">
+        {videos360.map((v) => (
+          <article className="card vr-card" key={v.id}>
+            <div className="reactive-art">
+              <img
+                src={`/media/360/${v.id}.png`}
+                alt={`Actual video poster: ${v.title}`}
+                width="480"
+                height="360"
+              />
+            </div>
+            <div className="card-content">
+              <p className="eyebrow">Abraham Hicks · 360° · {v.duration}</p>
+              <h2>{v.title}</h2>
+              <p className="meta">
+                Teacher recording: Abraham Hicks. Existing channel video;
+                separate from Jonathan’s original voice work.
+              </p>
+              <a
+                className="button primary"
+                href={`https://www.youtube.com/watch?v=${v.id}`}
+              >
+                Watch on YouTube · {v.duration} ↗
+              </a>
+            </div>
+          </article>
+        ))}
+      </div>
+      <section className="section quiet-panel">
+        <h2>Choose how you watch</h2>
+        <p>
+          On a screen, open the video on YouTube and use its 360° controls to
+          look around. For a headset, open the link in a compatible YouTube
+          viewer. Viewer and device support varies.
+        </p>
+        <p>
+          Sit somewhere safe. Pause if the movement feels uncomfortable. The
+          directory itself is an ordinary web page.
+        </p>
+        <div className="actions">
+          <a className="button" href="/listen">
+            Hear Jonathan’s original appreciation
+          </a>
+          <a className="text-link" href="/store/custom-order">
+            Discuss an idea for a custom session →
+          </a>
+        </div>
+      </section>
     </main>
   );
 }

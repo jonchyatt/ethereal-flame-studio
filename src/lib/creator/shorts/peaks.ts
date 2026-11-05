@@ -53,7 +53,11 @@ export function selectPeakSegments(energy: number[], options: PeakSelectionOptio
 
   const taken: Array<[number, number]> = [];
   const segments: RecutPlan['segments'] = [];
-  const order = scores.map((score, s) => ({ score, s })).sort((a, b) => b.score - a.score || a.s - b.s);
+  // Codec noise must not move a cut far into an otherwise level passage.
+  // Compare at the same three-decimal precision exposed in the review score,
+  // then prefer the earliest equally strong window.
+  const order = scores.map((score, s) => ({ score, s, rank: Math.round(score / best * 1000) }))
+    .sort((a, b) => b.rank - a.rank || a.s - b.s);
 
   for (const { score, s } of order) {
     if (segments.length >= count) break;

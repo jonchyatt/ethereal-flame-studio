@@ -1,0 +1,38 @@
+[
+  {
+    "route": "/",
+    "violations": []
+  },
+  {
+    "route": "/listen",
+    "violations": []
+  },
+  {
+    "route": "/programs",
+    "violations": []
+  },
+  {
+    "route": "/store",
+    "violations": []
+  },
+  {
+    "route": "/merch",
+    "violations": []
+  },
+  {
+    "route": "/vr",
+    "violations": []
+  },
+  {
+    "route": "/store/custom-order/brief",
+    "violations": []
+  },
+  {
+    "route": "/from-reset-biology",
+    "violations": []
+  },
+  {
+    "route": "/programs/manage",
+    "violations": []
+  }
+]

@@ -1,25 +1,61 @@
 import { notFound } from 'next/navigation';
-import { getMerch } from '@/lib/merch/catalog';
-import { NotifyButton } from './NotifyButton';
-
-export default async function MerchProductPage({ params }: { params: Promise<{ slug: string }> }) {
+import { concepts } from '@/lib/site/content';
+import { pageMetadata } from '@/lib/site/metadata';
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
-  const p = getMerch(slug);
-  if (!p) notFound();
+  const c = concepts.find((item) => item.slug === slug);
+  return pageMetadata(
+    c?.short || 'Design not found',
+    `/merch/${slug}`,
+    c?.description || 'Explore the design concepts.',
+    'store',
+  );
+}
+export default async function Design({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const c = concepts.find((item) => item.slug === slug);
+  if (!c) notFound();
   return (
-    <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
-      <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
-        <a href="/" style={{ color: 'inherit' }}>Home</a>
-        <a href="/store" style={{ color: 'inherit' }}>Store</a>
-        <a href="/merch" style={{ color: 'inherit' }}>← Merchandise</a>
+    <main>
+      <nav className="breadcrumb" aria-label="Breadcrumb">
+        <a href="/merch">← All design concepts</a>
       </nav>
-      <h1>{p.name}</h1>
-      <img src={p.image} alt={p.name} style={{ width: '100%', maxWidth: 480, borderRadius: 12 }} />
-      <p>{p.description}</p>
-      <p style={{ fontSize: 14, opacity: 0.7 }}>
-        {p.kindLabel}, printed on demand.{p.sizes.length > 0 ? ` Sizes: ${p.sizes.join(', ')}.` : ''} Colors are set in the store when it opens. Not yet on sale.
-      </p>
-      <NotifyButton slug={p.slug} sizes={p.sizes} />
+      <article className="merch-detail">
+        <img
+          src={`/brand/concepts/${c.image}`}
+          alt={c.title + ' — full uncropped concept render'}
+          width="1024"
+          height="1024"
+        />
+        <div>
+          <p className="eyebrow">Design concept</p>
+          <h1>{c.title}</h1>
+          <p className="lead">{c.description}</p>
+          <p>
+            Gemini concept render, not a physical product photograph or approved
+            print file.
+          </p>
+          <div className="notice">
+            <h2>Before it becomes an object</h2>
+            <p>{c.note}</p>
+            <p>
+              Production materials, fit, fulfilment and availability are not yet
+              confirmed.
+            </p>
+          </div>
+          <a className="text-link" href="/merch">
+            Return to all four designs →
+          </a>
+        </div>
+      </article>
     </main>
   );
 }

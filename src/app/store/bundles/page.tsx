@@ -1,50 +1,79 @@
+import { FoodSample } from '@/components/site/MediaPlayer';
 import { ComingSoon } from '@/components/ComingSoon';
-import { WaiaFooter } from '@/components/WaiaFooter';
-import { BundleAnchorAlias } from './BundleAnchorAlias';
-import { NAV_LINK_STYLE } from '@/app/legal/LegalLinks';
-import { programSlug } from '@/lib/entitlements/catalog';
-import { BUNDLES, bundlePriceCents, isOnSale, itemLabel, type BundleItem } from '@/lib/store/bundles';
-
-const itemHref = (i: BundleItem) => (i.type === 'program' ? `/programs/${programSlug(i.id)}` : '/store/custom-order/brief');
-
-export const metadata = {
-  title: 'Gifts and bundles · What Am I Appreciating Now',
-  description: 'Sessions and guided processes bundled to give or keep. Nothing here is on sale yet.',
-  alternates: { canonical: 'https://www.whatamiappreciatingnow.com/store/bundles' },
-};
-
-export default function BundlesPage() {
+import { pageMetadata } from '@/lib/site/metadata';
+export const metadata = pageMetadata(
+  'Gifts and bundles',
+  '/store/bundles',
+  'Explore the planned program combinations and hear the available food-relationship sample.',
+  'store',
+);
+const combinations = [
+  {
+    title: 'Advanced + custom session',
+    copy: 'The Advanced hypnosis collection paired with a session brief built around your idea.',
+    links: [
+      ['/programs/advanced-hypnosis-sessions', 'Advanced hypnosis sessions'],
+      ['/store/custom-order', 'Custom sessions'],
+    ],
+  },
+  {
+    title: 'Belief Lock-In + custom session',
+    copy: 'The Belief Lock-In process paired with a personal session request.',
+    links: [
+      ['/programs/belief-lock-in', 'Belief Lock-In'],
+      ['/store/custom-order', 'Custom sessions'],
+    ],
+  },
+  {
+    title: 'Advanced + Belief Lock-In',
+    copy: 'Two distinct directions: food-related guided practices and a belief you choose.',
+    links: [
+      ['/programs/advanced-hypnosis-sessions', 'Advanced hypnosis sessions'],
+      ['/programs/belief-lock-in', 'Belief Lock-In'],
+    ],
+  },
+];
+export default function Bundles() {
   return (
-    <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
-      <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
-        <a href="/" style={NAV_LINK_STYLE}>Home</a>
-        <a href="/store" style={NAV_LINK_STYLE}>Store</a>
+    <main>
+      <nav className="breadcrumb" aria-label="Breadcrumb">
+        <a href="/store">Store</a>
+        <span>/ Gifts and bundles</span>
       </nav>
-      <h1>Gifts and bundles</h1>
-      {/* Copy v2 (Voss/NEPQ, 2026-10-19): NEPQ situation question opens on the reader. v1: docs/COPY-V2-VOSS-NEPQ-2026-10-19.md */}
-      <p>Who do you know who could use an hour that is all theirs? What Am I Appreciating Now, bundled to keep or to give. Nothing here is on sale yet and nothing is charged.</p>
-      {BUNDLES.map((b) => {
-        const cents = bundlePriceCents(b.id);
-        return (
-          <section key={b.id} id={b.id} style={{ margin: '24px 0', padding: 20, border: '1px solid #333', borderRadius: 12 }}>
-            <h2>{b.title}</h2>
-            <p>{b.summary}</p>
-            <ul>{b.items.map((i, n) => <li key={n}><a href={itemHref(i)} style={{ color: 'inherit' }}>{itemLabel(i)}</a></li>)}</ul>
-            <p style={{ fontSize: 14, opacity: 0.7 }}>
-              {b.giftable ? 'Can be given as a gift' : ''}
-              {isOnSale(b.id) && cents !== null ? `${b.giftable ? ' · ' : ''}${(cents / 100).toFixed(2)} USD` : ''}
-            </p>
-            {!(isOnSale(b.id) && cents !== null) && (
-              <ComingSoon id={`${b.id}-soon`} item={b.title} question="Who would you want to give this to first?" />
-            )}
-          </section>
-        );
-      })}
-      <h2>How giving will work</h2>
-      <p>Choose a bundle, add a short note and an optional delivery date. You receive a one-time gift code to pass on; we keep only a scrambled copy of it, and no email address or postal address is stored.</p>
-      <p style={{ fontSize: 14, opacity: 0.7 }}>The free Reset Biology tools stay free.</p>
-      <BundleAnchorAlias />
-      <WaiaFooter />
+      <div className="program-hero">
+        <div>
+          <p className="eyebrow">Explore the combinations</p>
+          <h1>Gifts and bundles</h1>
+          <p className="lead">Bring two kinds of reflection together.</p>
+          <p>
+            Bundles are being prepared. You can explore their intended
+            components and hear the available sample now.
+          </p>
+          <p className="meta">
+            Gift delivery, redemption, final contents and custom scope will be
+            confirmed before a bundle is offered.
+          </p>
+        </div>
+        <FoodSample />
+      </div>
+      <section className="section three-grid">
+        {combinations.map((c) => (
+          <article className="quiet-panel" key={c.title}>
+            <h2>{c.title}</h2>
+            <p>{c.copy}</p>
+            {c.links.map(([href, title]) => (
+              <a key={href} className="text-link" href={href}>
+                {title} →
+              </a>
+            ))}
+          </article>
+        ))}
+      </section>
+      <ComingSoon
+        id="bundle-updates"
+        item="Gifts and bundles"
+        question="Hear when the bundle contents are ready."
+      />
     </main>
   );
 }

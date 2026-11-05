@@ -82,12 +82,9 @@ export default async function LegalPage({ params }: { params: Promise<{ doc: str
   const meta = LEGAL_DOCS.find((x) => x.slug === doc);
   if (!meta) notFound();
   return (
-    <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif', lineHeight: 1.6 }}>
-      <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
-        <a href="/" style={NAV_LINK_STYLE}>Home</a>
-        <a href="/store" style={NAV_LINK_STYLE}>Store</a>
-      </nav>
-      <p><a href="/" style={NAV_LINK_STYLE}>← Programs</a></p>
+    <main className="narrow" style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif', lineHeight: 1.6 }}>
+      
+      <p><a href="/programs" style={NAV_LINK_STYLE}>← Programs</a></p>
       <h1>{meta.title}</h1>
       <p style={{ fontSize: 14, opacity: 0.7 }}>Last updated {UPDATED}</p>
       {BODY[meta.slug].map((s) => (
@@ -96,7 +93,6 @@ export default async function LegalPage({ params }: { params: Promise<{ doc: str
           {s.p.map((t, index) => <p key={`${s.h}-${index}`}>{t}</p>)}
         </section>
       ))}
-      <LegalLinks />
     </main>
   );
 }

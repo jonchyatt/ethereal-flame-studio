@@ -1,60 +1,60 @@
 import { getStorageAdapter } from '@/lib/storage';
-import { TIERS } from '@/lib/patrons/tiers';
 import { readPublicWall } from '@/lib/patrons/wall';
-
+import { pageMetadata } from '@/lib/site/metadata';
 export const dynamic = 'force-dynamic';
-
-export const metadata = {
-  title: 'Patron wall · What Am I Appreciating Now',
-  description: 'The people who made What Am I Appreciating Now possible. Nothing is on sale yet.',
-  alternates: { canonical: 'https://www.whatamiappreciatingnow.com/patrons' },
-};
-
-async function loadWall() {
-  try {
-    return await readPublicWall(getStorageAdapter());
-  } catch {
-    return { publishedAt: null, patrons: [] };
-  }
-}
-
-export default async function PatronsPage() {
-  const wall = await loadWall();
-  const shell = { maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' } as const;
+export const metadata = pageMetadata(
+  'Patron wall',
+  '/patrons',
+  'The community wall and private display requests for What Am I Appreciating Now.',
+  'patrons',
+);
+export default async function Patrons() {
+  const wall = await readPublicWall(getStorageAdapter()).catch(() => ({
+    publishedAt: null,
+    patrons: [],
+  }));
   return (
-    <main style={shell}>
-      <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
-        <a href="/" style={{ color: 'inherit' }}>Home</a>
-        <a href="/store" style={{ color: 'inherit' }}>Store</a>
-      </nav>
+    <main className="narrow">
+      <p className="eyebrow">Behind the work</p>
       <h1>Patron wall</h1>
-      {/* Copy v2 (Voss/NEPQ, 2026-10-19): NEPQ situation question opens on the reader, then the fact. v1: docs/COPY-V2-VOSS-NEPQ-2026-10-19.md */}
-      <p>Has a scene ever given you a quiet minute you did not expect? Turn away from the orb in a What Am I Appreciating Now scene and you find the people who made it possible. Here they are.</p>
+      <p className="lead">
+        A place for the people who want to be part of What Am I Appreciating
+        Now.
+      </p>
       {wall.patrons.length === 0 ? (
-        <p style={{ opacity: 0.8 }}>The wall is empty for now. The first names appear here once they have been read and approved by a person.</p>
+        <div className="quiet-panel">
+          <h2>A space taking shape</h2>
+          <p>
+            Names appear here only after a person has reviewed the display
+            request. There are no published names yet.
+          </p>
+        </div>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
+        <ul>
           {wall.patrons.map((p) => (
-            <li key={p.consentRef} data-tier={p.tier} style={{ margin: '14px 0' }}>
-              <strong style={{ fontSize: p.tier === 'ethereal' ? 24 : 18 }}>{p.displayName}</strong>
-              {p.message ? <div style={{ opacity: 0.8 }}>{p.message}</div> : null}
+            <li key={p.consentRef}>
+              <strong>{p.displayName}</strong>
+              {p.message && <p>{p.message}</p>}
             </li>
           ))}
         </ul>
       )}
-      <h2>Tiers</h2>
-      <p style={{ opacity: 0.7, fontSize: 14 }}>These tiers are proposals and nothing is on sale yet. No payment is taken anywhere on this site.</p>
-      {TIERS.map((t) => (
-        <section key={t.tier} style={{ margin: '16px 0', padding: 16, border: '1px solid #333', borderRadius: 12 }}>
-          <h3 style={{ margin: 0 }}>{t.label}</h3>
-          <p style={{ margin: '6px 0' }}>{t.letters}</p>
-          <ul>{t.benefits.map((b) => <li key={b}>{b}</li>)}</ul>
-          <p style={{ fontSize: 14, opacity: 0.7, margin: 0 }}>Proposal · Not yet on sale</p>
-        </section>
-      ))}
-      {/* Technique: Voss no-oriented question before the link, so "no" stays a safe answer. */}
-      <p>Would you be opposed to seeing your own name behind the orb?</p>
-      <p style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}><a href="/patrons/join" style={{ color: '#c9b3ff' }}>Add your name</a><a href="/patrons/remove" style={{ color: '#c9b3ff' }}>Remove my name</a></p>
+      <section className="section">
+        <h2>Your name, your choice</h2>
+        <p>
+          You can send a display request or ask to remove a name. A request
+          takes no payment and does not purchase a membership or a place in a
+          recording.
+        </p>
+        <div className="actions">
+          <a className="button primary" href="/patrons/join">
+            Request a name display
+          </a>
+          <a className="button" href="/patrons/remove">
+            Remove my name
+          </a>
+        </div>
+      </section>
     </main>
   );
 }

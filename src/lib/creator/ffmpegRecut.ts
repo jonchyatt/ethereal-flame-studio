@@ -63,7 +63,10 @@ function buildCrop(sourceWidth: number, sourceHeight: number, targetWidth: numbe
 }
 
 function escapeFilterPath(value: string): string {
-  return value.replace(/\\/g, '/').replace(/[:'\[\],;]/g, (c) => `\\${c}`);
+  // FFmpeg parses both the filter graph and its option value. Preserve the
+  // drive-colon escape through the first parser (spawn does not add a shell).
+  const option = value.replace(/\\/g, '/').replace(/[:']/g, (c) => `\\${c}`);
+  return option.replace(/[\\'\[\],;]/g, (c) => `\\${c}`);
 }
 
 export function buildRecutArgs(options: RecutVideoOptions): { args: string[]; durationSec: number } {

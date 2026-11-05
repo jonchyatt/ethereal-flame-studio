@@ -47,7 +47,8 @@ export function validate(catalog, root = repoRoot) {
     if (!r.ok) errors.push(`${slug}: design fails print intake: ${r.errors.join('; ')}`);
   }
   for (const [k, m] of Object.entries(catalog.marks)) {
-    if (!existsSync(join(root, 'public', m.file))) errors.push(`mark ${k}: ${m.file} missing`);
+    const source = m.archived ? join(root, m.file) : join(root, 'public', m.file);
+    if (!existsSync(source)) errors.push(`mark ${k}: ${m.file} missing`);
   }
   return errors;
 }

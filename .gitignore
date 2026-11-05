@@ -67,6 +67,9 @@ test-*.ts
 !src/**/*.test.tsx
 test-render-config.json
 test-fixes.spec.ts
+e2e/.tmp/
+e2e-results/
+test-results/
 nul
 
 # Audio files (too large for git)

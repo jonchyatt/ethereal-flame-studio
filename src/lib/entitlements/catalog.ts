@@ -50,7 +50,7 @@ export const PROGRAMS: readonly Program[] = [
     priceCents: priceFor('program:yale-inversion-protocol'),
     testPriceCents: 1000,
     guided: true,
-    provenance: 'Source: the Belief Lock-In source document.',
+    provenance: 'A guided process for exploring a belief you choose.',
   },
 ];
 

@@ -25,12 +25,8 @@ export const metadata = {
 export default function ShelfPage() {
   const items = liveItems(SHELF_ITEMS);
   return (
-    <main style={{ maxWidth: 960, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
-      <nav aria-label="Site navigation" className="shelf-breadcrumb" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, marginBottom: 24 }}>
-        <a href="/" style={NAV_LINK_STYLE}>Home</a>
-        <a href="/store" style={NAV_LINK_STYLE}>Store</a>
-        <span aria-current="page">The shelf</span>
-      </nav>
+    <main className="narrow" style={{ maxWidth: 960, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
+      
       <h1 style={{ color: '#f7f3e6', fontFamily: '"Iowan Old Style", "Sitka Text", Georgia, "Times New Roman", serif', fontSize: 'clamp(1.9rem, 5vw, 3rem)', fontWeight: 400, margin: 0 }}>The shelf</h1>
       {(items.length === 0 || shelfHasCommission(items)) && (
         <p style={{ fontSize: 14, opacity: 0.75, marginBottom: 24 }} id="disclosure"><strong>Disclosure.</strong> {DISCLOSURE}</p>
@@ -47,7 +43,6 @@ export default function ShelfPage() {
         <div style={gridStyle}>{items.map((i) => <StoreItemCard key={i.id} item={i} />)}</div>
       )}
       <p style={{ fontSize: 14, opacity: 0.6, marginTop: 32 }}>Links go to the seller. Nothing is bought or stored here. The free Reset Biology tools stay free.</p>
-      <WaiaFooter />
     </main>
   );
 }
