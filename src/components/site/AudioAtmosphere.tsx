@@ -176,9 +176,14 @@ function idleOrbLevels(now: number): OrbAudioLevels {
 /** The home scene uses the judged renderer; the carving is strictly its fallback. */
 export function HeroArt({
   onListeningChange,
+  followPage = false,
 }: {
   onListeningChange?: (listening: boolean) => void;
+  /** True while a page player (the Begin clip) is playing: the orb follows its voice. */
+  followPage?: boolean;
 }) {
+  const follow = useRef(followPage);
+  follow.current = followPage;
   const canvas = useRef<HTMLCanvasElement>(null);
   const renderer = useRef<OrbRenderer | null>(null);
   const sound = useRef<OrbAudio | null>(null);
@@ -228,10 +233,19 @@ export function HeroArt({
   useEffect(() => {
     let frame = 0;
     const update = (now: number) => {
+      const idle = idleOrbLevels(now);
+      const level = follow.current
+        ? parseFloat(
+            getComputedStyle(canvas.current?.closest('.public-site') ?? document.body)
+              .getPropertyValue('--audio-level'),
+          ) || 0
+        : 0;
       renderer.current?.setAudioLevels(
-        sound.current?.context.state === 'running'
-          ? sound.current.levels()
-          : idleOrbLevels(now),
+        follow.current
+          ? { ...idle, voice: Math.min(1, level * 1.4) }
+          : sound.current?.context.state === 'running'
+            ? sound.current.levels()
+            : idle,
       );
       frame = requestAnimationFrame(update);
     };

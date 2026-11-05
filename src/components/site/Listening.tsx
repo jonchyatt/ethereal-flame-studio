@@ -1,24 +1,58 @@
 'use client';
 
 import { useState } from 'react';
-import { clips } from '@/lib/site/content';
+import { Clip, clips } from '@/lib/site/content';
 import { ClipCredits, ClipPlayer, MediaPlayer } from './MediaPlayer';
 
-export function Listening({ initialId = '19' }: { initialId?: string }) {
+/** Which clip is current, and whether it just ended. Shared by /listen and the home hero. */
+export function useClipSequence(initialId = '19') {
   const [id, setId] = useState(initialId);
   const [finished, setFinished] = useState(false);
   const clip = clips.find((item) => item.id === id) || clips[0];
-  function select(next: string) {
+  const currentIndex = clips.findIndex((item) => item.id === clip.id);
+  const nextClip = clips[(currentIndex + 1) % clips.length];
+  const select = (next: string) => {
     setId(next);
     setFinished(false);
+  };
+  return { clip, nextClip, finished, select, markEnded: () => setFinished(true) };
+}
+
+/** The "Continue with another moment" offer: one tap for the next piece. */
+export function NextClipPanel({
+  nextClip,
+  onNext,
+}: {
+  nextClip: Clip;
+  onNext: () => void;
+}) {
+  return (
+    <section className="section quiet-panel" aria-live="polite">
+      <h2>Continue with another moment</h2>
+      <p>Take your time, then choose what is next.</p>
+      <div className="actions">
+        <button className="button primary" onClick={onNext}>
+          Next: {nextClip.title} · {nextClip.duration}
+        </button>
+        <a className="button" href="/programs">
+          Explore programs
+        </a>
+      </div>
+    </section>
+  );
+}
+
+export function Listening({ initialId = '19' }: { initialId?: string }) {
+  const { clip, nextClip, finished, select: choose, markEnded } =
+    useClipSequence(initialId);
+  function select(next: string) {
+    choose(next);
     history.replaceState(null, '', `/listen?clip=${next}`);
     document.getElementById('selected-title')?.focus();
     document
       .getElementById('selected-title')
       ?.scrollIntoView({ block: 'start', behavior: 'instant' });
   }
-  const currentIndex = clips.findIndex((item) => item.id === clip.id);
-  const nextClip = clips[(currentIndex + 1) % clips.length];
   return (
     <>
       <section className="listen-intro">
@@ -36,21 +70,10 @@ export function Listening({ initialId = '19' }: { initialId?: string }) {
             Stay for a longer reading ↓
           </a>
         </div>
-        <ClipPlayer clip={clip} onEnded={() => setFinished(true)} />
+        <ClipPlayer clip={clip} onEnded={markEnded} />
       </section>
       {finished && (
-        <section className="section quiet-panel" aria-live="polite">
-          <h2>Continue with another moment</h2>
-          <p>Take your time, then choose what is next.</p>
-          <div className="actions">
-            <button className="button primary" onClick={() => select(nextClip.id)}>
-              Next: {nextClip.title} · {nextClip.duration}
-            </button>
-            <a className="button" href="/programs">
-              Explore programs
-            </a>
-          </div>
-        </section>
+        <NextClipPanel nextClip={nextClip} onNext={() => select(nextClip.id)} />
       )}
       <section className="section">
         <div className="section-heading">
