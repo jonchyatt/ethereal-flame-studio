@@ -1,0 +1,2998 @@
+[
+  {
+    "route": "/",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "A moment of appreciation · What Am I Appreciating Now",
+    "h1": "Put one handon your chest",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/media/appreciation/12.png",
+        "loaded": true
+      },
+      {
+        "src": "/media/appreciation/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 596.203125
+      },
+      {
+        "text": "Begin · 0:41 →",
+        "height": 50,
+        "bottom": 527.5
+      },
+      {
+        "text": "Listen · 0:59",
+        "height": 50,
+        "bottom": 1252.390625
+      },
+      {
+        "text": "Listen · 1:06",
+        "height": 50,
+        "bottom": 1252.390625
+      },
+      {
+        "text": "Play · 3:58",
+        "height": 50,
+        "bottom": 1765.578125
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 1764.578125
+      },
+      {
+        "text": "Tell me when",
+        "height": 54.796875,
+        "bottom": 3122.21875
+      }
+    ],
+    "media": [
+      {
+        "src": "/media/reading/serenity.mp3",
+        "autoplay": false,
+        "paused": true
+      }
+    ],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/listen",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Listen · What Am I Appreciating Now",
+    "h1": "Put one hand on your chest",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Play · 0:41",
+        "height": 50,
+        "bottom": 652
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 651
+      },
+      {
+        "text": "01Put one hand on your chestA moment of appreciation · 0:41●",
+        "height": 135,
+        "bottom": 925
+      },
+      {
+        "text": "02Let that thank-you land againA moment of gratitude · 0:59↗",
+        "height": 135,
+        "bottom": 925
+      },
+      {
+        "text": "03Take one long breath out with meA breathing invitation · 1:06↗",
+        "height": 135,
+        "bottom": 925
+      },
+      {
+        "text": "Play · 3:58",
+        "height": 50,
+        "bottom": 1561.96875
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 1560.96875
+      }
+    ],
+    "media": [
+      {
+        "src": "/media/appreciation/19.mp4",
+        "autoplay": false,
+        "paused": true
+      },
+      {
+        "src": "/media/reading/serenity.mp3",
+        "autoplay": false,
+        "paused": true
+      }
+    ],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/programs",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Guided programs · What Am I Appreciating Now",
+    "h1": "Guided programs",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Play · 10:35",
+        "height": 50,
+        "bottom": 649
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 648
+      },
+      {
+        "text": "Explore the program →",
+        "height": 50,
+        "bottom": 1006.375
+      },
+      {
+        "text": "Try appreciation · 0:41",
+        "height": 50,
+        "bottom": 1391.1875
+      },
+      {
+        "text": "Tell me when",
+        "height": 54.796875,
+        "bottom": 1723.578125
+      }
+    ],
+    "media": [
+      {
+        "src": "/samples/gentle-reset-listen.m4a",
+        "autoplay": false,
+        "paused": true
+      }
+    ],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/programs.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/programs/advanced-hypnosis-sessions",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Advanced hypnosis sessions · What Am I Appreciating Now",
+    "h1": "Advanced hypnosis sessions",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Play · 10:35",
+        "height": 50,
+        "bottom": 355
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 354
+      },
+      {
+        "text": "Tell me when",
+        "height": 54.796875,
+        "bottom": 1851.765625
+      }
+    ],
+    "media": [
+      {
+        "src": "/samples/gentle-reset-listen.m4a",
+        "autoplay": false,
+        "paused": true
+      }
+    ],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/programs.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/programs/belief-lock-in",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Belief Lock-In · What Am I Appreciating Now",
+    "h1": "Belief Lock-In",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Try free appreciation · 0:41",
+        "height": 50,
+        "bottom": 546.59375
+      },
+      {
+        "text": "Tell me when",
+        "height": 54.796875,
+        "bottom": 1430.4375
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/programs.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/store",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Explore the store · What Am I Appreciating Now",
+    "h1": "Programs, custom sessionsand objects for the everyday",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image1.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image3.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image2.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image4.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Play · 10:35",
+        "height": 50,
+        "bottom": 709
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 708
+      },
+      {
+        "text": "Explore the program →",
+        "height": 50,
+        "bottom": 1066.375
+      },
+      {
+        "text": "Describe a session",
+        "height": 50,
+        "bottom": 1583.390625
+      },
+      {
+        "text": "Play · 0:41",
+        "height": 50,
+        "bottom": 1732.59375
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 1731.59375
+      },
+      {
+        "text": "Tell me when",
+        "height": 54.796875,
+        "bottom": 2975.375
+      }
+    ],
+    "media": [
+      {
+        "src": "/samples/gentle-reset-listen.m4a",
+        "autoplay": false,
+        "paused": true
+      },
+      {
+        "src": "/media/appreciation/19.mp4",
+        "autoplay": false,
+        "paused": true
+      }
+    ],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/store.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/store/bundles",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Gifts and bundles · What Am I Appreciating Now",
+    "h1": "Gifts and bundles",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Play · 10:35",
+        "height": 50,
+        "bottom": 355
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 354
+      },
+      {
+        "text": "Tell me when",
+        "height": 54.796875,
+        "bottom": 1595.375
+      }
+    ],
+    "media": [
+      {
+        "src": "/samples/gentle-reset-listen.m4a",
+        "autoplay": false,
+        "paused": true
+      }
+    ],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/store.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/store/custom-order",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Your custom session request · What Am I Appreciating Now",
+    "h1": "A session made for you",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Describe a session",
+        "height": 50,
+        "bottom": 460.5
+      },
+      {
+        "text": "Check my request",
+        "height": 50,
+        "bottom": 460.5
+      },
+      {
+        "text": "Play · 0:41",
+        "height": 50,
+        "bottom": 532
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 531
+      },
+      {
+        "text": "Look up",
+        "height": 54.796875,
+        "bottom": 1462.15625
+      }
+    ],
+    "media": [
+      {
+        "src": "/media/appreciation/19.mp4",
+        "autoplay": false,
+        "paused": true
+      }
+    ],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/store.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/store/custom-order/brief",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Your custom session request · What Am I Appreciating Now",
+    "h1": "Describe your custom session",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Send my brief",
+        "height": 54.796875,
+        "bottom": 696.78125
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/store.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/merch",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Design concepts · What Am I Appreciating Now",
+    "h1": "Carry the question with you",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image1.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image3.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image2.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image4.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "View design →",
+        "height": 50,
+        "bottom": 993.984375
+      },
+      {
+        "text": "View design →",
+        "height": 50,
+        "bottom": 993.984375
+      },
+      {
+        "text": "View design →",
+        "height": 50,
+        "bottom": 1669.96875
+      },
+      {
+        "text": "View design →",
+        "height": 50,
+        "bottom": 1669.96875
+      },
+      {
+        "text": "Tell me when",
+        "height": 54.796875,
+        "bottom": 2607.015625
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/store.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/merch/fractal-vortex-tee",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Fractal-Vortex Tee · What Am I Appreciating Now",
+    "h1": "Fractal-Vortex Continual Loop Tee",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image1.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/store.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/merch/infinity-ribbon-tee",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Infinity-Ribbon Tee · What Am I Appreciating Now",
+    "h1": "Infinity-Ribbon and Flame Orb Pivot Tee",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image3.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/store.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/merch/carved-wood-mug",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Carved-Wood Vortex Mug · What Am I Appreciating Now",
+    "h1": "Carved-Wood Optical Vortex Continual Loop Mug",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image2.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/store.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/merch/horizon-orb-mug",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Horizon and Orb Mug · What Am I Appreciating Now",
+    "h1": "360 VR Horizon and Luminous Orb Continual Loop Mug",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image4.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/store.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/vr",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "360° appreciation · What Am I Appreciating Now",
+    "h1": "360° appreciation",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/media/360/LAIVtQpHYHc.png",
+        "loaded": true
+      },
+      {
+        "src": "/media/360/ktfbG2iprd8.png",
+        "loaded": true
+      },
+      {
+        "src": "/media/360/GZwGVcAxXK4.png",
+        "loaded": true
+      },
+      {
+        "src": "/media/360/kBcSjgD-MAQ.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Watch on YouTube · 4:11 ↗",
+        "height": 50,
+        "bottom": 865.125
+      },
+      {
+        "text": "Watch on YouTube · 3:28 ↗",
+        "height": 50,
+        "bottom": 865.125
+      },
+      {
+        "text": "Watch on YouTube · 10:27 ↗",
+        "height": 50,
+        "bottom": 1447.25
+      },
+      {
+        "text": "Watch on YouTube · 4:29 ↗",
+        "height": 50,
+        "bottom": 1447.25
+      },
+      {
+        "text": "Hear Jonathan’s original appreciation",
+        "height": 50,
+        "bottom": 1823.640625
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/from-reset-biology",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Welcome from Reset Biology · What Am I Appreciating Now",
+    "h1": "Welcome from Reset Biology",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Back to Reset Biology ↗",
+        "height": 50,
+        "bottom": 515
+      },
+      {
+        "text": "Play · 0:41",
+        "height": 50,
+        "bottom": 532
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 531
+      }
+    ],
+    "media": [
+      {
+        "src": "/media/appreciation/19.mp4",
+        "autoplay": false,
+        "paused": true
+      }
+    ],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/from-reset-biology?topic=food",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Welcome from Reset Biology · What Am I Appreciating Now",
+    "h1": "Welcome from Reset Biology",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Back to Reset Biology ↗",
+        "height": 50,
+        "bottom": 618.296875
+      },
+      {
+        "text": "Play · 10:35",
+        "height": 50,
+        "bottom": 283
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 282
+      }
+    ],
+    "media": [
+      {
+        "src": "/samples/gentle-reset-listen.m4a",
+        "autoplay": false,
+        "paused": true
+      }
+    ],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/about",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "About Jonathan and the work · What Am I Appreciating Now",
+    "h1": "Jonathan Hyatt,and a question to return to",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Begin with a moment · 0:41",
+        "height": 50,
+        "bottom": 758.578125
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/support",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Support · What Am I Appreciating Now",
+    "h1": "Support",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/legal/terms",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Terms of sale · What Am I Appreciating Now",
+    "h1": "Terms of sale",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/legal/privacy",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Privacy · What Am I Appreciating Now",
+    "h1": "Privacy",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/legal/refunds",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Refunds and cancellation · What Am I Appreciating Now",
+    "h1": "Refunds and cancellation",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/programs/manage",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Manage my access · What Am I Appreciating Now",
+    "h1": "Manage my access",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/programs.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/patrons",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Patron wall · What Am I Appreciating Now",
+    "h1": "Patron wall",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Request a name display",
+        "height": 50,
+        "bottom": 787.1875
+      },
+      {
+        "text": "Remove my name",
+        "height": 50,
+        "bottom": 787.1875
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/patrons.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/patrons/join",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Join the patron wall · What Am I Appreciating Now",
+    "h1": "Join the patron wall",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Send for approval",
+        "height": 49.59375,
+        "bottom": 1145.09375
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/patrons.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/patrons/remove",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Remove my name from the patron wall · What Am I Appreciating Now",
+    "h1": "Remove my name from the patron wall",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Remove my name",
+        "height": 49.59375,
+        "bottom": 539.1875
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/patrons.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/store/shelf",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "The shelf · What Am I Appreciating Now",
+    "h1": "The shelf",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/shelf.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/email-preferences",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Email preferences · What Am I Appreciating Now",
+    "h1": "Email preferences",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Return to listening",
+        "height": 50,
+        "bottom": 396.59375
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/email-preferences?status=retry",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "Email preferences · What Am I Appreciating Now",
+    "h1": "We could not save that change",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Return to listening",
+        "height": 50,
+        "bottom": 367.796875
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/programs/belief-lock-in/session",
+    "width": 1280,
+    "status": 200,
+    "errors": [],
+    "title": "What Am I Appreciating Now",
+    "h1": "Belief Lock-In: guided process",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/programs.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/this-page-does-not-exist",
+    "width": 1280,
+    "status": 404,
+    "errors": [],
+    "title": "What Am I Appreciating Now",
+    "h1": "Page not found",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Explore listening",
+        "height": 50,
+        "bottom": 396.59375
+      },
+      {
+        "text": "Home",
+        "height": 50,
+        "bottom": 396.59375
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "A moment of appreciation · What Am I Appreciating Now",
+    "h1": "Put one handon your chest",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/media/appreciation/12.png",
+        "loaded": true
+      },
+      {
+        "src": "/media/appreciation/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": false
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 597.75
+      },
+      {
+        "text": "Begin · 0:41 →",
+        "height": 50,
+        "bottom": 667.75
+      },
+      {
+        "text": "Listen · 0:59",
+        "height": 50,
+        "bottom": 1341.75
+      },
+      {
+        "text": "Listen · 1:06",
+        "height": 50,
+        "bottom": 1850.75
+      },
+      {
+        "text": "Play · 3:58",
+        "height": 50,
+        "bottom": 2638
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 2637
+      },
+      {
+        "text": "Tell me when",
+        "height": 51,
+        "bottom": 4456.59375
+      }
+    ],
+    "media": [
+      {
+        "src": "/media/reading/serenity.mp3",
+        "autoplay": false,
+        "paused": true
+      }
+    ],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/listen",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Listen · What Am I Appreciating Now",
+    "h1": "Put one hand on your chest",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Play · 0:41",
+        "height": 50,
+        "bottom": 783
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 782
+      },
+      {
+        "text": "01Put one hand on your chestA moment of appreciation · 0:41●",
+        "height": 95,
+        "bottom": 1005
+      },
+      {
+        "text": "02Let that thank-you land againA moment of gratitude · 0:59↗",
+        "height": 95,
+        "bottom": 1112
+      },
+      {
+        "text": "03Take one long breath out with meA breathing invitation · 1:06↗",
+        "height": 119,
+        "bottom": 1243
+      },
+      {
+        "text": "Play · 3:58",
+        "height": 50,
+        "bottom": 2173.25
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 2172.25
+      }
+    ],
+    "media": [
+      {
+        "src": "/media/appreciation/19.mp4",
+        "autoplay": false,
+        "paused": true
+      },
+      {
+        "src": "/media/reading/serenity.mp3",
+        "autoplay": false,
+        "paused": true
+      }
+    ],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/programs",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Guided programs · What Am I Appreciating Now",
+    "h1": "Guided programs",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Play · 10:35",
+        "height": 50,
+        "bottom": 644
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 643
+      },
+      {
+        "text": "Explore the program →",
+        "height": 50,
+        "bottom": 1750
+      },
+      {
+        "text": "Try appreciation · 0:41",
+        "height": 50,
+        "bottom": 2114
+      },
+      {
+        "text": "Tell me when",
+        "height": 51,
+        "bottom": 2535
+      }
+    ],
+    "media": [
+      {
+        "src": "/samples/gentle-reset-listen.m4a",
+        "autoplay": false,
+        "paused": true
+      }
+    ],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/programs.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/programs/advanced-hypnosis-sessions",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Advanced hypnosis sessions · What Am I Appreciating Now",
+    "h1": "Advanced hypnosis sessions",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Play · 10:35",
+        "height": 50,
+        "bottom": 714
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 713
+      },
+      {
+        "text": "Tell me when",
+        "height": 51,
+        "bottom": 2432.296875
+      }
+    ],
+    "media": [
+      {
+        "src": "/samples/gentle-reset-listen.m4a",
+        "autoplay": false,
+        "paused": true
+      }
+    ],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/programs.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/programs/belief-lock-in",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Belief Lock-In · What Am I Appreciating Now",
+    "h1": "Belief Lock-In",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Try free appreciation · 0:41",
+        "height": 50,
+        "bottom": 500
+      },
+      {
+        "text": "Tell me when",
+        "height": 51,
+        "bottom": 1676.59375
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/programs.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/store",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Explore the store · What Am I Appreciating Now",
+    "h1": "Programs, custom sessionsand objects for the everyday",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image1.jpg",
+        "loaded": false
+      },
+      {
+        "src": "/brand/concepts/image3.jpg",
+        "loaded": false
+      },
+      {
+        "src": "/brand/concepts/image2.jpg",
+        "loaded": false
+      },
+      {
+        "src": "/brand/concepts/image4.jpg",
+        "loaded": false
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Play · 10:35",
+        "height": 50,
+        "bottom": 764
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 763
+      },
+      {
+        "text": "Explore the program →",
+        "height": 50,
+        "bottom": 1870
+      },
+      {
+        "text": "Describe a session",
+        "height": 50,
+        "bottom": 2142
+      },
+      {
+        "text": "Play · 0:41",
+        "height": 50,
+        "bottom": 2618
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 2617
+      },
+      {
+        "text": "Tell me when",
+        "height": 51,
+        "bottom": 4193
+      }
+    ],
+    "media": [
+      {
+        "src": "/samples/gentle-reset-listen.m4a",
+        "autoplay": false,
+        "paused": true
+      },
+      {
+        "src": "/media/appreciation/19.mp4",
+        "autoplay": false,
+        "paused": true
+      }
+    ],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/store.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/store/bundles",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Gifts and bundles · What Am I Appreciating Now",
+    "h1": "Gifts and bundles",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Play · 10:35",
+        "height": 50,
+        "bottom": 666
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 665
+      },
+      {
+        "text": "Tell me when",
+        "height": 51,
+        "bottom": 2417.296875
+      }
+    ],
+    "media": [
+      {
+        "src": "/samples/gentle-reset-listen.m4a",
+        "autoplay": false,
+        "paused": true
+      }
+    ],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/store.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/store/custom-order",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Your custom session request · What Am I Appreciating Now",
+    "h1": "A session made for you",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Describe a session",
+        "height": 54,
+        "bottom": 721
+      },
+      {
+        "text": "Check my request",
+        "height": 54,
+        "bottom": 721
+      },
+      {
+        "text": "Play · 0:41",
+        "height": 50,
+        "bottom": 597
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 596
+      },
+      {
+        "text": "Look up",
+        "height": 51,
+        "bottom": 2050
+      }
+    ],
+    "media": [
+      {
+        "src": "/media/appreciation/19.mp4",
+        "autoplay": false,
+        "paused": true
+      }
+    ],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/store.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/store/custom-order/brief",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Your custom session request · What Am I Appreciating Now",
+    "h1": "Describe your custom session",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Send my brief",
+        "height": 51,
+        "bottom": 713
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/store.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/merch",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Design concepts · What Am I Appreciating Now",
+    "h1": "Carry the question with you",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image1.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image3.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image2.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image4.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "View design →",
+        "height": 50,
+        "bottom": 952
+      },
+      {
+        "text": "View design →",
+        "height": 50,
+        "bottom": 1618
+      },
+      {
+        "text": "View design →",
+        "height": 50,
+        "bottom": 2293
+      },
+      {
+        "text": "View design →",
+        "height": 50,
+        "bottom": 2959
+      },
+      {
+        "text": "Tell me when",
+        "height": 51,
+        "bottom": 4030.59375
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/store.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/merch/fractal-vortex-tee",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Fractal-Vortex Tee · What Am I Appreciating Now",
+    "h1": "Fractal-Vortex Continual Loop Tee",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image1.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/store.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/merch/infinity-ribbon-tee",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Infinity-Ribbon Tee · What Am I Appreciating Now",
+    "h1": "Infinity-Ribbon and Flame Orb Pivot Tee",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image3.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/store.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/merch/carved-wood-mug",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Carved-Wood Vortex Mug · What Am I Appreciating Now",
+    "h1": "Carved-Wood Optical Vortex Continual Loop Mug",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image2.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/store.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/merch/horizon-orb-mug",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Horizon and Orb Mug · What Am I Appreciating Now",
+    "h1": "360 VR Horizon and Luminous Orb Continual Loop Mug",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/concepts/image4.jpg",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/store.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/vr",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "360° appreciation · What Am I Appreciating Now",
+    "h1": "360° appreciation",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/media/360/LAIVtQpHYHc.png",
+        "loaded": true
+      },
+      {
+        "src": "/media/360/ktfbG2iprd8.png",
+        "loaded": true
+      },
+      {
+        "src": "/media/360/GZwGVcAxXK4.png",
+        "loaded": true
+      },
+      {
+        "src": "/media/360/kBcSjgD-MAQ.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Watch on YouTube · 4:11 ↗",
+        "height": 50,
+        "bottom": 711.75
+      },
+      {
+        "text": "Watch on YouTube · 3:28 ↗",
+        "height": 50,
+        "bottom": 1207.5
+      },
+      {
+        "text": "Watch on YouTube · 10:27 ↗",
+        "height": 50,
+        "bottom": 1703.25
+      },
+      {
+        "text": "Watch on YouTube · 4:29 ↗",
+        "height": 50,
+        "bottom": 2169
+      },
+      {
+        "text": "Hear Jonathan’s original appreciation",
+        "height": 74,
+        "bottom": 2627
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/from-reset-biology",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Welcome from Reset Biology · What Am I Appreciating Now",
+    "h1": "Welcome from Reset Biology",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Back to Reset Biology ↗",
+        "height": 54,
+        "bottom": 775
+      },
+      {
+        "text": "Play · 0:41",
+        "height": 50,
+        "bottom": 672
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 671
+      }
+    ],
+    "media": [
+      {
+        "src": "/media/appreciation/19.mp4",
+        "autoplay": false,
+        "paused": true
+      }
+    ],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/from-reset-biology?topic=food",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Welcome from Reset Biology · What Am I Appreciating Now",
+    "h1": "Welcome from Reset Biology",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/05.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Back to Reset Biology ↗",
+        "height": 54,
+        "bottom": 422
+      },
+      {
+        "text": "Play · 10:35",
+        "height": 50,
+        "bottom": 601
+      },
+      {
+        "text": "Pause motion",
+        "height": 48,
+        "bottom": 600
+      }
+    ],
+    "media": [
+      {
+        "src": "/samples/gentle-reset-listen.m4a",
+        "autoplay": false,
+        "paused": true
+      }
+    ],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/about",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "About Jonathan and the work · What Am I Appreciating Now",
+    "h1": "Jonathan Hyatt,and a question to return to",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Begin with a moment · 0:41",
+        "height": 50,
+        "bottom": 728
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/support",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Support · What Am I Appreciating Now",
+    "h1": "Support",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/legal/terms",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Terms of sale · What Am I Appreciating Now",
+    "h1": "Terms of sale",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/legal/privacy",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Privacy · What Am I Appreciating Now",
+    "h1": "Privacy",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/legal/refunds",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Refunds and cancellation · What Am I Appreciating Now",
+    "h1": "Refunds and cancellation",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/programs/manage",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Manage my access · What Am I Appreciating Now",
+    "h1": "Manage my access",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/programs.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/patrons",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Patron wall · What Am I Appreciating Now",
+    "h1": "Patron wall",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Request a name display",
+        "height": 50,
+        "bottom": 750
+      },
+      {
+        "text": "Remove my name",
+        "height": 50,
+        "bottom": 812
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/patrons.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/patrons/join",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Join the patron wall · What Am I Appreciating Now",
+    "h1": "Join the patron wall",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Send for approval",
+        "height": 49,
+        "bottom": 1353
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/patrons.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/patrons/remove",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Remove my name from the patron wall · What Am I Appreciating Now",
+    "h1": "Remove my name from the patron wall",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Remove my name",
+        "height": 49,
+        "bottom": 488
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/patrons.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/store/shelf",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "The shelf · What Am I Appreciating Now",
+    "h1": "The shelf",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/shelf.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/email-preferences",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Email preferences · What Am I Appreciating Now",
+    "h1": "Email preferences",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Return to listening",
+        "height": 50,
+        "bottom": 337
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/email-preferences?status=retry",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "Email preferences · What Am I Appreciating Now",
+    "h1": "We could not save that change",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Return to listening",
+        "height": 50,
+        "bottom": 377
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/programs/belief-lock-in/session",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "title": "What Am I Appreciating Now",
+    "h1": "Belief Lock-In: guided process",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/programs.png",
+    "icon": "/brand/carving/icon.png"
+  },
+  {
+    "route": "/this-page-does-not-exist",
+    "width": 390,
+    "status": 404,
+    "errors": [],
+    "title": "What Am I Appreciating Now",
+    "h1": "Page not found",
+    "overflow": false,
+    "header": true,
+    "footer": true,
+    "logo": "/brand/carving/04.png",
+    "fonts": {
+      "h1": "Georgia, serif",
+      "body": "\"Segoe UI\", sans-serif"
+    },
+    "sceneLinks": 0,
+    "images": [
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      },
+      {
+        "src": "/brand/carving/04.png",
+        "loaded": true
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Explore listening",
+        "height": 50,
+        "bottom": 337
+      },
+      {
+        "text": "Home",
+        "height": 50,
+        "bottom": 337
+      }
+    ],
+    "media": [],
+    "og": "https://www.whatamiappreciatingnow.com/brand/share/home.png",
+    "icon": "/brand/carving/icon.png"
+  }
+]

@@ -1,0 +1,14 @@
+const fs=require('fs'),path=require('path'),crypto=require('crypto');
+const root='C:/hal-jobs/WAIA-BUILD/proof';
+const routes=JSON.parse(fs.readFileSync(path.join(root,'route-audit.json')));
+const escape=s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');
+const slug=r=>r==='/'?'home':r.slice(1).replaceAll('/','-').replaceAll('?','-').replaceAll('=','-');
+const link=(file,label)=>`<a href="${escape(file)}">${escape(label)}</a>`;
+const row=(name,prefix,widths=[1280,390])=>`<tr><th>${escape(name)}</th>${widths.map(w=>`<td>${link(prefix+'-'+w+'-first.png','First view')} · ${link(prefix+'-'+w+'-full.png','Full page')}</td>`).join('')}</tr>`;
+const names=[...new Set(routes.map(r=>r.route))];
+const states=[...new Set(fs.readdirSync(root).filter(n=>/^state-.*-\d+-first.png$/.test(n)).map(n=>n.replace(/^state-/,'').replace(/-\d+-first.png$/,'')))];
+const html=`<!doctype html><meta charset="utf-8"><title>What Am I Appreciating Now — rebuild proof</title><style>body{max-width:1100px;margin:40px auto;padding:0 20px;background:#0f0f19;color:#f4f1e8;font:17px/1.6 "Segoe UI",sans-serif}h1,h2{font-family:Georgia,serif;font-weight:400}a{color:#a0d81d}table{border-collapse:collapse;width:100%}td,th{text-align:left;border-bottom:1px solid #343641;padding:12px}th{font-weight:500}code{overflow-wrap:anywhere}</style><h1>What Am I Appreciating Now</h1><p>Production rebuild evidence. Captured at 100% zoom: 1280×900 and 390×844.</p><p>${link('ACCEPTANCE.md','Criterion-by-criterion PASS/FAIL table')} · ${link('../REPORT.md','Build report')}</p><h2>Public routes</h2><table><tr><th>Route</th><th>1280×900</th><th>390×844</th></tr>${names.map(r=>row(r,slug(r))).join('')}</table><h2>Interaction states</h2><table><tr><th>State</th><th>1280×900</th><th>390×844</th></tr>${states.map(s=>s==='menu-open'?`<tr><th>Open menu</th><td>Desktop navigation is always visible</td><td>${link('state-menu-open-390-first.png','First view')} · ${link('state-menu-open-390-full.png','Full page')}</td></tr>`:row(s,'state-'+s)).join('')}</table><h2>Argus round two — all PASS</h2><ul>${['home-listen','programs','store-merch-custom','vr-about-handoff'].map(f=>`<li>${link(f+'-board-2.png',f+' board')} · ${link(f+'-verdict-2.md','raw verdict')}</li>`).join('')}</ul><p>See acceptance table for unperformed human, headset, print-production and commercial certification. First-view scores do not certify those checks.</p>`;
+fs.writeFileSync(path.join(root,'index.html'),html);
+const manifest=fs.readdirSync(root).filter(n=>/\.(png|json|log|md|html|ico)$/.test(n)&&n!=='proof-manifest.json').map(n=>{const b=fs.readFileSync(path.join(root,n));return {file:n,bytes:b.length,sha256:crypto.createHash('sha256').update(b).digest('hex')}});
+fs.writeFileSync(path.join(root,'proof-manifest.json'),JSON.stringify(manifest,null,2));
+console.log(`${names.length} routes, ${states.length} states, ${manifest.length} proof artifacts indexed.`);

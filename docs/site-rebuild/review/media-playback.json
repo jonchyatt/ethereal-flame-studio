@@ -1,0 +1,54 @@
+[
+  {
+    "route": "/listen?clip=19",
+    "src": "http://localhost:3137/media/appreciation/19.mp4",
+    "duration": 41.333333,
+    "paused": true,
+    "time": 20,
+    "error": null,
+    "status": "PASS"
+  },
+  {
+    "route": "/listen?clip=12",
+    "src": "http://localhost:3137/media/appreciation/12.mp4",
+    "duration": 59.266667,
+    "paused": true,
+    "time": 20,
+    "error": null,
+    "status": "PASS"
+  },
+  {
+    "route": "/listen?clip=04",
+    "src": "http://localhost:3137/media/appreciation/04.mp4",
+    "duration": 65.533333,
+    "paused": true,
+    "time": 20,
+    "error": null,
+    "status": "PASS"
+  },
+  {
+    "route": "/listen#longer",
+    "src": "http://localhost:3137/media/reading/serenity.mp3",
+    "duration": 237.982896,
+    "paused": true,
+    "time": 20,
+    "error": null,
+    "status": "PASS"
+  },
+  {
+    "route": "/programs/advanced-hypnosis-sessions",
+    "src": "http://localhost:3137/samples/gentle-reset-listen.m4a",
+    "duration": 635.716009,
+    "paused": true,
+    "time": 20,
+    "error": null,
+    "status": "PASS"
+  },
+  {
+    "source": "preserved food VTT",
+    "cues": 91,
+    "lastEnd": 635.3,
+    "status": "PASS",
+    "limit": "Timestamp structure only; not a new human timing audition."
+  }
+]

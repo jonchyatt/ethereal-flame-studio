@@ -1,0 +1,27 @@
+[
+  {
+    "file": "home.png",
+    "width": 1200,
+    "height": 630
+  },
+  {
+    "file": "patrons.png",
+    "width": 1200,
+    "height": 630
+  },
+  {
+    "file": "programs.png",
+    "width": 1200,
+    "height": 630
+  },
+  {
+    "file": "shelf.png",
+    "width": 1200,
+    "height": 630
+  },
+  {
+    "file": "store.png",
+    "width": 1200,
+    "height": 630
+  }
+]

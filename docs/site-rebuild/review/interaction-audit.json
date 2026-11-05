@@ -1,0 +1,220 @@
+[
+  {
+    "name": "Visible keyboard focus 1280",
+    "status": "PASS",
+    "detail": "rgb(160, 216, 29) solid 3px"
+  },
+  {
+    "name": "A19 play pause seek and live analyser 1280",
+    "status": "PASS",
+    "detail": {
+      "audioLevels": [
+        0.8781,
+        0.9124,
+        0.9344,
+        0.5151,
+        0.7694,
+        0.9192,
+        0.6058,
+        0.5691
+      ],
+      "currentTime": 10.031927
+    }
+  },
+  {
+    "name": "Only one recording plays 1280",
+    "status": "PASS",
+    "detail": "Starting Serenity pauses A19."
+  },
+  {
+    "name": "Clip selection order and no autoplay 1280",
+    "status": "PASS",
+    "detail": "19 / 12 / 04; selection moves title focus."
+  },
+  {
+    "name": "Reduced motion 1280",
+    "status": "PASS",
+    "detail": "System preference disables reactive overlay."
+  },
+  {
+    "name": "Media failure recovery 1280",
+    "status": "PASS",
+    "detail": "Retry, direct media file and Support remain available."
+  },
+  {
+    "name": "Signup persistence error recovery unsubscribe 1280",
+    "status": "PASS",
+    "detail": {
+      "email": "spec-1280-1793867966068@example.com",
+      "sourcePage": "/",
+      "storage": "isolated local JSON",
+      "unsubscribed": true
+    }
+  },
+  {
+    "name": "Custom brief persistence and reference recovery 1280",
+    "status": "PASS",
+    "detail": {
+      "reference": "ord_ecd1f2c71be4be35.2bfbaa81e3ce7e6958f5cce512b18292",
+      "status": "Received",
+      "reload": "retrieved after reload"
+    }
+  },
+  {
+    "name": "Custom lookup error 1280",
+    "status": "PASS",
+    "detail": "Reference retained; new request, privacy and Support links present."
+  },
+  {
+    "name": "Access recovery entry 1280",
+    "status": "PASS",
+    "detail": "Empty browser directs to original device or manual Support; no new access granted."
+  },
+  {
+    "name": "Visible keyboard focus 390",
+    "status": "PASS",
+    "detail": "rgb(160, 216, 29) solid 3px"
+  },
+  {
+    "name": "Phone menu focus and Escape",
+    "status": "PASS",
+    "detail": "First link receives focus; Escape returns to Menu; no scenes link."
+  },
+  {
+    "name": "A19 play pause seek and live analyser 390",
+    "status": "PASS",
+    "detail": {
+      "audioLevels": [
+        0.8655,
+        0.9017,
+        0.9417,
+        0.4766,
+        0.7539,
+        0.9163,
+        0.6167,
+        0.6071
+      ],
+      "currentTime": 10.029507
+    }
+  },
+  {
+    "name": "Only one recording plays 390",
+    "status": "PASS",
+    "detail": "Starting Serenity pauses A19."
+  },
+  {
+    "name": "Clip selection order and no autoplay 390",
+    "status": "PASS",
+    "detail": "19 / 12 / 04; selection moves title focus."
+  },
+  {
+    "name": "Reduced motion 390",
+    "status": "PASS",
+    "detail": "System preference disables reactive overlay."
+  },
+  {
+    "name": "Media failure recovery 390",
+    "status": "PASS",
+    "detail": "Retry, direct media file and Support remain available."
+  },
+  {
+    "name": "Signup persistence error recovery unsubscribe 390",
+    "status": "PASS",
+    "detail": {
+      "email": "spec-390-1793867977381@example.com",
+      "sourcePage": "/",
+      "storage": "isolated local JSON",
+      "unsubscribed": true
+    }
+  },
+  {
+    "name": "Custom brief persistence and reference recovery 390",
+    "status": "PASS",
+    "detail": {
+      "reference": "ord_f9f101f33dda2194.fdd1666a1c265ab165defa8317a0e3fb",
+      "status": "Received",
+      "reload": "retrieved after reload"
+    }
+  },
+  {
+    "name": "Custom lookup error 390",
+    "status": "PASS",
+    "detail": "Reference retained; new request, privacy and Support links present."
+  },
+  {
+    "name": "Access recovery entry 390",
+    "status": "PASS",
+    "detail": "Empty browser directs to original device or manual Support; no new access granted."
+  },
+  {
+    "name": "Redirect /waia-front-door.html",
+    "status": "PASS",
+    "detail": {
+      "status": 308,
+      "location": "/"
+    }
+  },
+  {
+    "name": "Redirect /waia-store.html",
+    "status": "PASS",
+    "detail": {
+      "status": 308,
+      "location": "/store"
+    }
+  },
+  {
+    "name": "Redirect /refunds",
+    "status": "PASS",
+    "detail": {
+      "status": 307,
+      "location": "/legal/refunds"
+    }
+  },
+  {
+    "name": "Legal return href",
+    "status": "PASS",
+    "detail": "/programs"
+  },
+  {
+    "name": "Live accessibility scan",
+    "status": "PASS",
+    "detail": [
+      {
+        "route": "/",
+        "violations": []
+      },
+      {
+        "route": "/listen",
+        "violations": []
+      },
+      {
+        "route": "/programs",
+        "violations": []
+      },
+      {
+        "route": "/store",
+        "violations": []
+      },
+      {
+        "route": "/merch",
+        "violations": []
+      },
+      {
+        "route": "/vr",
+        "violations": []
+      },
+      {
+        "route": "/store/custom-order/brief",
+        "violations": []
+      },
+      {
+        "route": "/from-reset-biology",
+        "violations": []
+      },
+      {
+        "route": "/programs/manage",
+        "violations": []
+      }
+    ]
+  }
+]
