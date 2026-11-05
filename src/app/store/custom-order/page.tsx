@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { WaiaFooter } from '@/components/WaiaFooter';
+import { NAV_LINK_STYLE } from '@/app/legal/LegalLinks';
 
 type View = {
   id: string; kind: string; details: string; status: string; updatedAt: string;
@@ -37,6 +39,10 @@ export default function CustomOrderStatus() {
 
   return (
     <main style={{ maxWidth: 640, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
+      <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
+        <a href="/" style={NAV_LINK_STYLE}>Home</a>
+        <a href="/store" style={NAV_LINK_STYLE}>Store</a>
+      </nav>
       <h1>Your custom session request</h1>
       <p>What Am I Appreciating Now. Nothing is charged here. A quote is a price offered, not a payment taken.</p>
       <form onSubmit={(e) => { e.preventDefault(); void load(ref.trim()); }}>
@@ -65,6 +71,8 @@ export default function CustomOrderStatus() {
         </section>
       )}
       </div>
+      <p><a href="/store/custom-order/brief" style={NAV_LINK_STYLE}>Start a new request</a></p>
+      <WaiaFooter />
     </main>
   );
 }

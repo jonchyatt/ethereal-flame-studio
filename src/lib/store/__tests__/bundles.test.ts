@@ -108,5 +108,6 @@ describe('store: gift drafts', () => {
   it('exposes getBundle', () => {
     expect(getBundle('sessions-and-process-gift')?.items).toHaveLength(2);
     expect(getBundle('nope')).toBeNull();
+    expect(getBundle('yale-guided-process-gift')?.id).toBe('belief-lock-in-gift');
   });
 });

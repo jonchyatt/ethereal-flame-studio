@@ -8,7 +8,11 @@ export default async function MerchProductPage({ params }: { params: Promise<{ s
   if (!p) notFound();
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
-      <p><a href="/merch" style={{ color: 'inherit' }}>← Merchandise</a></p>
+      <nav aria-label="Site navigation" style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', fontSize: 14, gap: 8, marginBottom: 24 }}>
+        <a href="/" style={{ color: 'inherit' }}>Home</a>
+        <a href="/store" style={{ color: 'inherit' }}>Store</a>
+        <a href="/merch" style={{ color: 'inherit' }}>← Merchandise</a>
+      </nav>
       <h1>{p.name}</h1>
       <img src={p.image} alt={p.name} style={{ width: '100%', maxWidth: 480, borderRadius: 12 }} />
       <p>{p.description}</p>

@@ -34,7 +34,7 @@ export const BUNDLES: readonly Bundle[] = [
     giftable: true,
   },
   {
-    id: 'yale-guided-process-gift',
+    id: 'belief-lock-in-gift',
     title: 'Belief Lock-In, with a session made for one person',
     // Copy v2: Voss label, then the facts.
     summary: 'It sounds like they keep circling back to the same contrast. The guided inversion process paired with a custom session made for them, where Now closes back into What.',
@@ -75,8 +75,12 @@ export function validateBundles(bundles: readonly Bundle[] = BUNDLES): string[] 
   return errors;
 }
 
+// Old bundle ids still resolve (the page keeps the old anchor too: BundleAnchorAlias).
+const LEGACY_BUNDLE_IDS: Record<string, string> = { 'yale-guided-process-gift': 'belief-lock-in-gift' };
+
 export function getBundle(id: string): Bundle | null {
-  return BUNDLES.find((b) => b.id === id) ?? null;
+  const current = LEGACY_BUNDLE_IDS[id] ?? id;
+  return BUNDLES.find((b) => b.id === current) ?? null;
 }
 
 export function bundlePriceCents(id: string): number | null {

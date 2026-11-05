@@ -26,7 +26,19 @@ export interface StoreItem {
   listedBy: 'jonathan';
   listedOn: string;
   provenance: string;
+  /** true for a dietary supplement: the card shows the FDA line under the description. */
+  supplement?: boolean;
+  /** The affiliate program that issued the link, as named in the card's commission line. Defaults to source. */
+  program?: string;
+  /** A safety warning the seller prints (e.g. pregnancy), shown on the card as given. */
+  warning?: string;
+  /** Only 'live' items appear on the public shelf. Missing means 'draft'. */
+  status?: ItemStatus;
 }
+
+export type ItemStatus = 'draft' | 'live';
+
+export const itemStatus = (item: Pick<StoreItem, 'status'>): ItemStatus => item.status ?? 'draft';
 
 export const KIND_LABEL: Record<ItemKind, string> = {
   affiliate: 'Affiliate link',
@@ -36,6 +48,15 @@ export const KIND_LABEL: Record<ItemKind, string> = {
 
 export const DISCLOSURE =
   'Some links on this shelf are affiliate links. If you buy through one, What Am I Appreciating Now may earn a commission at no extra cost to you. The studio lists an item only when it considers it suitable, and a commission never changes what we say about it. Nothing here is medical advice, and none of it is meant to diagnose, treat or cure anything; talk to a qualified professional about your health.';
+
+/** Shown next to the link on every commission card. */
+export function affiliateLine(item: Pick<StoreItem, 'source' | 'program'>): string {
+  return `Affiliate link: WAIA may earn a commission from ${item.program?.trim() || item.source} if you buy through this link, at no extra cost to you.`;
+}
+
+/** Shown under the description on every supplement card. */
+export const FDA_LINE =
+  'These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.';
 
 const PLACEHOLDER = /placeholder|your[-_ ]?(id|tag)|\{[^}]*\}|<[^>]*>|example\.com|\.test\b|localhost/i;
 
@@ -53,12 +74,18 @@ export function checkItem(item: Partial<StoreItem> | null | undefined): string |
   if (!/^\d{4}-\d{2}-\d{2}$/.test(item.listedOn as string)) return 'listedOn must be YYYY-MM-DD';
   if (!/^https:\/\/[^\s/]+\.[^\s/]+/.test(item.url as string)) return 'url must be https';
   if (PLACEHOLDER.test(item.url as string)) return 'url is a placeholder';
+  if (item.status !== undefined && item.status !== 'draft' && item.status !== 'live') return 'status must be draft or live';
   if (item.image && !/^(https:\/\/|\/)[^\s]+$/.test(item.image)) return 'image must be https or site-relative';
   return null;
 }
 
 export function renderableItems(items: readonly Partial<StoreItem>[]): StoreItem[] {
   return items.filter((i) => !checkItem(i)) as StoreItem[];
+}
+
+/** What the public shelf shows: renderable and marked live. Drafts show only in the intake preview. */
+export function liveItems(items: readonly Partial<StoreItem>[]): StoreItem[] {
+  return renderableItems(items).filter((i) => itemStatus(i) === 'live');
 }
 
 /** rel for the outbound link: commission links are marked sponsored. */
@@ -78,6 +105,10 @@ export interface IntakeOptions {
   provenance: string;
   /** YYYY-MM-DD */
   today: string;
+  /** Marks every pasted item a supplement (adds the FDA line). */
+  supplement?: boolean;
+  /** Affiliate program that issued these links; blank leaves it out. */
+  program?: string;
 }
 
 export interface IntakeRow {
@@ -148,6 +179,8 @@ export function parseIntake(text: string, opts: IntakeOptions): IntakeRow[] {
     const item: StoreItem = {
       id, kind: opts.kind, name, source, blurb, url,
       commission: opts.commission, listedBy: 'jonathan', listedOn: opts.today, provenance: opts.provenance.trim(),
+      status: 'draft', supplement: !!opts.supplement,
+      ...(opts.program?.trim() ? { program: opts.program.trim() } : {}),
     };
     const error = checkItem(item);
     rows.push({ line: idx + 1, raw, item: error ? null : item, error });

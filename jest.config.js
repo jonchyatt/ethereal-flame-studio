@@ -14,6 +14,7 @@ module.exports = {
         moduleResolution: 'node',
         esModuleInterop: true,
         allowSyntheticDefaultImports: true,
+        jsx: 'react-jsx',
       },
     }],
   },
