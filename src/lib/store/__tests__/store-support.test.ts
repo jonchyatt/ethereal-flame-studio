@@ -10,14 +10,15 @@ const { buildEcho } = require(path.join(root, 'public/waia-store-support.js'));
 const section = html.slice(html.indexOf('<section id="support">'), html.indexOf('</main>'));
 
 describe('store: Support the channel', () => {
-  it('shows every tier price and name from PATRON-WALL.md as a proposal', () => {
+  it('shows every tier price and name from PATRON-WALL.md as a plain monthly price', () => {
     const rows = [...patron.matchAll(/^\| (\$\d+) \| `(\w+)` \|/gm)];
     expect(rows.length).toBe(4);
     for (const [, price, tier] of rows) {
-      expect(section).toContain(`${price} a month, proposed`);
+      expect(section).toContain(`${price} a month.`);
       expect(section.toLowerCase()).toContain(`<h3>${tier}</h3>`);
     }
-    expect(section).toMatch(/proposals only/i);
+    expect(section).toMatch(/payment is not open yet/i);
+    expect(section).not.toMatch(/not final|proposals only|, proposed/i);
   });
 
   it('has no payment links, checkout, or data-sending form', () => {

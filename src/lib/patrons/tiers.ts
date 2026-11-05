@@ -12,15 +12,17 @@ export interface TierInfo {
   letters: string;
   allowsMessage: boolean;
   priceCents: number | null;
+  /** Display only (docs/PATRON-WALL.md). Checkout never reads this; it reads priceCents from the price file. */
+  monthlyLabel: string;
   /** Proposed benefits, shown as proposals until Jonathan sets the real ladder. */
   benefits: readonly string[];
 }
 
 export const TIERS: readonly TierInfo[] = [
-  { tier: 'plain', label: 'Plain', letters: 'Soft white letters, steady.', allowsMessage: false, priceCents: priceFor('patron:plain'), benefits: ['Your name or alias on the wall behind the orb', 'Your name on the closing card of flat videos'] },
-  { tier: 'glowing', label: 'Glowing', letters: 'Gentle glow, slow breathing, soft halo.', allowsMessage: false, priceCents: priceFor('patron:glowing'), benefits: ['Everything in Plain', 'Letters with a gentle glow and slow breathing'] },
-  { tier: 'sparkly', label: 'Sparkly', letters: 'Restrained warm-gold sparkle.', allowsMessage: false, priceCents: priceFor('patron:sparkly'), benefits: ['Everything in Glowing', 'Restrained warm-gold sparkle on your name'] },
-  { tier: 'ethereal', label: 'Ethereal', letters: 'Larger letters, slow hue drift, halo, gentle float, plus one moderated message.', allowsMessage: true, priceCents: priceFor('patron:ethereal'), benefits: ['Everything in Sparkly', 'Larger letters with a slow hue drift and gentle float', 'One short message, read by a person before it appears'] },
+  { tier: 'plain', label: 'Plain', letters: 'Soft white letters, steady.', allowsMessage: false, priceCents: priceFor('patron:plain'), monthlyLabel: '$5 a month', benefits: ['Your name or alias on the wall behind the orb', 'Your name on the closing card of flat videos'] },
+  { tier: 'glowing', label: 'Glowing', letters: 'Gentle glow, slow breathing, soft halo.', allowsMessage: false, priceCents: priceFor('patron:glowing'), monthlyLabel: '$10 a month', benefits: ['Everything in Plain', 'Letters with a gentle glow and slow breathing'] },
+  { tier: 'sparkly', label: 'Sparkly', letters: 'Restrained warm-gold sparkle.', allowsMessage: false, priceCents: priceFor('patron:sparkly'), monthlyLabel: '$20 a month', benefits: ['Everything in Glowing', 'Restrained warm-gold sparkle on your name'] },
+  { tier: 'ethereal', label: 'Ethereal', letters: 'Larger letters, slow hue drift, halo, gentle float, plus one moderated message.', allowsMessage: true, priceCents: priceFor('patron:ethereal'), monthlyLabel: '$35 a month', benefits: ['Everything in Sparkly', 'Larger letters with a slow hue drift and gentle float', 'One short message, read by a person before it appears'] },
 ];
 
 export function tierInfo(tier: PatronTier): TierInfo {

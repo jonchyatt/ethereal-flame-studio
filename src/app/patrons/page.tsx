@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Patron wall · What Am I Appreciating Now',
-  description: 'The people who made What Am I Appreciating Now possible. Nothing is on sale yet.',
+  description: 'The people who made What Am I Appreciating Now possible. Add your name free; payment is not open yet.',
   alternates: { canonical: 'https://www.whatamiappreciatingnow.com/patrons' },
 };
 
@@ -43,13 +43,13 @@ export default async function PatronsPage() {
         </ul>
       )}
       <h2>Tiers</h2>
-      <p style={{ opacity: 0.7, fontSize: 14 }}>These tiers are proposals and nothing is on sale yet. No payment is taken anywhere on this site.</p>
+      <p style={{ opacity: 0.7, fontSize: 14 }}>Patron support comes in four tiers, from $5 to $35 a month. Payment is not open yet, so no payment is taken anywhere on this site. You can add your name to the wall now, free.</p>
       {TIERS.map((t) => (
         <section key={t.tier} style={{ margin: '16px 0', padding: 16, border: '1px solid #333', borderRadius: 12 }}>
           <h3 style={{ margin: 0 }}>{t.label}</h3>
           <p style={{ margin: '6px 0' }}>{t.letters}</p>
           <ul>{t.benefits.map((b) => <li key={b}>{b}</li>)}</ul>
-          <p style={{ fontSize: 14, opacity: 0.7, margin: 0 }}>Proposal · Not yet on sale</p>
+          <p style={{ fontSize: 14, opacity: 0.7, margin: 0 }}>{t.monthlyLabel} · Payment is not open yet</p>
         </section>
       ))}
       {/* Technique: Voss no-oriented question before the link, so "no" stays a safe answer. */}
