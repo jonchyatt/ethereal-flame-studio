@@ -8,21 +8,28 @@ import { SHELF_ITEMS } from '../shelf-items';
 const opts = { kind: 'affiliate' as const, commission: true, provenance: 'From Jonathan.', today: '2026-10-19' };
 
 describe('store: unified item layout and intake', () => {
-  it('ships the six picks as drafts: public shelf unchanged, intake previews all with disclosures', () => {
+  it('ships six picks: STEMREGEN live on its approved link, Thorne draft until its program link exists', () => {
     expect(SHELF_ITEMS).toHaveLength(6);
     expect(renderableItems(SHELF_ITEMS)).toHaveLength(6);
-    expect(liveItems(SHELF_ITEMS)).toEqual([]);
+    expect(liveItems(SHELF_ITEMS).map((i) => i.source)).toEqual(['StemRegen', 'StemRegen']);
     for (const i of SHELF_ITEMS) {
-      expect(i).toMatchObject({ status: 'draft', commission: true, provenance: 'Maker page; swap for program-issued link when approved.' });
-      expect(i.url).toMatch(/^https:\/\/www\.(thorne\.com|stemregen\.co)\/products\//);
+      expect(i).toMatchObject({ commission: true });
+      if (i.source === 'Thorne') {
+        expect(i).toMatchObject({ status: 'draft', provenance: 'Maker page; swap for program-issued link when approved.' });
+        expect(i.url).toMatch(/^https:\/\/www\.thorne\.com\/products\//);
+      } else {
+        expect(i).toMatchObject({ status: 'live' });
+        expect(i.url).toBe('https://stemregen.co/resetbiology');
+      }
     }
     expect(JSON.stringify(SHELF_ITEMS)).not.toMatch(/\$\d/);
     const pub = renderToStaticMarkup(createElement(ShelfPage));
-    expect(pub).toContain('The shelf is being stocked');
-    expect(pub).not.toMatch(/thorne|stemregen/i);
+    expect(pub).not.toMatch(/thorne/i);
+    expect(pub).toContain('href="https://stemregen.co/resetbiology"');
+    expect(pub).toContain('may earn a commission from STEMREGEN');
     const intake = renderToStaticMarkup(createElement(IntakePage));
     for (const i of SHELF_ITEMS) expect(intake).toContain(`href="${i.url}"`);
-    expect(intake).toContain('6 draft, 0 live');
+    expect(intake).toContain('4 draft, 2 live');
     expect(intake.match(/may earn a commission from Thorne/g)).toHaveLength(4);
     expect(intake.match(/may earn a commission from STEMREGEN/g)).toHaveLength(2);
     expect(intake.match(/Food and Drug Administration/g)).toHaveLength(5);
