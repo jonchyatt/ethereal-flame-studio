@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { EmailSignup } from '@/components/EmailSignup';
 import { concepts } from '@/lib/site/content';
 import { pageMetadata } from '@/lib/site/metadata';
 export async function generateMetadata({
@@ -46,16 +47,18 @@ export default async function Design({
           <div className="notice">
             <h2>Before it becomes an object</h2>
             <p>{c.note}</p>
-            <p>
-              Production materials, fit, fulfilment and availability are not yet
-              confirmed.
-            </p>
+            <p>This design is not made yet. Tell me when this is made.</p>
           </div>
           <a className="text-link" href="/merch">
             Return to all four designs →
           </a>
         </div>
       </article>
+      <EmailSignup
+        tag={`merch-${c.slug}`}
+        heading="Tell me when this is made"
+        question="Leave your email and you will be told when this design becomes a real thing."
+      />
     </main>
   );
 }

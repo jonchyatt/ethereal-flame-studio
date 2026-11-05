@@ -24,8 +24,8 @@ export default function HypnosisSessionsPage() {
             relationship with it.
           </p>
           <p>
-            This is the available food-related sample. The wider collection is
-            in preparation.
+            This is the session available today, and it is free. More sessions
+            are not for sale yet; you can be told when they open below.
           </p>
         </div>
         <FoodSample />
@@ -38,8 +38,8 @@ export default function HypnosisSessionsPage() {
           10:35 · Audio · Jonathan Hyatt’s AI-cloned voice · Free sample
         </p>
         <p>
-          The collection’s additional sessions and access details will be listed
-          here when the finished recordings are ready.
+          Nothing else is listed yet. Each new session will appear here with its
+          length and its playable preview the day it opens.
         </p>
       </section>
     </ProgramView>

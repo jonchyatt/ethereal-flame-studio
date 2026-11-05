@@ -55,8 +55,8 @@ export async function ProgramView({
               choose.
             </p>
             <p>
-              Preview in preparation. The first-step demo, exact materials and
-              access details will be shown here when they are ready.
+              Not for sale yet; get told when it opens. You can hear a free
+              appreciation moment now.
             </p>
             <a className="button primary" href="/listen?clip=19">
               Try free appreciation · 0:41
@@ -103,7 +103,11 @@ export async function ProgramView({
           Explore the original appreciation moments →
         </a>
       </section>
-      <EmailSignup />
+      <EmailSignup
+        tag={program.id}
+        heading="Tell me when this opens"
+        question="Not for sale yet. Leave your email and you will be told the day it opens."
+      />
     </main>
   );
 }

@@ -77,11 +77,11 @@ const op = { authorization: 'Bearer operator-secret-1234' };
 const ctx = (id: string) => ({ params: Promise.resolve({ id }) });
 
 describe('routes', () => {
-  it('intake is closed (503) until CUSTOM_ORDERS_OPEN=1', async () => {
+  it('intake is open with no flag and stores one record', async () => {
     delete process.env.CUSTOM_ORDERS_OPEN;
     const res = await intakeRoute(json('/api/custom-orders', { method: 'POST', body: { kind: 'vr', details: 'x' } }));
-    expect(res.status).toBe(503);
-    expect(files.size).toBe(0);
+    expect(res.status).toBe(201);
+    expect(files.size).toBe(1);
   });
 
   it('honeypot answers 201 but stores nothing; bad input is 400', async () => {

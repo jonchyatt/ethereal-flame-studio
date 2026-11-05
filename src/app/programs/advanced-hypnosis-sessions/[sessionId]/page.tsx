@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { HYPNOSIS_PROGRAM_ID, getSession, onSale } from '@/lib/hypnosis/catalog';
 import { SAFETY_NOTE } from '@/app/legal/LegalLinks';
+import { EmailSignup } from '@/components/EmailSignup';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +16,7 @@ export default async function HypnosisSessionPage({ params }: { params: Promise<
       <h1>{s.title}</h1>
       <p>{s.summary}</p>
       <p style={{ fontSize: 14, opacity: 0.7 }}>
-        {s.durationMinutes ? `${s.durationMinutes} min · ` : ''}{onSale() ? 'Included with the subscription' : 'Coming soon'}
+        {s.durationMinutes ? `${s.durationMinutes} min · ` : ''}{onSale() ? 'Included with the subscription' : 'Not for sale yet'}
       </p>
       <h2>Rights and provenance</h2>
       <ul style={{ fontSize: 14, opacity: 0.85 }}>
@@ -25,6 +26,7 @@ export default async function HypnosisSessionPage({ params }: { params: Promise<
         <li>Rights basis: {p.rightsBasis} ({p.rightsVerified ? 'checked' : 'not yet checked'})</li>
       </ul>
       <p style={{ fontSize: 14, opacity: 0.85 }}><strong>Safety:</strong> {SAFETY_NOTE}</p>
+      {!onSale() && <EmailSignup tag={`advanced-hypnosis-${s.id}`} heading="Tell me when this opens" question="Not for sale yet. Leave your email and you will be told when this session opens." />}
     </main>
   );
 }

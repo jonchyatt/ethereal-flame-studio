@@ -23,7 +23,7 @@ const priced: SessionPricing = {
   addOns: { binauralTones: 500, vrCustomScene: null },
 };
 
-const post = (body: unknown) => new NextRequest('http://x/api/custom-orders/brief', { method: 'POST', body: JSON.stringify(body) });
+const post = (body: Record<string, unknown>) => new NextRequest('http://x/api/custom-orders/brief', { method: 'POST', body: JSON.stringify({ contact: 'visitor@example.com', ...body }) });
 
 beforeEach(() => {
   files.clear();
@@ -61,16 +61,17 @@ describe('intake', () => {
     expect(JSON.stringify(publicView(order))).not.toContain('private@example.invalid');
     expect(reference.startsWith(order.id)).toBe(true);
   });
-  it('route: 403 with the approved unsaved notice when closed, 400 with issues when incomplete, 201 when complete, honeypot looks successful but saves nothing', async () => {
-    process.env.CUSTOM_ORDERS_OPEN = '0';
-    const closed = await intake(post({ brief: hypnosis }));
-    expect(closed.status).toBe(403);
-    expect((await closed.json()).error).toBe('Coming soon. Requests are not open yet, so this was not saved or sent anywhere, and nothing has been charged. Keep a copy if you want it. You can also email support@whatamiappreciatingnow.com.');
-    process.env.CUSTOM_ORDERS_OPEN = '1';
+  it('route: always open, 400 with issues when incomplete or the email is missing, 201 with the confirmation when complete, honeypot looks successful but saves nothing', async () => {
+    delete process.env.CUSTOM_ORDERS_OPEN;
+    const noEmail = await intake(post({ brief: hypnosis, contact: 'not an email' }));
+    expect(noEmail.status).toBe(400);
+    expect(files.size).toBe(0);
     const bad = await intake(post({ brief: { ...hypnosis, acknowledgeSafeUse: false } }));
     expect(bad.status).toBe(400);
     expect((await bad.json()).issues.length).toBeGreaterThan(0);
-    expect((await intake(post({ brief: hypnosis }))).status).toBe(201);
+    const ok = await intake(post({ brief: hypnosis }));
+    expect(ok.status).toBe(201);
+    expect((await ok.json()).message).toBe('Your brief is in. We reply by email within a few days.');
     const before = files.size;
     expect((await intake(post({ brief: hypnosis, website: 'spam' }))).status).toBe(201);
     expect(files.size).toBe(before);
