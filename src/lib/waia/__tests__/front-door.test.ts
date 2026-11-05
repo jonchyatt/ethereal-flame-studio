@@ -1,9 +1,9 @@
 import { frontDoorRewrite } from '../front-door';
 
 describe('frontDoorRewrite', () => {
-  it('serves the front door at / and the store at /store on apex, www and other hosts', () => {
+  it('leaves / to the React home page and serves the store at /store on apex, www and other hosts', () => {
     for (const host of ['whatamiappreciatingnow.com', 'www.whatamiappreciatingnow.com', 'WWW.whatamiappreciatingnow.com:443', 'localhost:3000']) {
-      expect(frontDoorRewrite(host, '/')).toEqual({ page: '/waia-front-door.html', noindex: false });
+      expect(frontDoorRewrite(host, '/')).toBeNull();
       expect(frontDoorRewrite(host, '/store')?.page).toBe('/waia-store.html');
     }
   });
@@ -27,7 +27,8 @@ describe('about and contact', () => {
   const fs = require('fs') as typeof import('fs');
   const path = require('path') as typeof import('path');
   const root = path.resolve(__dirname, '../../../..');
-  it('the front door and the store link to /about, and the page exists', () => {
+  it('the old front door and the store link to /about, the home page links to /about, and the pages exist', () => {
+    expect(fs.readFileSync(path.join(root, 'src/app/page.tsx'), 'utf8')).toContain('href="/about"');
     for (const f of ['public/waia-front-door.html', 'public/waia-store.html']) {
       expect(fs.readFileSync(path.join(root, f), 'utf8')).toContain('href="/about"');
     }

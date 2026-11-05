@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { WaiaShell } from '@/components/waia/WaiaShell';
 
 export const metadata: Metadata = {
   title: 'What Am I Appreciating Now',
@@ -19,7 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body style={{ margin: 0, padding: 0, width: '100%', height: '100%' }} suppressHydrationWarning>
-        {children}
+        <WaiaShell>{children}</WaiaShell>
       </body>
     </html>
   );

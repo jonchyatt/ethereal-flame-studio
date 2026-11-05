@@ -1,0 +1,164 @@
+/* What Am I Appreciating Now, home page. Scrollcraft engine tokens themed to the
+   shell's own palette (globals.css .waia-shell); page classes only. The engine
+   selectors (.sc-stage, [data-sc-*]) are the mechanism and are not restyled. */
+:root {
+  --sc-canvas: #0a0d17;
+  --sc-surface: #131829;
+  --sc-ink: #ece6d6;
+  --sc-ink-soft: #a7a293;
+  --sc-accent: #e6bd77;
+  --sc-accent-ink: #0a0d17;
+  --sc-font-display: "Iowan Old Style", "Sitka Text", Georgia, "Times New Roman", serif;
+  --sc-font-text: "Seravek", "Gill Sans Nova", Corbel, "Segoe UI", system-ui, sans-serif;
+  --sc-shadow-color: 228 45% 3%;
+}
+
+.waia-home { --plate: rgb(12 16 30 / 0.9); --rule: rgb(236 230 214 / 0.1); --radius: 14px; }
+
+/* ---------- labels: one schema for every object ---------- */
+.label { display: grid; gap: 0.55rem; max-width: 30rem; }
+.label h1, .label h2, .label h3 {
+  margin: 0; font-family: var(--sc-font-display); font-weight: 400; color: #f6f1e3;
+  line-height: 1.08; letter-spacing: -0.012em; text-wrap: balance;
+}
+.label h1 { font-size: var(--sc-t-2xl); }
+.label h2 { font-size: var(--sc-t-xl); }
+.label h3 { font-size: var(--sc-t-lg); }
+.label p { margin: 0; line-height: 1.6; text-wrap: pretty; }
+.label__kind { color: var(--sc-accent); font-size: var(--sc-t-sm); letter-spacing: 0.02em; }
+.label__credit { color: var(--sc-ink-soft); font-size: var(--sc-t-xs); }
+.label--plate {
+  background: var(--plate); border: 1px solid var(--rule); border-radius: var(--radius);
+  padding: clamp(1.1rem, 2.4vw, 1.75rem); box-shadow: var(--sc-e2), var(--sc-edge);
+}
+.label__actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.3rem; }
+.label__action {
+  justify-self: start; display: inline-flex; align-items: center; min-height: 44px; margin-top: 0.4rem;
+  padding: 0 1.15rem; border: 1px solid rgb(230 189 119 / 0.6); border-radius: 10px;
+  color: var(--sc-accent); text-decoration: none; font-weight: 600; white-space: nowrap;
+  transition: background-color 160ms var(--sc-ease-out), color 160ms var(--sc-ease-out);
+}
+.label__actions .label__action { margin-top: 0; }
+.label__action:hover { background: rgb(230 189 119 / 0.12); }
+.label__action:active { transform: translateY(1px); }
+.label__action--solid { background: var(--sc-accent); color: var(--sc-accent-ink); border-color: var(--sc-accent); }
+.label__action--solid:hover { background: #f0cd8d; }
+.label__list { margin: 0.2rem 0 0; padding: 0; list-style: none; display: grid; gap: 0.35rem; }
+.label__list li { padding-left: 1rem; position: relative; }
+.label__list li::before { content: ""; position: absolute; left: 0; top: 0.72em; width: 6px; height: 6px; border-radius: 50%; background: var(--sc-accent); }
+.label__list span { color: var(--sc-ink-soft); }
+
+/* ---------- 1. arrival: three planes that move at different rates ---------- */
+.hero { background: #05060c; }
+.plane { position: absolute; inset: -9% 0; transform: translateY(calc(var(--rate) * 50px)); }
+.plane__move { position: absolute; inset: 0; }
+.plane img { width: 100%; height: 100%; object-fit: cover; max-width: none; }
+.plane--orb { mix-blend-mode: screen; }
+.label--hero { position: absolute; z-index: 5; left: var(--sc-gutter); bottom: clamp(1.5rem, 7vh, 5rem); max-width: 31rem; }
+
+/* ---------- vortex grounds: our own drift illusion (public/waia-home/vortex.webp), in the
+   family of the op-art the carving was built from; dimmed so copy reads over it ---------- */
+.vortex, .house::before {
+  content: ""; position: absolute; pointer-events: none;
+  background: url(/waia-home/vortex.webp) center / cover no-repeat;
+  -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 30%, transparent 100%);
+}
+
+/* ---------- 2. practice rail ---------- */
+.practices { display: flex; align-items: center; background: var(--sc-canvas); }
+.practices .vortex { left: 50%; top: 50%; width: max(110vh, 80vw); aspect-ratio: 1; translate: -50% -50%; opacity: 0.13; }
+.rail { position: relative; }
+.rail { display: flex; align-items: center; gap: clamp(2.5rem, 5vw, 5rem); width: max-content; padding: 72px var(--sc-gutter) 1.5rem; }
+.rail__lead { width: min(23rem, 78vw); flex: none; }
+.piece { display: flex; align-items: flex-end; gap: 1.5rem; flex: none; }
+.piece__media video {
+  display: block; height: min(64svh, 600px); width: auto; aspect-ratio: 9 / 16; object-fit: cover;
+  border-radius: var(--radius); background: #05060c; box-shadow: var(--sc-e3);
+}
+.piece .label { width: 17.5rem; }
+@media (prefers-reduced-motion: no-preference) {
+  /* Items settle in order as the rail travels; the first is already there. */
+  .act-practices .piece { opacity: clamp(0.55, calc(var(--sc-p, 1) * 4 - var(--i) + 1.6), 1); }
+}
+
+/* ---------- 3. the turn: the hinge ring ---------- */
+.peak { background: #05060c; }
+.hinge {
+  position: absolute; z-index: 3; left: 50%; top: 50%; translate: -50% -50%;
+  width: min(70svh, 84vw); aspect-ratio: 1; pointer-events: none;
+  filter: drop-shadow(0 2px 6px rgb(5 6 12 / 0.75));
+}
+.hinge__ring { width: 100%; height: 100%; display: block; overflow: visible; }
+.hinge__ring text { font-family: var(--sc-font-display); font-size: 15px; letter-spacing: 0.04em; fill: #f6f1e3; }
+.hinge__ring .ring__rule { fill: none; stroke: rgb(246 241 227 / 0.22); stroke-width: 0.5; }
+.hinge__ring .ring__mark { fill: var(--sc-accent); }
+.hinge__ring .ring__glyphs {
+  transform-box: view-box; transform-origin: 100px 100px;
+  /* The signature move: the ring turns with the scroll until NOW sits under the mark (by 80% of the act), then holds. */
+  transform: rotate(calc(min(var(--sc-p, 0) * 1.25, 1) * var(--hinge, 0deg)));
+}
+.label--peak { position: absolute; z-index: 5; left: var(--sc-gutter); bottom: clamp(1.5rem, 7vh, 5rem); grid-template-areas: "k" "line"; }
+.label--peak .label__kind { grid-area: k; }
+.peak__q, .peak__a { grid-area: line; margin: 0; font-family: var(--sc-font-display); font-weight: 400; font-size: var(--sc-t-xl); line-height: 1.15; color: #f6f1e3; }
+.peak__q { opacity: clamp(0, calc((0.62 - var(--sc-p, 0)) * 8), 1); }
+.peak__a { opacity: clamp(0, calc((var(--sc-p, 0) - 0.62) * 8), 1); }
+
+/* ---------- 4. the house ---------- */
+.house { position: relative; isolation: isolate; max-width: var(--sc-maxw); margin: 0 auto; padding: clamp(5rem, 11vw, 9rem) var(--sc-gutter); display: grid; gap: clamp(5rem, 12vw, 10rem); }
+.house::before { z-index: -1; left: 50%; top: 18%; width: min(1500px, 150vw); aspect-ratio: 1; translate: -50% 0; opacity: 0.08; }
+.obj__media { margin: 0; border-radius: var(--radius); overflow: hidden; box-shadow: var(--sc-e3); }
+.obj__media img { width: 100%; height: auto; }
+.obj--programs { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(2rem, 5vw, 5rem); align-items: end; }
+.obj--programs .obj__media { max-width: 34rem; }
+.obj--vr { display: grid; gap: 1.75rem; }
+.obj--vr .label { margin-left: clamp(0rem, 8vw, 8rem); }
+.vr-window { position: relative; aspect-ratio: 2.4 / 1; background: #05060c; }
+.vr-window__strip {
+  position: absolute; top: 0; bottom: 0; left: 0; width: 300%;
+  background: url(/waia-home/vr-equirect.webp) repeat-x 0 50% / auto 100%;
+  transform: translateX(calc(var(--sc-p, 0.5) * -33.333%));
+}
+.obj--shop .label { margin-left: auto; max-width: 34rem; }
+.obj--merch { display: grid; }
+.obj--merch .obj__media { max-width: 64rem; }
+.obj--merch .label { max-width: 36rem; margin: -7rem 0 0 auto; position: relative; }
+
+/* ---------- 5. close: holds still ---------- */
+.close { display: flex; align-items: center; background: #05060c; }
+.close__ground { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+.label--close { position: relative; z-index: 2; margin-left: var(--sc-gutter); margin-top: 60px; max-width: 34rem; }
+.doors { display: flex; flex-wrap: wrap; gap: 0 0.2rem; margin-top: 0.6rem; }
+.doors a, .small-print a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 0.5rem; color: var(--sc-ink); }
+.doors a:first-child, .small-print a:first-child { padding-left: 0; }
+.small-print { margin-top: 0.4rem; border-top: 1px solid var(--rule); padding-top: 0.4rem; font-size: var(--sc-t-xs); color: var(--sc-ink-soft); }
+.small-print nav { display: flex; flex-wrap: wrap; }
+.small-print a { color: var(--sc-ink-soft); }
+
+/* ---------- phones: recomposed, not shrunk ---------- */
+@media (max-width: 860px) {
+  .label--hero, .label--peak { left: 16px; right: 16px; bottom: 16px; max-width: none; }
+  .label--hero p:not(.label__kind) { font-size: var(--sc-t-sm); }
+  .rail { padding-top: 76px; gap: 2rem; padding-inline: 16px; }
+  .piece { flex-direction: column; align-items: flex-start; gap: 0.9rem; width: min(78vw, 22rem); }
+  .piece__media video { height: min(48svh, 430px); }
+  .piece .label { width: 100%; }
+  .piece .label__credit { display: none; }
+  .hinge { width: min(80vw, 50svh); top: 44%; }
+  .obj--programs { grid-template-columns: 1fr; }
+  .obj--vr .label { margin-left: 0; }
+  .vr-window { aspect-ratio: 1.5 / 1; }
+  .obj--merch .label { margin: -2.5rem 12px 0; }
+  .label--close { margin: 60px 16px 16px; max-width: none; }
+  .close { align-items: flex-end; }
+}
+
+/* ---------- reduced motion: same story, no travel ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .plane { transform: none; }
+  .hinge__ring .ring__glyphs { transform: rotate(var(--hinge, 0deg)); }
+  .label--peak { grid-template-areas: "k" "q" "a"; }
+  .peak__q { grid-area: q; opacity: 1; }
+  .peak__a { grid-area: a; opacity: 1; color: var(--sc-accent); }
+  .vr-window__strip { transform: none; }
+}

@@ -15,8 +15,8 @@ const LEGACY_REDIRECTS: Record<string, string> = {
  *
  * Subdomain routing:
  * - jarvis.whatamiappreciatingnow.com → serves /jarvis content at /
- * - every other host (www, bare apex, previews, localhost) → "/" serves the
- *   front door (public/waia-front-door.html) and "/store" the store page
+ * - every other host (www, bare apex, previews, localhost) → "/" is the React
+ *   home page (src/app/page.tsx) and "/store" the store page
  *   (public/waia-store.html). The flame visualizer lives at /studio.
  *
  * API Authentication:
@@ -133,7 +133,7 @@ export function middleware(request: NextRequest) {
     // Allow static assets and other paths
   }
 
-  // Front door at "/" and store page at "/store" (src/lib/waia/front-door.ts).
+  // Store page at "/store" and the old front door preview (src/lib/waia/front-door.ts).
   const frontDoor = frontDoorRewrite(hostname, pathname);
   if (frontDoor) {
     const res = NextResponse.rewrite(new URL(frontDoor.page, request.url));
