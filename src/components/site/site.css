@@ -306,7 +306,7 @@
 .home-hero {
   display: grid;
   grid-template-columns: 5fr 7fr;
-  grid-template-areas: 'copy art' 'action art';
+  grid-template-areas: 'copy art' 'action art' 'panel panel';
   column-gap: 48px;
   align-content: center;
   min-height: 480px;
@@ -324,6 +324,17 @@
 .hero-action {
   grid-area: action;
   align-self: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.begin-panel {
+  grid-area: panel;
+  margin-top: 24px;
+  text-align: center;
+}
+.begin-panel[hidden] {
+  display: none;
 }
 .home-hero .hero-action .button.primary {
   min-width: 216px;
@@ -333,7 +344,7 @@
   color: #17131a;
   box-shadow: 0 10px 26px #0005;
 }
-.home-hero .hero-action .button.primary.is-listening {
+.home-hero .hero-action .button.is-listening {
   animation: scene-listening-breath 2.6s ease-in-out infinite;
 }
 @keyframes scene-listening-breath {
@@ -1075,7 +1086,7 @@
   }
   .home-hero {
     grid-template-columns: 1fr;
-    grid-template-areas: 'copy' 'action' 'art';
+    grid-template-areas: 'copy' 'action' 'panel' 'art';
     min-height: 0;
     gap: 20px;
   }
@@ -1291,7 +1302,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-hero .hero-action .button.primary.is-listening {
+  .home-hero .hero-action .button.is-listening {
     animation: none;
   }
   .hero-orb-canvas {
