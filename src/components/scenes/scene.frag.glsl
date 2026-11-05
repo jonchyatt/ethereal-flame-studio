@@ -3,7 +3,10 @@ uniform vec2 uResolution;
 uniform float uTime;
 uniform float uQuality;
 uniform float uFalls;
-uniform float uAudio;
+uniform float uVoice;
+uniform float uOcean;
+uniform float uMusic;
+uniform float uVoiceTone;
 uniform float uBlueGold;
 uniform sampler2D uNoise;
 varying vec2 vUv;
@@ -130,15 +133,23 @@ vec3 orbOceanSky(vec2 p) {
   mat2 rotate = mat2(cos(turn), -sin(turn), sin(turn), cos(turn));
   vec2 q = rotate * p;
   vec3 c = mix(vec3(.017, .011, .022), vec3(.032, .036, .37), uBlueGold);
-  float a, b, d;
+  float a, b, d, musicSeed;
   float tiny = starLayer(q + vec2(13.7, -4.2), 72., .57, a);
   float medium = starLayer(q + vec2(-7.4, 11.8), 31., .76, b);
   float bright = starLayer(q + vec2(2.1, 19.6), 13., .91, d);
+  // A denser field of pinprick stars is reserved for the music mapping. It
+  // never becomes a nebula or screen wash; the bed merely makes thousands of
+  // points glint together and then recede.
+  float musicPoints = starLayer(q + vec2(-29.2, 7.4), 118., .43, musicSeed);
   vec3 cool = mix(vec3(.46, .65, 1.15), vec3(1.25, .62, .25), a);
   vec3 warm = mix(vec3(.55, .72, 1.35), vec3(1.4, .7, .3), b);
-  c += cool * tiny * .7;
-  c += warm * medium * 1.45;
-  c += mix(vec3(.72, .86, 1.65), vec3(1.9, 1.22, .42), d) * bright * 2.5;
+  // Music opens and closes the fine points independently of the speech. A
+  // quiet bed still leaves a living, slowly rotating star field.
+  float musicTwinkle = .22 + uMusic * 3.1 + .035 * sin(uTime * 2.7 + q.x * 23. - q.y * 17.);
+  c += cool * tiny * .7 * musicTwinkle;
+  c += warm * medium * 1.45 * musicTwinkle;
+  c += mix(vec3(.72, .86, 1.65), vec3(1.9, 1.22, .42), d) * bright * 2.5 * musicTwinkle;
+  c += mix(vec3(.28, .53, 1.05), vec3(1.15, .55, .22), musicSeed) * musicPoints * (.12 + uMusic * 3.8);
   return c;
 }
 
@@ -148,7 +159,9 @@ vec3 orbWaterWaves(vec2 p) {
   float height = 0.;
   vec2 slope = vec2(0.);
   float frequency = .18;
-  float amplitude = .17;
+  // The ocean's low band opens the range of both the near swells and the
+  // fine, far-away chop. It never reaches zero, so silence still feels alive.
+  float amplitude = .27 * (.52 + uOcean * 1.05);
   for (int i = 0; i < 9; i++) {
     if (float(i) > 4. + uQuality * 2.) break;
     float fi = float(i);
@@ -179,29 +192,42 @@ vec3 orbOceanWater(vec2 screen, float horizon) {
 
   float fresnel = .035 + .42 * pow(clamp(nearWater + abs(wave.y) * .7, 0., 1.), 2.2);
   c += mix(vec3(.018, .032, .045), vec3(.045, .052, .16), uBlueGold) * fresnel;
+  // Crest light and cooler trough shadow are what make this a volume of water
+  // rather than a shaded flat plane. The perspective mapping makes the chop
+  // become finer toward the hard horizon.
+  float crest = smoothstep(.045, .23, wave.x + length(wave.yz) * .18);
+  float trough = smoothstep(-.045, -.25, wave.x);
+  float broadSwell = .5 + .5 * sin(world.x * 2.7 + world.y * 1.18 - uTime * .38 + sin(world.y * .42));
+  c += mix(vec3(.13, .20, .24), vec3(.20, .27, .54), uBlueGold) * crest * (.32 + .48 * nearWater);
+  c += mix(vec3(.035, .075, .09), vec3(.065, .08, .22), uBlueGold) * broadSwell * nearWater * .13;
+  c *= 1. - trough * (.21 + .16 * nearWater);
 
-  // A broken white, sun-like road widens toward the low camera and changes on
-  // the same moving wave field as the surface.
+  // A broken white, sun-like road widens toward the low camera. Its tiny,
+  // irregular facet cells ride the wave slope rather than making stripes.
   float roadWidth = .009 + depth * .25;
   float wander = (sin(world.y * .92 - uTime * 1.8) + sin(world.x * .45 + uTime * 1.3)) * roadWidth * .34 + wave.y * .065;
   float road = exp(-pow((screen.x - wander) / roadWidth, 2.));
-  float facets = pow(.5 + .5 * sin(world.x * 8. + world.y * 3.7 - uTime * 5.4 + wave.x * 13.), 7.);
-  facets = mix(.18, 1., facets) * (.35 + .65 * noise(world * 2.8 + vec2(uTime * .36, -uTime * .71)));
-  float rippleSpec = pow(max(0., 1. - length(wave.yz) * 2.4), 2.);
+  vec2 facetScale = vec2(120. / (.25 + depth * 2.0), 48. + depth * 150.);
+  vec2 facetCell = floor(vec2((screen.x - wander) * facetScale.x, depth * facetScale.y + world.y * 2.7));
+  float facetSeed = hash(facetCell + floor(uTime * 7.2) * 3.17);
+  float facetBlink = .42 + .58 * sin(uTime * (3. + facetSeed * 8.) + facetSeed * 91.);
+  float facets = smoothstep(.57, .94, facetSeed) * smoothstep(.13, .94, facetBlink);
+  float normalFlash = .26 + .74 * pow(clamp(.58 + wave.z * 2.6 - wave.y * 1.4, 0., 1.), 2.2);
   vec3 glint = mix(vec3(1.55, 1.7, 1.9), vec3(2.0, 1.55, .62), uBlueGold);
-  c += glint * road * facets * (.42 + rippleSpec * .75);
+  c += glint * road * facets * normalFlash * (.20 + uOcean * 1.55);
 
-  // This is distinct from the white path: a compact reflection in the orb's
-  // present leading hue, directly beneath the horizon.
-  float hue = fract(uTime / 6. + .045);
-  float smearWidth = .022 + depth * .07;
-  float smear = exp(-pow(screen.x / smearWidth, 2.)) * exp(-depth * 14.) * (.7 + .3 * sin(world.y * 8. - uTime * 3.));
-  c += rainbow(hue) * max(0., smear) * 1.15;
+  // The coloured reflection is separate from the white road: it stretches
+  // under the orb, breaks with the same waves, and keeps the current hue.
+  float hue = fract(uTime * (.1667 + (uVoiceTone - .5) * .012) + .045);
+  float smearWidth = .020 + depth * .14;
+  float smearBreak = .28 + .72 * smoothstep(.35, .78, noise(world * 5.6 + vec2(uTime * .52, -uTime * .33)));
+  float smear = exp(-pow((screen.x + wave.y * .035) / smearWidth, 2.)) * exp(-depth * 5.8) * smearBreak;
+  c += rainbow(hue) * max(0., smear) * (.46 + .92 * uOcean);
   return c;
 }
 
-// Twenty drifting Gaussian fields make a soft, lumpy cloud. There is no disc
-// mask or rim: only accumulated light that falls away within a blob-width.
+// Independently drifting Gaussian fields make a luminous living cloud. There
+// is no disc mask or rim: every edge is the short fade of an individual blob.
 vec3 livingOrb(vec2 screen, float horizon) {
   float aspect = uResolution.x / uResolution.y;
   float landscape = smoothstep(.58, 1.5, aspect);
@@ -209,33 +235,44 @@ vec3 livingOrb(vec2 screen, float horizon) {
   float breath = 1. + .032 * sin(uTime * .52);
   // Radius, not emission, follows the analyser. A full voice makes about three
   // times the quiet area while preserving the same luminous character.
-  float radius = quietRadius * (.92 + .74 * uAudio) * breath;
-  vec2 center = vec2(0., horizon + radius * .5);
+  float radius = quietRadius * (.92 + .64 * uVoice) * breath;
+  // The visible lower quarter hangs over the sea, rather than floating above
+  // it. A cloud has no hard contour, so its centre sits a little higher.
+  vec2 center = vec2(0., horizon + radius * .79);
   vec2 local = (screen - center) / radius;
   float density = 0.;
-  if (max(abs(local.x), abs(local.y)) < 1.55) {
-    for (int i = 0; i < 21; i++) {
-      if (float(i) > 14. + uQuality * 3.) break;
+  if (max(abs(local.x), abs(local.y)) < 1.62) {
+    for (int i = 0; i < 29; i++) {
+      if (float(i) > 18. + uQuality * 4.) break;
       float fi = float(i);
       float seed = hash(vec2(fi * 7.13, fi * 19.71));
-      float angle = 6.28318 * hash(vec2(fi + 2.3, 11.4));
-      float ring = sqrt(hash(vec2(fi + 5.7, 3.1))) * (.72 + uAudio * .32);
+      // A random cloud base plus distinct lissajous motion keeps the silhouette
+      // from falling into a repeating four-leaf/clover arrangement.
+      vec2 base = vec2(hash(vec2(fi + 2.3, 11.4)), hash(vec2(fi + 8.6, 4.2))) * 1.34 - .67;
       vec2 drift = vec2(
-        sin(uTime * (.62 + seed * .63) + fi * 4.17),
-        cos(uTime * (.71 + seed * .51) + fi * 2.63)
-      ) * (.035 + seed * .052);
-      vec2 blob = vec2(cos(angle), sin(angle)) * ring + drift;
-      float blobRadius = .22 + .10 * hash(vec2(fi + 9.6, 1.8)) + uAudio * .035;
+        sin(uTime * (.37 + seed * .97) + fi * 4.17),
+        cos(uTime * (.51 + hash(vec2(fi, 5.1)) * .86) + fi * 2.63)
+      ) * (.045 + seed * .105 + uVoice * .075);
+      vec2 blob = base + drift;
+      float blobRadius = .18 + .17 * hash(vec2(fi + 9.6, 1.8)) + uVoice * .045;
       vec2 delta = local - blob;
-      density += exp(-dot(delta, delta) / (blobRadius * blobRadius));
+      vec2 ellipse = vec2(1. + .48 * seed, 1.42 - .38 * seed);
+      density += exp(-dot(delta * ellipse, delta * ellipse) / (blobRadius * blobRadius));
     }
   }
-  float presence = 1. - exp(-density * 1.08);
-  float hue = fract(uTime / 6. + (1. - presence) * .052);
-  vec3 saturated = rainbow(hue);
-  float core = smoothstep(5.7, 8.2, density);
-  vec3 c = saturated * (.10 + 1.18 * sqrt(max(0., density))) * presence;
-  c = mix(c, vec3(2.05), core * presence);
+  float presence = 1. - exp(-density * 1.15);
+  float edge = smoothstep(.20, 1.13, length(local));
+  // The cyan/magenta/etc. edge runs ahead of the denser interior. The spread
+  // is deliberately neighbouring hues, not a one-colour clover fill.
+  float hue = fract(uTime * (.1667 + (uVoiceTone - .5) * .012));
+  vec3 saturated = rainbow(hue + edge * (.16 + uVoiceTone * .09));
+  float core = smoothstep(4.15, 6.45, density);
+  float outerWisp = smoothstep(.045, .27, density) * (1. - smoothstep(.28, .82, density));
+  vec3 c = saturated * (.05 + .98 * density) * presence;
+  c += saturated * outerWisp * (.08 + uMusic * .29);
+  // Stack-ups burn creamy-white only in the centre. The coloured surrounding
+  // densities remain saturated and fade quickly back into the black sky.
+  c = mix(c, vec3(3.2, 3.0, 2.72), core * presence);
   return c;
 }
 

@@ -2,14 +2,17 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Quality, SceneKind, SceneStats, createSceneRenderer } from './renderer';
-import { createOrbAudio, type OrbAudio } from './orbAudio';
+import { createOrbAudio, type OrbAudio, type OrbAudioLevels } from './orbAudio';
 import { createWaterfallAudio, type WaterfallAudio } from './waterfallAudio';
 import styles from './scenes.module.css';
 
 declare global {
   interface Window {
     /** Read-only diagnostics and capture output; only installed with ?capture=1. */
-    __livingScene?: { stats: () => SceneStats; audio: () => MediaStream | undefined; audioState: () => string; level: () => number };
+    __livingScene?: {
+      stats: () => SceneStats; audio: () => MediaStream | undefined; audioState: () => string;
+      level: () => number; levels: () => OrbAudioLevels;
+    };
   }
 }
 
@@ -44,6 +47,10 @@ export default function LivingScene({ kind }: { kind: SceneKind }) {
             level: () => {
               const active = sound.current;
               return active && 'level' in active ? active.level() : 0;
+            },
+            levels: () => {
+              const active = sound.current;
+              return active && 'levels' in active ? active.levels() : { voice: 0, ocean: 0, music: 0, voiceTone: .38 };
             } };
         }
       } catch { setFailed(true); }
@@ -56,12 +63,13 @@ export default function LivingScene({ kind }: { kind: SceneKind }) {
     const sampleAudio = () => {
       audioFrame = 0;
       const active = sound.current;
-      engine.current?.setAudioLevel(active && 'level' in active ? active.level() : 0);
-      if (!motion.matches) audioFrame = requestAnimationFrame(sampleAudio);
+      engine.current?.setAudioLevels(active && 'levels' in active
+        ? active.levels() : { voice: 0, ocean: 0, music: 0, voiceTone: .38 });
+      audioFrame = requestAnimationFrame(sampleAudio);
     };
     const motionChange = () => {
       setReducedMotion(motion.matches);
-      if (!motion.matches && !audioFrame) audioFrame = requestAnimationFrame(sampleAudio);
+      if (!audioFrame) audioFrame = requestAnimationFrame(sampleAudio);
     };
     motionChange(); motion.addEventListener('change', motionChange);
     return () => {
@@ -98,12 +106,13 @@ export default function LivingScene({ kind }: { kind: SceneKind }) {
       <canvas ref={canvas} className={styles.canvas} style={failed ? { opacity: 0 } : undefined} aria-hidden="true" />
       <span className={styles.srOnly}>{failed ? 'The animated scene is unavailable; a still ambient glow is shown.' :
         kind === 'rainbow-falls' ? 'Tap or press Enter to start the waterfall sound. A mute button appears after sound starts.' :
-          'A slowly breathing rainbow orb on a slate-blue ocean under stars.'}</span>
+          'A living rainbow orb, a breathing ocean, and twinkling stars.'}</span>
       {kind === 'orb-ocean' ? <div className={styles.orbAudio}>
         {!started ? <button type="button" className={styles.begin} onClick={startSound} disabled={reducedMotion}>
           {reducedMotion ? 'Motion reduced' : 'Begin'}
         </button> : null}
-        <p>Reading: James Allen, <i>As a Man Thinketh</i>, read by Mark Cawley, LibriVox (public domain)</p>
+        <p>Voice: James Allen, <i>As a Man Thinketh</i>, Mark Cawley / LibriVox (public domain)</p>
+        <p>Ocean: kingsrow / Freesound #362300 (CC0) · Music: Kevin MacLeod, CC BY 4.0</p>
       </div> : null}
       {kind === 'rainbow-falls' && started ? (
         <button type="button" className={styles.mute} onPointerDown={event => event.stopPropagation()}
