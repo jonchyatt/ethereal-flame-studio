@@ -12,7 +12,7 @@ export type FluidSettings = {
   mode: GlowMode
 }
 type GL = WebGLRenderingContext | WebGL2RenderingContext
-type Target = { texture: WebGLTexture; framebuffer: WebGLFramebuffer; width: number; height: number }
+export type Target = { texture: WebGLTexture; framebuffer: WebGLFramebuffer; width: number; height: number }
 type Pair = { read: Target; write: Target }
 type Program = { program: WebGLProgram; uniforms: Record<string, WebGLUniformLocation> }
 type Emitter = { id: number; birth: number; duration: number; x: number; y: number; radius: number; lean: number }
@@ -449,7 +449,7 @@ export class FluidSimulation {
     for (let i = 0; i < maxSteps && this.time + STEP <= targetTime + 0.00001; i++) this.step(settings)
   }
 
-  draw(settings: FluidSettings, answerAge: number) {
+  draw(settings: FluidSettings, answerAge: number, output: Target | null = null) {
     let dye = this.dye.read
     if (settings.style === 'blend' && this.overlay) {
       const other = this.overlay.dye.read
@@ -475,7 +475,7 @@ export class FluidSimulation {
       u_source_texel: [1 / this.bloom.read.width, 1 / this.bloom.read.height], u_direction: [0, 0.035],
     })
     this.swap(this.bloom)
-    this.pass('display', null, { u_source: dye, u_bloom: this.bloom.read }, {
+    this.pass('display', output, { u_source: dye, u_bloom: this.bloom.read }, {
       u_source_texel: [1 / dye.width, 1 / dye.height],
       u_bloom_texel: [1 / this.bloom.read.width, 1 / this.bloom.read.height],
       u_intensity: Math.max(0, Math.min(1.5, settings.intensity)), u_grain: Math.max(0, Math.min(1, settings.grain)),

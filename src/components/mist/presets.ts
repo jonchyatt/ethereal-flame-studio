@@ -1,3 +1,5 @@
+import { LAYERED_MIST } from './layeredPreset'
+
 export type GlowStyle = 'mist' | 'vortex' | 'blend'
 
 export type GlowPosition = 'top' | 'bottom' | 'full';
@@ -6,6 +8,10 @@ export type GlowMode = 'idle' | 'searching' | 'answering';
 // Indigo, violet, teal and gold: brand/prompts/vortex-ribbon.md.
 // The gold is a dim adaptation of #e6bd77 in scripts/generate-brand-marks.mjs.
 export const MIST_PRESETS = {
+  layered: {
+    label: 'Layered',
+    ...LAYERED_MIST,
+  },
   whatAmIAppreciatingNow: {
     label: 'What Am I Appreciating Now',
     palette: ['#272b5d', '#154c49', '#6b5837', '#4c3264', '#272b5d'],

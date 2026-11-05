@@ -4,9 +4,12 @@ import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { GlowMode, GlowPosition, GlowStyle } from './presets'
 import { FluidSimulation, type FluidSettings } from './fluidSimulation'
+import { GEMINI_TOP_LAYER } from './layeredPreset'
+import { LayeredSimulation, type LayerSample } from './layeredSimulation'
 import './ThinkingGlow.css'
 
 export type ThinkingGlowProps = Readonly<{
+  layered?: boolean
   palette?: readonly string[]
   speed?: number
   intensity?: number
@@ -26,12 +29,15 @@ type GlowTestWindow = Window & {
   __GLOW_TEST_SOURCE__?: number
   __GLOW_TEST_TRACE__?: boolean
   __GLOW_TEST_SOURCES__?: ReturnType<FluidSimulation['sourceSnapshot']>
+  __GLOW_TEST_SAMPLE_LAYERS__?: boolean
+  __GLOW_TEST_LAYERS__?: LayerSample[]
 }
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
 }
 
-export function ThinkingGlow({
+function GlowLayer({
+  layered = false,
   palette = DEFAULT_PALETTE, speed = 0.25, intensity = 0.8, height = 0.74,
   grain = 0.2, position = 'bottom', mode = 'idle', className = '', style = 'mist', containerStyle,
 }: ThinkingGlowProps) {
@@ -46,7 +52,7 @@ export function ThinkingGlow({
   useEffect(() => {
     const root = rootRef.current, canvas = canvasRef.current
     if (!root || !canvas) return
-    let fluid: FluidSimulation | null = null
+    let fluid: FluidSimulation | LayeredSimulation | null = null
     let frameId: number | null = null
     let lastTimestamp = 0
     let elapsed = 0
@@ -84,6 +90,10 @@ export function ThinkingGlow({
       previousMode = settings.mode
       const overrideAge = test.__GLOW_TEST_ANSWER_AGE__
       fluid.draw(settings, settings.mode === 'answering' ? (Number.isFinite(overrideAge) ? Math.max(0, overrideAge as number) : answerAge) : -1)
+      if (test.__GLOW_TEST_SAMPLE_LAYERS__ && fluid instanceof LayeredSimulation) {
+        test.__GLOW_TEST_LAYERS__ = fluid.sampleLayers()
+        test.__GLOW_TEST_SAMPLE_LAYERS__ = false
+      }
       if (seeking) {
         if (test.__GLOW_TEST_TRACE__) fluid.drawTrace()
         test.__GLOW_TEST_SOURCES__ = fluid.sourceSnapshot()
@@ -122,7 +132,7 @@ export function ThinkingGlow({
     }
     const init = () => {
       try {
-        fluid = new FluidSimulation(canvas)
+        fluid = layered ? new LayeredSimulation(canvas) : new FluidSimulation(canvas)
         // Force allocation even if the restored canvas has its previous size.
         const rect = root.getBoundingClientRect()
         const scale = Math.min(window.devicePixelRatio || 1, 1.5) * 0.5
@@ -171,7 +181,7 @@ export function ThinkingGlow({
       canvas.removeEventListener('webglcontextrestored', init)
       fluid?.dispose()
     }
-  }, [])
+  }, [layered])
 
   const fallbackPalette = palette.slice(0, 5)
   const fallbackStyle = {
@@ -186,6 +196,7 @@ export function ThinkingGlow({
       className={`thinking-glow-root ${className}`.trim()}
       style={containerStyle}
       data-style={style}
+      data-layered={layered ? 'true' : undefined}
       data-active={isActive ? 'true' : 'false'}
       data-reduced-motion={reducedMotion ? 'true' : 'false'}
       data-webgl={webGlReady ? 'true' : 'false'}
@@ -215,9 +226,27 @@ export function ThinkingGlow({
           />
         ))}
       </div>
+      {layered && (
+        <div className="thinking-glow-fallback thinking-glow-top-fallback" style={{
+          '--thinking-glow-intensity': GEMINI_TOP_LAYER.intensity,
+          '--thinking-glow-height': `${GEMINI_TOP_LAYER.height * 100}%`,
+          '--thinking-glow-duration': `${42 / GEMINI_TOP_LAYER.speed}s`,
+        } as CSSProperties}>
+          {GEMINI_TOP_LAYER.palette.map((colour, index) => (
+            <span key={`${colour}-${index}`} className="thinking-glow-field" style={{ '--thinking-glow-color': colour, '--thinking-glow-index': index } as CSSProperties} />
+          ))}
+          {style === 'blend' && GEMINI_TOP_LAYER.palette.map((colour, index) => (
+            <span key={`orbit-${colour}-${index}`} className="thinking-glow-field thinking-glow-orbit-field" style={{ '--thinking-glow-color': colour, '--thinking-glow-index': index } as CSSProperties} />
+          ))}
+        </div>
+      )}
       <canvas ref={canvasRef} className="thinking-glow-canvas" />
     </div>
   )
+}
+
+export function ThinkingGlow(props: ThinkingGlowProps) {
+  return <GlowLayer {...props} />
 }
 
 export default ThinkingGlow

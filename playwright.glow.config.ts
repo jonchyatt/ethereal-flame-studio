@@ -3,7 +3,7 @@ import { defineConfig } from 'playwright/test'
 const port = process.env.G_PORT ?? '3108'
 export default defineConfig({
   testDir: './e2e',
-  testMatch: /glow-vortex\.spec\.ts/,
+  testMatch: /glow-(vortex|layered)\.spec\.ts/,
   timeout: 120_000,
   workers: 1,
   outputDir: process.env.GLOW_ARTIFACT_DIR ?? './e2e-results/glow',
