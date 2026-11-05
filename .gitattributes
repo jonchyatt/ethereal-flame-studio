@@ -1,0 +1,4 @@
+# Generated text is compared byte-for-byte with its source generators.
+docs/episode-links/KIT.md text eol=lf
+docs/merch/wix-products.csv text eol=lf
+docs/merch/print/* text eol=lf
