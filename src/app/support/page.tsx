@@ -1,42 +1,39 @@
-import { cookies } from 'next/headers';
-import { LegalLinks, NAV_LINK_STYLE, OPERATOR } from '@/app/legal/LegalLinks';
-import { loadRecord, summarizeAccess } from '@/lib/entitlements/model';
-import { CUSTOMER_COOKIE, verifyCustomerCookie } from '@/lib/entitlements/session';
+import { OPERATOR } from '@/app/legal/LegalLinks';
 
 export const metadata = {
   title: 'Support · What Am I Appreciating Now',
-  description: 'How to get help with access, billing, refunds and your data.',
+  description: 'A clear, low-friction way to get help from What Am I Appreciating Now.',
   alternates: { canonical: 'https://www.whatamiappreciatingnow.com/support' },
 };
 
 const link = { color: '#9cf' };
 
-async function browserHasPurchase() {
-  try {
-    const customerId = verifyCustomerCookie((await cookies()).get(CUSTOMER_COOKIE)?.value);
-    return !!customerId && summarizeAccess(await loadRecord(customerId)).length > 0;
-  } catch {
-    return false;
-  }
-}
-
-export default async function SupportPage() {
+export default function SupportPage() {
   const mail = <a href={`mailto:${OPERATOR.contact}`} style={link}>{OPERATOR.contact}</a>;
-  const hasPurchase = await browserHasPurchase();
   return (
     <main className="narrow" style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif', lineHeight: 1.6 }}>
-      
       <p><a href="/" style={{ color: 'inherit' }}>← What Am I Appreciating Now</a></p>
       <h1>Support</h1>
-      <p>Email {mail} for anything below. A person reads every message.</p>
-      <h2 style={{ fontSize: 20 }}>Lost access after clearing cookies or changing device</h2>
-      <p>There is no account; access lives in this browser. Email {mail} with your Stripe receipt and we will restore it by hand.</p>
-      {hasPurchase && <>
-        <h2 style={{ fontSize: 20 }}>Cancel a subscription or update your card</h2>
-        <p>Open <a href="/programs/manage" style={link}>Manage my access</a> in the browser you bought with. You keep access to the end of the month you paid for.</p>
-      </>}
+      <p>A person reads every message. Use the short note below or email {mail}.</p>
+      <form action={`mailto:${OPERATOR.contact}`} method="get" style={{ margin: '24px 0', padding: 20, border: '1px solid #4a5f63', borderRadius: 12, background: '#10151d' }}>
+        <h2 style={{ fontSize: 20, marginTop: 0 }}>Send a support note</h2>
+        <p style={{ fontSize: 14, opacity: 0.8 }}>This opens your email app; nothing is stored by this form. Please do not include card details, passwords, health details, or private information.</p>
+        <label htmlFor="support-topic" style={{ display: 'block', marginTop: 16 }}>What can we help with?</label>
+        <select id="support-topic" name="subject" defaultValue="Support request" style={{ display: 'block', boxSizing: 'border-box', width: '100%', minHeight: 48, marginTop: 6 }}>
+          <option>Support request</option>
+          <option>Listening or downloads</option>
+          <option>Legacy access</option>
+          <option>Privacy or patron listing</option>
+          <option>Something else</option>
+        </select>
+        <label htmlFor="support-note" style={{ display: 'block', marginTop: 16 }}>A short description</label>
+        <textarea id="support-note" name="body" rows={5} style={{ display: 'block', boxSizing: 'border-box', width: '100%', marginTop: 6 }} placeholder="What happened, what page you were on, and what you expected." />
+        <button type="submit" style={{ minHeight: 48, marginTop: 16 }}>Open an email to Support</button>
+      </form>
+      <h2 style={{ fontSize: 20 }}>Listening or legacy access</h2>
+      <p>There is no account to sign into. If you need help with an earlier program or a playback issue, tell us the page and device you used. We will reply with the next step.</p>
       <h2 style={{ fontSize: 20 }}>Refunds</h2>
-      <p>Charged in error, or a program did not work as described? Email {mail} within 14 days of the charge for a full refund. Details: <a href="/legal/refunds" style={link}>Refunds and cancellation</a>.</p>
+      <p>If you are asking about an earlier charge, email {mail}. The existing policy is at <a href="/legal/refunds" style={link}>Refunds and cancellation</a>.</p>
       <h2 style={{ fontSize: 20 }}>Your data</h2>
       <p>To see, correct or delete what we hold, email {mail}. Patron listings can also be removed at <a href="/patrons/remove" style={link}>/patrons/remove</a> with your code. Details: <a href="/legal/privacy" style={link}>Privacy</a>.</p>
     </main>
