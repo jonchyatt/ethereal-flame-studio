@@ -26,6 +26,11 @@ function random(seed: number) {
   };
 }
 
+function smoothStep(from: number, to: number, value: number) {
+  const x = Math.min(1, Math.max(0, (value - from) / (to - from)));
+  return x * x * (3 - 2 * x);
+}
+
 /** One canvas-generated radial falloff shared by all the instanced sprites. */
 function softSprite() {
   const canvas = document.createElement('canvas');
@@ -93,9 +98,13 @@ function makeOrb() {
     update(t: number, audio: SceneAudioLevels, reduced: boolean, count: number) {
       geometry.instanceCount = count;
       // A quiet 10° cloud, an 18° idle breath, and >30° full-scale peaks.
-      // Both spacing and sprite diameter scale: overlap/emission stays constant.
+      // Speech opens the cluster positions.  Sprite emission and alpha stay
+      // fixed, while their growth is deliberately damped at the peak: this
+      // preserves visible neighbouring hues instead of turning the expanded
+      // cloud into a single high-overlap additive wash.
       const active = audio.voice > .001 || audio.ocean > .001 || audio.music > .001;
-      const radius = reduced || !active ? 15.0 + .45*Math.sin(t*.7) : 7.0 + 19.0*Math.sqrt(audio.voice);
+      const radius = reduced || !active ? 15.0 + .45*Math.sin(t*.7) : 7.0 + 18.0*Math.sqrt(audio.voice);
+      const spriteRadius = Math.min(17, radius*.70+2.0);
       material.uniforms.radius.value=radius;material.uniforms.time.value=t;
       const hue = (t / 6) % 1;
       for (let i = 0; i < count; i++) {
@@ -108,14 +117,27 @@ function makeOrb() {
         const skirt=Math.max(0,15-radius)*Math.max(0,-y)*1.5;
         centres.setXYZ(i, x*radius, 10+y*radius-skirt, -68+z*10);
         const edge = Math.min(1, Math.hypot(x,y,z));
-        // Adjacent spectral colours, with a small speech-centroid edge lead.
-        colour.setHSL((hue + edge*(.22+.045*audio.voiceTone) + .018*Math.sin(p.phase))%1, 1, .5);
+        // The outer cloud permanently leads the core by roughly 55°, with a
+        // small particle-local variation.  It is intentionally not collapsed
+        // by loud speech, so violet/magenta/orange (or their moving spectral
+        // neighbours) remain distinct at every voice level.
+        const edgeLead=.155*smoothStep(.12,.95,edge);
+        // Cluster-coherent neighbours span a little over 100° across the
+        // whole cloud, while the mean outer lead remains ~56°. That keeps a
+        // third adjacent hue visible when the spectral sweep crosses a named
+        // colour boundary instead of reducing loud peaks to a binary split.
+        const clusterHue=(.045+.020*audio.voice)*Math.sin(c.phase*1.71);
+        colour.setHSL((hue + edgeLead + clusterHue + .012*Math.sin(p.phase))%1, 1, .5);
         const energy = (360/count) * (.10 + .02*Math.sin(p.phase));
         // A very small spectral floor burns white only where many sprites stack.
         const spectralFloor=1.0*Math.pow(1-edge,8);
         colours.setXYZ(i, (colour.r+spectralFloor)*energy, (colour.g+spectralFloor)*energy, (colour.b+spectralFloor)*energy);
         const shimmer = edge > .7 ? 1 + .035*audio.music*Math.sin(t*2.7+p.phase) : 1;
-        sizes.setX(i, p.diameter*radius*shimmer);
+        // Only the clustered interior regains the last part of the scale at
+        // loud speech, so white comes from actual stacked sprites in the core
+        // while the outer spectrum remains low-overlap and distinct.
+        const coreRadius=spriteRadius+(radius-spriteRadius)*Math.pow(1-edge,2.4);
+        sizes.setX(i, p.diameter*coreRadius*shimmer);
       }
       centres.needsUpdate = colours.needsUpdate = sizes.needsUpdate = true;
     },
@@ -211,14 +233,25 @@ function makeWater(tier: typeof tiers[number], blueGold: boolean, onFailure: () 
       vec3 base=mix(waterColor,horizonTint,horizon);
       float crest=.45+.95*max(0.,dot(surfaceNormal,normalize(vec3(-.5,.5,-.65))));
       float trough=.60+.40*smoothstep(-swell,swell,heightAt(worldPosition.xz));
-      float foreground=.13+.87*(1.-smoothstep(12.,85.,distance));
-      // The resolved near facets have a broader sun lobe than distant chop.
-      // A second normal-map octave breaks it into glints without drawing a
-      // screen-space stripe or borrowing the orb's coloured mirror image.
-      vec4 micro=getNoise(worldPosition.xz*size*3.7);
-      float facets=pow(smoothstep(.08,.30,micro.x-micro.y*.6),2.);
+      // A perspective corridor from the orb's foot to the camera. Its world
+      // width grows slower than distance, which makes it fan outward on the
+      // screen toward the foreground while keeping a narrow horizon origin.
+      float roadWidth=mix(1.0,18.0,smoothstep(3.,220.,distance));
+      float roadAxis=1.-smoothstep(roadWidth,roadWidth*1.72,abs(worldPosition.x));
+      float roadReach=1.-smoothstep(420.,1250.,distance);
+      float foreground=.38+.62*(1.-smoothstep(10.,96.,distance));
+      // Sparse, world-anchored microfacets keep the road readable through the
+      // moving normal map. Their individual glints do not form a stripe and
+      // never read the voice level or orb reflection.
+      vec2 facetCell=floor(worldPosition.xz*vec2(64.,32.));
+      float facets=smoothstep(.82,.94,fract(sin(dot(facetCell,vec2(127.1,311.7)))*43758.5453));
       float nearRoad=1.-smoothstep(7.,28.,distance);
-      vec3 glitter=specularLight*foreground*(1.+nearRoad*1.4)*facets*3.0;
+      float roadModulation=glintStrength;
+      float whiteRoad=roadAxis*roadReach*facets*roadModulation;
+      // Keep the foreground sparkles emphatic for the widening road, then
+      // ease their upper reach so the coloured mirror flanks remain legible
+      // beside the road near the orb's foot.
+      vec3 glitter=specularLight*foreground*(.30+nearRoad*.40)+sunColor*whiteRoad*mix(2.0,4.2,nearRoad);
       // White sun glints replace coloured mirror light on the lit microfacets;
       // adding both without this energy split turns the white road pink.
       float sunFacet=smoothstep(.12,.65,glitter.r);
@@ -241,7 +274,9 @@ function makeWater(tier: typeof tiers[number], blueGold: boolean, onFailure: () 
       material.uniforms.time.value=t;
       material.uniforms.swell.value=reduced ? .22 : .30+ocean*.55;
       material.uniforms.distortionScale.value=1.8+ocean*2.5;
-      material.uniforms.glintStrength.value=1.0+ocean*50.;
+      // The ocean bed can vary the road only ±30% around its persistent
+      // baseline. Voice is intentionally absent from this mapping.
+      material.uniforms.glintStrength.value=.7+Math.min(1,ocean*3.)*.6;
     },
     dispose(){ reflectionTarget?.dispose(); normals.dispose(); geometry.dispose(); material.dispose(); },
   };

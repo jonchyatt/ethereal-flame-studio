@@ -37,6 +37,7 @@ async function capture(viewport, label) {
     headless: false,
     args: [
       '--use-gl=angle', '--use-angle=d3d11', '--enable-gpu', '--ignore-gpu-blocklist',
+      '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding',
       '--window-size=1920,1080',
     ],
   });
