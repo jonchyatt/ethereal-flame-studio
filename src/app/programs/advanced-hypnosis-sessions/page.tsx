@@ -2,8 +2,8 @@ import { HYPNOSIS_PROGRAM_ID, loadCatalog, onSale } from '@/lib/hypnosis/catalog
 import { ProgramView } from '../[id]/ProgramView';
 
 export const dynamic = 'force-dynamic';
-// Free sample episode in Jonathan's own voice (render notes: docs/receipts/free-sample-render-2026-10-19.md).
-const SAMPLE = '/samples/gentle-reset-free-sample';
+// Free sample: audio only, the same file as /listen (the orb video was pulled 2026-11-04).
+
 export const metadata = {
   title: 'Advanced hypnosis sessions · What Am I Appreciating Now',
   description: 'The advanced hypnosis sessions from What Am I Appreciating Now, each with its rights and provenance.',
@@ -20,19 +20,7 @@ export default async function HypnosisSessionsPage() {
       <h2>Free sample</h2>
       <p>Hear one session in full before anything goes on sale.</p>
       <figure style={{ margin: '16px 0 32px' }}>
-        <video
-          controls
-          preload="metadata"
-          playsInline
-          width={1280}
-          height={720}
-          poster={`${SAMPLE}.jpg`}
-          style={{ width: '100%', height: 'auto', borderRadius: 12, background: '#000' }}
-          aria-label="A Gentle Reset: Making Peace with Food, a guided practice"
-        >
-          <source src={`${SAMPLE}.mp4`} type="video/mp4" />
-          <track kind="captions" src={`${SAMPLE}.vtt`} srcLang="en" label="English" default />
-        </video>
+        <audio controls preload="metadata" src="/samples/gentle-reset-listen.m4a" style={{ width: '100%' }} aria-label="A Gentle Reset: Making Peace with Food, a guided practice" />
         <figcaption style={{ marginTop: 8 }}>
           <strong>A Gentle Reset: Making Peace with Food | Guided Practice</strong>
           <span style={{ display: 'block', fontSize: 15, opacity: 0.85, marginTop: 6 }}>
@@ -42,7 +30,7 @@ export default async function HypnosisSessionsPage() {
           </span>
           <span style={{ display: 'block', fontSize: 14, opacity: 0.7, marginTop: 6 }}>
             This is not medical advice, therapy, or a promise of any outcome. Words: Reset Biology, &ldquo;Reset Your
-            Relationship with Food&rdquo; (owned). Voice: Jonathan Hyatt, generated from his own recordings with an AI voice clone. Visuals: the studio.
+            Relationship with Food&rdquo; (owned). Voice: Jonathan Hyatt, generated from his own recordings with an AI voice clone.
           </span>
         </figcaption>
       </figure>
