@@ -635,25 +635,12 @@
     serif;
   color: var(--lime);
 }
-.food-sample figcaption {
-  margin-bottom: 20px;
-}
-.food-sample .meta {
-  margin: 16px 0 0;
-}
 .program-card .card-content {
   padding: 28px;
 }
 .program-card h2 {
   font-size: 30px !important;
   line-height: 36px;
-}
-.program-card .food-sample h3 {
-  font-size: 22px !important;
-  line-height: 28px;
-}
-.program-card .food-sample .audio-art img {
-  max-height: 170px;
 }
 .program-card .program-art {
   width: 100%;
@@ -1170,12 +1157,6 @@
     font-size: 28px !important;
     line-height: 34px;
   }
-  .program-card .food-sample .audio-art img {
-    max-height: 140px;
-  }
-  .program-card .food-sample .meta {
-    font-size: 14px !important;
-  }
   .program-card .program-art {
     height: 180px;
   }
@@ -1293,12 +1274,6 @@
   .handoff-hero .custom-copy .actions {
     grid-template-columns: 1fr;
   }
-  .handoff-food .custom-copy .actions {
-    order: 3;
-  }
-  .handoff-food .custom-example {
-    order: 4;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1360,13 +1335,4 @@
   .public-site .store-intro h1 {
     font-size: 36px !important;
   }
-}
-.food-sample .media-player {
-  display: flex;
-  flex-direction: column;
-}
-.food-sample .player-actions {
-  order: -1;
-  margin: 0 0 16px;
-  justify-content: flex-start;
 }

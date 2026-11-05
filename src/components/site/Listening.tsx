@@ -103,13 +103,6 @@ export function Listening({ initialId = '19' }: { initialId?: string }) {
       </section>
       <Reading />
       <section className="section quiet-panel">
-        <h2>Looking for the food-related practice?</h2>
-        <p>A Gentle Reset is a separate, ten-minute hypnosis sample.</p>
-        <a className="text-link" href="/programs/advanced-hypnosis-sessions">
-          Explore the food-relationship sample →
-        </a>
-      </section>
-      <section className="section quiet-panel">
         <h2>Free tools from Reset Biology</h2>
         <p>
           Reset Biology is a separate site with free daily tools. What Am I

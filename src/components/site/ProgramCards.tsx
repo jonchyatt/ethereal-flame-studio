@@ -1,18 +1,17 @@
-import { FoodSample } from './MediaPlayer';
 export function ProgramCards() {
   return (
     <div className="two-grid">
       <article className="card program-card">
         <div className="card-content">
-          <p className="eyebrow">Food and personal reflection</p>
+          <p className="eyebrow">In preparation</p>
           <h2>Advanced hypnosis sessions</h2>
+          <p>Sessions are being recorded.</p>
           <a
             className="text-link program-explore"
             href="/programs/advanced-hypnosis-sessions"
           >
             Explore the program →
           </a>
-          <FoodSample compact />
         </div>
       </article>
       <article className="card program-card">

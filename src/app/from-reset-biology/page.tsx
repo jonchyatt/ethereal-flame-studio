@@ -1,4 +1,4 @@
-import { ClipPlayer, FoodSample } from '@/components/site/MediaPlayer';
+import { ClipPlayer } from '@/components/site/MediaPlayer';
 import { clips } from '@/lib/site/content';
 import { pageMetadata } from '@/lib/site/metadata';
 export const metadata = {
@@ -9,16 +9,10 @@ export const metadata = {
   ),
   robots: { index: false, follow: true },
 };
-export default async function Handoff({
-  searchParams,
-}: {
-  searchParams: Promise<{ topic?: string }>;
-}) {
-  const { topic } = await searchParams;
-  const food = topic === 'food';
+export default function Handoff() {
   return (
     <main>
-      <section className={`custom-hero handoff-hero ${food ? 'handoff-food' : ''}`}>
+      <section className="custom-hero handoff-hero">
         <div className="custom-copy">
           <p className="eyebrow">A little space to notice</p>
           <h1>Welcome from Reset Biology</h1>
@@ -33,16 +27,10 @@ export default async function Handoff({
           </div>
         </div>
         <div className="custom-example">
-          {food ? (
-            <FoodSample />
-          ) : (
-            <>
-              <ClipPlayer clip={clips[0]} />
-              <p className="meta">
-                Put one hand on your chest · 0:41 · Original appreciation
-              </p>
-            </>
-          )}
+          <ClipPlayer clip={clips[0]} />
+          <p className="meta">
+            Put one hand on your chest · 0:41 · Original appreciation
+          </p>
         </div>
       </section>
       <section className="section">
@@ -65,7 +53,7 @@ export default async function Handoff({
           <article className="quiet-panel">
             <h3>Explore an idea</h3>
             <p>
-              Hear the available program sample or describe a custom session.
+              Explore guided programs or describe a custom session.
             </p>
             <a className="text-link" href="/programs">
               Guided programs →
