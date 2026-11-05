@@ -8,6 +8,7 @@ const LEGACY_REDIRECTS: Record<string, string> = {
   '/terms': '/legal/terms',
   '/refund-policy': '/legal/refunds',
   '/contact': '/support',
+  '/refunds': '/legal/refunds',
 };
 
 /**
@@ -133,11 +134,12 @@ export function middleware(request: NextRequest) {
     // Allow static assets and other paths
   }
 
-  // Front door at "/" and store page at "/store" (src/lib/waia/front-door.ts).
+  // Keep the legacy lookup contract for old integrations, but render the canonical
+  // React routes. Direct HTML aliases redirect in next.config.ts.
   const frontDoor = frontDoorRewrite(hostname, pathname);
-  if (frontDoor) {
-    const res = NextResponse.rewrite(new URL(frontDoor.page, request.url));
-    if (frontDoor.noindex) res.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  if (frontDoor?.noindex) {
+    const res = NextResponse.rewrite(new URL('/', request.url));
+    res.headers.set('X-Robots-Tag', 'noindex, nofollow');
     return res;
   }
 

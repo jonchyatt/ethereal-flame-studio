@@ -1,27 +1,81 @@
-import { LANDING } from '@/lib/store/resetBiologyKit';
-
+import { ClipPlayer, FoodSample } from '@/components/site/MediaPlayer';
+import { clips } from '@/lib/site/content';
+import { pageMetadata } from '@/lib/site/metadata';
 export const metadata = {
-  title: LANDING.title,
-  description: LANDING.description,
-  // Stays out of search until Jonathan places the link on resetbiology.com.
+  ...pageMetadata(
+    'Welcome from Reset Biology',
+    '/from-reset-biology',
+    'The free Reset Biology tools stay free. Begin with a short appreciation moment.',
+  ),
   robots: { index: false, follow: true },
 };
-
-export default function FromResetBiologyPage() {
+export default async function Handoff({
+  searchParams,
+}: {
+  searchParams: Promise<{ topic?: string }>;
+}) {
+  const { topic } = await searchParams;
+  const food = topic === 'food';
   return (
-    <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif', lineHeight: 1.6 }}>
-      <h1>{LANDING.heading}</h1>
-      <p>{LANDING.intro}</p>
-      {LANDING.paragraphs.map((t) => <p key={t}>{t}</p>)}
-      <nav aria-label="Next steps">
-        <ul style={{ paddingLeft: 20 }}>
-          {LANDING.links.map((l) => (
-            <li key={l.href} style={{ margin: '8px 0' }}>
-              <a href={l.href} style={{ color: '#c9b8ff' }}>{l.label}</a>
-            </li>
-          ))}
-        </ul>
-      </nav>
+    <main>
+      <section className={`custom-hero handoff-hero ${food ? 'handoff-food' : ''}`}>
+        <div className="custom-copy">
+          <p className="eyebrow">A little space to notice</p>
+          <h1>Welcome from Reset Biology</h1>
+          <p className="lead">
+            The free Reset Biology tools stay free. Take a moment here, then
+            return whenever you’re ready.
+          </p>
+          <div className="actions">
+            <a className="button primary" href="https://resetbiology.com/">
+              Back to Reset Biology ↗
+            </a>
+          </div>
+        </div>
+        <div className="custom-example">
+          {food ? (
+            <FoodSample />
+          ) : (
+            <>
+              <ClipPlayer clip={clips[0]} />
+              <p className="meta">
+                Put one hand on your chest · 0:41 · Original appreciation
+              </p>
+            </>
+          )}
+        </div>
+      </section>
+      <section className="section">
+        <h2>Where would you like to go next?</h2>
+        <div className="three-grid">
+          <article className="quiet-panel">
+            <h3>Another moment</h3>
+            <p>Three short reflections in Jonathan’s AI-cloned voice.</p>
+            <a className="text-link" href="/listen">
+              Explore original appreciation →
+            </a>
+          </article>
+          <article className="quiet-panel">
+            <h3>Stay a little longer</h3>
+            <p>Serenity, read by Mark Cawley. A 3:58 reading excerpt.</p>
+            <a className="text-link" href="/listen#longer">
+              Hear the reading →
+            </a>
+          </article>
+          <article className="quiet-panel">
+            <h3>Explore an idea</h3>
+            <p>
+              Hear the available program sample or describe a custom session.
+            </p>
+            <a className="text-link" href="/programs">
+              Guided programs →
+            </a>
+            <a className="text-link" href="/store/custom-order">
+              Custom sessions →
+            </a>
+          </article>
+        </div>
+      </section>
     </main>
   );
 }
