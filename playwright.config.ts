@@ -1,7 +1,7 @@
 import { defineConfig } from 'playwright/test';
 import path from 'path';
 
-const emailTestDatabaseUrl = `file:${path.resolve('e2e', '.tmp', 'waia-email-e2e.db').replace(/\\/g, '/')}`;
+const emailTestStoragePath = path.resolve('e2e', '.tmp', 'storage');
 
 export default defineConfig({
   testDir: './e2e',
@@ -24,8 +24,8 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       ...process.env,
-      DATABASE_URL: emailTestDatabaseUrl,
-      DATABASE_AUTH_TOKEN: '',
+      STORAGE_BACKEND: 'local',
+      STORAGE_LOCAL_PATH: emailTestStoragePath,
       WAIA_OPERATOR_SECRET: 'email-e2e-operator-secret',
       WAIA_OPERATOR_ID: 'e2e',
     },
