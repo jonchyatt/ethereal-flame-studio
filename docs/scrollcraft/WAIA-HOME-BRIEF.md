@@ -48,7 +48,7 @@ Jon's own words that set the job (relayed by the Conductor, 2026-11-04 and 2026-
      orb, ocean with alpha), the peak push-in clip, the closing ground.
    - The three gratitude clips (data/content/grok-channel-manager/s2-waia/*-FINAL.mp4)
      and their covers. Their METADATA.md says Jon's listening approval is pending and they
-     are uploaded PRIVATE; this page is a private preview, so they are shown here only.
+     are uploaded PRIVATE. Merging this page puts them on the site, so the PR says so plainly.
    - A 360 starfield render (data/content/mixtape-360-2026-10-20/preview.png).
    - An orb still from 03-below-the-surface-REACTIVE.mp4.
    - Not used: the channel avatar spiral (artwork ownership unconfirmed in
@@ -110,22 +110,23 @@ circling it turn until the question answers itself.**
 **The hinge ring.** The five-word name set as one continuous clockwise ring around the
 orb, baselines inward (upside down along the bottom, per Jon's merch rule), with a gold
 reading mark at twelve o'clock. Scroll through the peak turns the ring until "NOW" reaches
-the mark, and the caption under it hinges from the question to its answer. Page-local JS
-reading the act's `--sc-p`; the engine is untouched. The same ring, small and still, is
-the header mark.
+the mark, and the caption under it hinges from the question to its answer. Pure CSS
+reading the act's `--sc-p`; the engine is untouched. The ring's rest state follows Jon's
+carved panel (WHAT at the top, APPRECIATING upside down along the bottom, NOW climbing
+the left side), so the turn starts from the true mark and ends with NOW at the top.
 
 ## Score
 | Beat | Device | Why |
 |---|---|---|
 | Arrival | `pin` + layered `parallax` planes | Depth from independent sky / orb / ocean planes; label plate in front |
-| Practice | `pan` + `tilt` | Lateral travel reads as a range; three objects plus a lead label |
+| Practice | `pan` + staggered settle | Lateral travel reads as a range; three objects plus a lead label, each settling in turn |
 | The turn (peak) | `scrub` + signature ring | The only clip: the push-in across the water, hand on the playhead |
 | The house | `flow` + `reveal` per object | Each object wipes in as it arrives; VR window looks around via `--sc-p` |
 | Following along | `pin`, hold cue | The page stops; the plate holds |
 
-Families: pin, parallax, pan, tilt, scrub, flow/in, reveal (5+). No device twice in a row.
-One scrub (gallery allows one). Total about 10.5 viewport-heights, 5 acts: outside the
-6-to-7-acts at 13.6-13.8 band.
+Families: pin, parallax, pan, scrub, flow/in, reveal (5+). No device twice in a row.
+One scrub (gallery allows one). Measured total about 11.8 viewport heights on desktop
+(10,653px at 900px), 5 story acts: outside the 6-to-7-acts at 13.6-13.8 band.
 
 ## Authored silence
 None. The rail before the peak is the quiet act; no empty viewport is intended.
@@ -138,3 +139,17 @@ None. The rail before the peak is the quiet act; no empty viewport is intended.
 - No affiliate links or brand names on the shelf object (publishing links is Jon's red 3).
 - Merch object points at the four 2026-11-04 concepts, "preview coming", not the old mockups.
 - No public link to /studio, /create or /pipeline.
+
+## Addendum, 2026-11-04 late: brand roots
+Jon filed the roots of the mark (jarvis data/waia-health-shop/brand-roots-2026-11-04/,
+README.md). The CNC-carved wood panel is the canonical mark. Applied here:
+- **Header mark:** the traced square carving (04), 40px, on every public page.
+- **Banner:** the wide carving banner (05) as the merch object's image and at the top of
+  /merch (square crop of the panel on phones).
+- **Section grounds:** a vortex illusion behind the practice rail and the house. It is our
+  own render (render/gen-vortex.mjs: log-polar spiral cells stepping dark, blue, light,
+  gold, alternate rings reversed), in the family of the op-art files 01, 03, 07, 08, 09.
+  The original illusion files are not placed on the page: their makers are not recorded,
+  and 01 and 09 are in the rotating-snakes family whose author licenses it for
+  non-commercial use. A file swap puts an original in once its source and permission are
+  on file. Never a flat SVG spiral.

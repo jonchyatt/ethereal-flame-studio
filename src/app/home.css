@@ -48,6 +48,33 @@
 .label__list li::before { content: ""; position: absolute; left: 0; top: 0.72em; width: 6px; height: 6px; border-radius: 50%; background: var(--sc-accent); }
 .label__list span { color: var(--sc-ink-soft); }
 
+/* ---------- the one button, and the practice player ---------- */
+.label__mark { width: 112px; height: 112px; border-radius: 12px; box-shadow: var(--sc-e2); }
+.begin {
+  display: inline-flex; align-items: center; justify-content: center; justify-self: start;
+  min-height: 60px; padding: 0 2rem; margin-top: 0.5rem; border: 0; border-radius: 999px;
+  background: var(--sc-accent); color: var(--sc-accent-ink); font: 700 1.2rem/1.2 var(--sc-font-text);
+  text-decoration: none; cursor: pointer; box-shadow: 0 0 0 6px rgb(230 189 119 / 0.16), var(--sc-e2);
+  transition: background-color 160ms var(--sc-ease-out), box-shadow 160ms var(--sc-ease-out);
+}
+.begin:hover { background: #f0cd8d; box-shadow: 0 0 0 9px rgb(230 189 119 / 0.2), var(--sc-e2); }
+.begin:active { transform: translateY(1px); }
+.begin--next { min-height: 52px; font-size: 1rem; padding: 0.6rem 1.4rem; text-align: left; }
+.label__link { color: var(--sc-accent); font-size: var(--sc-t-sm); justify-self: start; min-height: 44px; display: inline-flex; align-items: center; }
+.player {
+  width: min(94vw, 26rem); max-height: 94svh; padding: 0; border: 1px solid var(--rule, rgb(236 230 214 / 0.1));
+  border-radius: 18px; background: #0c101e; color: var(--sc-ink); overflow: auto;
+}
+.player::backdrop { background: rgb(5 6 12 / 0.82); }
+.player__video { display: block; width: 100%; max-height: 70svh; aspect-ratio: 9 / 16; object-fit: contain; background: #05060c; }
+.player__bar { display: grid; gap: 0.7rem; padding: 1rem 1.1rem 1.1rem; }
+.player__title { margin: 0; font-family: var(--sc-font-display); font-size: 1.25rem; }
+.player__title span { color: var(--sc-ink-soft); font: 0.9rem var(--sc-font-text); margin-left: 0.4rem; }
+.player__done { margin: 0; }
+.player__links { margin: 0; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.player__links a, .player__close { color: var(--sc-accent); min-height: 44px; display: inline-flex; align-items: center; }
+.player__close { background: none; border: 1px solid rgb(230 189 119 / 0.5); border-radius: 10px; padding: 0 1rem; font: inherit; cursor: pointer; }
+
 /* ---------- 1. arrival: three planes that move at different rates ---------- */
 .hero { background: #05060c; }
 .plane { position: absolute; inset: -9% 0; transform: translateY(calc(var(--rate) * 50px)); }
@@ -138,7 +165,8 @@
 /* ---------- phones: recomposed, not shrunk ---------- */
 @media (max-width: 860px) {
   .label--hero, .label--peak { left: 16px; right: 16px; bottom: 16px; max-width: none; }
-  .label--hero p:not(.label__kind) { font-size: var(--sc-t-sm); }
+  .label--hero .label__mark { width: 72px; height: 72px; }
+  .label--hero .begin { justify-self: stretch; }
   .rail { padding-top: 76px; gap: 2rem; padding-inline: 16px; }
   .piece { flex-direction: column; align-items: flex-start; gap: 0.9rem; width: min(78vw, 22rem); }
   .piece__media video { height: min(48svh, 430px); }

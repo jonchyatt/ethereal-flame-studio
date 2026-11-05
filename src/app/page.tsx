@@ -5,6 +5,7 @@ import { RingMark } from '@/components/waia/RingMark';
 import { NOW_TURN_DEG } from '@/components/waia/ring';
 import { CHANNEL_URL } from '@/components/waia/WaiaHeader';
 import { HomeEngine } from '@/components/waia/HomeEngine';
+import { BeginPlayer } from '@/components/waia/BeginPlayer';
 import { OPERATOR } from '@/app/legal/LegalLinks';
 
 /*
@@ -20,13 +21,14 @@ export const metadata: Metadata = {
 
 const CREDIT = 'Voice: Jonathan Hyatt, from an AI clone of his own recordings. Music: Still Habitat, Alaeddin Hallak (CC0).';
 
-// Lengths measured from the files (ffprobe): 41.3 s, 59.3 s, 65.5 s.
+// Lengths measured from the files (ffprobe): 41.3 s, 59.3 s, 65.5 s. YouTube ids from the
+// upload receipt (jarvis data/content/grok-channel-manager/s3-uploader/UPLOAD-RECEIPT-2026-11-04.md).
 const PRACTICES = [
-  { id: 'hand', title: 'Put one hand on your chest.', length: '0:41',
+  { id: 'hand', title: 'Put one hand on your chest.', length: '0:41', seconds: 41, youtube: 'https://youtube.com/shorts/n51wrEOK-js',
     text: 'Rest one hand on your chest and notice what has carried you through today.' },
-  { id: 'thanks', title: 'Let that thank-you land again.', length: '0:59',
+  { id: 'thanks', title: 'Let that thank-you land again.', length: '0:59', seconds: 59, youtube: 'https://youtube.com/shorts/5Jum4B3rOEE',
     text: 'Remember a time someone thanked you and meant it. Give yourself a moment to receive it again.' },
-  { id: 'breath', title: 'Take one long breath out with me.', length: '1:05',
+  { id: 'breath', title: 'Take one long breath out with me.', length: '1:05', seconds: 65, youtube: 'https://youtube.com/shorts/B9NAsiA162Q',
     text: 'Pause for a few gentle breaths at your own pace. If anything feels uncomfortable, breathe normally.' },
 ];
 
@@ -63,10 +65,15 @@ export default function Home() {
           <Plane name="orb" rate={-0.45} src="hero-L2" />
           <Plane name="ocean" rate={0.9} src="hero-L3" />
           <div className="label label--plate label--hero" data-sc-cue="0 1 0 0">
+            {/* The mark: Jon's carved wood panel (jarvis data/waia-health-shop/brand-roots-2026-11-04/04). */}
+            <img className="label__mark" src="/waia-home/mark-carving-lg.webp" width={112} height={112}
+              alt="The mark: the name carved in wood as one ring around a spiral vortex." />
             <h1 id="home-title">What Am I Appreciating Now</h1>
-            <p className="label__kind">A curated loop. Gratitude practices and 360° scenes.</p>
-            <p>A light over night water, made in our own studio. Short practices in Jonathan Hyatt&rsquo;s voice, and scenes you can look around in.</p>
-            <a className="label__action label__action--solid" href="#practices">Try a practice</a>
+            <p className="label__kind">Gratitude practices and 360° scenes.</p>
+            <BeginPlayer channel={CHANNEL_URL} practices={PRACTICES.map((p) => ({
+              title: p.title, seconds: p.seconds, youtube: p.youtube,
+              src: `/waia-home/practice-${p.id}.mp4`, poster: `/waia-home/practice-${p.id}.webp` }))} />
+            <p className="label__credit">Put one hand on your chest, sound on. Two more follow, about a minute each.</p>
           </div>
         </div>
       </section>
@@ -95,6 +102,7 @@ export default function Home() {
                   <p className="label__kind">Practice. {p.length}.</p>
                   <p>{p.text}</p>
                   <p className="label__credit">{CREDIT}</p>
+                  <a className="label__link" href={p.youtube} target="_blank" rel="noopener">Also on YouTube</a>
                 </div>
               </article>
             ))}
