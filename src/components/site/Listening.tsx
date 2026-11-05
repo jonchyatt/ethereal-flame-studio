@@ -6,15 +6,19 @@ import { ClipCredits, ClipPlayer, MediaPlayer } from './MediaPlayer';
 
 export function Listening({ initialId = '19' }: { initialId?: string }) {
   const [id, setId] = useState(initialId);
+  const [finished, setFinished] = useState(false);
   const clip = clips.find((item) => item.id === id) || clips[0];
   function select(next: string) {
     setId(next);
+    setFinished(false);
     history.replaceState(null, '', `/listen?clip=${next}`);
     document.getElementById('selected-title')?.focus();
     document
       .getElementById('selected-title')
       ?.scrollIntoView({ block: 'start', behavior: 'instant' });
   }
+  const currentIndex = clips.findIndex((item) => item.id === clip.id);
+  const nextClip = clips[(currentIndex + 1) % clips.length];
   return (
     <>
       <section className="listen-intro">
@@ -32,8 +36,22 @@ export function Listening({ initialId = '19' }: { initialId?: string }) {
             Stay for a longer reading ↓
           </a>
         </div>
-        <ClipPlayer clip={clip} />
+        <ClipPlayer clip={clip} onEnded={() => setFinished(true)} />
       </section>
+      {finished && (
+        <section className="section quiet-panel" aria-live="polite">
+          <h2>Continue with another moment</h2>
+          <p>Take your time, then choose what is next.</p>
+          <div className="actions">
+            <button className="button primary" onClick={() => select(nextClip.id)}>
+              Next: {nextClip.title} · {nextClip.duration}
+            </button>
+            <a className="button" href="/programs">
+              Explore programs
+            </a>
+          </div>
+        </section>
+      )}
       <section className="section">
         <div className="section-heading">
           <h2>Your next moment</h2>
@@ -68,6 +86,16 @@ export function Listening({ initialId = '19' }: { initialId?: string }) {
           Explore the food-relationship sample →
         </a>
       </section>
+      <section className="section quiet-panel">
+        <h2>Free tools from Reset Biology</h2>
+        <p>
+          Reset Biology is a separate site with free daily tools. What Am I
+          Appreciating Now earns nothing from this link.
+        </p>
+        <a className="text-link" href="https://resetbiology.com/">
+          Open the free Reset Biology tools ↗
+        </a>
+      </section>
     </>
   );
 }
@@ -100,6 +128,7 @@ export function Reading() {
         src="/media/reading/serenity.mp3"
         title="Serenity — Reading excerpt"
         duration="3:58"
+        transcriptHref="/media/reading/serenity.txt"
       />
     </section>
   );

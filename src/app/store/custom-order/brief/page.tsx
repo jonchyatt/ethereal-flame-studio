@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   LENGTHS,
   MUSIC,
@@ -17,6 +17,11 @@ const field = {
 
 export default function CustomSessionBrief() {
   const [kind, setKind] = useState<'hypnosis' | 'vr'>('hypnosis');
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('kind') === 'vr') {
+      setKind('vr');
+    }
+  }, []);
   const [f, setF] = useState({
     goal: '',
     lengthMinutes: 20,
@@ -121,7 +126,7 @@ export default function CustomSessionBrief() {
             </select>
           </label>
           <label>
-            What would you like it to help with?
+            What would you like it to help with? (up to 300 characters)
             <textarea
               required
               maxLength={300}
@@ -129,8 +134,12 @@ export default function CustomSessionBrief() {
               onChange={(e) => set('goal', e.target.value)}
               style={field}
               rows={3}
+              aria-describedby="brief-goal-count"
             />
           </label>
+          <p id="brief-goal-count" className="meta">
+            {300 - f.goal.length} characters remaining.
+          </p>
           <details className="brief-options">
             <summary>Optional preferences and contact</summary>
             <p className="meta">
@@ -196,14 +205,18 @@ export default function CustomSessionBrief() {
                   </select>
                 </label>
                 <label>
-                  Anything to add about the scene
+                  Anything to add about the scene (up to 100 characters)
                   <input
                     maxLength={100}
                     value={f.vrSceneNote}
                     onChange={(e) => set('vrSceneNote', e.target.value)}
                     style={field}
+                    aria-describedby="brief-scene-count"
                   />
                 </label>
+                <p id="brief-scene-count" className="meta">
+                  {100 - f.vrSceneNote.length} characters remaining.
+                </p>
                 <label style={{ display: 'block', marginBottom: 16 }}>
                   <input
                     type="checkbox"
@@ -215,24 +228,37 @@ export default function CustomSessionBrief() {
               </>
             )}
             <label>
-              Anything we should know for your safety or comfort (optional)
+              Anything we should know for your safety or comfort (optional, up to 300 characters)
               <textarea
                 maxLength={300}
                 value={f.safetyNotes}
                 onChange={(e) => set('safetyNotes', e.target.value)}
                 style={field}
                 rows={2}
+                aria-describedby="brief-safety-help brief-safety-count"
               />
             </label>
+            <p id="brief-safety-help" className="meta">
+              Please share only production preferences. Do not include diagnoses,
+              medical history, or anything else you would not want read.{' '}
+              <a href="/legal/privacy">Privacy</a>
+            </p>
+            <p id="brief-safety-count" className="meta">
+              {300 - f.safetyNotes.length} characters remaining.
+            </p>
             <label>
-              How can we reach you (optional)
+              How can we reach you (optional, up to 200 characters)
               <input
                 maxLength={200}
                 value={f.contact}
                 onChange={(e) => set('contact', e.target.value)}
                 style={field}
+                aria-describedby="brief-contact-count"
               />
             </label>
+            <p id="brief-contact-count" className="meta">
+              {200 - f.contact.length} characters remaining.
+            </p>
             <input
               name="website"
               tabIndex={-1}

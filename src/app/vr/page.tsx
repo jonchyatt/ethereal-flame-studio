@@ -58,7 +58,7 @@ export default function VrPage() {
           <a className="button" href="/listen">
             Hear Jonathan’s original appreciation
           </a>
-          <a className="text-link" href="/store/custom-order">
+          <a className="text-link" href="/store/custom-order/brief?kind=vr">
             Discuss an idea for a custom session →
           </a>
         </div>

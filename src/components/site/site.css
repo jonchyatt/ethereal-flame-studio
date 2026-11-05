@@ -733,6 +733,40 @@
 .public-site code {
   overflow-wrap: anywhere;
 }
+.patron-form {
+  margin-top: 24px;
+}
+.patron-options {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.patron-option {
+  display: block !important;
+  min-height: 48px;
+  margin: 8px 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.patron-option .meta {
+  display: block;
+  margin-top: 4px;
+}
+.patron-preview {
+  margin: 8px 0 16px;
+  padding: 16px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+}
+.patron-preview-name {
+  font: 22px/30px Georgia, serif;
+}
+.patron-consent {
+  min-height: 48px;
+  margin: 8px 0;
+  padding: 10px 0;
+}
 .honeypot {
   position: absolute;
   left: -10000px;

@@ -35,14 +35,14 @@ const BODY: Record<Doc, { h: string; p: ReactNode[] }[]> = {
     { h: 'Who is responsible', p: [`${OPERATOR.name}. Contact: ${OPERATOR.contact}.`] },
     { h: 'What we keep', p: [
       'A purchase: an anonymous customer number (cus_ followed by random characters) in a signed cookie named waia_customer, plus a private access record saying which programs it may open, until when, and the Stripe subscription or payment reference. No name or email is stored by this site for a purchase.',
-      'Payment details: you type your card into Stripe, not into this site. Stripe handles them under its own privacy policy (stripe.com/privacy) and tells us only whether the payment succeeded.',
-      'Patron sign-up (optional): the name or alias, optional short message, tier and consent ticks you submit, kept privately until reviewed. You can ask for removal at /patrons/remove with the code you were given.',
+      <>Payment details: you type your card into Stripe, not into this site. Stripe handles them under its <a href="https://stripe.com/privacy">privacy policy ↗</a> and tells us only whether the payment succeeded.</>,
+      <>Patron sign-up (optional): the name or alias, optional short message, tier and consent ticks you submit, kept privately until reviewed. You can ask for removal at <a href="/patrons/remove">/patrons/remove</a> with the code you were given.</>,
       'Email updates (optional): the email address you submit, the page where you signed up, the signup time and a browser user-agent string of up to 500 characters. We use these only to send new-session updates. Every update includes a link to unsubscribe.',
       'Custom session request (optional): what you write in the form and any contact details you choose to add, kept privately and never shown on the site.',
       'Page counts: we count page views and "notify me" taps per day and page. No cookie, address, browser details or visitor id are kept for this, and requests sent with Do Not Track or Global Privacy Control are not counted.',
     ] },
     { h: 'Where it is kept', p: ['The site runs on Vercel. Private records are kept in Cloudflare R2 storage, except optional email-update records, which are kept in Turso. We do not sell or share your information for advertising, and there are no ad or tracking scripts on the store.'] },
-    { h: 'Your choices', p: [`To see, correct or delete what we hold about you, contact ${OPERATOR.contact}. Clearing the waia_customer cookie removes the link between this browser and your access.`] },
+    { h: 'Your choices', p: [<>To see, correct or delete what we hold about you, contact <a href={`mailto:${OPERATOR.contact}`}>{OPERATOR.contact}</a>. Clearing the waia_customer cookie removes the link between this browser and your access.</>] },
   ],
   refunds: [
     { h: 'Subscriptions', p: [
@@ -84,9 +84,20 @@ export default async function LegalPage({ params }: { params: Promise<{ doc: str
   return (
     <main className="narrow" style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif', lineHeight: 1.6 }}>
       
-      <p><a href="/programs" style={NAV_LINK_STYLE}>← Programs</a></p>
+      <p><a href="/programs" style={NAV_LINK_STYLE}>← Back to programs</a></p>
       <h1>{meta.title}</h1>
       <p style={{ fontSize: 14, opacity: 0.7 }}>Last updated {UPDATED}</p>
+      {meta.slug === 'privacy' && (
+        <section className="notice">
+          <h2>In plain language</h2>
+          <p>
+            We keep only the details needed for an optional email update, a
+            display request, or a custom-session request. We do not sell or
+            share that information for advertising. You can ask Support what we
+            hold about you or ask for it to be corrected or deleted.
+          </p>
+        </section>
+      )}
       {BODY[meta.slug].map((s) => (
         <section key={s.h}>
           <h2 style={{ fontSize: 20 }}>{s.h}</h2>
