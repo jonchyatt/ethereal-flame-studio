@@ -3,7 +3,8 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useId, useRef, useState } from 'react';
 
-export function EmailSignup({ question }: { question?: string }) {
+/** `tag` marks which program or product the visitor asked to hear about; it is saved with the source page (`?notify=<tag>`). */
+export function EmailSignup({ question, tag, heading }: { question?: string; tag?: string; heading?: string }) {
   const pathname = usePathname() || '/';
   const id = useId();
   const input = useRef<HTMLInputElement>(null);
@@ -27,7 +28,7 @@ export function EmailSignup({ question }: { question?: string }) {
       const response = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, sourcePage: pathname, website }),
+        body: JSON.stringify({ email, sourcePage: tag ? `${pathname}?notify=${encodeURIComponent(tag)}` : pathname, website }),
       });
       const result = await response.json().catch(() => ({}));
       if (response.ok && result.ok) {
@@ -50,7 +51,7 @@ export function EmailSignup({ question }: { question?: string }) {
   }
   return (
     <section className="signup" aria-labelledby={`${id}-heading`}>
-      <h2 id={`${id}-heading`}>A new moment, when it’s ready</h2>
+      <h2 id={`${id}-heading`}>{heading || 'A new moment, when it’s ready'}</h2>
       <p>{question || 'Get a note when a new session is released.'}</p>
       <form
         onSubmit={submit}

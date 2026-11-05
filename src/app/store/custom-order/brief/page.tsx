@@ -61,13 +61,11 @@ export default function CustomSessionBrief() {
       if (res.ok && data.reference) setReference(data.reference);
       else
         setMsg(
-          res.status === 503
-            ? 'The brief service is not accepting requests right now. Your answers are still here. Please try again later or contact Support.'
-            : (
-                data.issues ?? [
-                  data.error ?? 'That did not go through. Please try again.',
-                ]
-              ).join(' '),
+          (
+            data.issues ?? [
+              data.error ?? 'That did not go through. Please try again.',
+            ]
+          ).join(' '),
         );
     } catch {
       setMsg(
@@ -98,7 +96,8 @@ export default function CustomSessionBrief() {
       </p>
       {reference ? (
         <section role="status">
-          <h2>Your brief is saved</h2>
+          <h2>Your brief is in.</h2>
+          <p>We reply by email within a few days. Nothing is charged.</p>
           <p>Keep this private reference to check the response:</p>
           <p>
             <code>{reference}</code>
@@ -140,8 +139,20 @@ export default function CustomSessionBrief() {
           <p id="brief-goal-count" className="meta">
             {300 - f.goal.length} characters remaining.
           </p>
+          <label>
+            Your email (we reply here; never shown publicly)
+            <input
+              type="email"
+              required
+              maxLength={200}
+              autoComplete="email"
+              value={f.contact}
+              onChange={(e) => set('contact', e.target.value)}
+              style={field}
+            />
+          </label>
           <details className="brief-options">
-            <summary>Optional preferences and contact</summary>
+            <summary>Optional preferences</summary>
             <p className="meta">
               These are requests. Feasibility, timing and revisions are
               discussed before any agreement.
@@ -246,19 +257,6 @@ export default function CustomSessionBrief() {
             <p id="brief-safety-count" className="meta">
               {300 - f.safetyNotes.length} characters remaining.
             </p>
-            <label>
-              How can we reach you (optional, up to 200 characters)
-              <input
-                maxLength={200}
-                value={f.contact}
-                onChange={(e) => set('contact', e.target.value)}
-                style={field}
-                aria-describedby="brief-contact-count"
-              />
-            </label>
-            <p id="brief-contact-count" className="meta">
-              {200 - f.contact.length} characters remaining.
-            </p>
             <input
               name="website"
               tabIndex={-1}
@@ -289,7 +287,7 @@ export default function CustomSessionBrief() {
         <a href="/store/custom-order">← Custom sessions and request lookup</a>
       </p>
       <p className="meta">
-        Your request and optional contact details stay private.{' '}
+        Your request and email stay private.{' '}
         <a href="/legal/privacy">Privacy</a> · <a href="/support">Support</a>
       </p>
     </main>

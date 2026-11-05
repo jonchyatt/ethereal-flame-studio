@@ -65,7 +65,7 @@ export default function Merch() {
           </p>
         </div>
       </section>
-      <EmailSignup question="Hear when the designs move from concept to finished work." />
+      <EmailSignup tag="merch" heading="Tell me when this is made" question="Leave your email and you will be told when a design becomes a real thing." />
     </main>
   );
 }

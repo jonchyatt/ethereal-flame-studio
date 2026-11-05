@@ -30,10 +30,10 @@ export function ProgramCards() {
             width="2048"
             height="1026"
           />
-          <p className="status">Preview in preparation</p>
+          <p className="status">Not for sale yet; get told when it opens</p>
           <p>
-            The first-step demo and exact materials are still being prepared.
-            Explore the current details or try a free appreciation moment.
+            Leave your email on the program page and you will be told when it
+            opens, or try a free appreciation moment now.
           </p>
           <a className="button" href="/programs/belief-lock-in">
             Explore the program →

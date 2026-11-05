@@ -135,7 +135,7 @@ export function Reading() {
         </p>
         <p className="meta">
           A complete chapter reading, offered as an excerpt for reflection. The
-          planned twenty-minute session is still in preparation.
+          longer twenty-minute session is not made yet; the excerpt is what exists today.
         </p>
         <p className="meta">
           LibriVox recording · Public domain in the United States.{' '}
