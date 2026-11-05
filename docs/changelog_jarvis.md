@@ -9,3 +9,5 @@
 - Briefing bill summaries now filter by paid flag and due date window client-side.
 - Documented new Notion env vars for recipes, meal plan database IDs, ingredients, and shopping list.
 - Added Telegram bot upgrades: streaming-style status edits, inline quick actions, task action buttons, and voice note STT with confirmation and retry handling.
+
+- storage env set 2026-11-05: R2 bucket ethereal-flame-studio + STORAGE_BACKEND=r2 on Production (fixes /api/subscribe and other storage-backed forms 503ing on the read-only local adapter).
