@@ -21,6 +21,10 @@ export default function Merch() {
       <div className="merch-grid">
         {concepts.map((c) => (
           <article className="card merch-card" key={c.slug}>
+            <div className="card-content concept-heading">
+              <p className="concept-label">Design concept</p>
+              <h2>{c.short}</h2>
+            </div>
             <a className="design-image" href={`/merch/${c.slug}`}>
               <img
                 src={`/brand/concepts/${c.image}`}
@@ -30,8 +34,6 @@ export default function Merch() {
               />
             </a>
             <div className="card-content">
-              <p className="concept-label">Design concept</p>
-              <h2>{c.title}</h2>
               <p>{c.description}</p>
               <a className="button" href={`/merch/${c.slug}`}>
                 View design →

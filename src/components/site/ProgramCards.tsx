@@ -6,10 +6,13 @@ export function ProgramCards() {
         <div className="card-content">
           <p className="eyebrow">Food and personal reflection</p>
           <h2>Advanced hypnosis sessions</h2>
-          <FoodSample compact />
-          <a className="button" href="/programs/advanced-hypnosis-sessions">
+          <a
+            className="text-link program-explore"
+            href="/programs/advanced-hypnosis-sessions"
+          >
             Explore the program →
           </a>
+          <FoodSample compact />
         </div>
       </article>
       <article className="card program-card">

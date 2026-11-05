@@ -602,6 +602,19 @@
   width: 100%;
   aspect-ratio: 1;
   object-fit: contain;
+  max-height: 360px;
+}
+.merch-card .concept-heading {
+  padding-bottom: 12px;
+}
+.merch-card .concept-heading h2 {
+  margin-bottom: 0;
+}
+.brief-options {
+  margin-bottom: 16px;
+}
+.program-explore {
+  margin: -8px 0 16px;
 }
 .merch-card .card-content {
   padding: 24px;
@@ -1138,12 +1151,16 @@
   flex-direction: column;
 }
 .program-card .compact .player-actions {
-  order: -1;
+  order: -2;
   margin: 0 0 16px;
   justify-content: flex-start;
 }
 .program-card .compact .audio-art img {
   max-height: 140px;
+}
+.program-card .compact audio {
+  order: -1;
+  margin-bottom: 16px;
 }
 .program-card .compact .motion-control {
   font-size: 12px;

@@ -2,7 +2,11 @@
 
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 
-const MotionContext = createContext({ paused: false, reduced: false, toggle: () => {} });
+const MotionContext = createContext({
+  paused: false,
+  reduced: false,
+  toggle: () => {},
+});
 
 /** One audio graph per mounted public shell. Every same-origin player feeds it. */
 export function AudioAtmosphere({ children }: { children: React.ReactNode }) {
@@ -111,7 +115,15 @@ export function AudioAtmosphere({ children }: { children: React.ReactNode }) {
 export function MotionControl() {
   const { paused, reduced, toggle } = useContext(MotionContext);
   return (
-    <button className="motion-control" onClick={toggle} aria-pressed={paused} disabled={reduced} title={reduced ? 'Motion is off because of your device preference' : undefined}>
+    <button
+      className="motion-control"
+      onClick={toggle}
+      aria-pressed={paused}
+      disabled={reduced}
+      title={
+        reduced ? 'Motion is off because of your device preference' : undefined
+      }
+    >
       {reduced ? 'Motion off' : paused ? 'Resume motion' : 'Pause motion'}
     </button>
   );
