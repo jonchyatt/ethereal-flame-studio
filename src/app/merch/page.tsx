@@ -1,3 +1,5 @@
+import { ScrollPage } from '@/components/site/scrollcraft/ScrollPage';
+import '@/components/site/scrollcraft/commerce.css';
 import { concepts } from '@/lib/site/content';
 import { EmailSignup } from '@/components/EmailSignup';
 import { pageMetadata } from '@/lib/site/metadata';
@@ -9,8 +11,8 @@ export const metadata = pageMetadata(
 );
 export default function Merch() {
   return (
-    <main>
-      <header className="page-intro">
+    <ScrollPage name="merch">
+      <header className="page-intro" data-sc-act="orientation" data-sc-flow>
         <p className="eyebrow">Design concepts</p>
         <h1>Carry the question with you</h1>
         <p className="lead">
@@ -19,13 +21,13 @@ export default function Merch() {
         </p>
       </header>
       <div className="merch-grid">
-        {concepts.map((c) => (
-          <article className="card merch-card" key={c.slug}>
+        {concepts.map((c, index) => (
+          <article className="card merch-card" key={c.slug} data-sc-act={c.slug} data-sc-flow>
             <div className="card-content concept-heading">
               <p className="concept-label">Design concept</p>
               <h2>{c.short}</h2>
             </div>
-            <a className="design-image" href={`/merch/${c.slug}`}>
+            <a className="design-image" data-sc-reveal={index % 2 ? "up" : undefined} href={`/merch/${c.slug}`}>
               <img
                 src={`/brand/concepts/${c.image}`}
                 alt={c.title}
@@ -35,14 +37,14 @@ export default function Merch() {
             </a>
             <div className="card-content">
               <p>{c.description}</p>
-              <a className="button" href={`/merch/${c.slug}`}>
+              <a className="button" data-sc-primary href={`/merch/${c.slug}`}>
                 View design →
               </a>
             </div>
           </article>
         ))}
       </div>
-      <section className="section split-section">
+      <section className="section split-section" data-sc-act="origin" data-sc-flow>
         <img
           className="story-mark"
           src="/brand/carving/04.png"
@@ -66,6 +68,6 @@ export default function Merch() {
         </div>
       </section>
       <EmailSignup tag="merch" heading="Tell me when this is made" question="Leave your email and you will be told when a design becomes a real thing." />
-    </main>
+    </ScrollPage>
   );
 }

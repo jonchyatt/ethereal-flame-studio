@@ -1,4 +1,7 @@
 'use client';
+import { ScrollPage } from '@/components/site/scrollcraft/ScrollPage';
+import '@/components/site/scrollcraft/commerce.css';
+
 
 import { useEffect, useState } from 'react';
 import {
@@ -77,18 +80,7 @@ export default function CustomSessionBrief() {
   }
 
   return (
-    <main
-      className="narrow"
-      style={{
-        maxWidth: 640,
-        margin: '0 auto',
-        padding: '48px 20px',
-        color: '#eee',
-        background: '#0b0b14',
-        minHeight: '100vh',
-        fontFamily: 'system-ui, sans-serif',
-      }}
-    >
+    <ScrollPage name="brief" className="narrow">
       <h1>Describe your custom session</h1>
       <p>
         Describe the session you have in mind. Sending a brief does not take
@@ -104,7 +96,7 @@ export default function CustomSessionBrief() {
           </p>
           <p>
             <a
-              href={`/store/custom-order#ref=${encodeURIComponent(reference)}`}
+              data-sc-primary href={`/store/custom-order#ref=${encodeURIComponent(reference)}`}
               style={{ color: '#9cf' }}
             >
               See where your request stands
@@ -112,7 +104,7 @@ export default function CustomSessionBrief() {
           </p>
         </section>
       ) : (
-        <form onSubmit={submit}>
+        <form onSubmit={submit} data-sc-act="brief" data-sc-flow>
           <label>
             Kind of session
             <select
@@ -290,6 +282,6 @@ export default function CustomSessionBrief() {
         Your request and email stay private.{' '}
         <a href="/legal/privacy">Privacy</a> · <a href="/support">Support</a>
       </p>
-    </main>
+    </ScrollPage>
   );
 }

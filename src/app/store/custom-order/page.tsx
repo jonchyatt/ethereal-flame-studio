@@ -1,4 +1,7 @@
 'use client';
+import { ScrollPage } from '@/components/site/scrollcraft/ScrollPage';
+import '@/components/site/scrollcraft/commerce.css';
+
 import { useEffect, useRef, useState } from 'react';
 import { ClipPlayer, ClipCredits } from '@/components/site/MediaPlayer';
 import { clips } from '@/lib/site/content';
@@ -68,10 +71,10 @@ export default function CustomOrder() {
     }
   }, []);
   return (
-    <main>
+    <ScrollPage name="custom-order">
       {!hasReference && (
         <>
-          <section className="custom-hero">
+          <section className="custom-hero" data-sc-act="example" data-sc-flow>
             <div className="custom-copy">
               <p className="eyebrow">Start with an idea</p>
               <h1>A session made for you</h1>
@@ -98,18 +101,18 @@ export default function CustomOrder() {
               </p>
             </div>
           </section>
-          <section className="section">
+          <section className="section" data-sc-act="process" data-sc-flow>
             <h2>From a thought to a shared brief</h2>
             <div className="three-grid">
               <article className="quiet-panel">
-                <h3>1. Describe</h3>
+                <h3>Describe</h3>
                 <p>
                   Share the theme, format and preferences you would like
                   considered. The form records a request.
                 </p>
               </article>
               <article className="quiet-panel">
-                <h3>2. Discuss</h3>
+                <h3>Discuss</h3>
                 <p>
                   Keep your private reference to check the response.
                   Feasibility, scope, timing and revisions need agreement before
@@ -117,7 +120,7 @@ export default function CustomOrder() {
                 </p>
               </article>
               <article className="quiet-panel">
-                <h3>3. Review</h3>
+                <h3>Review</h3>
                 <p>
                   Any delivery plan is confirmed with you. This sample is
                   original studio work, not a completed client commission or a
@@ -131,7 +134,7 @@ export default function CustomOrder() {
       )}
       <section
         className={hasReference ? 'quiet-panel' : 'section quiet-panel'}
-        id="lookup"
+        id="lookup" data-sc-act="lookup" data-sc-flow
       >
         {hasReference ? <h1>Your session request</h1> : <h2>Already have a reference?</h2>}
         <p>
@@ -206,6 +209,6 @@ export default function CustomOrder() {
           Lost your reference? Get help →
         </a>
       </section>
-    </main>
+    </ScrollPage>
   );
 }

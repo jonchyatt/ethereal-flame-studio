@@ -1,3 +1,5 @@
+import { ScrollPage } from '@/components/site/scrollcraft/ScrollPage';
+import '@/components/site/scrollcraft/commerce.css';
 import { StoreItemCard, gridStyle } from '@/components/store/StoreItemCard';
 import { WaiaFooter } from '@/components/WaiaFooter';
 import { NAV_LINK_STYLE } from '@/app/legal/LegalLinks';
@@ -25,7 +27,7 @@ export const metadata = {
 export default function ShelfPage() {
   const items = liveItems(SHELF_ITEMS);
   return (
-    <main className="narrow" style={{ maxWidth: 960, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
+    <ScrollPage name="shelf">
       
       <h1 style={{ color: '#f7f3e6', fontFamily: '"Iowan Old Style", "Sitka Text", Georgia, "Times New Roman", serif', fontSize: 'clamp(1.9rem, 5vw, 3rem)', fontWeight: 400, margin: 0 }}>The shelf</h1>
       {(items.length === 0 || shelfHasCommission(items)) && (
@@ -35,14 +37,14 @@ export default function ShelfPage() {
         <>
           <p style={{ opacity: 0.7, margin: 0 }}>The shelf is being stocked. Nothing is listed yet.</p>
           <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-            <a href="/store" style={shelfButtonStyle}>Store</a>
+            <a data-sc-primary href="/store" style={shelfButtonStyle}>Store</a>
             <a href="/" style={shelfButtonStyle}>Home</a>
           </div>
         </>
       ) : (
-        <div style={gridStyle}>{items.map((i) => <StoreItemCard key={i.id} item={i} />)}</div>
+        <div className="sc-shelf-list">{items.map((i) => <StoreItemCard key={i.id} item={i} />)}</div>
       )}
       <p style={{ fontSize: 14, opacity: 0.6, marginTop: 32 }}>Links go to the seller. Nothing is bought or stored here. The free Reset Biology tools stay free.</p>
-    </main>
+    </ScrollPage>
   );
 }
