@@ -32,6 +32,13 @@ try {
     await p.waitForFunction(()=>document.querySelector('.begin-panel video').paused);
     await p.waitForFunction(()=>window.__heroOrb?.audioState()==='running');
     await p.locator('.hero-action').getByRole('button',{name:'Pause scene',exact:true}).click();
+    await p.locator('.begin-panel .player-actions > button').first().click();
+    await p.locator('.begin-panel video').evaluate(v=>{v.currentTime=v.duration-.2;});
+    await p.locator('.begin-panel').getByRole('button',{name:/Next: Let that thank-you/}).click();
+    await p.waitForTimeout(200);
+    assert.equal(await p.locator('.begin-panel video').getAttribute('src'),'/media/appreciation/12.mp4');
+    assert.ok(await inView(p.locator('.begin-panel .player-actions > button').first()) || await inView(p.locator('.sc-action-dock button')),'next home clip has a visible control');
+    if(await p.locator('.sc-action-dock button').count()) assert.match(await p.locator('.sc-action-dock button').textContent(),/Play/);
     await p.screenshot({path:path.join(out,`home-${width}-begun.png`)});
     if(width===390){
       await p.getByRole('button',{name:'Menu',exact:true}).click();

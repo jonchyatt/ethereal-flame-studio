@@ -50,7 +50,8 @@ export function ScrollExperience() {
     function update() {
       frame = 0;
       if (!root || disposed) return;
-      const candidates = [...root.querySelectorAll<HTMLElement>(selectors)].filter(rendered);
+      const begunPlayer = root.querySelector('.begin-panel:not([hidden]) .player-actions > button');
+      const candidates = [...root.querySelectorAll<HTMLElement>(selectors)].filter(node => rendered(node) && !(begunPlayer && node.closest('.hero-action')));
       const focusedForm = document.activeElement?.closest('form');
       const focusedSubmit = focusedForm?.querySelector<HTMLElement>('button[type="submit"]');
       const playing = [...root.querySelectorAll<HTMLMediaElement>('video,audio')].find(media => !media.paused && !media.ended);

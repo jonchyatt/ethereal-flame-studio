@@ -63,6 +63,7 @@
 [data-scroll-page='listen'] .clip-choice { border-radius: 0; border: 0; border-top: 1px solid #625747; background: transparent; }
 [data-scroll-page='listen'] .clip-choice[aria-pressed='true'] { background: #23212b; }
 [data-scroll-page='listen'] .clip-choice > span:first-child { flex: 1; }
+[data-scroll-page='listen'] .clip-choice > span:last-child { flex: 0 0 auto; }
 [data-scroll-page='listen'] .clip-choice strong { font: 26px/1.2 Georgia,serif; }
 [data-scroll-page='listen'] .player-actions { position: relative; }
 [data-scroll-page='about'] .sc-about { align-items: start; }
