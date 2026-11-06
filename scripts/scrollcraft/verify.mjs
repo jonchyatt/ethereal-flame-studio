@@ -39,6 +39,8 @@ try {
         Document.prototype.exitPointerLock = () => {};
       });
       const page = await context.newPage();
+      page.setDefaultTimeout(30000);
+      page.setDefaultNavigationTimeout(90000);
       const errors = [], failed = [];
       page.on('pageerror', error => errors.push(error.message));
       page.on('response', response => { if (response.status() >= 400 && response.url().startsWith(base)) failed.push(`${response.status()} ${new URL(response.url()).pathname}`); });

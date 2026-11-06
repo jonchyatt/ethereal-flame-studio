@@ -5,6 +5,7 @@ import type { Quality, SceneKind, SceneStats, createSceneRenderer } from './rend
 import { createOrbAudio, type OrbAudio, type OrbAudioLevels } from './orbAudio';
 import { createWaterfallAudio, type WaterfallAudio } from './waterfallAudio';
 import styles from './scenes.module.css';
+import './public-scene.css';
 
 declare global {
   interface Window {
@@ -16,11 +17,11 @@ declare global {
   }
 }
 
-export default function LivingScene({ kind }: { kind: SceneKind }) {
+export default function LivingScene({ kind, title, publicControls = false }: { kind: SceneKind; title?: string; publicControls?: boolean }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const engine = useRef<ReturnType<typeof createSceneRenderer> | null>(null);
   const sound = useRef<(WaterfallAudio | OrbAudio) | null>(null);
-  const [controls, setControls] = useState(false);
+  const [controls, setControls] = useState(publicControls);
   const [started, setStarted] = useState(false);
   const [muted, setMuted] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -31,7 +32,7 @@ export default function LivingScene({ kind }: { kind: SceneKind }) {
     let cancelled = false;
     let audioFrame = 0;
     const query = new URLSearchParams(location.search);
-    setControls(query.get('controls') === '1');
+    setControls(publicControls || query.get('controls') === '1');
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
     // Keep the waterfall's original renderer and bundle independent of the
     // reflective three-dimensional orb scene.
@@ -86,7 +87,7 @@ export default function LivingScene({ kind }: { kind: SceneKind }) {
       motion.removeEventListener('change', motionChange);
       cancelAnimationFrame(audioFrame);
     };
-  }, [kind]);
+  }, [kind, publicControls]);
 
   const startSound = useCallback(() => {
     if (kind === 'orb-ocean' && reducedMotion) return;
@@ -105,38 +106,45 @@ export default function LivingScene({ kind }: { kind: SceneKind }) {
 
   return (
     <main className={`${styles.scene} ${kind === 'rainbow-falls' ? styles.falls : styles.orb}`}
+      data-scene-ui={publicControls ? kind : undefined}
       aria-label={kind === 'orb-ocean' ? 'A living rainbow orb on a starry ocean' : 'Rainbow light falling from a storm cloud into water'}
       onPointerDown={kind === 'rainbow-falls' ? startSound : undefined}
       onKeyDown={event => { if (kind === 'rainbow-falls' && (event.key === 'Enter' || event.key === ' ')) startSound(); }}
       tabIndex={kind === 'rainbow-falls' ? 0 : undefined}>
+      <header className={publicControls ? 'scene-toolbar' : undefined}
+        onKeyDown={publicControls ? event => event.stopPropagation() : undefined}>
+        {publicControls && title ? <h1 className="scene-title">{title}</h1> : null}
+        {controls ? <aside className={`${styles.controls} scene-control-panel`} aria-label="Scene controls" onPointerDown={event => event.stopPropagation()}>
+          <label>Quality <select defaultValue="auto" onChange={event => engine.current?.setQuality(event.target.value as Quality)}>
+            <option value="auto">Automatic</option><option value="low">Low</option>
+            <option value="medium">Medium</option><option value="high">High</option>
+          </select></label>
+          <button type="button" data-sc-primary={publicControls || undefined} onClick={() => { engine.current?.setPaused(!paused); setPaused(!paused); }}>
+            {paused ? 'Resume motion' : 'Pause motion'}</button>
+          {kind === 'rainbow-falls' && !started ? <button type="button" onClick={startSound}>Start sound</button> : null}
+        </aside> : null}
+      </header>
       <canvas ref={canvas} className={styles.canvas} style={failed ? { opacity: 0 } : undefined} aria-hidden="true" />
-      <span className={styles.srOnly}>{failed ? 'The animated scene is unavailable; a still ambient glow is shown.' :
+      <span className={failed && publicControls ? 'scene-status' : styles.srOnly}>{failed ? 'The animated scene is unavailable; a still ambient glow is shown.' :
         kind === 'rainbow-falls' ? 'Tap or press Enter to start the waterfall sound. A mute button appears after sound starts.' :
           'A living rainbow orb, a breathing ocean, and twinkling stars.'}</span>
-      {kind === 'orb-ocean' ? <div className={styles.orbAudio}>
+      {kind === 'orb-ocean' ? <div className={`${styles.orbAudio} scene-audio`}>
         {!started ? <button type="button" className={styles.begin} onClick={startSound} disabled={reducedMotion}>
           {reducedMotion ? 'Motion reduced' : 'Begin'}
         </button> : null}
         <p>Ocean: kingsrow / Freesound #362300 (CC0) · Music: Kevin MacLeod, CC BY 4.0</p>
       </div> : null}
       {kind === 'rainbow-falls' && started ? (
-        <button type="button" className={styles.mute} onPointerDown={event => event.stopPropagation()}
+        <button type="button" className={`${styles.mute} scene-mute`} onPointerDown={event => event.stopPropagation()}
+          onKeyDown={publicControls ? event => event.stopPropagation() : undefined}
           onClick={toggleMute} aria-label={muted ? 'Unmute waterfall' : 'Mute waterfall'} aria-pressed={muted}>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
             <path d="M11 5 6 9H3v6h3l5 4z" />
             {muted ? <path d="m16 9 5 6m0-6-5 6" /> : <><path d="M15 8a6 6 0 0 1 0 8" /><path d="M18 5a10 10 0 0 1 0 14" /></>}
           </svg>
+          {publicControls ? <span>{muted ? 'Unmute waterfall' : 'Mute waterfall'}</span> : null}
         </button>
       ) : null}
-      {controls ? <aside className={styles.controls} aria-label="Scene controls" onPointerDown={event => event.stopPropagation()}>
-        <label>Quality <select defaultValue="auto" onChange={event => engine.current?.setQuality(event.target.value as Quality)}>
-          <option value="auto">Automatic</option><option value="low">Low</option>
-          <option value="medium">Medium</option><option value="high">High</option>
-        </select></label>
-        <button type="button" onClick={() => { engine.current?.setPaused(!paused); setPaused(!paused); }}>
-          {paused ? 'Resume motion' : 'Pause motion'}</button>
-        {kind === 'rainbow-falls' && !started ? <button type="button" onClick={startSound}>Start sound</button> : null}
-      </aside> : null}
     </main>
   );
 }

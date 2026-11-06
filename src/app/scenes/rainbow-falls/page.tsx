@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function RainbowFallsPage() {
-  return <LivingScene kind="rainbow-falls" />;
+  return <LivingScene kind="rainbow-falls" title="Rainbow Falls" publicControls />;
 }

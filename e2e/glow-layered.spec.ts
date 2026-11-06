@@ -1,4 +1,7 @@
 import { test, expect, type Page } from 'playwright/test'
+import { disableNativePointerCapture, expectClosedGlowStage } from './glow-stage-contract'
+
+test.beforeEach(async ({ context }) => { await disableNativePointerCapture(context) })
 
 type ProbeWindow = Window & { __GLOW_TEST_TIME__?: number; __layerDraws?: number; __GLOW_TEST_SAMPLE_LAYERS__?: boolean; __GLOW_TEST_LAYERS__?: { hash: number; bright: number; error: number }[] }
 const route = () => test.info().project.metadata.glowRoute as string || '/lab/glow'
@@ -48,7 +51,7 @@ for (const style of ['mist', 'vortex', 'blend']) {
         await expect(root).toHaveAttribute('data-style', style)
       }
       await expect(roots.nth(0)).toHaveAttribute('data-position', 'full')
-      await expect(page.getByTestId(`${site()}-stage`)).toHaveText('')
+      await expectClosedGlowStage(page, route())
       await clock(page, 7)
       const layered = await fields(page)
       for (const field of layered) {
@@ -208,7 +211,7 @@ test('hidden controls select layered, retain it across styles, and release the o
   await preset.selectOption('layered')
   await expect(page.locator('[data-layered="true"]')).toHaveCount(1)
   await page.getByRole('button', { name: `Close ${site()} controls` }).click()
-  await expect(page.getByTestId(`${site()}-stage`)).toHaveText('')
+  await expectClosedGlowStage(page, route())
   await page.goto(`${route()}?preset=unknown&style=unknown`)
   await expect(page.locator('.thinking-glow-root')).toHaveCount(1)
   await expect(page.locator('.thinking-glow-root')).toHaveAttribute('data-style', 'mist')

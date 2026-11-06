@@ -30,8 +30,7 @@ changes only grammar and world will fail it.
 |---|---|---|---|---|---|---|---|---|
 | What Am I Appreciating Now public retrofit (PR93 onward) | Object gallery with live surfaces | Native destination links and contextual existing-action dock | Approved procedural scene plus restrained layout planes; Begin unchanged | Five home beats; compact interior families | Framed existing signup or task result | Real-text NOW-to-WHAT ring around the original carving | Existing wood, night ocean, approved media/concepts | 390/1440; 360 compact |
 
-*(empty: your first build has nothing to clear, so build whatever the interview
-points at. From the second onwards, this table is the constraint.)*
+The registry was empty before this retrofit. The row above records the first shipped site.
 
 ---
 

@@ -31,7 +31,7 @@ Carving peak: original square photograph in the back; real typographic name ring
 
 ## Curve before score
 
-Home: welcome (the unchanged first tap) → agency (two unequal listening spreads) → recognition (ring returns around the original carving, largest content span) → curiosity (open text destinations) → belonging (signup framed as a final plate).
+Home: welcome (the unchanged first tap) → agency (entry on the first listening spread, reveal on the second) → recognition (ring returns around the original carving, largest content span) → curiosity (open text destinations) → belonging (signup framed as a final plate). Final review removes consecutive hero/poster parallax by changing only the first clip article to the existing entry treatment.
 Listen: recognition (selected words) → presence (player) → agency (choices) → confidence (transcript) → return (existing free tools).
 About: person (title) → recognition (carving) → clarity (voice/credits) → invitation (existing links).
 Programs: orientation → distinction (two different programs) → honesty (in preparation) → agency (free clip) → notification.

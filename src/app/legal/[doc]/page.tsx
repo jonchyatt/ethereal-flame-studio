@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { LEGAL_DOCS, LegalLinks, NAV_LINK_STYLE, OPERATOR, SAFETY_NOTE } from '../LegalLinks';
+import { LEGAL_DOCS, NAV_LINK_STYLE, OPERATOR, SAFETY_NOTE } from '../LegalLinks';
+import { ScrollPage } from '@/components/site/scrollcraft/ScrollPage';
+import '@/components/site/scrollcraft/legal.css';
 
 /**
  * Terms, privacy and refunds for the store. Every statement describes what the
@@ -82,28 +84,32 @@ export default async function LegalPage({ params }: { params: Promise<{ doc: str
   const meta = LEGAL_DOCS.find((x) => x.slug === doc);
   if (!meta) notFound();
   return (
-    <main className="narrow" style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px', color: '#eee', background: '#0b0b14', minHeight: '100vh', fontFamily: 'system-ui, sans-serif', lineHeight: 1.6 }}>
-      
-      <p><a href="/programs" style={NAV_LINK_STYLE}>← Back to programs</a></p>
-      <h1>{meta.title}</h1>
-      <p style={{ fontSize: 14, opacity: 0.7 }}>Last updated {UPDATED}</p>
-      {meta.slug === 'privacy' && (
-        <section className="notice">
-          <h2>In plain language</h2>
-          <p>
-            We keep only the details needed for an optional email update, a
-            display request, or a custom-session request. We do not sell or
-            share that information for advertising. You can ask Support what we
-            hold about you or ask for it to be corrected or deleted.
-          </p>
-        </section>
-      )}
-      {BODY[meta.slug].map((s) => (
-        <section key={s.h}>
-          <h2 style={{ fontSize: 20 }}>{s.h}</h2>
-          {s.p.map((t, index) => <p key={`${s.h}-${index}`}>{t}</p>)}
-        </section>
-      ))}
-    </main>
+    <ScrollPage name={`legal-${meta.slug}`} className="sc-legal">
+      <header className="legal-intro">
+        <p><a href="/programs" style={NAV_LINK_STYLE}>← Back to programs</a></p>
+        <h1>{meta.title}</h1>
+        <p className="meta">Last updated {UPDATED}</p>
+        <a className="button primary" href="/support" data-sc-primary>Support</a>
+      </header>
+      <div className="legal-body">
+        {meta.slug === 'privacy' && (
+          <section className="notice">
+            <h2>In plain language</h2>
+            <p>
+              We keep only the details needed for an optional email update, a
+              display request, or a custom-session request. We do not sell or
+              share that information for advertising. You can ask Support what we
+              hold about you or ask for it to be corrected or deleted.
+            </p>
+          </section>
+        )}
+        {BODY[meta.slug].map((s) => (
+          <section key={s.h}>
+            <h2>{s.h}</h2>
+            {s.p.map((t, index) => <p key={`${s.h}-${index}`}>{t}</p>)}
+          </section>
+        ))}
+      </div>
+    </ScrollPage>
   );
 }
