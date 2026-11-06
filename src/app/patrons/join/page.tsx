@@ -1,5 +1,6 @@
 import { TIERS } from '@/lib/patrons/tiers';
 import JoinForm from './JoinForm';
+import { UtilityPage } from '@/components/site/scrollcraft/UtilityPage';
 
 export const metadata = {
   title: 'Join the patron wall · What Am I Appreciating Now',
@@ -9,11 +10,15 @@ export const metadata = {
 
 export default function JoinPage() {
   return (
-    <main className="narrow">
-      <h1>Join the patron wall</h1>
-      <p>Choose a display style and send a name for review. This is a free display request, not a membership or a promise of a place in a recording.</p>
-      <p className="meta">Every name is read by a person before it appears anywhere.</p>
-      <JoinForm tiers={TIERS.map((t) => ({ tier: t.tier, label: t.label, letters: t.letters, allowsMessage: t.allowsMessage }))} />
-    </main>
+    <UtilityPage name="patrons-join">
+      <div className="utility-workspace">
+        <header className="utility-intro">
+          <h1>Join the patron wall</h1>
+          <p>Choose a display style and send a name for review. This is a free display request, not a membership or a promise of a place in a recording.</p>
+          <p className="meta">Every name is read by a person before it appears anywhere.</p>
+        </header>
+        <JoinForm tiers={TIERS.map((t) => ({ tier: t.tier, label: t.label, letters: t.letters, allowsMessage: t.allowsMessage }))} />
+      </div>
+    </UtilityPage>
   );
 }

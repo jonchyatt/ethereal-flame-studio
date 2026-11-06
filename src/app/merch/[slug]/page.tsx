@@ -63,5 +63,5 @@ export default async function Design({
       />
     </>
   );
-  return slug.endsWith("-tee") ? <ScrollPage name="merch-detail">{body}</ScrollPage> : <main>{body}</main>;
+  return <ScrollPage name="merch-detail">{body}</ScrollPage>;
 }

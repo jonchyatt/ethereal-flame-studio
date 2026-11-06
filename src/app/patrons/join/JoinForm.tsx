@@ -15,7 +15,6 @@ export default function JoinForm({ tiers }: { tiers: Tier[] }) {
   const [errors, setErrors] = useState<string[]>([]);
   const [done, setDone] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const field = { border: '1px solid #8c8c9e' } as const;
 
   const allowsMessage = tiers.find((t) => t.tier === tier)?.allowsMessage ?? false;
   const shownMessage = allowsMessage ? message.trim() : '';
@@ -42,17 +41,17 @@ export default function JoinForm({ tiers }: { tiers: Tier[] }) {
 
   if (done) {
     return (
-      <section role="status" style={{ marginTop: 24, padding: 20, border: '1px solid #333', borderRadius: 12 }}>
+      <section role="status" className="utility-surface utility-result">
         <h2>Thank you</h2>
         <p>Your name is waiting for a person to read it. Nothing appears until it is approved.</p>
         <p>Keep this code. It is the only way to ask for removal later, and we store no email for you:</p>
-        <p style={{ fontFamily: 'monospace', fontSize: 18 }}>{done}</p>
+        <p className="utility-code">{done}</p>
       </section>
     );
   }
 
   return (
-    <form onSubmit={submit} className="patron-form">
+    <form onSubmit={submit} className="patron-form utility-surface">
       <fieldset className="patron-options">
         <legend>Requested display style</legend>
         {tiers.map((t) => (
@@ -62,12 +61,12 @@ export default function JoinForm({ tiers }: { tiers: Tier[] }) {
           </label>
         ))}
       </fieldset>
-      <label>Name or alias (up to 40 characters; no links or emails)
-        <input style={field} value={displayName} maxLength={40} onChange={(e) => setDisplayName(e.target.value)} required />
+      <label className="utility-field">Name or alias (up to 40 characters; no links or emails)
+        <input style={{ borderColor: '#8c8c9e' }} value={displayName} maxLength={40} onChange={(e) => setDisplayName(e.target.value)} required />
       </label>
       {allowsMessage && (
-        <label>One short message (up to 120 characters)
-          <input style={field} value={message} maxLength={120} onChange={(e) => setMessage(e.target.value)} />
+        <label className="utility-field">One short message (up to 120 characters)
+          <input style={{ borderColor: '#8c8c9e' }} value={message} maxLength={120} onChange={(e) => setMessage(e.target.value)} />
         </label>
       )}
       {/* Honeypot: hidden from people. */}
@@ -88,7 +87,7 @@ export default function JoinForm({ tiers }: { tiers: Tier[] }) {
         Read <a href="/legal/privacy">Privacy</a>, <a href="/legal/terms">Terms</a>, or get help from <a href="/support">Support</a> before you send a display request.
       </p>
       {errors.length > 0 && <ul role="alert" className="form-message error">{errors.map((m) => <li key={m}>{m}</li>)}</ul>}
-      <button type="submit" disabled={busy || !consent || !adult || !displayName.trim()}>
+      <button className="button primary" type="submit" data-sc-primary disabled={busy || !consent || !adult || !displayName.trim()}>
         {busy ? 'Sending…' : 'Send for approval'}
       </button>
       <p className="meta">Already on the wall and want out? <a href="/patrons/remove">Ask for removal</a>.</p>
