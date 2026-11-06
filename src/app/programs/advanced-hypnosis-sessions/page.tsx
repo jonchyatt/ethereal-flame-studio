@@ -11,7 +11,7 @@ export const metadata = pageMetadata(
 export default function HypnosisSessionsPage() {
   return (
     <ProgramView id={HYPNOSIS_PROGRAM_ID}>
-      <section className="program-hero">
+      <section className="program-hero" data-sc-act="flow">
         <div>
           <h1>Advanced hypnosis sessions</h1>
           <p className="lead">Sessions are being recorded.</p>

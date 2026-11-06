@@ -2,6 +2,8 @@ import { HomeHero } from '@/components/site/HomeHero';
 import { EmailSignup } from '@/components/EmailSignup';
 import { clips } from '@/lib/site/content';
 import { pageMetadata } from '@/lib/site/metadata';
+import { ScrollPage } from '@/components/site/scrollcraft/ScrollPage';
+import { Hinge } from '@/components/site/scrollcraft/Hinge';
 export const metadata = pageMetadata(
   'A moment of appreciation',
   '/',
@@ -9,19 +11,19 @@ export const metadata = pageMetadata(
 );
 export default function Home() {
   return (
-    <main>
-      <HomeHero />
-      <section className="section">
+    <ScrollPage name="home">
+      <div data-sc-act="flow"><HomeHero /></div>
+      <section className="section" data-sc-act="flow">
         <div className="section-heading">
           <h2>Another way into the moment</h2>
           <a className="text-link" href="/listen">
             All original listening →
           </a>
         </div>
-        <div className="two-grid">
+        <div className="two-grid sc-listening-gallery">
           {clips.slice(1).map((clip) => (
-            <article className="card clip-card" key={clip.id}>
-              <div className="reactive-art clip-card-image">
+            <article className="card clip-card sc-object" key={clip.id}>
+              <div className="reactive-art clip-card-image" data-sc-parallax={clip.id === '12' ? '-0.5' : undefined} data-sc-reveal={clip.id === '04' ? 'right' : undefined} data-sc-reveal-at="0.1 0.35">
                 <img
                   src={`/media/appreciation/${clip.id}.png`}
                   alt={`Frame from ${clip.title}`}
@@ -30,11 +32,11 @@ export default function Home() {
                   loading="lazy"
                 />
               </div>
-              <div className="card-content">
-                <p className="eyebrow">{clip.topic}</p>
+              <div className="card-content sc-object-copy">
                 <h3>{clip.title}</h3>
                 <p>{clip.description}</p>
-                <a className="button" href={`/listen?clip=${clip.id}`}>
+                <p className="meta">{clip.topic}</p>
+                <a className="button" href={`/listen?clip=${clip.id}`} data-sc-primary>
                   Listen · {clip.duration}
                 </a>
               </div>
@@ -42,18 +44,11 @@ export default function Home() {
           ))}
         </div>
       </section>
-      <section className="section split-section">
-        <img
-          className="story-mark"
-          src="/brand/carving/04.png"
-          alt="Jonathan’s original carved wood panel"
-          width="1024"
-          height="1024"
-          loading="lazy"
-        />
+      <section className="section split-section sc-carving-peak" data-sc-act="flow">
+        <Hinge />
         <div>
-          <p className="eyebrow">The question comes around</p>
           <h2>What Am I Appreciating Now</h2>
+          <p className="meta">The question comes around</p>
           <p>
             Jonathan Hyatt’s carving holds the name in one continuous ring. NOW
             leads back into WHAT: a question you can return to, wherever you
@@ -68,10 +63,10 @@ export default function Home() {
           </a>
         </div>
       </section>
-      <section className="section">
+      <section className="section sc-curiosity" data-sc-act="flow">
         <h2>Follow your curiosity</h2>
         <div className="three-grid">
-          <article className="quiet-panel">
+          <article className="quiet-panel" data-sc-in>
             <h3>Guided programs</h3>
             <p>
               Explore programs and get told when more opens.
@@ -80,7 +75,7 @@ export default function Home() {
               Explore programs →
             </a>
           </article>
-          <article className="quiet-panel">
+          <article className="quiet-panel" data-sc-in>
             <h3>Your own session</h3>
             <p>
               Start with a real example, then describe the session you have in
@@ -90,7 +85,7 @@ export default function Home() {
               Explore custom sessions →
             </a>
           </article>
-          <article className="quiet-panel">
+          <article className="quiet-panel" data-sc-in>
             <h3>Carry the question</h3>
             <p>Four new concepts for objects you can wear and hold.</p>
             <a className="text-link" href="/merch">
@@ -100,6 +95,6 @@ export default function Home() {
         </div>
       </section>
       <EmailSignup />
-    </main>
+    </ScrollPage>
   );
 }

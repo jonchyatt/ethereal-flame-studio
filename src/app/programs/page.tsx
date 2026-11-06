@@ -1,6 +1,7 @@
 import { ProgramCards } from '@/components/site/ProgramCards';
 import { EmailSignup } from '@/components/EmailSignup';
 import { pageMetadata } from '@/lib/site/metadata';
+import { ScrollPage } from '@/components/site/scrollcraft/ScrollPage';
 export const metadata = pageMetadata(
   'Guided programs',
   '/programs',
@@ -9,8 +10,8 @@ export const metadata = pageMetadata(
 );
 export default function Programs() {
   return (
-    <main>
-      <header className="page-intro">
+    <ScrollPage name="programs">
+      <header className="page-intro" data-sc-act="flow">
         <p className="eyebrow">Listen, then explore</p>
         <h1>Guided programs</h1>
         <p className="lead">
@@ -19,7 +20,7 @@ export default function Programs() {
         </p>
       </header>
       <ProgramCards />
-      <section className="section quiet-panel">
+      <section className="section quiet-panel" data-sc-act="flow">
         <h2>Start with something free</h2>
         <p>
           The original appreciation moments are free to play here. The program
@@ -36,6 +37,6 @@ export default function Programs() {
         </div>
       </section>
       <EmailSignup />
-    </main>
+    </ScrollPage>
   );
 }

@@ -11,6 +11,7 @@ import { loadAudioManifest } from '@/lib/entitlements/audio';
 import { SAFETY_NOTE } from '@/app/legal/LegalLinks';
 import { AudioPlayer } from './AudioPlayer';
 import { EmailSignup } from '@/components/EmailSignup';
+import { ScrollPage } from '@/components/site/scrollcraft/ScrollPage';
 
 export async function ProgramView({
   id,
@@ -41,12 +42,12 @@ export async function ProgramView({
     } catch {}
   }
   return (
-    <main>
+    <ScrollPage name="program-detail">
       <nav className="breadcrumb" aria-label="Breadcrumb">
         <a href="/programs">← Programs</a>
       </nav>
       {children || (
-        <section className="program-hero">
+        <section className="program-hero" data-sc-act="flow">
           <div>
             <p className="eyebrow">A belief you choose</p>
             <h1>{program.title}</h1>
@@ -63,6 +64,7 @@ export async function ProgramView({
             </a>
           </div>
           <img
+            data-sc-parallax="-0.35"
             className="story-mark"
             src="/brand/carving/04.png"
             alt="The original carved wood mark, not a program demo"
@@ -92,7 +94,7 @@ export async function ProgramView({
           )}
         </section>
       )}
-      <section className="section quiet-panel">
+      <section className="section quiet-panel" data-sc-act="flow">
         <h2>Make a little space to listen</h2>
         <p>
           Choose a quiet place where you can stop whenever you wish. Use the
@@ -108,6 +110,6 @@ export async function ProgramView({
         heading="Tell me when this opens"
         question="Not for sale yet. Leave your email and you will be told the day it opens."
       />
-    </main>
+    </ScrollPage>
   );
 }
