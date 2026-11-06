@@ -22,8 +22,8 @@ export default function Home() {
         </div>
         <div className="two-grid sc-listening-gallery">
           {clips.slice(1).map((clip) => (
-            <article className="card clip-card sc-object" key={clip.id}>
-              <div className="reactive-art clip-card-image" data-sc-parallax={clip.id === '12' ? '-0.5' : undefined} data-sc-reveal={clip.id === '04' ? 'right' : undefined} data-sc-reveal-at="0.1 0.35">
+            <article className="card clip-card sc-object" key={clip.id} data-sc-in={clip.id === '12' || undefined}>
+              <div className="reactive-art clip-card-image" data-sc-reveal={clip.id === '04' ? 'right' : undefined} data-sc-reveal-at="0.1 0.35">
                 <img
                   src={`/media/appreciation/${clip.id}.png`}
                   alt={`Frame from ${clip.title}`}

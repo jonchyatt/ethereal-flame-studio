@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function OrbOceanPage() {
-  return <LivingScene kind="orb-ocean" />;
+  return <LivingScene kind="orb-ocean" title="Orb Ocean" publicControls />;
 }

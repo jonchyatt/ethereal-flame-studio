@@ -1,4 +1,5 @@
 import { test, expect, type Page } from 'playwright/test'
+import { disableNativePointerCapture, expectClosedGlowStage } from './glow-stage-contract'
 
 // Shared behaviour suite; WAIA runs the same checks with its route metadata.
 type ProbeWindow = Window & { __GLOW_TEST_TIME__?: number; __GLOW_TEST_SOURCE__?: number; __GLOW_TEST_TRACE__?: boolean; __drawCount?: number }
@@ -31,7 +32,8 @@ async function pixels(page: Page) {
     resolve(Array.from(data))
   })))
 }
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page, context }) => {
+  await disableNativePointerCapture(context)
   await page.setViewportSize({ width: 390, height: 844 })
 })
 
@@ -50,7 +52,7 @@ test(`URL selects ${selectedStyle}; controls preserve all presets at ${viewport.
   await expect(root).toHaveAttribute('data-style', selectedStyle)
   await expect(root).toHaveAttribute('data-webgl', 'true')
   await clock(page, 7)
-  await expect(page.locator(`[data-testid="${siteName()}-stage"]`)).toHaveText('')
+  await expectClosedGlowStage(page, route())
   await expect(page.getByLabel('Style', { exact: true })).toHaveCount(0)
   const styled = await pixels(page)
   if (selectedStyle === 'blend') {
@@ -79,6 +81,7 @@ test(`URL selects ${selectedStyle}; controls preserve all presets at ${viewport.
   await preset.selectOption(route() === '/mist' ? 'whatAmIAppreciatingNow' : 'gemini')
   await style.selectOption('mist')
   await page.getByRole('button', { name: `Close ${siteName()} controls` }).click()
+  await expectClosedGlowStage(page, route())
   await clock(page, 7)
   expectSamePixels(await pixels(page), mist)
   await page.goto(`${route()}?style=unknown`)

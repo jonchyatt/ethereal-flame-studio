@@ -1,0 +1,43 @@
+/* Opt-in overlays only. Canvas size, renderers, audio, and the shared home scene stay untouched. */
+:is([data-scene-ui='mist'], [data-scene-ui='orb-ocean'], [data-scene-ui='rainbow-falls']) {
+  color: #f4f1e8;
+  font: 16px/1.5 'Segoe UI', sans-serif;
+  color-scheme: dark;
+
+  & * { box-sizing: border-box; }
+  & .scene-toolbar { position: absolute; z-index: 2; top: max(16px, env(safe-area-inset-top)); left: max(16px, env(safe-area-inset-left)); max-width: calc(100% - 32px); transform: translateZ(0); }
+  & .scene-title { width: fit-content; max-width: 100%; margin: 0 0 12px; padding: 12px 16px; border: 1px solid #746650; background: #10111b; color: #f4f1e8; font: 28px/1.15 Georgia, serif; letter-spacing: -.02em; text-wrap: balance; }
+  & .scene-control-panel { position: static; display: flex; flex-wrap: wrap; align-items: end; gap: 12px; max-width: 100%; margin: 0; padding: 16px; border: 1px solid #746650; border-radius: 0; background: #10111b; color: #f4f1e8; font: 16px/1.5 'Segoe UI', sans-serif; }
+  & .scene-control-panel label { display: grid; gap: 6px; min-width: 0; }
+  & :is(button, select) { min-width: 44px; min-height: 48px; max-width: 100%; padding: 10px 14px; border: 1px solid #887c68; border-radius: 4px; background: #222330; color: #f4f1e8; font: 600 16px/1.4 'Segoe UI', sans-serif; cursor: pointer; }
+  & button:hover { background: #34303a; }
+  & button:disabled { color: #c2bfcb; background: #222330; border-color: #887c68; cursor: default; opacity: 1; }
+  & :is(button, select):focus-visible { outline: 3px solid #e5c891; outline-offset: 4px; }
+  & .scene-audio { padding: 12px 16px; border: 1px solid #746650; background: #10111b; color: #f4f1e8; font-size: 14px; line-height: 1.5; gap: 12px; }
+  & .scene-audio p { color: #c2bfcb; text-shadow: none; }
+  & .scene-audio button { min-width: 120px; background: #d6b479; border-color: #d6b479; color: #17131a; box-shadow: none; }
+  & .scene-audio button:hover { background: #e8ca95; }
+  & .scene-audio button:disabled { color: #f4f1e8; background: #5b5140; border-color: #897656; }
+  & .scene-mute { width: auto; height: auto; display: flex; align-items: center; gap: 10px; border-radius: 4px; background: #10111b; color: #f4f1e8; }
+  & .scene-mute svg { flex: none; }
+  & .scene-status { position: absolute; left: 16px; right: 16px; top: 50%; max-width: 640px; margin: auto; padding: 16px; border: 1px solid #746650; background: #10111b; color: #f4f1e8; }
+}
+
+[data-scene-ui='mist'] {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+
+  & .scene-toolbar { right: max(16px, env(safe-area-inset-right)); display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+  & .scene-title { margin-bottom: 0; }
+  & .scene-controls-toggle { min-height: 58px; background: #10111b; }
+  & .scene-control-panel { position: absolute; z-index: 2; top: max(90px, calc(env(safe-area-inset-top) + 74px)); right: max(16px, env(safe-area-inset-right)); display: grid; width: min(360px, calc(100% - 32px)); max-height: calc(100% - 110px); overflow-y: auto; }
+  & .scene-control-panel label { width: 100%; }
+  & .scene-control-panel select { width: 100%; font-weight: 400; }
+}
+
+@media (max-width: 767px) {
+  :is([data-scene-ui='orb-ocean'], [data-scene-ui='rainbow-falls']) .scene-control-panel { gap: 10px; padding: 12px; }
+  :is([data-scene-ui='orb-ocean'], [data-scene-ui='rainbow-falls']) .scene-control-panel label { flex: 1 0 100%; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px; }
+}
