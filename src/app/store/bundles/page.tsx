@@ -1,3 +1,5 @@
+import { ScrollPage } from '@/components/site/scrollcraft/ScrollPage';
+import '@/components/site/scrollcraft/commerce.css';
 import { ComingSoon } from '@/components/ComingSoon';
 import { pageMetadata } from '@/lib/site/metadata';
 export const metadata = pageMetadata(
@@ -34,12 +36,12 @@ const combinations = [
 ];
 export default function Bundles() {
   return (
-    <main>
+    <ScrollPage name="bundles">
       <nav className="breadcrumb" aria-label="Breadcrumb">
         <a href="/store">Store</a>
         <span>/ Gifts and bundles</span>
       </nav>
-      <div className="program-hero">
+      <div className="program-hero" data-sc-act="orientation" data-sc-flow>
         <div>
           <p className="eyebrow">Explore the combinations</p>
           <h1>Gifts and bundles</h1>
@@ -56,11 +58,11 @@ export default function Bundles() {
       </div>
       <section className="section three-grid">
         {combinations.map((c) => (
-          <article className="quiet-panel" key={c.title}>
+          <article className="quiet-panel" key={c.title} data-sc-act={c.title} data-sc-flow data-sc-in="settle">
             <h2>{c.title}</h2>
             <p>{c.copy}</p>
             {c.links.map(([href, title]) => (
-              <a key={href} className="text-link" href={href}>
+              <a key={href} className="text-link" data-sc-primary href={href}>
                 {title} →
               </a>
             ))}
@@ -72,6 +74,6 @@ export default function Bundles() {
         item="Gifts and bundles"
         question="Hear when the bundle contents are ready."
       />
-    </main>
+    </ScrollPage>
   );
 }

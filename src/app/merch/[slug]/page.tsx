@@ -1,3 +1,5 @@
+import { ScrollPage } from '@/components/site/scrollcraft/ScrollPage';
+import '@/components/site/scrollcraft/commerce.css';
 import { notFound } from 'next/navigation';
 import { EmailSignup } from '@/components/EmailSignup';
 import { concepts } from '@/lib/site/content';
@@ -24,13 +26,13 @@ export default async function Design({
   const { slug } = await params;
   const c = concepts.find((item) => item.slug === slug);
   if (!c) notFound();
-  return (
-    <main>
+  const body = (
+    <>
       <nav className="breadcrumb" aria-label="Breadcrumb">
         <a href="/merch">← All design concepts</a>
       </nav>
-      <article className="merch-detail">
-        <img
+      <article className="merch-detail" data-sc-act="concept" data-sc-flow>
+        <img data-sc-parallax="0.04"
           src={`/brand/concepts/${c.image}`}
           alt={c.title + ' — full uncropped concept render'}
           width="1024"
@@ -59,6 +61,7 @@ export default async function Design({
         heading="Tell me when this is made"
         question="Leave your email and you will be told when this design becomes a real thing."
       />
-    </main>
+    </>
   );
+  return slug.endsWith("-tee") ? <ScrollPage name="merch-detail">{body}</ScrollPage> : <main>{body}</main>;
 }

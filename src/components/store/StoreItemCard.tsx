@@ -9,15 +9,15 @@ export const CARD = {
 
 export function StoreItemCard({ item }: { item: StoreItem }) {
   return (
-    <article style={CARD.card} data-kind={item.kind} data-status={itemStatus(item)}>
-      <div style={CARD.media}>
+    <article className="sc-shelf-item" data-sc-act={item.id} data-sc-flow style={CARD.card} data-kind={item.kind} data-status={itemStatus(item)}>
+      {item.image && <div style={CARD.media}>
         {item.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
           <span aria-hidden="true">{item.source}</span>
         )}
-      </div>
+      </div>}
       <div style={CARD.body}>
         <span style={{ fontSize: 12, letterSpacing: 0.6, textTransform: 'uppercase', opacity: 0.65 }}>{KIND_LABEL[item.kind]}{itemStatus(item) === 'draft' ? ' · Draft, not on the public shelf' : ''}</span>
         <h3 style={{ margin: 0, fontSize: 18 }}>{item.name}</h3>
@@ -26,7 +26,7 @@ export function StoreItemCard({ item }: { item: StoreItem }) {
         {item.warning ? <p style={{ margin: 0, fontSize: 13, lineHeight: 1.4 }}><strong>Warning.</strong> {item.warning}</p> : null}
         {item.supplement ? <p style={{ margin: 0, fontSize: 12, opacity: 0.7, lineHeight: 1.4 }}>{FDA_LINE}</p> : null}
         <p style={{ margin: '4px 0 0' }}>
-          <a href={item.url} rel={linkRel(item)} target="_blank" style={{ color: '#9ad' }}>
+          <a data-sc-primary href={item.url} rel={linkRel(item)} target="_blank" style={{ color: '#9ad' }}>
             View at {item.source}
           </a>
           {item.commission ? <span style={{ display: 'block', fontSize: 12, opacity: 0.7, marginTop: 4 }}>{affiliateLine(item)}</span> : null}

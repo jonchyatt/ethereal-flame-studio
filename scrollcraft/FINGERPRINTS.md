@@ -28,6 +28,7 @@ changes only grammar and world will fail it.
 
 | Build | Grammar | Nav treatment | Hero device | Act-sequence shape | Close pattern | Signature move | World | Port |
 |---|---|---|---|---|---|---|---|---|
+| What Am I Appreciating Now public retrofit (PR93 onward) | Object gallery with live surfaces | Native destination links and contextual existing-action dock | Approved procedural scene plus restrained layout planes; Begin unchanged | Five home beats; compact interior families | Framed existing signup or task result | Real-text NOW-to-WHAT ring around the original carving | Existing wood, night ocean, approved media/concepts | 390/1440; 360 compact |
 
 *(empty: your first build has nothing to clear, so build whatever the interview
 points at. From the second onwards, this table is the constraint.)*
@@ -41,7 +42,7 @@ reusing: a grammar, a nav treatment, a close pattern, a signature move, an
 act-count-and-length band. The shared columns are what the next build inherits
 as a constraint, so writing them down is the whole point.
 
-Nothing is taken yet.
+- The NOW-to-WHAT real-text hinge around the original carved question is claimed by this coordinated site. Its interior family members share this registry row; they are not independently unique builds.
 
 ---
 

@@ -51,7 +51,7 @@ export const DISCLOSURE =
 
 /** Shown next to the link on every commission card. */
 export function affiliateLine(item: Pick<StoreItem, 'source' | 'program'>): string {
-  return `Affiliate link: WAIA may earn a commission from ${item.program?.trim() || item.source} if you buy through this link, at no extra cost to you.`;
+  return `Affiliate link: What Am I Appreciating Now may earn a commission from ${item.program?.trim() || item.source} if you buy through this link, at no extra cost to you.`;
 }
 
 /** Shown under the description on every supplement card. */

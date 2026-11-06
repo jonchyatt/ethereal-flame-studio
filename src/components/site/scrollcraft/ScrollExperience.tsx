@@ -18,8 +18,8 @@ function loadEngine() {
   return engineReady;
 }
 
-type Action = { node: HTMLElement; label: string; href?: string; disabled: boolean; visible: boolean };
-const selectors = '.hero-action .primary, .player-actions > button:first-child, form button[type="submit"], a[data-sc-primary], .actions > .primary, .program-hero .primary, .sc-about .primary, .vr-card .primary';
+type Action = { node: HTMLElement; label: string; href?: string; target?: string; rel?: string; disabled: boolean; visible: boolean };
+const selectors = '.hero-action .primary, .player-actions > button:first-child, form button[type="submit"], [data-sc-primary], .actions > .primary, .program-hero .primary, .sc-about .primary, .vr-card .primary';
 
 /** Motion never gates content. The dock invokes the original control, including validation. */
 export function ScrollExperience() {
@@ -69,6 +69,8 @@ export function ScrollExperience() {
       const next = {
         node, visible, label: node.textContent?.replace(/\s+/g, ' ').trim() || '',
         href: node instanceof HTMLAnchorElement ? node.href : undefined,
+        target: node instanceof HTMLAnchorElement ? node.target : undefined,
+        rel: node instanceof HTMLAnchorElement ? node.rel : undefined,
         disabled: node instanceof HTMLButtonElement && node.disabled,
       };
       setAction(old => old && old.node === next.node && old.visible === next.visible && old.label === next.label && old.disabled === next.disabled ? old : next);
@@ -101,7 +103,7 @@ export function ScrollExperience() {
       <span ref={marker} hidden />
       {action && !action.visible && action.label && (
         <div className="sc-action-dock" data-sc-action-dock>
-          {action.href ? <a className="button primary" href={action.href}>{action.label}</a> : (
+          {action.href ? <a className="button primary" href={action.href} target={action.target} rel={action.rel}>{action.label}</a> : (
             <button className="button primary" type="button" disabled={action.disabled} onClick={() => {
               action.node.click();
               // Error/status and the original control remain discoverable after submission.

@@ -1,3 +1,5 @@
+import { ScrollPage } from '@/components/site/scrollcraft/ScrollPage';
+import '@/components/site/scrollcraft/commerce.css';
 import { ProgramCards } from '@/components/site/ProgramCards';
 import { ClipPlayer } from '@/components/site/MediaPlayer';
 import { EmailSignup } from '@/components/EmailSignup';
@@ -11,8 +13,8 @@ export const metadata = pageMetadata(
 );
 export default function Store() {
   return (
-    <main>
-      <header className="page-intro">
+    <ScrollPage name="store">
+      <header className="page-intro" data-sc-act="orientation" data-sc-flow>
         <p className="eyebrow">Take the question with you</p>
         <h1>
           Programs, custom sessions
@@ -23,8 +25,8 @@ export default function Store() {
           Hear a sample, describe an idea, or explore the new designs.
         </p>
       </header>
-      <ProgramCards />
-      <section className="section split-section">
+      <section data-sc-act="programs" data-sc-flow><ProgramCards /></section>
+      <section className="section split-section" data-sc-act="session" data-sc-flow>
         <div>
           <p className="eyebrow">Made around your idea</p>
           <h2>A session made for you</h2>
@@ -53,7 +55,7 @@ export default function Store() {
           </p>
         </div>
       </section>
-      <section className="section">
+      <section className="section" data-sc-act="objects" data-sc-flow>
         <div className="section-heading">
           <div>
             <p className="eyebrow">Design concepts</p>
@@ -65,7 +67,7 @@ export default function Store() {
         </div>
         <div className="merch-strip">
           {concepts.map((c) => (
-            <article key={c.slug}>
+            <article key={c.slug} data-sc-flow data-sc-in="settle">
               <a href={`/merch/${c.slug}`}>
                 <img
                   src={`/brand/concepts/${c.image}`}
@@ -77,7 +79,7 @@ export default function Store() {
               </a>
               <p className="concept-label">Design concept</p>
               <h3>{c.short}</h3>
-              <a className="text-link" href={`/merch/${c.slug}`}>
+              <a className="text-link" data-sc-primary href={`/merch/${c.slug}`}>
                 View design →
               </a>
             </article>
@@ -88,7 +90,7 @@ export default function Store() {
           come.
         </p>
       </section>
-      <section id="free-tools" className="section quiet-panel">
+      <section data-sc-act="return" data-sc-flow id="free-tools" className="section quiet-panel">
         <h2>The free tools stay free</h2>
         <p>Return to the tools you already use at Reset Biology.</p>
         <a className="text-link" href="https://resetbiology.com/">
@@ -96,6 +98,6 @@ export default function Store() {
         </a>
       </section>
       <EmailSignup />
-    </main>
+    </ScrollPage>
   );
 }
