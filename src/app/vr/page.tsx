@@ -1,5 +1,6 @@
 import { videos360 } from '@/lib/site/content';
 import { pageMetadata } from '@/lib/site/metadata';
+import { ScrollPage } from '@/components/site/scrollcraft/ScrollPage';
 export const metadata = pageMetadata(
   '360° appreciation',
   '/vr',
@@ -7,8 +8,8 @@ export const metadata = pageMetadata(
 );
 export default function VrPage() {
   return (
-    <main>
-      <header className="page-intro">
+    <ScrollPage name="vr">
+      <header className="page-intro" data-sc-act="flow">
         <p className="eyebrow">From the channel archive</p>
         <h1>360° appreciation</h1>
         <p className="lead">
@@ -16,9 +17,9 @@ export default function VrPage() {
         </p>
       </header>
       <div className="two-grid">
-        {videos360.map((v) => (
-          <article className="card vr-card" key={v.id}>
-            <div className="reactive-art">
+        {videos360.map((v, index) => (
+          <article className={`card vr-card sc-vr-object-${index}`} key={v.id} data-sc-act="flow" data-sc-in={index === 3 ? '' : undefined}>
+            <div className="reactive-art" data-sc-parallax={index === 0 ? '-0.45' : undefined} data-sc-reveal={index === 1 ? 'left' : undefined} data-sc-reveal-at="0 0.28">
               <img
                 src={`/media/360/${v.id}.png`}
                 alt={`Actual video poster: ${v.title}`}
@@ -27,8 +28,8 @@ export default function VrPage() {
               />
             </div>
             <div className="card-content">
-              <p className="eyebrow">Abraham Hicks · 360° · {v.duration}</p>
               <h2>{v.title}</h2>
+              <p className="meta">Abraham Hicks · 360° · {v.duration}</p>
               <p className="meta">
                 Teacher recording: Abraham Hicks. Existing channel video;
                 separate from Jonathan’s original voice work.
@@ -43,7 +44,7 @@ export default function VrPage() {
           </article>
         ))}
       </div>
-      <section className="section quiet-panel">
+      <section className="section quiet-panel" data-sc-act="flow">
         <h2>Choose how you watch</h2>
         <p>
           On a screen, open the video on YouTube and use its 360° controls to
@@ -63,6 +64,6 @@ export default function VrPage() {
           </a>
         </div>
       </section>
-    </main>
+    </ScrollPage>
   );
 }

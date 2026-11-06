@@ -1,5 +1,6 @@
 import { Listening } from '@/components/site/Listening';
 import { pageMetadata } from '@/lib/site/metadata';
+import { ScrollPage } from '@/components/site/scrollcraft/ScrollPage';
 export const metadata = pageMetadata(
   'Listen',
   '/listen',
@@ -12,8 +13,8 @@ export default async function ListenPage({
 }) {
   const { clip } = await searchParams;
   return (
-    <main>
+    <ScrollPage name="listen">
       <Listening initialId={clip} />
-    </main>
+    </ScrollPage>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Clip, clips } from '@/lib/site/content';
 import { ClipCredits, ClipPlayer } from './MediaPlayer';
 
@@ -43,19 +43,31 @@ export function NextClipPanel({
 }
 
 export function Listening({ initialId = '19' }: { initialId?: string }) {
+  const selectedPlayer = useRef<HTMLDivElement>(null);
+  const selectionChanged = useRef(false);
   const { clip, nextClip, finished, select: choose, markEnded } =
     useClipSequence(initialId);
   function select(next: string) {
+    if (next === clip.id) {
+      const control = selectedPlayer.current?.querySelector<HTMLButtonElement>('.player-actions > button');
+      control?.focus({ preventScroll: true });
+      control?.scrollIntoView({ block: 'center', behavior: 'instant' });
+      return;
+    }
+    selectionChanged.current = true;
     choose(next);
     history.replaceState(null, '', `/listen?clip=${next}`);
-    document.getElementById('selected-title')?.focus();
-    document
-      .getElementById('selected-title')
-      ?.scrollIntoView({ block: 'start', behavior: 'instant' });
   }
+  useEffect(() => {
+    if (!selectionChanged.current) return;
+    const control = selectedPlayer.current?.querySelector<HTMLButtonElement>('.player-actions > button');
+    control?.focus({ preventScroll: true });
+    control?.scrollIntoView({ block: 'center', behavior: 'instant' });
+    selectionChanged.current = false;
+  }, [clip.id]);
   return (
     <>
-      <section className="listen-intro">
+      <section className="listen-intro" data-sc-act="flow">
         <div>
           <p className="eyebrow">Original appreciation · {clip.duration}</p>
           <h1 id="selected-title" tabIndex={-1}>
@@ -67,25 +79,24 @@ export function Listening({ initialId = '19' }: { initialId?: string }) {
             needed.
           </p>
         </div>
-        <ClipPlayer clip={clip} onEnded={markEnded} />
+        <div ref={selectedPlayer}><ClipPlayer clip={clip} onEnded={markEnded} /></div>
       </section>
       {finished && (
         <NextClipPanel nextClip={nextClip} onNext={() => select(nextClip.id)} />
       )}
-      <section className="section">
+      <section className="section" data-sc-act="flow">
         <div className="section-heading">
           <h2>Your next moment</h2>
           <span className="meta">Choose your own pace</span>
         </div>
         <div className="clip-choices">
-          {clips.map((item, index) => (
+          {clips.map((item) => (
             <button
               key={item.id}
               onClick={() => select(item.id)}
               className="clip-choice"
               aria-pressed={item.id === clip.id}
             >
-              <span className="choice-number">0{index + 1}</span>
               <span>
                 <strong>{item.title}</strong>
                 <span className="meta">
@@ -98,7 +109,7 @@ export function Listening({ initialId = '19' }: { initialId?: string }) {
         </div>
         <ClipCredits clip={clip} />
       </section>
-      <section className="section quiet-panel">
+      <section className="section quiet-panel" data-sc-act="flow">
         <h2>Free tools from Reset Biology</h2>
         <p>
           Reset Biology is a separate site with free daily tools. What Am I

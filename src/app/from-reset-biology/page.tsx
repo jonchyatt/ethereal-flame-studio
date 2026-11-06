@@ -1,6 +1,7 @@
 import { ClipPlayer } from '@/components/site/MediaPlayer';
 import { clips } from '@/lib/site/content';
 import { pageMetadata } from '@/lib/site/metadata';
+import { ScrollPage } from '@/components/site/scrollcraft/ScrollPage';
 export const metadata = {
   ...pageMetadata(
     'Welcome from Reset Biology',
@@ -11,8 +12,8 @@ export const metadata = {
 };
 export default function Handoff() {
   return (
-    <main>
-      <section className="custom-hero handoff-hero">
+    <ScrollPage name="handoff">
+      <section className="custom-hero handoff-hero" data-sc-act="flow">
         <div className="custom-copy">
           <p className="eyebrow">A little space to notice</p>
           <h1>Welcome from Reset Biology</h1>
@@ -33,7 +34,7 @@ export default function Handoff() {
           </p>
         </div>
       </section>
-      <section className="section">
+      <section className="section" data-sc-act="flow">
         <h2>Where would you like to go next?</h2>
         <div className="three-grid">
           <article className="quiet-panel">
@@ -57,6 +58,6 @@ export default function Handoff() {
           </article>
         </div>
       </section>
-    </main>
+    </ScrollPage>
   );
 }
