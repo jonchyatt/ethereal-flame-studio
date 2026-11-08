@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import ThinkingGlow from '@/components/mist/ThinkingGlow';
 import { MIST_PRESETS, type GlowStyle, type MistPresetId } from '@/components/mist/presets';
 import '@/components/scenes/public-scene.css';
@@ -35,6 +36,7 @@ export default function MistExperience() {
         >
           {controlsOpen ? 'Close mist controls' : 'Open mist controls'}
         </button>
+        <Link className="button primary scene-home" href="/" data-sc-primary>Home</Link>
       </header>
       {controlsOpen && (
         <aside id="mist-controls" aria-label="Mist controls" className="scene-control-panel">

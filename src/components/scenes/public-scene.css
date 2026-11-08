@@ -7,6 +7,8 @@
   & * { box-sizing: border-box; }
   & .scene-toolbar { position: absolute; z-index: 2; top: max(16px, env(safe-area-inset-top)); left: max(16px, env(safe-area-inset-left)); max-width: calc(100% - 32px); transform: translateZ(0); }
   & .scene-title { width: fit-content; max-width: 100%; margin: 0 0 12px; padding: 12px 16px; border: 1px solid #746650; background: #10111b; color: #f4f1e8; font: 28px/1.15 Georgia, serif; letter-spacing: -.02em; text-wrap: balance; }
+  & .scene-home { position: fixed; z-index: 3; left: max(16px, env(safe-area-inset-left)); bottom: max(16px, env(safe-area-inset-bottom)); min-width: 92px; color: #17131a; background: #d6b479; border-color: #d6b479; box-shadow: 0 8px 24px #05051099; }
+  & .scene-home:hover { color: #17131a; background: #e8ca95; border-color: #e8ca95; }
   & .scene-control-panel { position: static; display: flex; flex-wrap: wrap; align-items: end; gap: 12px; max-width: 100%; margin: 0; padding: 16px; border: 1px solid #746650; border-radius: 0; background: #10111b; color: #f4f1e8; font: 16px/1.5 'Segoe UI', sans-serif; }
   & .scene-control-panel label { display: grid; gap: 6px; min-width: 0; }
   & :is(button, select) { min-width: 44px; min-height: 48px; max-width: 100%; padding: 10px 14px; border: 1px solid #887c68; border-radius: 4px; background: #222330; color: #f4f1e8; font: 600 16px/1.4 'Segoe UI', sans-serif; cursor: pointer; }

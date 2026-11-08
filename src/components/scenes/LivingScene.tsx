@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import type { Quality, SceneKind, SceneStats, createSceneRenderer } from './renderer';
 import { createOrbAudio, type OrbAudio, type OrbAudioLevels } from './orbAudio';
 import { createWaterfallAudio, type WaterfallAudio } from './waterfallAudio';
@@ -114,6 +115,7 @@ export default function LivingScene({ kind, title, publicControls = false }: { k
       <header className={publicControls ? 'scene-toolbar' : undefined}
         onKeyDown={publicControls ? event => event.stopPropagation() : undefined}>
         {publicControls && title ? <h1 className="scene-title">{title}</h1> : null}
+        {publicControls ? <Link className="button primary scene-home" href="/" data-sc-primary>Home</Link> : null}
         {controls ? <aside className={`${styles.controls} scene-control-panel`} aria-label="Scene controls" onPointerDown={event => event.stopPropagation()}>
           <label>Quality <select defaultValue="auto" onChange={event => engine.current?.setQuality(event.target.value as Quality)}>
             <option value="auto">Automatic</option><option value="low">Low</option>
